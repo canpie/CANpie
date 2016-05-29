@@ -868,11 +868,11 @@ struct CpCanMsg_s {
    ** The structure member \c ubMsgCtrl defines the
    ** different data frames (2.0A / 2.0B) and the RTR frames.
    ** <ul>
-   ** <li>Bit 0: Extended Frame if set to 1, else Standard Frame
-   ** <li>Bit 1: Remote Frame if set to 1, else Data Frame
-   ** <li>Bit 2: Receiver Overrun if set to 1, else normal reception
-   ** <li>Bit 3: Message enable
-   ** <li>Bit 4: Transmit Request
+   ** <li>Bit 0: Frame Format 0
+   ** <li>Bit 1: Frame Format 1
+   ** <li>Bit 2: Remote Frame
+   ** <li>Bit 3: Overload Frame
+   ** <li>Bit 4: reserved, always 0
    ** <li>Bit 5: reserved, always 0
    ** <li>Bit 6: ISO CAN FD: value of EDL bit
    ** <li>Bit 7: ISO CAN FD: value of ESI bit
