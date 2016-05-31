@@ -25,4 +25,5 @@ RESOURCES +=
 
 
 HEADERS +=  ./qcan_client.hpp \
-            ./qcan_frame.hpp  
+            ./qcan_frame.hpp  \
+            ./qcan_interface.hpp

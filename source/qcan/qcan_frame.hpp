@@ -37,10 +37,10 @@
 
 #include "canpie.h"
 
-typedef struct Timestamp_s {
+typedef struct QCanTimestamp_s {
    uint32_t ulSeconds;
    uint32_t ulNanoSeconds;
-} Timestamp_ts;
+} QCanTimestamp_ts;
 
 
 #define  CAN_FRAME_DATA_MAX      64
@@ -171,7 +171,7 @@ private:
    ** was received by the CAN controller. This is an optional
    ** field (available if #CP_CAN_MSG_TIME is set to 1).
    */
-   Timestamp_ts tsMsgTimeP;
+   QCanTimestamp_ts tsMsgTimeP;
 
    
    /*!   The field user data can hold a 32 bit value, which is

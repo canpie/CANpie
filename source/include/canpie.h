@@ -1,8 +1,6 @@
 //============================================================================//
 // File:          canpie.h                                                    //
 // Description:   General CAN driver definitions and structures               //
-// Author:        Uwe Koppe                                                   //
-// e-mail:        koppe@microcontrol.net                                      //
 //                                                                            //
 // Copyright (C) MicroControl GmbH & Co. KG                                   //
 // 53844 Troisdorf - Germany                                                  //
