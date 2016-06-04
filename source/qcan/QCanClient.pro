@@ -16,7 +16,8 @@ INCLUDEPATH += ./../include
 DEFINES +=  
 
 SOURCES +=  ./qcan_client.cpp \
-            ./qcan_frame.cpp   
+            ./qcan_frame.cpp  \
+            ./main_canpie.c 
 
 FORMS   +=  
 

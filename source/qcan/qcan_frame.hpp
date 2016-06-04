@@ -35,7 +35,6 @@
 #include <QString>
 
 
-#include "canpie.h"
 
 typedef struct QCanTimestamp_s {
    uint32_t ulSeconds;
