@@ -17,7 +17,7 @@ DEFINES +=
 
 SOURCES +=  ./qcan_client.cpp \
             ./qcan_frame.cpp  \
-            ./main_canpie.c 
+            ./main_client.cpp 
 
 FORMS   +=  
 

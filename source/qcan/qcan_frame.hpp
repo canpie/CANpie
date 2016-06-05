@@ -51,19 +51,37 @@ class QCanFrame
 {
 public:
    
+   enum Type_e {
+      eTYPE_CAN_STD = 0,
+      eTYPE_CAN_EXT,
+      eTYPE_FD_STD,
+      eTYPE_FD_EXT,
+      eTYPE_ERROR = 0x10,
+      eTYPE_FUNCTION = 0x20
+   };
+
+   enum FormatTime_e {
+      eFORMAT_TIME_NONE,
+      
+   };
+   
+   enum FormatID_e {
+      eFORMAT_ID_DEC = 0,
+      eFORMAT_ID_HEX,
+   };
+   
+   enum FormatData_e {
+      eFORMAT_DATA_DEC = 0,
+      eFORMAT_DATA_HEX,
+   };
+   
    QCanFrame();
    
+   QCanFrame(const Type_e & ubTypeR, const uint32_t & ulIdentifierR = 0, 
+             const uint8_t & ubDlcR = 0);
    
    ~QCanFrame();
 
-   enum FrameType {
-      ClassicStd = 0,
-      ClassicExt,
-      FD_Std,
-      FD_Ext
-   };
-   
-   
    
    uint8_t     data(uint8_t ubPosV);
    
@@ -73,7 +91,7 @@ public:
    
    uint8_t     dlc(void);
    
-   FrameType   frameType(void) const;
+   Type_e      frameType(void) const;
    
    bool        fromByteArray(const QByteArray & clByteArrayR);
 
@@ -102,21 +120,21 @@ public:
    
    void        setExtId(uint32_t ulIdentifierV);
    
-   void        setFrameType(const FrameType &ubTypeR);
+   void        setFrameType(const Type_e &ubTypeR);
    
    void        setStdId(uint16_t uwIdentifierV);
    
-   void        toByteArray(QByteArray & clByteArrayR) const;
+   QByteArray  toByteArray() const;
    
+   QString     toString(const FormatTime_e & ubTimeFormatR = eFORMAT_TIME_NONE,
+                        const FormatID_e   & ubIdFormatR   = eFORMAT_ID_HEX,
+                        const FormatData_e & ubDataFormatR = eFORMAT_DATA_HEX);
    
    bool operator==(QCanFrame clCanFrameV);
    
    bool operator!=(QCanFrame clCanFrameV);
              
    friend QDataStream & operator<< (QDataStream & clStreamR, 
-                                    const QCanFrame & clCanFrameR);
-   
-   friend QString     & operator<< (QString & clStringR, 
                                     const QCanFrame & clCanFrameR);
    
    friend QDataStream & operator>> (QDataStream & clStreamR, 
@@ -173,13 +191,14 @@ private:
    QCanTimestamp_ts tsMsgTimeP;
 
    
-   /*!   The field user data can hold a 32 bit value, which is
-   **    defined by the user. This is an optional field
-   **    (available if #CP_CAN_MSG_USER is set to 1).
+   /*!   
+   ** The field user data can hold a 32 bit value, which is
+   ** defined by the user.
    */
    uint32_t ulMsgUserP;
 
    uint32_t ulMsgMarkerP;
+   
 };
 
 
