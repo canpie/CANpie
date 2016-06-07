@@ -51,6 +51,12 @@ typedef struct QCanStatistic_s {
    uint32_t   ulErrCount;
 } QCanStatistic_ts;
 
+//-----------------------------------------------------------------------------
+/*!
+** \class   QCanInterface
+** \brief   CAN interface
+** 
+*/
 class QCanInterface
 {
 public:

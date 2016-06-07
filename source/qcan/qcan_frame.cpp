@@ -35,6 +35,8 @@
 ** Include files                                                              **
 **                                                                            **
 \*----------------------------------------------------------------------------*/
+
+#include <QDebug>
 #include "qcan_frame.hpp"
 
 /*----------------------------------------------------------------------------*\
@@ -120,7 +122,7 @@ QCanFrame::~QCanFrame()
 // data()                                                                     //
 // get data                                                                   //
 //----------------------------------------------------------------------------//
-uint8_t  QCanFrame::data(uint8_t ubPosV)
+uint8_t  QCanFrame::data(uint8_t ubPosV) const
 {
    if(ubPosV < this->dataSize())
    {
@@ -199,7 +201,7 @@ uint8_t QCanFrame::dataSize(void) const
 // dlc()                                                                      //
 // get CAN DLC value                                                          //
 //----------------------------------------------------------------------------//
-uint8_t QCanFrame::dlc(void)
+uint8_t QCanFrame::dlc(void) const
 {
    return(ubMsgDlcP);
 }
@@ -211,7 +213,7 @@ uint8_t QCanFrame::dlc(void)
 //----------------------------------------------------------------------------//
 QCanFrame::Type_e  QCanFrame::frameType(void) const
 {
-   return((Type_e) (ubMsgCtrlP & 0x03));
+   return((Type_e) (ubMsgCtrlP & 0x33));
 }
 
 
@@ -236,7 +238,7 @@ bool QCanFrame::fromByteArray(const QByteArray & clByteArrayR)
    //
    uint16_t uwChecksumT = clByteArrayR[94];
    uwChecksumT = uwChecksumT << 8;
-   uwChecksumT = uwChecksumT + clByteArrayR[95];
+   uwChecksumT = uwChecksumT + (uint8_t) clByteArrayR[95];
    
    if(uwChecksumT != qChecksum(clByteArrayR.constData(), 
                                QCAN_FRAME_ARRAY_SIZE - 2))
@@ -255,11 +257,11 @@ bool QCanFrame::fromByteArray(const QByteArray & clByteArrayR)
    //
    ulIdentifierP = clByteArrayR[0];
    ulIdentifierP = ulIdentifierP << 8;
-   ulIdentifierP = ulIdentifierP + clByteArrayR[1];
+   ulIdentifierP = ulIdentifierP + (uint8_t) clByteArrayR[1];
    ulIdentifierP = ulIdentifierP << 8;
-   ulIdentifierP = ulIdentifierP + clByteArrayR[2];
+   ulIdentifierP = ulIdentifierP + (uint8_t) clByteArrayR[2];
    ulIdentifierP = ulIdentifierP << 8;
-   ulIdentifierP = ulIdentifierP + clByteArrayR[3];
+   ulIdentifierP = ulIdentifierP + (uint8_t) clByteArrayR[3];
 
  
    //----------------------------------------------------------------
@@ -279,8 +281,71 @@ bool QCanFrame::fromByteArray(const QByteArray & clByteArrayR)
    {
       aubByteP[ubPosT] = clByteArrayR[6 + ubPosT];
    }   
+
+   //----------------------------------------------------------------
+   // set message timestamp field from byte 70 .. 77, MSB first
+   //
+   tsMsgTimeP.ulSeconds  = clByteArrayR[70];
+   tsMsgTimeP.ulSeconds  = tsMsgTimeP.ulSeconds << 8;
+   tsMsgTimeP.ulSeconds += (uint8_t) clByteArrayR[71];
+   tsMsgTimeP.ulSeconds  = tsMsgTimeP.ulSeconds << 8;
+   tsMsgTimeP.ulSeconds += (uint8_t) clByteArrayR[72];
+   tsMsgTimeP.ulSeconds  = tsMsgTimeP.ulSeconds << 8;
+   tsMsgTimeP.ulSeconds += (uint8_t) clByteArrayR[73];
+   
+   tsMsgTimeP.ulNanoSeconds  = clByteArrayR[74];
+   tsMsgTimeP.ulNanoSeconds  = tsMsgTimeP.ulNanoSeconds << 8;
+   tsMsgTimeP.ulNanoSeconds += (uint8_t) clByteArrayR[75];
+   tsMsgTimeP.ulNanoSeconds  = tsMsgTimeP.ulNanoSeconds << 8;
+   tsMsgTimeP.ulNanoSeconds += (uint8_t) clByteArrayR[76];
+   tsMsgTimeP.ulNanoSeconds  = tsMsgTimeP.ulNanoSeconds << 8;
+   tsMsgTimeP.ulNanoSeconds += (uint8_t) clByteArrayR[77];
+   
+   //----------------------------------------------------------------
+   // set message user field from byte 78 .. 81, MSB first
+   //
+   ulMsgUserP  = clByteArrayR[78];
+   ulMsgUserP  = ulMsgUserP << 8;
+   ulMsgUserP += (uint8_t) clByteArrayR[79];
+   ulMsgUserP  = ulMsgUserP << 8;
+   ulMsgUserP += (uint8_t) clByteArrayR[80];
+   ulMsgUserP  = ulMsgUserP << 8;
+   ulMsgUserP += (uint8_t) clByteArrayR[81];
+      
+   //----------------------------------------------------------------
+   // set message marker field from byte 82 .. 85, MSB first
+   //
+   ulMsgMarkerP  = clByteArrayR[82];
+   ulMsgMarkerP  = ulMsgMarkerP << 8;
+   ulMsgMarkerP += (uint8_t) clByteArrayR[83];
+   ulMsgMarkerP  = ulMsgMarkerP << 8;
+   ulMsgMarkerP += (uint8_t) clByteArrayR[84];
+   ulMsgMarkerP  = ulMsgMarkerP << 8;
+   ulMsgMarkerP += (uint8_t) clByteArrayR[85];
+   
    
    return(true);
+}
+
+
+//----------------------------------------------------------------------------//
+// identifier()                                                               //
+// get identifier value                                                       //
+//----------------------------------------------------------------------------//
+uint32_t QCanFrame::identifier(void) const
+{
+   uint32_t ulIdValueT;
+   
+   if((ubMsgCtrlP & QCAN_FRAME_FORMAT_EXT) > 0)
+   {
+      ulIdValueT = ulIdentifierP & QCAN_FRAME_ID_MASK_EXT;
+   }
+   else
+   {
+      ulIdValueT = ulIdentifierP & QCAN_FRAME_ID_MASK_STD;
+   }
+   
+   return(ulIdValueT);
 }
 
 
@@ -290,11 +355,13 @@ bool QCanFrame::fromByteArray(const QByteArray & clByteArrayR)
 //----------------------------------------------------------------------------//
 bool QCanFrame::isExtended(void) const
 {
+   bool btResultT = false;
+   
    if((ubMsgCtrlP & QCAN_FRAME_FORMAT_EXT) > 0)
    {
-      return(true);
+      btResultT = true;
    }
-   return(false);
+   return(btResultT);
 }
 
 
@@ -345,6 +412,12 @@ void QCanFrame::setExtId(uint32_t ulIdentifierV)
 }
 
 
+void QCanFrame::setMarker(const uint32_t & ulMarkerValueR)
+{
+   ulMsgMarkerP = ulMarkerValueR;
+}
+
+
 //----------------------------------------------------------------------------//
 // setStdId()                                                                 //
 // test for Extended Frame format                                             //
@@ -353,6 +426,12 @@ void QCanFrame::setStdId(uint16_t uwIdentifierV)
 {
    ulIdentifierP = (uwIdentifierV & QCAN_FRAME_ID_MASK_STD);
    ubMsgCtrlP   &= (~QCAN_FRAME_FORMAT_EXT);
+}
+
+
+void QCanFrame::setUser(const uint32_t & ulUserValueR)
+{
+   ulMsgUserP = ulUserValueR;
 }
 
 
@@ -365,7 +444,7 @@ QByteArray QCanFrame::toByteArray() const
    //----------------------------------------------------------------
    // setup a defined length and clear contents
    //
-   QByteArray clByteArrayT(QCAN_FRAME_ARRAY_SIZE, Qt::Uninitialized);
+   QByteArray clByteArrayT(QCAN_FRAME_ARRAY_SIZE, 0x00);
    
   
    //----------------------------------------------------------------
@@ -395,7 +474,7 @@ QByteArray QCanFrame::toByteArray() const
    }
 
    //----------------------------------------------------------------
-   // place message timestamp field in byte 70 .. 81, MSB first
+   // place message timestamp field in byte 70 .. 77, MSB first
    //
    clByteArrayT[70] = (uint8_t) (tsMsgTimeP.ulSeconds >> 24);
    clByteArrayT[71] = (uint8_t) (tsMsgTimeP.ulSeconds >> 16);
@@ -413,6 +492,14 @@ QByteArray QCanFrame::toByteArray() const
    clByteArrayT[79] = (uint8_t) (ulMsgUserP >>  16);
    clByteArrayT[80] = (uint8_t) (ulMsgUserP >>   8);
    clByteArrayT[81] = (uint8_t) (ulMsgUserP >>   0);
+
+   //----------------------------------------------------------------
+   // place message marker field in byte 82 .. 85, MSB first
+   //
+   clByteArrayT[82] = (uint8_t) (ulMsgMarkerP >>  24);
+   clByteArrayT[83] = (uint8_t) (ulMsgMarkerP >>  16);
+   clByteArrayT[84] = (uint8_t) (ulMsgMarkerP >>   8);
+   clByteArrayT[85] = (uint8_t) (ulMsgMarkerP >>   0);
    
    //----------------------------------------------------------------
    // byte 86 .. 93 (i.e. 8 bytes) are not used, set to 0
@@ -426,7 +513,7 @@ QByteArray QCanFrame::toByteArray() const
    
    clByteArrayT[94] = (uint8_t) (uwChecksumT >> 8);
    clByteArrayT[95] = (uint8_t) (uwChecksumT >> 0);
-   
+
    return(clByteArrayT);
 }
 
@@ -435,16 +522,14 @@ QByteArray QCanFrame::toByteArray() const
 // toString()                                                                 //
 // print CAN frame                                                            //
 //----------------------------------------------------------------------------//
-QString QCanFrame::toString(const FormatTime_e & ubTimeFormatR,
-                            const FormatID_e & ubIdFormatR,
-                            const FormatData_e & ubDataFormatR)
+QString QCanFrame::toString(const bool & btShowTimeR) 
 {
    //----------------------------------------------------------------
-   // setup a defined length and clear contents
+   // setup a string object
    //
    QString clStringT; //(QCAN_FRAME_STRING_SIZE, '\0');
    
-   if(ubTimeFormatR == eFORMAT_TIME_NONE)
+   if(btShowTimeR == true)
    {
       
    }
@@ -453,22 +538,42 @@ QString QCanFrame::toString(const FormatTime_e & ubTimeFormatR,
    //----------------------------------------------------------------
    // print identifier
    //
-   if(ubIdFormatR == eFORMAT_ID_DEC)
+   clStringT += QString("%1  ").arg(ulIdentifierP, 8, 16).toUpper();
+
+   //----------------------------------------------------------------
+   // print frame format
+   //
+   switch(frameType())
    {
-      clStringT += QString("%1").arg(ulIdentifierP, 0, 10);
+      case eTYPE_CAN_STD:
+         clStringT += "CAN-STD ";
+         break;
+         
+      case eTYPE_CAN_EXT:
+         clStringT += "CAN-EXT ";
+         break;
+         
+      case eTYPE_FD_STD:
+         clStringT += " FD-STD ";
+         break;
+         
+      case eTYPE_FD_EXT:
+         clStringT += " FD-EXT ";
+         break;
+         
+      case eTYPE_ERROR:
+         clStringT += " ERROR  ";
+         break;
+         
+      case eTYPE_FUNCTION:
+         clStringT += " Func.  ";
+         break;
+
+      default:
+         clStringT += " N/A    ";
+         break;
    }
-   else
-   {
-      if(isExtended())
-      {
-         clStringT += QString("%1  ").arg(ulIdentifierP, 8, 16).toUpper();
-      }
-      else
-      {
-         clStringT += QString("%1  ").arg(ulIdentifierP, 8, 16).toUpper();
-      }
-   }
-   
+
    //----------------------------------------------------------------
    // print DLC
    //
@@ -480,23 +585,57 @@ QString QCanFrame::toString(const FormatTime_e & ubTimeFormatR,
    //
    for(uint8_t ubCntT = 0; ubCntT < dataSize(); ubCntT++)
    {
-      if(ubDataFormatR == eFORMAT_DATA_DEC)
-      {
-         
-      }
-      else
-      {
-         clStringT += QString("%1 ").arg( aubByteP[ubCntT], 
-                                          2,          // 2 digits 
-                                          16,         // hex value
-                                          QLatin1Char('0')).toUpper();
-      }
-      
+      clStringT += QString("%1 ").arg( aubByteP[ubCntT], 
+                                       2,          // 2 digits 
+                                      16,          // hex value
+                                      QLatin1Char('0')).toUpper();
    }
    
    return(clStringT);
 }
-       
+      
+
+//----------------------------------------------------------------------------//
+// operator ==                                                                //
+// compare two CAN frames                                                     //
+//----------------------------------------------------------------------------//
+bool QCanFrame::operator==(const QCanFrame & clCanFrameR)
+{
+   bool btResultT = false;
+   
+   if(this->frameType() == clCanFrameR.frameType())
+   {
+      if(this->identifier() == clCanFrameR.identifier())
+      {
+         if(this->dlc() == clCanFrameR.dlc())
+         {
+            btResultT = true;
+            for(uint8_t ubCntT = 0; ubCntT < this->dataSize(); ubCntT++)
+            {
+               if(this->data(ubCntT) != clCanFrameR.data(ubCntT))
+               {
+                  btResultT = false;
+                  break;
+               }
+            }
+         }
+      }
+   }
+   
+   return(btResultT);
+}
+
+
+//----------------------------------------------------------------------------//
+// operator !=                                                                //
+// compare two CAN frames                                                     //
+//----------------------------------------------------------------------------//
+bool QCanFrame::operator!=(const QCanFrame & clCanFrameR)
+{
+   return(!(*this == clCanFrameR));
+}
+
+
 //----------------------------------------------------------------------------//
 // operator <<                                                                //
 // stream to a QDataStream object                                             //

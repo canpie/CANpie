@@ -34,7 +34,14 @@
 #include <QDataStream>
 #include <QString>
 
-
+//-----------------------------------------------------------------------------
+/*!
+** \file    qcan_frame.hpp
+** \brief   CAN frame
+**
+** This file ...
+**
+*/
 
 typedef struct QCanTimestamp_s {
    uint32_t ulSeconds;
@@ -46,7 +53,12 @@ typedef struct QCanTimestamp_s {
 
 
 
-
+//-----------------------------------------------------------------------------
+/*!
+** \class   QCanFrame
+** \brief   CAN frame
+** 
+*/
 class QCanFrame
 {
 public:
@@ -60,21 +72,6 @@ public:
       eTYPE_FUNCTION = 0x20
    };
 
-   enum FormatTime_e {
-      eFORMAT_TIME_NONE,
-      
-   };
-   
-   enum FormatID_e {
-      eFORMAT_ID_DEC = 0,
-      eFORMAT_ID_HEX,
-   };
-   
-   enum FormatData_e {
-      eFORMAT_DATA_DEC = 0,
-      eFORMAT_DATA_HEX,
-   };
-   
    QCanFrame();
    
    QCanFrame(const Type_e & ubTypeR, const uint32_t & ulIdentifierR = 0, 
@@ -83,21 +80,29 @@ public:
    ~QCanFrame();
 
    
-   uint8_t     data(uint8_t ubPosV);
+   uint8_t     data(uint8_t ubPosV) const;
    
    QByteArray  data(void) const;
    
    uint8_t     dataSize(void) const;
    
-   uint8_t     dlc(void);
+   uint8_t     dlc(void) const;
    
    Type_e      frameType(void) const;
    
    bool        fromByteArray(const QByteArray & clByteArrayR);
 
-   int32_t     identifier(void);
+   /*!
+   ** \brief   Identifier value
+   ** \return  Identifier of CAN frame
+   ** \see     setExtId(), setStdId()
+   ** 
+   */
+   uint32_t    identifier(void) const;
 
    bool        isExtended(void) const;
+   
+   bool        isRemote(void) const;
    
    /*!
    ** \brief   Set Data
@@ -111,7 +116,6 @@ public:
    */
    void        setData(const uint8_t &ubPosR, const uint8_t ubValueR);
    
-   
    void        setData(const QByteArray &clDataR);
    
    void        setDataSize(uint8_t &ubSizeR);
@@ -122,17 +126,21 @@ public:
    
    void        setFrameType(const Type_e &ubTypeR);
    
+   void        setMarker(const uint32_t & ulMarkerValueR);
+
+   void        setRemoteFrame(const bool & btRtrR = true);
+   
    void        setStdId(uint16_t uwIdentifierV);
+   
+   void        setUser(const uint32_t & ulUserValueR);
    
    QByteArray  toByteArray() const;
    
-   QString     toString(const FormatTime_e & ubTimeFormatR = eFORMAT_TIME_NONE,
-                        const FormatID_e   & ubIdFormatR   = eFORMAT_ID_HEX,
-                        const FormatData_e & ubDataFormatR = eFORMAT_DATA_HEX);
+   virtual QString   toString(const bool & btShowTimeR = false);
    
-   bool operator==(QCanFrame clCanFrameV);
+   bool operator==(const QCanFrame & clCanFrameR);
    
-   bool operator!=(QCanFrame clCanFrameV);
+   bool operator!=(const QCanFrame & clCanFrameR);
              
    friend QDataStream & operator<< (QDataStream & clStreamR, 
                                     const QCanFrame & clCanFrameR);
@@ -162,12 +170,12 @@ private:
    ** The structure member \c ubMsgCtrlP defines the
    ** different frame types (2.0A / 2.0B / Classic / FD / RTR).
    ** <ul>
-   ** <li>Bit 0: Frame Format 0
-   ** <li>Bit 1: Frame Format 1
+   ** <li>Bit 0: Std. / Ext. Frame
+   ** <li>Bit 1: Classic CAN / CAN FD
    ** <li>Bit 2: Remote Frame
    ** <li>Bit 3: Overload Frame
-   ** <li>Bit 4: reserved, always 0
-   ** <li>Bit 5: reserved, always 0
+   ** <li>Bit 4: Internal: Error frame
+   ** <li>Bit 5: Internal: Function frame
    ** <li>Bit 6: ISO CAN FD: value of EDL bit
    ** <li>Bit 7: ISO CAN FD: value of ESI bit
    ** </ul>
@@ -197,6 +205,10 @@ private:
    */
    uint32_t ulMsgUserP;
 
+   /*!   
+   ** The field user data can hold a 32 bit value, which is
+   ** defined by the user.
+   */
    uint32_t ulMsgMarkerP;
    
 };
