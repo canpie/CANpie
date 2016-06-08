@@ -29,16 +29,47 @@
 #include <QtWidgets>
 #include <qcan_ixxatusb.hpp>
 
-//! [0]
 QString QCanIxxatUsb::echo(const QString &message)
 {
     return ("ixxat: " + message);
 }
-
 
 int32_t QCanIxxatUsb::setBitrate(uint32_t ulBitrateV, uint32_t ulBrsClockV)
 {
     return 0;
 }
 
-//! [0]
+int32_t	QCanIxxatUsb::setMode(const uint32_t ulModeV)
+{
+   return 0;
+}
+
+int32_t	QCanIxxatUsb::state(void)
+{
+   return 0;
+}
+
+int32_t	QCanIxxatUsb::statistic(QCanStatistic_ts &clStatisticR)
+{
+   return 0;
+}
+
+int32_t	QCanIxxatUsb::read(QCanFrame &clFrameR)
+{
+   return 0;
+}
+
+int32_t	QCanIxxatUsb::write(const QCanFrame &clFrameR)
+{
+   return 0;
+}
+
+int32_t QCanIxxatUsb::connect(void)
+{
+   return 0;
+}
+
+int32_t QCanIxxatUsb::disconnect(void)
+{
+   return 0;
+}

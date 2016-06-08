@@ -53,11 +53,29 @@ void QCanGui::sendEcho()
 }
 //! [1]
 
+void QCanGui::receiveError(int32_t slErrorV)
+{
+//    label->setText("HI");
+}
+
+
+void QCanGui::changePlugin(int slIdxV)
+{
+    QPluginLoader pluginLoader(aclDirListP.at(slIdxV));
+    QObject *plugin = pluginLoader.instance();
+    if (plugin) {
+        qCanInterface = qobject_cast<QCanInterface *>(plugin);
+    }
+}
+
+
+
 //! [2]
 void QCanGui::createGUI()
 {
     lineEdit = new QLineEdit;
     label = new QLabel;
+    comboBox = new QComboBox;
     label->setFrameStyle(QFrame::Box | QFrame::Plain);
     button = new QPushButton(tr("Send Message"));
 
@@ -67,11 +85,13 @@ void QCanGui::createGUI()
             this, SLOT(sendEcho()));
 
     layout = new QGridLayout;
-    layout->addWidget(new QLabel(tr("Message:")), 0, 0);
-    layout->addWidget(lineEdit, 0, 1);
-    layout->addWidget(new QLabel(tr("Answer:")), 1, 0);
-    layout->addWidget(label, 1, 1);
-    layout->addWidget(button, 2, 1, Qt::AlignRight);
+    layout->addWidget(new QLabel(tr("Plugin:")), 0, 0);
+    layout->addWidget(comboBox, 0, 1);
+    layout->addWidget(new QLabel(tr("Message:")), 1, 0);
+    layout->addWidget(lineEdit, 1, 1);
+    layout->addWidget(new QLabel(tr("Answer:")), 2, 0);
+    layout->addWidget(label, 2, 1);
+    layout->addWidget(button, 3, 1, Qt::AlignRight);
     layout->setSizeConstraint(QLayout::SetFixedSize);
 }
 //! [2]
@@ -79,6 +99,7 @@ void QCanGui::createGUI()
 //! [3]
 bool QCanGui::loadPlugin()
 {
+    QStringList clSelectItemListT;
     QDir pluginsDir(qApp->applicationDirPath());
 #if defined(Q_OS_WIN)
     if (pluginsDir.dirName().toLower() == "debug" || pluginsDir.dirName().toLower() == "release")
@@ -91,16 +112,39 @@ bool QCanGui::loadPlugin()
     }
 #endif
     pluginsDir.cd("plugins");
+    clSelectItemListT.clear();
+    aclDirListP.clear();
     foreach (QString fileName, pluginsDir.entryList(QDir::Files)) {
-        QPluginLoader pluginLoader(pluginsDir.absoluteFilePath(fileName));
+        QPluginLoader pluginLoader( pluginsDir.absoluteFilePath(fileName));
         QObject *plugin = pluginLoader.instance();
         if (plugin) {
             qCanInterface = qobject_cast<QCanInterface *>(plugin);
             if (qCanInterface)
-                return true;
+            {
+                clSelectItemListT.append(fileName);
+                aclDirListP.append(pluginsDir.absoluteFilePath(fileName));
+//                plugin->connect(plugin, SIGNAL(errorOccurred(int32_t) ),
+//                                this,          SLOT(  receiveError(int32_t) ) );
+//                connect(plugin, SIGNAL(errorOccurred() ),
+//                        this,   SLOT(  receiveError() ) );
+
+
+//                return true;
+            }
         }
     }
 
-    return false;
+    if (clSelectItemListT.isEmpty())
+    {
+        return false;
+    }
+
+    comboBox->addItems(clSelectItemListT);
+    comboBox->setCurrentIndex(clSelectItemListT.count()-1);
+
+    connect(comboBox, SIGNAL(activated(int)),
+            this, SLOT(changePlugin(int)));
+
+    return true;
 }
 //! [3]
