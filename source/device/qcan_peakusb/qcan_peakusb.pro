@@ -4,7 +4,8 @@ CONFIG         += plugin
 QT             += widgets
 INCLUDEPATH    += ../echowindow
 INCLUDEPATH    += ./../../include
-HEADERS         = qcan_peakusb.hpp
+HEADERS         = qcan_peakusb.hpp \
+                  PCANBasic.h
 SOURCES         = qcan_peakusb.cpp
 TARGET          = $$qtLibraryTarget(QCanPeakUsb)
 DESTDIR         = ../../qcan/plugins

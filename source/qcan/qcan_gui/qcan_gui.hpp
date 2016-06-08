@@ -37,6 +37,7 @@ QT_BEGIN_NAMESPACE
 class QString;
 class QLineEdit;
 class QLabel;
+class QComboBox;
 class QPushButton;
 class QGridLayout;
 QT_END_NAMESPACE
@@ -49,15 +50,21 @@ class QCanGui : public QWidget
 public:
     QCanGui();
 
+public slots:
+    void receiveError(int32_t);
+
 private slots:
     void sendEcho();
+    void changePlugin(int slIdxV);
 
 private:
     void createGUI();
     bool loadPlugin();
 
     QCanInterface *qCanInterface;
+    QList<QString> aclDirListP;
     QLineEdit *lineEdit;
+    QComboBox *comboBox;
     QLabel *label;
     QPushButton *button;
     QGridLayout *layout;

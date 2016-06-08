@@ -45,11 +45,6 @@
 #include "canpie.h"
 
 
-typedef struct QCanStatistic_s {
-   uint32_t   ulRcvCount;
-   uint32_t   ulTrmCount;
-   uint32_t   ulErrCount;
-} QCanStatistic_ts;
 
 //-----------------------------------------------------------------------------
 /*!
@@ -59,13 +54,22 @@ typedef struct QCanStatistic_s {
 */
 class QCanInterface
 {
+
 public:
+
+    typedef struct QCanStatistic_s {
+       uint32_t   ulRcvCount;
+       uint32_t   ulTrmCount;
+       uint32_t   ulErrCount;
+    } QCanStatistic_ts;
+
 
 //   QCanInterface();
 
 //   QCanInterface(QString clName);
 
-   virtual 			~QCanInterface() {};
+//   virtual ~QCanInterface() {};
+//    explicit QCanBusDevice(QObject *parent = Q_NULLPTR);
 
    // Demo Function
    virtual QString echo(const QString &message) = 0;
@@ -78,54 +82,47 @@ public:
    virtual int32_t 	setBitrate(uint32_t ulBitrateV, uint32_t ulBrsClockV) = 0;
 
 
-//    /*!
-//    **	\brief	Set Mode
-//    **
-//    **	Set mode of CAN interface
-//    */
-//    virtual int32_t	setMode(const uint32_t ulModeV) = 0;
+    /*!
+    **	\brief	Set Mode
+    **
+    **	Set mode of CAN interface
+    */
+    virtual int32_t	setMode(const uint32_t ulModeV) = 0;
 
 
-//    /*!
-//       ** \brief   get CAN state
-//       **
-//       ** get state  of CAN interface
-//       */
-//    virtual int32_t	state(void) = 0;
+    /*!
+       ** \brief   get CAN state
+       **
+       ** get state  of CAN interface
+       */
+    virtual int32_t	state(void) = 0;
 
-//    virtual int32_t	statistic(QCanStatistic_ts &clStatisticR) = 0;
+    virtual int32_t	statistic(QCanStatistic_ts &clStatisticR) = 0;
 
 	
-//    virtual int32_t	read(QCanFrame &clFrameR) = 0;
+    virtual int32_t	read(QCanFrame &clFrameR) = 0;
 
-//    virtual int32_t	write(const QCanFrame &clFrameR) = 0;
+    virtual int32_t	write(const QCanFrame &clFrameR) = 0;
 
-//    // connect the device
-//    virtual int32_t   connect(void) = 0;
+    // connect the device
+    virtual int32_t connect(void) = 0;
 
-//    // disconnect the device
-//   virtual int32_t   disconnect(void) = 0;
+    // disconnect the device
+    virtual int32_t disconnect(void) = 0;
+
 Q_SIGNALS:
-//       void errorOccurred(QCanBusDevice::CanBusError);
-//       void framesReceived();
-//       void framesWritten(int32_t ulFramesCountV);
-//       void stateChanged(QCanBusDevice::CanBusDeviceState state);
+    void errorOccurred(int32_t slCanBusErrorV);     //  QCanBusDevice::CanBusError
+    void framesReceived(uint32_t ulFramesCountV);
+    void framesWritten(uint32_t ulFramesCountV);
+    void stateChanged(int32_t slCanBusDevStatusV);
 
 private:
 
 
 };
 
-QT_BEGIN_NAMESPACE
-
 #define QCanInterface_iid "net.microcontrol.Qt.qcan.QCanInterface"
 
 Q_DECLARE_INTERFACE(QCanInterface, QCanInterface_iid)
-
-//#define EchoInterface_iid "org.qt-project.Qt.Examples.EchoInterface"
-
-//Q_DECLARE_INTERFACE(EchoInterface, EchoInterface_iid)
-
-QT_END_NAMESPACE
 
 #endif /*QCAN_INTERFACE_HPP_*/
