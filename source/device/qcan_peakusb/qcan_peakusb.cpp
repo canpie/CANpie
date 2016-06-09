@@ -127,11 +127,11 @@ int32_t QCanPeakUsb::connect(void)
    QFunctionPointer symbolFunctionPointer;
 
 
-   pfnCAN_InitializeP = (CAN_Initialize_tv) pcanLibrary.resolve("CAN_Initialize");
+   pfnCAN_InitializeP = (CAN_Initialize_tf) pcanLibrary.resolve("CAN_Initialize");
    if (!pfnCAN_InitializeP)
       qWarning("Failed to resolve the pcanbasic symbol: %s", "CAN_Initialize");
 
-   pfnCAN_UninitializeP = (CAN_Uninitialize_tv)pcanLibrary.resolve("CAN_Uninitialize");
+   pfnCAN_UninitializeP = (CAN_Uninitialize_tf)pcanLibrary.resolve("CAN_Uninitialize");
    if (!pfnCAN_UninitializeP)
       qWarning("Failed to resolve the pcanbasic symbol: %s", "CAN_Uninitialize");
 
@@ -139,7 +139,7 @@ int32_t QCanPeakUsb::connect(void)
    if (!symbolFunctionPointer)
       qWarning("Failed to resolve the pcanbasic symbol: %s", "CAN_Reset");
 
-   pfnCAN_GetStatusP = (CAN_GetStatus_tv)pcanLibrary.resolve("CAN_GetStatus");
+   pfnCAN_GetStatusP = (CAN_GetStatus_tf)pcanLibrary.resolve("CAN_GetStatus");
    if (!pfnCAN_GetStatusP)
       qWarning("Failed to resolve the pcanbasic symbol: %s", "CAN_GetStatus");
 

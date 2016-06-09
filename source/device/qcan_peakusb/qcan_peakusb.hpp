@@ -71,16 +71,16 @@ class QCanPeakUsb : public QObject, QCanInterface
     Q_INTERFACES(QCanInterface)
 
 private:
-    typedef uint32_t (*CAN_Initialize_tv) (uint8_t ubChannelV, uint16_t Btr0Btr1, uint8_t HwType, uint32_t IOPort, uint16_t Interrupt);
-    typedef uint32_t (*CAN_Uninitialize_tv) ( uint8_t ubChannelV);
-    typedef uint32_t (*CAN_Reset_tv) ( uint8_t ubChannelV);
-    typedef uint32_t (*CAN_GetStatus_tv) ( uint8_t ubChannelV);
-    typedef uint32_t (*CAN_Read_tv) ( uint8_t ubChannelV, TPCANMsg*, TPCANTimestamp*);
+    typedef uint32_t (*CAN_Initialize_tf) (uint8_t ubChannelV, uint16_t Btr0Btr1, uint8_t HwType, uint32_t IOPort, uint16_t Interrupt);
+    typedef uint32_t (*CAN_Uninitialize_tf) ( uint8_t ubChannelV);
+    typedef uint32_t (*CAN_Reset_tf) ( uint8_t ubChannelV);
+    typedef uint32_t (*CAN_GetStatus_tf) ( uint8_t ubChannelV);
+    typedef uint32_t (*CAN_Read_tf) ( uint8_t ubChannelV, TPCANMsg*, TPCANTimestamp*);
 
-    CAN_Initialize_tv pfnCAN_InitializeP;
-    CAN_Uninitialize_tv pfnCAN_UninitializeP;
-    CAN_GetStatus_tv pfnCAN_GetStatusP;
-    CAN_Read_tv pfnCAN_ReadP;
+    CAN_Initialize_tf pfnCAN_InitializeP;
+    CAN_Uninitialize_tf pfnCAN_UninitializeP;
+    CAN_GetStatus_tf pfnCAN_GetStatusP;
+    CAN_Read_tf pfnCAN_ReadP;
 
     bool btLibFuncLoadP = false;
 
