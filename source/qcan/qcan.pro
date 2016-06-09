@@ -2,6 +2,7 @@
 TEMPLATE     = lib
 CONFIG      += plugin
 QT          += widgets
+QT          += network
 DEFINES     +=
 INCLUDEPATH += .
 INCLUDEPATH += ./../include
