@@ -29,27 +29,17 @@
 #include <QtWidgets>
 #include <qcan_peakusb.hpp>
 
-//#ifdef Q_OS_WIN32
-//#include <windows.h>
-//#include <QtCore/qwineventnotifier.h>
-//#else
-//#include <QtCore/qsocketnotifier.h>
-//#endif
 
-
-//#include "PCANBasic.h"
-
-
-//Q_GLOBAL_STATIC(QLibrary, pcanLibrary)
-//typedef int (*pfnCAN_Write)(TPCANHandle Channel, TPCANMsg* MessageBuffer);
-
-
-
-//! [0]
+//----------------------------------------------------------------------------//
+// echo()                                                                     //
+// dummy implementation of a function to evaluate string                      //
+//----------------------------------------------------------------------------//
 QString QCanPeakUsb::echo(const QString &message)
 {
-   quint32 ulStatusT;
+   uint32_t ulStatusT;
    QString clRetStringT;
+   CHAR data[64];
+
    emit errorOccurred(17);
    if (message == "load")
    {
@@ -61,16 +51,22 @@ QString QCanPeakUsb::echo(const QString &message)
    {
       ulStatusT = pfnCAN_InitializeP(PCAN_USBBUS1, PCAN_USBBUS1, PCAN_USBBUS1, 0, 0);
       clRetStringT = (" " + QString::number(ulStatusT,16));
+      if (ulStatusT != PCAN_ERROR_OK)
+      {
+         pfnCAN_GetErrorTextP(ulStatusT,0x07,(char*)&data[0]);
+      }
    }
 
+   QString clRetString2T(data);
    if (message == "status")
    {
       ulStatusT = pfnCAN_GetStatusP(0);
-      clRetStringT = (" " + QString::number(ulStatusT,16));
+      clRetStringT = (" " + QString::number(ulStatusT,16) + " ("+ clRetString2T + ")");
    }
 
+
 //   clRetStringT.prepend(message + " ");
-   return ("peak: " + message + clRetStringT);
+   return ("peak: " + message + clRetStringT +  " ("+ clRetString2T + ")");
 }
 //! [0]
 
@@ -108,7 +104,10 @@ int32_t	QCanPeakUsb::write(const QCanFrame &clFrameR)
 {
    return 0;
 }
-
+//----------------------------------------------------------------------------//
+// connect()                                                                  //
+//                                                                            //
+//----------------------------------------------------------------------------//
 int32_t QCanPeakUsb::connect(void)
 {
    QLibrary pcanLibrary("PCANBasic.dll");
@@ -121,33 +120,36 @@ int32_t QCanPeakUsb::connect(void)
        return -1;
    }
 
-   //-----------------------------------------------------------------------
+   //----------------------------------------------------------------
    // Loads API functions
    //
-   QFunctionPointer symbolFunctionPointer;
-
-
    pfnCAN_InitializeP = (CAN_Initialize_tf) pcanLibrary.resolve("CAN_Initialize");
-   if (!pfnCAN_InitializeP)
-      qWarning("Failed to resolve the pcanbasic symbol: %s", "CAN_Initialize");
-
+   pfnCAN_InitializeFDP = (CAN_InitializeFD_tf) pcanLibrary.resolve("CAN_InitializeFD");
    pfnCAN_UninitializeP = (CAN_Uninitialize_tf)pcanLibrary.resolve("CAN_Uninitialize");
-   if (!pfnCAN_UninitializeP)
-      qWarning("Failed to resolve the pcanbasic symbol: %s", "CAN_Uninitialize");
-
-   symbolFunctionPointer = pcanLibrary.resolve("CAN_Reset");
-   if (!symbolFunctionPointer)
-      qWarning("Failed to resolve the pcanbasic symbol: %s", "CAN_Reset");
-
+   pfnCAN_ResetP = (CAN_Reset_tf)pcanLibrary.resolve("CAN_Reset");
    pfnCAN_GetStatusP = (CAN_GetStatus_tf)pcanLibrary.resolve("CAN_GetStatus");
-   if (!pfnCAN_GetStatusP)
-      qWarning("Failed to resolve the pcanbasic symbol: %s", "CAN_GetStatus");
+   pfnCAN_ReadP = (CAN_Read_tf)pcanLibrary.resolve("CAN_Read");
+   pfnCAN_ReadFDP = (CAN_ReadFD_tf)pcanLibrary.resolve("CAN_ReadFD");
+   pfnCAN_WriteP = (CAN_Write_tf)pcanLibrary.resolve("CAN_Write");
+   pfnCAN_WriteFDP = (CAN_WriteFD_tf)pcanLibrary.resolve("CAN_WriteFD");
+   pfnCAN_FilterMessagesP = (CAN_FilterMessages_tf)pcanLibrary.resolve("CAN_FilterMessages");
+   pfnCAN_GetValueP = (CAN_GetValue_tf)pcanLibrary.resolve("CAN_GetValue");
+   pfnCAN_SetValueP = (CAN_SetValue_tf)pcanLibrary.resolve("CAN_SetValue");
+   pfnCAN_GetErrorTextP = (CAN_GetErrorText_tf)pcanLibrary.resolve("CAN_GetErrorText");
 
-   //-----------------------------------------------------------------------
+
+   //----------------------------------------------------------------
    // check for success
    //
-   btLibFuncLoadP = pfnCAN_InitializeP && pfnCAN_UninitializeP && pfnCAN_GetStatusP && symbolFunctionPointer;
+   btLibFuncLoadP =  pfnCAN_InitializeP && pfnCAN_InitializeFDP &&
+                     pfnCAN_UninitializeP && pfnCAN_ResetP &&
+                     pfnCAN_GetStatusP && pfnCAN_ReadP  &&
+                     pfnCAN_ReadFDP && pfnCAN_WriteP &&
+                     pfnCAN_WriteFDP && pfnCAN_FilterMessagesP &&
+                     pfnCAN_GetValueP && pfnCAN_SetValueP &&
+                     pfnCAN_GetErrorTextP;
 
+   //----------------------------------------------------------------
    // If the API was not loaded (Wrong version), an error message is shown.
    //
    if (!btLibFuncLoadP)

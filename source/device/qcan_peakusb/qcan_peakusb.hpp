@@ -61,6 +61,23 @@
 //GENERATE_SYMBOL_VARIABLE(TPCANStatus, CAN_SetValue, TPCANHandle, TPCANParameter, void *, quint32)
 //GENERATE_SYMBOL_VARIABLE(TPCANStatus, CAN_GetErrorText, TPCANStatus, quint16, char *)
 
+//TPCANStatus __stdcall CAN_Initialize(TPCANHandle Channel, TPCANBaudrate Btr0Btr1, TPCANType HwType _DEF_ARG,DWORD IOPort _DEF_ARG, WORD Interrupt _DEF_ARG);
+//TPCANStatus __stdcall CAN_InitializeFD(TPCANHandle Channel,	TPCANBitrateFD BitrateFD);
+//TPCANStatus __stdcall CAN_Uninitialize(TPCANHandle Channel);
+
+//TPCANStatus __stdcall CAN_Reset(TPCANHandle Channel);
+//TPCANStatus __stdcall CAN_GetStatus(TPCANHandle Channel);
+
+//TPCANStatus __stdcall CAN_Read(TPCANHandle Channel, TPCANMsg* MessageBuffer, TPCANTimestamp* TimestampBuffer);
+//TPCANStatus __stdcall CAN_ReadFD(TPCANHandle Channel,	TPCANMsgFD* MessageBuffer,	TPCANTimestampFD *TimestampBuffer);
+
+//TPCANStatus __stdcall CAN_Write(TPCANHandle Channel,  TPCANMsg* MessageBuffer);
+//TPCANStatus __stdcall CAN_WriteFD(TPCANHandle Channel,	TPCANMsgFD* MessageBuffer);
+
+//TPCANStatus __stdcall CAN_FilterMessages(TPCANHandle Channel, DWORD FromID, DWORD ToID, TPCANMode Mode);
+//TPCANStatus __stdcall CAN_GetValue(TPCANHandle Channel, TPCANParameter Parameter,  void* Buffer, DWORD BufferLength);
+//TPCANStatus __stdcall CAN_SetValue(TPCANHandle Channel,        TPCANParameter Parameter, void* Buffer,		DWORD BufferLength);
+//TPCANStatus __stdcall CAN_GetErrorText(TPCANStatus Error, WORD Language, LPSTR Buffer);
 
 
 //! [0]
@@ -71,18 +88,42 @@ class QCanPeakUsb : public QObject, QCanInterface
     Q_INTERFACES(QCanInterface)
 
 private:
-    typedef uint32_t (*CAN_Initialize_tf) (uint8_t ubChannelV, uint16_t Btr0Btr1, uint8_t HwType, uint32_t IOPort, uint16_t Interrupt);
-    typedef uint32_t (*CAN_Uninitialize_tf) ( uint8_t ubChannelV);
-    typedef uint32_t (*CAN_Reset_tf) ( uint8_t ubChannelV);
-    typedef uint32_t (*CAN_GetStatus_tf) ( uint8_t ubChannelV);
-    typedef uint32_t (*CAN_Read_tf) ( uint8_t ubChannelV, TPCANMsg*, TPCANTimestamp*);
 
-    CAN_Initialize_tf pfnCAN_InitializeP;
-    CAN_Uninitialize_tf pfnCAN_UninitializeP;
-    CAN_GetStatus_tf pfnCAN_GetStatusP;
-    CAN_Read_tf pfnCAN_ReadP;
+   //----------------------------------------------------------------
+   // Type definitions of PCANBasic.dll taken from PCANBasic.h
+   // (Last Change 24.04.2015)
+   //
+   typedef TPCANStatus (*CAN_Initialize_tf)     (TPCANHandle uwChannelV, TPCANBaudrate uwBtr0Btr1V, TPCANType ubHwTypeV, DWORD ulIOPortV, WORD uwInterruptV);
+   typedef TPCANStatus (*CAN_InitializeFD_tf)   (TPCANHandle uwChannelV, TPCANBitrateFD pszBitrateFDV);
+   typedef TPCANStatus (*CAN_Uninitialize_tf)   (TPCANHandle uwChannelV);
+   typedef TPCANStatus (*CAN_Reset_tf)          (TPCANHandle uwChannelV);
+   typedef TPCANStatus (*CAN_GetStatus_tf)      (TPCANHandle uwChannelV);
+   typedef TPCANStatus (*CAN_Read_tf)           (TPCANHandle uwChannelV, TPCANMsg *ptsMessageBufferV, TPCANTimestamp *tsTimestampBufferV);
+   typedef TPCANStatus (*CAN_ReadFD_tf)         (TPCANHandle uwChannelV, TPCANMsgFD *ptsMessageBufferV, TPCANTimestampFD *puqTimestampBufferV);
+   typedef TPCANStatus (*CAN_Write_tf)          (TPCANHandle uwChannelV, TPCANMsg *ptsMessageBufferV);
+   typedef TPCANStatus (*CAN_WriteFD_tf)        (TPCANHandle uwChannelV, TPCANMsgFD *ptsMessageBufferV);
+   typedef TPCANStatus (*CAN_FilterMessages_tf) (TPCANHandle uwChannelV, DWORD ulFromIDV, DWORD ulToIDV, TPCANMode ubModeV);
+   typedef TPCANStatus (*CAN_GetValue_tf)       (TPCANHandle uwChannelV, TPCANParameter ubParameterV, void *pvdBufferV, DWORD ulBufferLengthV);
+   typedef TPCANStatus (*CAN_SetValue_tf)       (TPCANHandle uwChannelV, TPCANParameter ubParameterV, void *pvdBufferV, DWORD ulBufferLengthV);
+   typedef TPCANStatus (*CAN_GetErrorText_tf)   (TPCANStatus ulErrorV, WORD uwLanguageV, LPSTR pszBufferV);
 
-    bool btLibFuncLoadP = false;
+
+   CAN_Initialize_tf      pfnCAN_InitializeP;
+   CAN_InitializeFD_tf    pfnCAN_InitializeFDP;
+   CAN_Uninitialize_tf    pfnCAN_UninitializeP;
+   CAN_Reset_tf           pfnCAN_ResetP;
+   CAN_GetStatus_tf       pfnCAN_GetStatusP;
+   CAN_Read_tf            pfnCAN_ReadP;
+   CAN_ReadFD_tf          pfnCAN_ReadFDP;
+   CAN_Write_tf           pfnCAN_WriteP;
+   CAN_WriteFD_tf         pfnCAN_WriteFDP;
+   CAN_FilterMessages_tf  pfnCAN_FilterMessagesP;
+   CAN_GetValue_tf        pfnCAN_GetValueP;
+   CAN_SetValue_tf        pfnCAN_SetValueP;
+   CAN_GetErrorText_tf    pfnCAN_GetErrorTextP;
+
+
+   bool btLibFuncLoadP = false;
 
 public:
     QString echo(const QString &message) Q_DECL_OVERRIDE;
