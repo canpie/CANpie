@@ -2,8 +2,11 @@
 TEMPLATE        = lib
 CONFIG         += plugin
 QT             += widgets
+DEFINES        +=
 INCLUDEPATH    += ../echowindow
+INCLUDEPATH    += ./../../qcan
 INCLUDEPATH    += ./../../include
+INCLUDEPATH    += ./inc
 HEADERS         = qcan_ixxatusb.hpp
 SOURCES         = qcan_ixxatusb.cpp
 TARGET          = $$qtLibraryTarget(QCanIxxatUsb)

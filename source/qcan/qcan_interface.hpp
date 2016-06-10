@@ -42,7 +42,7 @@
 
 #include <stdint.h>
 #include "qcan_frame.hpp"
-#include "canpie.h"
+//#include "canpie.h"
 
 
 
@@ -63,6 +63,46 @@ public:
        uint32_t   ulErrCount;
     } QCanStatistic_ts;
 
+   /*!
+   ** \enum    Bitrate_e
+   ** \brief   Fixed bitrates
+   **
+   ** The values of the enumeration are used as parameter for the
+   ** function setBitrate().
+   */
+   enum Bitrate_e {
+      eBITRATE_10K = 0,
+      eBITRATE_20K,
+      eBITRATE_50K,
+      eBITRATE_100K,
+      eBITRATE_125K,
+      eBITRATE_250K,
+      eBITRATE_500K,
+      eBITRATE_800K,
+      eBITRATE_1M,
+      eBITRATE_MAX
+   };
+
+   /*!
+   ** \enum    Error_e
+   ** \brief   Fixed errors
+   **
+   ** The values of the enumeration are used as return values
+   */
+   enum Error_e {
+      eERROR_UNKNOWN = -1,
+      eERROR_OK,
+      eERROR_LIBRARY,
+      eERROR_CHANNEL,
+      eERROR_BITRATE,
+      eERROR_DEVICE
+   };
+
+//   typedef enum QCanStatistic_e {
+//      uint32_t   ulRcvCount;
+//      uint32_t   ulTrmCount;
+//      uint32_t   ulErrCount;
+//   } QCanStatistic_te;
 
 //   QCanInterface();
 
@@ -79,7 +119,7 @@ public:
    **
    **	Set bitrate of CAN interface
    */
-   virtual int32_t 	setBitrate(uint32_t ulBitrateV, uint32_t ulBrsClockV) = 0;
+   virtual int32_t   setBitrate(uint32_t ulBitrateV, uint32_t ulBrsClockV) = 0;
 
 
     /*!
@@ -108,7 +148,7 @@ public:
     virtual int32_t connect(void) = 0;
 
     // disconnect the device
-    virtual int32_t disconnect(void) = 0;
+    virtual void disconnect(void) = 0;
 
 Q_SIGNALS:
     void errorOccurred(int32_t slCanBusErrorV);     //  QCanBusDevice::CanBusError

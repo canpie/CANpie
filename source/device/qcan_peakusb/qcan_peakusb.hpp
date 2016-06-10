@@ -32,7 +32,7 @@
 #include <QObject>
 #include <QtPlugin>
 #include <QLibrary>
-#include <..\..\qcan\qcan_interface.hpp>
+#include <qcan_interface.hpp>
 
 #ifdef Q_OS_WIN32
 #include <windows.h>
@@ -46,41 +46,12 @@
 
 #include "PCANBasic.h"
 
-//static fpCAN_Initialize CAN_Initialize;
+#define QCAN_PEAKLIB "PCANBasic.dll"
 
-//GENERATE_SYMBOL_VARIABLE(TPCANStatus, CAN_Initialize, TPCANHandle, TPCANBaudrate, TPCANType, quint32, quint16)
-
-//GENERATE_SYMBOL_VARIABLE(TPCANStatus, CAN_Initialize, TPCANHandle, TPCANBaudrate, TPCANType, quint32, quint16)
-//GENERATE_SYMBOL_VARIABLE(TPCANStatus, CAN_Uninitialize, TPCANHandle)
-//GENERATE_SYMBOL_VARIABLE(TPCANStatus, CAN_Reset, TPCANHandle)
-//GENERATE_SYMBOL_VARIABLE(TPCANStatus, CAN_GetStatus, TPCANHandle)
-//GENERATE_SYMBOL_VARIABLE(TPCANStatus, CAN_Read, TPCANHandle, TPCANMsg*, TPCANTimestamp*)
-//GENERATE_SYMBOL_VARIABLE(TPCANStatus, CAN_Write, TPCANHandle, TPCANMsg*)
-//GENERATE_SYMBOL_VARIABLE(TPCANStatus, CAN_FilterMessages, TPCANHandle, quint32, quint32, TPCANMode)
-//GENERATE_SYMBOL_VARIABLE(TPCANStatus, CAN_GetValue, TPCANHandle, TPCANParameter, void *, quint32)
-//GENERATE_SYMBOL_VARIABLE(TPCANStatus, CAN_SetValue, TPCANHandle, TPCANParameter, void *, quint32)
-//GENERATE_SYMBOL_VARIABLE(TPCANStatus, CAN_GetErrorText, TPCANStatus, quint16, char *)
-
-//TPCANStatus __stdcall CAN_Initialize(TPCANHandle Channel, TPCANBaudrate Btr0Btr1, TPCANType HwType _DEF_ARG,DWORD IOPort _DEF_ARG, WORD Interrupt _DEF_ARG);
-//TPCANStatus __stdcall CAN_InitializeFD(TPCANHandle Channel,	TPCANBitrateFD BitrateFD);
-//TPCANStatus __stdcall CAN_Uninitialize(TPCANHandle Channel);
-
-//TPCANStatus __stdcall CAN_Reset(TPCANHandle Channel);
-//TPCANStatus __stdcall CAN_GetStatus(TPCANHandle Channel);
-
-//TPCANStatus __stdcall CAN_Read(TPCANHandle Channel, TPCANMsg* MessageBuffer, TPCANTimestamp* TimestampBuffer);
-//TPCANStatus __stdcall CAN_ReadFD(TPCANHandle Channel,	TPCANMsgFD* MessageBuffer,	TPCANTimestampFD *TimestampBuffer);
-
-//TPCANStatus __stdcall CAN_Write(TPCANHandle Channel,  TPCANMsg* MessageBuffer);
-//TPCANStatus __stdcall CAN_WriteFD(TPCANHandle Channel,	TPCANMsgFD* MessageBuffer);
-
-//TPCANStatus __stdcall CAN_FilterMessages(TPCANHandle Channel, DWORD FromID, DWORD ToID, TPCANMode Mode);
-//TPCANStatus __stdcall CAN_GetValue(TPCANHandle Channel, TPCANParameter Parameter,  void* Buffer, DWORD BufferLength);
-//TPCANStatus __stdcall CAN_SetValue(TPCANHandle Channel,        TPCANParameter Parameter, void* Buffer,		DWORD BufferLength);
-//TPCANStatus __stdcall CAN_GetErrorText(TPCANStatus Error, WORD Language, LPSTR Buffer);
-
-
-//! [0]
+//----------------------------------------------------------------------------//
+// QCanPeakUsb                                                                //
+//                                                                            //
+//----------------------------------------------------------------------------//
 class QCanPeakUsb : public QObject, QCanInterface
 {
     Q_OBJECT
@@ -122,26 +93,33 @@ private:
    CAN_SetValue_tf        pfnCAN_SetValueP;
    CAN_GetErrorText_tf    pfnCAN_GetErrorTextP;
 
+   /*!
+    * \brief clCanLibP
+    */
+   QLibrary clCanLibP;
 
-   bool btLibFuncLoadP = false;
+
+   /*!
+    * \brief uwCanChannelP
+    */
+   uint16_t uwCanChannelP = PCAN_USBBUS1;
+
+   bool     btLibFuncLoadP = false;
 
 public:
-    QString echo(const QString &message) Q_DECL_OVERRIDE;
-    int32_t setBitrate(uint32_t ulBitrateV, uint32_t ulBrsClockV) Q_DECL_OVERRIDE;
-    int32_t	setMode(const uint32_t ulModeV) Q_DECL_OVERRIDE;
-    int32_t	state(void) Q_DECL_OVERRIDE;
-    int32_t	statistic(QCanStatistic_ts &clStatisticR) Q_DECL_OVERRIDE;
-    int32_t	read(QCanFrame &clFrameR) Q_DECL_OVERRIDE;
-    int32_t	write(const QCanFrame &clFrameR) Q_DECL_OVERRIDE;
-    int32_t connect(void) Q_DECL_OVERRIDE;
-    int32_t disconnect(void) Q_DECL_OVERRIDE;
+   QString echo(const QString &message) Q_DECL_OVERRIDE;
+
+   int32_t setBitrate(uint32_t ulBitrateV, uint32_t ulBrsClockV) Q_DECL_OVERRIDE;
+   int32_t setMode(const uint32_t ulModeV) Q_DECL_OVERRIDE;
+   int32_t state(void) Q_DECL_OVERRIDE;
+   int32_t statistic(QCanStatistic_ts &clStatisticR) Q_DECL_OVERRIDE;
+   int32_t read(QCanFrame &clFrameR) Q_DECL_OVERRIDE;
+   int32_t write(const QCanFrame &clFrameR) Q_DECL_OVERRIDE;
+   int32_t connect(void) Q_DECL_OVERRIDE;
+   void disconnect(void) Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
     void errorOccurred(int32_t slCanBusErrorV);
 };
-//! [0]
 
-
-
-
-#endif
+#endif /*QCAN_PEAK_USB_H_*/

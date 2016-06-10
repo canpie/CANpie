@@ -3,6 +3,7 @@ TEMPLATE        = lib
 CONFIG         += plugin
 QT             += widgets
 INCLUDEPATH    += ../echowindow
+INCLUDEPATH    += ./../../qcan
 INCLUDEPATH    += ./../../include
 HEADERS         = qcan_peakusb.hpp \
                   PCANBasic.h
