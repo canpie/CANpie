@@ -110,9 +110,9 @@ public:
    QString echo(const QString &message) Q_DECL_OVERRIDE;
 
    int32_t setBitrate(uint32_t ulBitrateV, uint32_t ulBrsClockV) Q_DECL_OVERRIDE;
-   int32_t setMode(const uint32_t ulModeV) Q_DECL_OVERRIDE;
+   int32_t setMode(const Mode_te teModeV) Q_DECL_OVERRIDE;
    int32_t state(void) Q_DECL_OVERRIDE;
-   int32_t statistic(QCanStatistic_ts &clStatisticR) Q_DECL_OVERRIDE;
+   void statistic(QCanStatistic_ts &clStatisticR) Q_DECL_OVERRIDE;
    int32_t read(QCanFrame &clFrameR) Q_DECL_OVERRIDE;
    int32_t write(const QCanFrame &clFrameR) Q_DECL_OVERRIDE;
    int32_t connect(void) Q_DECL_OVERRIDE;

@@ -32,6 +32,8 @@
 #include <QObject>
 #include <QtPlugin>
 #include <QLibrary>
+#include <QVector>
+#include <qcan_frame.hpp>
 #include <qcan_interface.hpp>
 
 
@@ -272,17 +274,53 @@ private:
 
 
    /*!
+    * \brief clCanDevInfoP
+    *  This value holds handle value for the device list.
+    */
+   HANDLE   vdDevListP;
+
+   /*!
+    * \brief clCanDevInfoP
+    *  This struct holds information about selected device.
+    */
+   QVector<VCIDEVICEINFO> aclCanDevInfoP;
+
+   /*!
+    * \brief uwCanDeviceP
+    */
+   uint16_t uwCanDeviceP = 0;
+
+   /*!
+    *  This value holds interface handle value of a device.
+    */
+   HANDLE   vdCanInterfaceP = 0;
+   HANDLE   vdCanControlP = 0;
+
+   /*!
     * \brief uwCanChannelP
     */
    uint16_t uwCanChannelP = 0;
+   HANDLE   vdCanChannelP = 0;
 
    bool     btLibFuncLoadP = false;
+
+
+   struct Bitrate_s {
+      uint8_t ubBtr0;
+      uint8_t ubBtr1;
+   };
+   struct Bitrate_s tsBitrateP;
+
+   /*!
+    * \brief clStatisticP
+    */
+   QCanStatistic_ts clStatisticP;
 public:
     QString echo(const QString &message) Q_DECL_OVERRIDE;
     int32_t setBitrate(uint32_t ulBitrateV, uint32_t ulBrsClockV) Q_DECL_OVERRIDE;
-    int32_t	setMode(const uint32_t ulModeV) Q_DECL_OVERRIDE;
+    int32_t	setMode(const Mode_te teModeV) Q_DECL_OVERRIDE;
     int32_t	state(void) Q_DECL_OVERRIDE;
-    int32_t	statistic(QCanStatistic_ts &clStatisticR) Q_DECL_OVERRIDE;
+    void	statistic(QCanStatistic_ts &clStatisticR) Q_DECL_OVERRIDE;
     int32_t	read(QCanFrame &clFrameR) Q_DECL_OVERRIDE;
     int32_t	write(const QCanFrame &clFrameR) Q_DECL_OVERRIDE;
     int32_t connect(void) Q_DECL_OVERRIDE;

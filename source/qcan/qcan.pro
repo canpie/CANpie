@@ -14,7 +14,12 @@ SOURCES     += ./qcan_client.cpp \
 FORMS       +=
 RESOURCES   +=
 TARGET       = $$qtLibraryTarget(QCanClient)
-DESTDIR      = ../qcan/client
+win32 {
+    CONFIG(debug, release|debug):DESTDIR = ../debug/
+    CONFIG(release, release|debug):DESTDIR = ../release/
+} else {
+    DESTDIR    = ../
+}
 #! [0]
 
 EXAMPLE_FILES = plugin.json

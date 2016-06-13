@@ -95,10 +95,39 @@ public:
       eERROR_LIBRARY,
       eERROR_CHANNEL,
       eERROR_BITRATE,
-      eERROR_DEVICE
+      eERROR_DEVICE,
+      eERROR_MODE,
+      eERROR_FIFO_IN_EMPTY,
+      eERROR_FIFO_OUT_FULL
    };
 
-//   typedef enum QCanStatistic_e {
+   /*----------------------------------------------------------------------------*/
+   /*!
+   ** \enum    Mode_e
+   ** \brief   Mode of CAN controller
+   **
+   ** These values are used as parameter for the function setMode() in
+   ** order to change the state of the CAN controller.
+   */
+   typedef enum Mode_e {
+      /*!   Set controller in Stop mode (no reception / transmission possible)
+      */
+      eMODE_STOP = 0,
+
+      /*!   Set controller into normal operation
+      */
+      eMODE_START,
+
+      /*!   Set controller into listen-only mode
+      */
+      eMODE_LISTEN_ONLY,
+
+      /*!   Set controller into Sleep mode
+      */
+      eMODE_SLEEP
+   }Mode_te;
+
+//   typedef struct QCanStatistic_e {
 //      uint32_t   ulRcvCount;
 //      uint32_t   ulTrmCount;
 //      uint32_t   ulErrCount;
@@ -127,7 +156,7 @@ public:
     **
     **	Set mode of CAN interface
     */
-    virtual int32_t	setMode(const uint32_t ulModeV) = 0;
+    virtual int32_t	setMode(const Mode_te teModeV) = 0;
 
 
     /*!
@@ -137,7 +166,7 @@ public:
        */
     virtual int32_t	state(void) = 0;
 
-    virtual int32_t	statistic(QCanStatistic_ts &clStatisticR) = 0;
+    virtual void	statistic(QCanStatistic_ts &clStatisticR) = 0;
 
 	
     virtual int32_t	read(QCanFrame &clFrameR) = 0;

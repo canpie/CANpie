@@ -208,7 +208,7 @@ int32_t QCanPeakUsb::setBitrate(uint32_t ulBitrateV, uint32_t ulBrsClockV)
 // setMode()                                                                  //
 //                                                                            //
 //----------------------------------------------------------------------------//
-int32_t	QCanPeakUsb::setMode(const uint32_t ulModeV)
+int32_t	QCanPeakUsb::setMode(const Mode_te teModeV)
 {
    return 0;
 }
@@ -219,9 +219,8 @@ int32_t	QCanPeakUsb::state(void)
    return 0;
 }
 
-int32_t	QCanPeakUsb::statistic(QCanStatistic_ts &clStatisticR)
+void	QCanPeakUsb::statistic(QCanStatistic_ts &clStatisticR)
 {
-   return 0;
 }
 
 int32_t	QCanPeakUsb::read(QCanFrame &clFrameR)
