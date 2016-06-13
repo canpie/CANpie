@@ -1,38 +1,46 @@
 //============================================================================//
-// File:          qcan_frame.cpp                                              //
+// File:          qcan_frame.hpp                                              //
 // Description:   QCAN classes - CAN frame                                    //
-// Author:        Uwe Koppe                                                   //
-// e-mail:        koppe@microcontrol.net                                      //
 //                                                                            //
 // Copyright (C) MicroControl GmbH & Co. KG                                   //
-// Junkersring 23                                                             //
-// 53844 Troisdorf                                                            //
-// Germany                                                                    //
-// Tel: +49-2241-25659-0                                                      //
-// Fax: +49-2241-25659-11                                                     //
+// 53842 Troisdorf - Germany                                                  //
+// www.microcontrol.net                                                       //
 //                                                                            //
-// The copyright to the computer program(s) herein is the property of         //
-// MicroControl GmbH & Co. KG, Germany. The program(s) may be used            //
-// and/or copied only with the written permission of MicroControl GmbH &      //
-// Co. KG or in accordance with the terms and conditions stipulated in        //
-// the agreement/contract under which the program(s) have been supplied.      //
 //----------------------------------------------------------------------------//
+// Redistribution and use in source and binary forms, with or without         //
+// modification, are permitted provided that the following conditions         //
+// are met:                                                                   //
+// 1. Redistributions of source code must retain the above copyright          //
+//    notice, this list of conditions, the following disclaimer and           //
+//    the referenced file 'COPYING'.                                          //
+// 2. Redistributions in binary form must reproduce the above copyright       //
+//    notice, this list of conditions and the following disclaimer in the     //
+//    documentation and/or other materials provided with the distribution.    //
+// 3. Neither the name of MicroControl nor the names of its contributors      //
+//    may be used to endorse or promote products derived from this software   //
+//    without specific prior written permission.                              //
 //                                                                            //
-// Date        History                                                        //
-// ----------  -------------------------------------------------------------- //
-// 20.05.2015  Initial version                                                //
+// Provided that this notice is retained in full, this software may be        //
+// distributed under the terms of the GNU Lesser General Public License       //
+// ("LGPL") version 3 as distributed in the 'COPYING' file.                   //
 //                                                                            //
 //============================================================================//
-
 
 
 #ifndef QCAN_FRAME_HPP_
 #define QCAN_FRAME_HPP_
 
 
+/*----------------------------------------------------------------------------*\
+** Include files                                                              **
+**                                                                            **
+\*----------------------------------------------------------------------------*/
+
 #include <QByteArray>
 #include <QDataStream>
 #include <QString>
+
+
 
 //-----------------------------------------------------------------------------
 /*!
@@ -64,12 +72,24 @@ class QCanFrame
 public:
    
    enum Type_e {
+
+      /*! Classic CAN, Standard frame format                */
       eTYPE_CAN_STD = 0,
+
+      /*! Classic CAN, Extended frame format                */
       eTYPE_CAN_EXT,
+
+      /*! ISO CAN FD, Standard frame format                 */
       eTYPE_FD_STD,
+
+      /*! ISO CAN FD, Extended frame format                 */
       eTYPE_FD_EXT,
-      eTYPE_ERROR = 0x10,
-      eTYPE_FUNCTION = 0x20
+
+      /*! QCan error frame, \see QCanFrameError             */
+      eTYPE_QCAN_ERR = 0x10,
+
+      /*! QCan API frame, \see QCanFrameApi                 */
+      eTYPE_QCAN_API = 0x20
    };
 
    QCanFrame();
@@ -77,8 +97,7 @@ public:
    QCanFrame(const Type_e & ubTypeR, const uint32_t & ulIdentifierR = 0, 
              const uint8_t & ubDlcR = 0);
    
-   ~QCanFrame();
-
+   virtual ~QCanFrame();
    
    uint8_t     data(uint8_t ubPosV) const;
    
@@ -124,11 +143,12 @@ public:
    
    void        setExtId(uint32_t ulIdentifierV);
    
+
    void        setFrameType(const Type_e &ubTypeR);
    
    void        setMarker(const uint32_t & ulMarkerValueR);
 
-   void        setRemoteFrame(const bool & btRtrR = true);
+   void        setRemote(const bool & btRtrR = true);
    
    void        setStdId(uint16_t uwIdentifierV);
    
@@ -165,7 +185,6 @@ private:
    */
    uint8_t  ubMsgDlcP;
 
-
    /*!   
    ** The structure member \c ubMsgCtrlP defines the
    ** different frame types (2.0A / 2.0B / Classic / FD / RTR).
@@ -188,8 +207,6 @@ private:
    ** member \c ubMsgDlcP.
    */
    uint8_t  aubByteP[CAN_FRAME_DATA_MAX];
-
-
 
    /*!   
    ** The time stamp field defines the time when a CAN message

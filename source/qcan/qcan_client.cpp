@@ -1,5 +1,5 @@
 #include "qcan_client.hpp"
-#include "cp_core.h"
+//#include "cp_core.h"
 
 
 
@@ -22,7 +22,7 @@ int QCanClient::sendDatagram(QCanFrame & clCanFrameR)
 }
 
 
-
+#if 0
 static QCanClient *  pclCanpieS;
 
 //----------------------------------------------------------------------------//
@@ -48,3 +48,4 @@ CpStatus_tv CpCoreMsgRead( CpPort_ts *   CPP_PARM_UNUSED(ptsPortV),
 {
    return (CpErr_OK);
 }
+#endif

@@ -1,34 +1,30 @@
 //============================================================================//
 // File:          qcan_frame.cpp                                              //
-// Description:   QCAN Server - Network implementation                        //
-// Author:        Uwe Koppe                                                   //
-// e-mail:        koppe@microcontrol.net                                      //
+// Description:   QCAN classes - CAN frame                                    //
 //                                                                            //
 // Copyright (C) MicroControl GmbH & Co. KG                                   //
-// Junkersring 23                                                             //
-// 53844 Troisdorf                                                            //
-// Germany                                                                    //
-// Tel: +49-2241-25659-0                                                      //
-// Fax: +49-2241-25659-11                                                     //
+// 53842 Troisdorf - Germany                                                  //
+// www.microcontrol.net                                                       //
 //                                                                            //
-// The copyright to the computer program(s) herein is the property of         //
-// MicroControl GmbH & Co. KG, Germany. The program(s) may be used            //
-// and/or copied only with the written permission of MicroControl GmbH &      //
-// Co. KG or in accordance with the terms and conditions stipulated in        //
-// the agreement/contract under which the program(s) have been supplied.      //
 //----------------------------------------------------------------------------//
+// Redistribution and use in source and binary forms, with or without         //
+// modification, are permitted provided that the following conditions         //
+// are met:                                                                   //
+// 1. Redistributions of source code must retain the above copyright          //
+//    notice, this list of conditions, the following disclaimer and           //
+//    the referenced file 'COPYING'.                                          //
+// 2. Redistributions in binary form must reproduce the above copyright       //
+//    notice, this list of conditions and the following disclaimer in the     //
+//    documentation and/or other materials provided with the distribution.    //
+// 3. Neither the name of MicroControl nor the names of its contributors      //
+//    may be used to endorse or promote products derived from this software   //
+//    without specific prior written permission.                              //
 //                                                                            //
-// Date        History                                                        //
-// ----------  -------------------------------------------------------------- //
-// 20.05.2015  Initial version                                                //
+// Provided that this notice is retained in full, this software may be        //
+// distributed under the terms of the GNU Lesser General Public License       //
+// ("LGPL") version 3 as distributed in the 'COPYING' file.                   //
 //                                                                            //
 //============================================================================//
-
-
-//------------------------------------------------------------------------------
-// SVN  $Date: 2014-09-15 18:50:11 +0200 (Mo, 15. Sep 2014) $
-// SVN  $Rev: 6156 $ --- $Author: koppe $
-//------------------------------------------------------------------------------
 
 
 /*----------------------------------------------------------------------------*\
@@ -36,8 +32,8 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-#include <QDebug>
-#include "qcan_frame.hpp"
+#include <QCanFrame>
+
 
 /*----------------------------------------------------------------------------*\
 ** Definitions                                                                **
@@ -45,8 +41,6 @@
 \*----------------------------------------------------------------------------*/
 
 #define  QCAN_FRAME_ARRAY_SIZE      96
-
-#define  QCAN_FRAME_STRING_SIZE     265
 
 #define  QCAN_FRAME_ID_MASK_STD     ((uint32_t) 0x000007FF)
 
@@ -108,15 +102,11 @@ QCanFrame::QCanFrame(const Type_e & ubTypeR, const uint32_t & ulIdentifierR,
    ulMsgMarkerP = 0;   
 }
 
-
-//----------------------------------------------------------------------------//
-// QCanFrame()                                                                //
-// destructor                                                                 //
-//----------------------------------------------------------------------------//
 QCanFrame::~QCanFrame()
 {
-   
+
 }
+
 
 //----------------------------------------------------------------------------//
 // data()                                                                     //
@@ -411,6 +401,10 @@ void QCanFrame::setExtId(uint32_t ulIdentifierV)
    ubMsgCtrlP   |= QCAN_FRAME_FORMAT_EXT;
 }
 
+void QCanFrame::setFrameType(const Type_e &ubTypeR)
+{
+
+}
 
 void QCanFrame::setMarker(const uint32_t & ulMarkerValueR)
 {
@@ -561,12 +555,12 @@ QString QCanFrame::toString(const bool & btShowTimeR)
          clStringT += " FD-EXT ";
          break;
          
-      case eTYPE_ERROR:
-         clStringT += " ERROR  ";
+      case eTYPE_QCAN_ERR:
+         clStringT += "QCan-ERR";
          break;
          
-      case eTYPE_FUNCTION:
-         clStringT += " Func.  ";
+      case eTYPE_QCAN_API:
+         clStringT += "QCan-API";
          break;
 
       default:
