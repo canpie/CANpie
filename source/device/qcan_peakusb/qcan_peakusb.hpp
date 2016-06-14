@@ -52,7 +52,7 @@
 // QCanPeakUsb                                                                //
 //                                                                            //
 //----------------------------------------------------------------------------//
-class QCanPeakUsb : public QObject, QCanInterface
+class QCanPeakUsb : public QCanInterface
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "net.microcontrol.Qt.qcan.QCanInterface" FILE "plugin.json")

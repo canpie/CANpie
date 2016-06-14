@@ -52,7 +52,7 @@
 ** \brief   CAN interface
 ** 
 */
-class QCanInterface
+class QCanInterface : public QObject
 {
 
 public:
