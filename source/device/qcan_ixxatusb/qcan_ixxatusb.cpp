@@ -35,19 +35,20 @@
 */
 char aszErrTextG[128];
 
-
-
+//----------------------------------------------------------------------------//
+// echo()                                                                     //
+// dummy implementation of a function to evaluate string                      //
+//----------------------------------------------------------------------------//
 QString QCanIxxatUsb::echo(const QString &message)
 {
    uint32_t ulStatusT;
    QString clRetStringT;
-   QCanFrame clFrameT; //  QCanFrame(QCanFrame::eTYPE_CAN_STD,0,0);
+   QCanFrame clFrameT;
 
    aszErrTextG[0] = 0;
    aszErrTextG[1] = 0;
    aszErrTextG[2] = 0;
 
-   emit errorOccurred(17);
    if (message == "load")
    {
       connect();
@@ -133,8 +134,33 @@ QString QCanIxxatUsb::echo(const QString &message)
       {
          qWarning() << "Warning: write() fail!";
       }
-
    }
+
+   if (message == "write_ext")
+   {
+      clFrameT.setExtId(175234);
+      clFrameT.setDlc(8);
+      clFrameT.setData(0,0x55);
+      clFrameT.setData(1,0x44);
+      clFrameT.setData(2,0x33);
+      clFrameT.setData(3,0x22);
+      clFrameT.setData(4,0x11);
+      clFrameT.setData(5,0x14);
+      clFrameT.setData(6,0x15);
+      clFrameT.setData(7,0x16);
+
+      int32_t slStatusT = write(clFrameT);
+
+      if (slStatusT == eERROR_OK)
+      {
+
+      }
+      else if (slStatusT != eERROR_FIFO_IN_EMPTY)
+      {
+         qWarning() << "Warning: write() fail!";
+      }
+   }
+
    return ("ixxat: " + message);
 }
 
@@ -469,6 +495,7 @@ int32_t	QCanIxxatUsb::write(const QCanFrame &clFrameR)
       tsCanMsgT.abData[slByteCntrT] = clFrameR.data(slByteCntrT);
    }
    tsCanMsgT.uMsgInfo.Bytes.bType = CAN_MSGTYPE_DATA;
+   tsCanMsgT.dwTime = 0;
    slResultT = pfnCanChannelPostMessageP(vdCanChannelP, &tsCanMsgT);
 
    if (slResultT == VCI_OK)

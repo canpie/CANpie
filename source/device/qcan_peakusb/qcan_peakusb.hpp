@@ -106,6 +106,11 @@ private:
 
    bool     btLibFuncLoadP = false;
 
+   /*!
+    * \brief clStatisticP
+    */
+   QCanStatistic_ts clStatisticP;
+
 public:
    QString echo(const QString &message) Q_DECL_OVERRIDE;
 
