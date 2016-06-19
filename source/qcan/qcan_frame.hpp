@@ -99,11 +99,17 @@ public:
    
    virtual ~QCanFrame();
    
-   uint8_t     data(uint8_t ubPosV) const;
+   uint8_t     data(const uint8_t & ubPosR) const;
    
    QByteArray  data(void) const;
    
    uint8_t     dataSize(void) const;
+
+   uint16_t    dataUInt16(const uint8_t & ubPosR,
+                          const bool & btMsbFirstR = 0) const;
+
+   uint32_t    dataUInt32(const uint8_t & ubPosR,
+                          const bool & btMsbFirstR = 0) const;
    
    uint8_t     dlc(void) const;
    
@@ -133,11 +139,17 @@ public:
    ** \c ubPosR must be within the range 0 .. 7 for classic frames and
    ** 0 .. 63 for FD frames.
    */
-   void        setData(const uint8_t &ubPosR, const uint8_t ubValueR);
-   
+   void        setData(const uint8_t & ubPosR, const uint8_t & ubValueR);
+
    void        setData(const QByteArray &clDataR);
-   
+
    void        setDataSize(uint8_t &ubSizeR);
+
+   void        setDataUInt16(const uint8_t & ubPosR, const uint16_t & uwValueR,
+                             const bool & btMsbFirstR = 0);
+
+   void        setDataUInt32(const uint8_t & ubPosR, const uint32_t & ulValueR,
+                             const bool & btMsbFirstR = 0);
    
    void        setDlc(uint8_t ubDlcV);
    

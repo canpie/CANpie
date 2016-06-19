@@ -112,11 +112,11 @@ QCanFrame::~QCanFrame()
 // data()                                                                     //
 // get data                                                                   //
 //----------------------------------------------------------------------------//
-uint8_t  QCanFrame::data(uint8_t ubPosV) const
+uint8_t  QCanFrame::data(const uint8_t & ubPosR) const
 {
-   if(ubPosV < this->dataSize())
+   if(ubPosR < this->dataSize())
    {
-      return(aubByteP[ubPosV]);
+      return(aubByteP[ubPosR]);
    }
    
    return(0);
@@ -186,6 +186,72 @@ uint8_t QCanFrame::dataSize(void) const
    return(ubSizeT);
 }
 
+
+//----------------------------------------------------------------------------//
+// dataUInt16()                                                               //
+// get uint16_t value which is stored at position ubPosR                      //
+//----------------------------------------------------------------------------//
+uint16_t QCanFrame::dataUInt16(const uint8_t & ubPosR,
+                               const bool & btMsbFirstR) const
+{
+   uint16_t uwValueT = 0;
+
+   if(ubPosR < (this->dataSize() - 1) && (this->dataSize() > 1))
+   {
+      if(btMsbFirstR)
+      {
+         uwValueT = aubByteP[ubPosR];
+         uwValueT = uwValueT << 8;
+         uwValueT = uwValueT + (uint8_t) aubByteP[ubPosR + 1];
+      }
+      else
+      {
+         uwValueT = aubByteP[ubPosR + 1];
+         uwValueT = uwValueT << 8;
+         uwValueT = uwValueT + (uint8_t) aubByteP[ubPosR];
+      }
+   }
+
+   return(uwValueT);
+}
+
+
+//----------------------------------------------------------------------------//
+// dataUInt32()                                                               //
+// get uint32_t value which is stored at position ubPosR                      //
+//----------------------------------------------------------------------------//
+uint32_t QCanFrame::dataUInt32(const uint8_t & ubPosR,
+                               const bool & btMsbFirstR) const
+{
+   uint32_t ulValueT = 0;
+
+   if(ubPosR < (this->dataSize() - 3) && (this->dataSize() > 3))
+   {
+      if(btMsbFirstR)
+      {
+         ulValueT = aubByteP[ubPosR];
+         ulValueT = ulValueT << 8;
+         ulValueT = ulValueT + (uint8_t) aubByteP[ubPosR + 1];
+         ulValueT = ulValueT << 8;
+         ulValueT = ulValueT + (uint8_t) aubByteP[ubPosR + 2];
+         ulValueT = ulValueT << 8;
+         ulValueT = ulValueT + (uint8_t) aubByteP[ubPosR + 3];
+      }
+      else
+      {
+         ulValueT = aubByteP[ubPosR + 3];
+         ulValueT = ulValueT << 8;
+         ulValueT = ulValueT + (uint8_t) aubByteP[ubPosR + 2];
+         ulValueT = ulValueT << 8;
+         ulValueT = ulValueT + (uint8_t) aubByteP[ubPosR + 1];
+         ulValueT = ulValueT << 8;
+         ulValueT = ulValueT + (uint8_t) aubByteP[ubPosR];
+      }
+   }
+
+   return(ulValueT);
+
+}
 
 //----------------------------------------------------------------------------//
 // dlc()                                                                      //
@@ -359,12 +425,78 @@ bool QCanFrame::isExtended(void) const
 // setData()                                                                  //
 // set data value                                                             //
 //----------------------------------------------------------------------------//
-void QCanFrame::setData(const uint8_t &ubPosR, const uint8_t ubValueR)
+void QCanFrame::setData(const uint8_t & ubPosR, const uint8_t & ubValueR)
 {
    if(ubPosR < dataSize())
    {
       aubByteP[ubPosR] = ubValueR;
    }
+}
+
+
+//----------------------------------------------------------------------------//
+// setDataUInt16()                                                            //
+// set data value                                                             //
+//----------------------------------------------------------------------------//
+void QCanFrame::setDataUInt16(const uint8_t & ubPosR,
+                              const uint16_t & uwValueR,
+                              const bool & btMsbFirstR)
+{
+   uint16_t uwValueT = uwValueR;
+
+   if(ubPosR < (this->dataSize() - 1) && (this->dataSize() > 1))
+   {
+      if(btMsbFirstR)
+      {
+         aubByteP[ubPosR + 1] = (uint8_t) uwValueT;
+         uwValueT = uwValueT >> 8;
+         aubByteP[ubPosR + 0] = (uint8_t) uwValueT;
+      }
+      else
+      {
+         aubByteP[ubPosR + 0] = (uint8_t) uwValueT;
+         uwValueT = uwValueT >> 8;
+         aubByteP[ubPosR + 1] = (uint8_t) uwValueT;
+      }
+   }
+
+}
+
+
+//----------------------------------------------------------------------------//
+// setDataUInt32()                                                            //
+// set data value                                                             //
+//----------------------------------------------------------------------------//
+void QCanFrame::setDataUInt32(const uint8_t & ubPosR,
+                              const uint32_t & ulValueR,
+                              const bool & btMsbFirstR)
+{
+   uint32_t ulValueT = ulValueR;
+
+   if(ubPosR < (this->dataSize() - 3) && (this->dataSize() > 3))
+   {
+      if(btMsbFirstR)
+      {
+         aubByteP[ubPosR + 3] = (uint8_t) ulValueT;
+         ulValueT = ulValueT >> 8;
+         aubByteP[ubPosR + 2] = (uint8_t) ulValueT;
+         ulValueT = ulValueT >> 8;
+         aubByteP[ubPosR + 1] = (uint8_t) ulValueT;
+         ulValueT = ulValueT >> 8;
+         aubByteP[ubPosR + 0] = (uint8_t) ulValueT;
+      }
+      else
+      {
+         aubByteP[ubPosR + 0] = (uint8_t) ulValueT;
+         ulValueT = ulValueT >> 8;
+         aubByteP[ubPosR + 1] = (uint8_t) ulValueT;
+         ulValueT = ulValueT >> 8;
+         aubByteP[ubPosR + 2] = (uint8_t) ulValueT;
+         ulValueT = ulValueT >> 8;
+         aubByteP[ubPosR + 3] = (uint8_t) ulValueT;
+      }
+   }
+
 }
 
 
@@ -403,7 +535,8 @@ void QCanFrame::setExtId(uint32_t ulIdentifierV)
 
 void QCanFrame::setFrameType(const Type_e &ubTypeR)
 {
-
+   ubMsgCtrlP &= (~0x33);     // remove existing frame type bits
+   ubMsgCtrlP |= ubTypeR;
 }
 
 void QCanFrame::setMarker(const uint32_t & ulMarkerValueR)
