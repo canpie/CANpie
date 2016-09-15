@@ -40,7 +40,6 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-#define  QCAN_FRAME_ARRAY_SIZE      96
 
 #define  QCAN_FRAME_ID_MASK_STD     ((uint32_t) 0x000007FF)
 

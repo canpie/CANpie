@@ -59,7 +59,7 @@ QCanFrameApi::QCanFrameApi()
 {
 
    setFrameType(eTYPE_QCAN_API);
-   setDlc(8);
+   setDlc(16);
    setData(0, QCanFrameApi::eAPI_FUNC_NONE);
 }
 
@@ -73,6 +73,29 @@ QCanFrameApi::~QCanFrameApi()
 
 }
 
+int32_t QCanFrameApi::bitrate(void)
+{
+   int32_t  slBitrateT = -1;
+
+   if(data(0) == QCanFrameApi::eAPI_FUNC_BITRATE)
+   {
+      slBitrateT = dataUInt32(2);
+   }
+
+   return(slBitrateT);
+}
+
+int32_t QCanFrameApi::brsClock(void)
+{
+   int32_t  slBrsClockT = -1;
+
+   if(data(0) == QCanFrameApi::eAPI_FUNC_BITRATE)
+   {
+      slBrsClockT = dataUInt32(6);
+   }
+
+   return(slBrsClockT);
+}
 
 
 QCanFrameApi::ApiFunc_e QCanFrameApi::function(void)
@@ -81,11 +104,14 @@ QCanFrameApi::ApiFunc_e QCanFrameApi::function(void)
 
 }
 
-void QCanFrameApi::setBitrate()
+void QCanFrameApi::setBitrate(int32_t slBitrateV, int32_t slBrsClockV)
 {
    setData(0, QCanFrameApi::eAPI_FUNC_BITRATE);
-
+   setDataUInt32(2, slBitrateV);
+   setDataUInt32(6, slBrsClockV);
 }
+
+
 
 void QCanFrameApi::setDriverInit()
 {

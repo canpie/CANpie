@@ -1,4 +1,5 @@
 
+#include <QCanStub>
 #include <stdio.h>
 #include "cp_core.h"
 

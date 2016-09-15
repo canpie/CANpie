@@ -53,13 +53,15 @@
 // QCanStub()                                                                 //
 // constructor                                                                //
 //----------------------------------------------------------------------------//
-QCanStub::QCanStub()
+QCanStub::QCanStub(QObject *parent)
 {
    clUuidP.createUuid();
    btIsConnectedP = false;
 
    clRcvFifoP.reserve(QCAN_STUB_FRAME_FIFO_SIZE);
    clTrmFifoP.reserve(QCAN_STUB_FRAME_FIFO_SIZE);
+
+   pclLocalSocketP.clear();
 
    ubCanStateP = QCan::eCAN_STATE_STOPPED;
 }
@@ -69,6 +71,10 @@ QCanStub::QCanStub()
 
 QCanStub::~QCanStub()
 {
+   if(!pclLocalSocketP.isNull())
+   {
+      pclLocalSocketP->disconnectFromServer();
+   }
 
 }
 
@@ -81,6 +87,7 @@ bool QCanStub::connectNetwork(QCanNetwork * pclNetworkV)
 {
    bool  btResultT = false;
 
+   /*
    if(pclNetworkP.isNull())
    {
       pclNetworkP = pclNetworkV;
@@ -88,9 +95,56 @@ bool QCanStub::connectNetwork(QCanNetwork * pclNetworkV)
       btIsConnectedP = true;
       btResultT = true;
    }
+   */
    return(btResultT);
 }
 
+
+bool QCanStub::connectNetwork(QString clNetworkNameV)
+{
+   bool  btResultT = false;
+
+   qDebug() << "QCanStub::connectNetwork() " << clNetworkNameV;
+
+   //----------------------------------------------------------------
+   // create a new local socket
+   //
+   if(pclLocalSocketP.isNull())
+   {
+      pclLocalSocketP = new QLocalSocket();
+      pclLocalSocketP->abort();
+      pclLocalSocketP->connectToServer(clNetworkNameV);
+
+      connect( pclLocalSocketP, SIGNAL(connected()),
+               this, SLOT(onSocketConnect()));
+
+      connect( pclLocalSocketP, SIGNAL(disconnected()),
+               this, SLOT(onSocketDisconnect()));
+
+      connect( pclLocalSocketP, SIGNAL(error(QLocalSocket::LocalSocketError)),
+               this, SLOT(onSocketError(QLocalSocket::LocalSocketError)));
+
+      if (pclLocalSocketP->waitForConnected(1000))
+      {
+         qDebug("Connected!");
+         btIsConnectedP = true;
+
+      }
+      else
+      {
+         pclLocalSocketP->abort();
+         qDebug("Shit happens!");
+      }
+      qDebug() << pclLocalSocketP->errorString();
+      btResultT = true;
+   }
+   return(btResultT);
+}
+
+void QCanStub::disconnectNet()
+{
+   pclLocalSocketP->disconnectFromServer();
+}
 
 //----------------------------------------------------------------------------//
 // disconnectNetwork()                                                        //
@@ -98,6 +152,7 @@ bool QCanStub::connectNetwork(QCanNetwork * pclNetworkV)
 //----------------------------------------------------------------------------//
 void QCanStub::disconnectNetwork()
 {
+   /*
    if(btIsConnectedP)
    {
       if(!pclNetworkP.isNull())
@@ -107,6 +162,24 @@ void QCanStub::disconnectNetwork()
       }
       btIsConnectedP = false;
    }
+   */
+}
+
+
+void QCanStub::onSocketConnect()
+{
+   qDebug() << "QCanStub::onSocketConnect";
+}
+
+void QCanStub::onSocketDisconnect()
+{
+   qDebug() << "QCanStub::onSocketDisconnect";
+}
+
+void QCanStub::onSocketError(QLocalSocket::LocalSocketError socketError)
+{
+   qDebug() << "QCanStub::onSocketError";
+
 }
 
 
@@ -159,17 +232,27 @@ bool QCanStub::pushReceiveFifo(const QCanFrame & clFrameR)
 bool QCanStub::readFrame(QCanFrame & clFrameR)
 {
    bool  btResultT = false;
+   QByteArray clSockDataT;
 
    if(btIsConnectedP)
    {
 
-      clRcvMutexP.lock();
+      //clRcvMutexP.lock();
+      /*
       if(clRcvFifoP.isEmpty() == false)
       {
          clFrameR = clRcvFifoP.takeFirst();
          btResultT = true;
       }
-      clRcvMutexP.unlock();
+      */
+      if(pclLocalSocketP->waitForReadyRead(200))
+      {
+         qDebug() << "QCanStub::readFrame()";
+         clSockDataT = pclLocalSocketP->read(QCAN_FRAME_ARRAY_SIZE);
+         clFrameR.fromByteArray(clSockDataT);
+         btResultT = true;
+      }
+      //clRcvMutexP.unlock();
    }
    return(btResultT);
 }
@@ -205,6 +288,11 @@ QCan::CAN_State_e QCanStub::state(void)
    return(ubCanStateP);
 }
 
+QString QCanStub::uuidString(void)
+{
+   return(clUuidP.toString());
+}
+
 
 //----------------------------------------------------------------------------//
 // writeFrame()                                                               //
@@ -213,11 +301,15 @@ QCan::CAN_State_e QCanStub::state(void)
 bool QCanStub::writeFrame(const QCanFrame & clFrameR)
 {
    bool  btResultT = false;
+   QByteArray clSockDataT;
 
    if(btIsConnectedP)
    {
       clTrmMutexP.lock();
-      clTrmFifoP.append(clFrameR);
+      //clTrmFifoP.append(clFrameR);
+      clSockDataT = clFrameR.toByteArray();
+      pclLocalSocketP->write(clSockDataT);
+      pclLocalSocketP->flush();
       clTrmMutexP.unlock();
       btResultT = true;
    }

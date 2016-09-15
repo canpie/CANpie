@@ -1,32 +1,33 @@
 #ifndef QCAN_SERVER_HPP_
 #define QCAN_SERVER_HPP_
 
+
 #include <QObject>
-#include <QUdpSocket>
 
-#include "qcan_frame.hpp"
-
-
+#include "qcan_network.hpp"
 
 class QCanServer : public QObject
 {
     Q_OBJECT
 
 public:
-    QCanServer(QObject *parent = 0);
+    QCanServer( QObject * pclParentV = Q_NULLPTR,
+                uint16_t  uwPortStartV = QCAN_TCP_DEFAULT_PORT,
+                uint8_t   ubNetworkNumV = QCAN_NETWORK_MAX);
+
     ~QCanServer();
 
-public:
+
+
+    QCanNetwork * network(uint8_t ubNetworkIdxV);
+
+    uint8_t maximumNetwork(void) const;
+
 
 private:
 
-   QUdpSocket *   pclRcvSocketP;
-   QUdpSocket *   pclTrmSocketP;
+    QVector<QCanNetwork *> *  pclListNetsP;
 
-
-   int32_t  read(QCanFrame & clCanFrameR);
-   int32_t  write(const QCanFrame & clCanFrameR);
-   
 };
 
 #endif // QCAN_SERVER_HPP_

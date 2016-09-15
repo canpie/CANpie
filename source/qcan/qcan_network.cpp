@@ -36,7 +36,6 @@
 
 #include "qcan_interface.hpp"
 #include "qcan_network.hpp"
-#include "qcan_stub.hpp"
 
 
 /*----------------------------------------------------------------------------*\
@@ -44,7 +43,8 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-#define  QCAN_STUB_LIST_SIZE        16
+
+
 
 /*----------------------------------------------------------------------------*\
 ** Static variables                                                           **
@@ -62,8 +62,14 @@ uint8_t  QCanNetwork::ubNetIdP = 0;
 // QCanNetwork()                                                              //
 // constructor                                                                //
 //----------------------------------------------------------------------------//
-QCanNetwork::QCanNetwork()
+QCanNetwork::QCanNetwork(QObject * pclParentV,
+                         uint16_t  uwPortV)
 {
+   //----------------------------------------------------------------
+   // set the parent
+   //
+   this->setParent(pclParentV);
+
    //----------------------------------------------------------------
    // each network has a unique network number, starting with 1
    //
@@ -74,20 +80,32 @@ QCanNetwork::QCanNetwork()
    //----------------------------------------------------------------
    // set default network name
    //
-   clNetNameP = "CAN network " + QString("%1").arg(ubNetIdP);
-
-
-   //----------------------------------------------------------------
-   // create initial stub list
-   //
-   pclStubListP = new QVector<QCanStub *>;
-   pclStubListP->reserve(QCAN_STUB_LIST_SIZE);
+   clNetNameP = "CAN " + QString("%1").arg(ubNetIdP);
 
    //----------------------------------------------------------------
-   // start network thread
+   // create initial socket list
    //
-   this->start();
+   pclTcpSockListP = new QVector<QTcpSocket *>;
+   pclTcpSockListP->reserve(QCAN_TCP_SOCKET_MAX);
 
+   //----------------------------------------------------------------
+   // setup a new local server which is listening to the
+   // default network name
+   //
+   pclTcpSrvP = new QTcpServer();
+
+   clTcpHostAddrP = QHostAddress(QHostAddress::LocalHost);
+   uwTcpPortP = uwPortV;
+
+   //----------------------------------------------------------------
+   // clear statistic
+   //
+   ulCntFrameApiP = 0;
+   ulCntFrameCanP = 0;
+   ulCntFrameErrP = 0;
+
+   ulDispatchTimeP = 200;
+   slBitrateP = QCan::eCAN_BITRATE_500K;
 }
 
 
@@ -97,12 +115,16 @@ QCanNetwork::QCanNetwork()
 //----------------------------------------------------------------------------//
 QCanNetwork::~QCanNetwork()
 {
-   ubNetIdP--;
-   while(this->isRunning())
+   //----------------------------------------------------------------
+   // close TCP server
+   //
+   if(pclTcpSrvP->isListening())
    {
-      this->requestInterruption();
-      msleep(1);
+      pclTcpSrvP->close();
    }
+   delete(pclTcpSrvP);
+
+   ubNetIdP--;
 }
 
 
@@ -112,72 +134,397 @@ QCanNetwork::~QCanNetwork()
 //----------------------------------------------------------------------------//
 bool QCanNetwork::addInterface(QCanInterface * pclCanIfV)
 {
-   pclInterfaceP = pclCanIfV;
-   return 0;
-}
+   bool  btResultT = false;
 
-
-//----------------------------------------------------------------------------//
-// connectStub()                                                              //
-// add new QCanStub to the internal list                                      //
-//----------------------------------------------------------------------------//
-void  QCanNetwork::connectStub(QCanStub * pclStubV)
-{
-   clStubMutexP.lock();
-   pclStubListP->append(pclStubV);
-   clStubMutexP.unlock();
-}
-
-
-//----------------------------------------------------------------------------//
-// disconnectStub()                                                           //
-// remove QCanStub from the internal stub list                                //
-//----------------------------------------------------------------------------//
-void  QCanNetwork::disconnectStub(QCanStub *pclStubV)
-{
-   int32_t slIndexT;
-
-   clStubMutexP.lock();
-   slIndexT = pclStubListP->indexOf(pclStubV);
-   if(slIndexT != -1)
+   if(pclInterfaceP.isNull())
    {
-      pclStubListP->remove(slIndexT);
+      pclInterfaceP = pclCanIfV;
+      btResultT = true;
    }
-   clStubMutexP.unlock();
+   return (btResultT);
 }
 
 
-void  QCanNetwork::handleApiFrame(int32_t & slStubSrcR, QCanFrameApi & clCanFrameR)
+
+bool QCanNetwork::hasErrorFramesSupport(void)
 {
-
+   return(false);
 }
 
-void  QCanNetwork::handleErrorFrame(int32_t & slStubSrcR, QCanFrameError & clErrorFrameR)
+bool QCanNetwork::hasFastDataSupport(void)
 {
+   return(false);
 
 }
+
+bool QCanNetwork::hasListenOnlySupport(void)
+{
+   return(false);
+
+}
+
+
 
 //----------------------------------------------------------------------------//
-// pushFrame()                                                                //
-// push QCan frame to all open stubs                                          //
+// handleApiFrame()                                                           //
+//                                                                            //
 //----------------------------------------------------------------------------//
-void  QCanNetwork::handleQCanFrame(int32_t & slStubSrcR, QCanFrame & clCanFrameR)
+bool  QCanNetwork::handleApiFrame(int32_t & slSockSrcR,
+                                  QCanFrameApi & clApiFrameR)
 {
-   int32_t    slStubIdxT;
-   QCanStub * pclStubT;
+   bool btResultT = false;
+
+   switch(clApiFrameR.function())
+   {
+      case QCanFrameApi::eAPI_FUNC_NONE:
+
+         break;
+
+      case QCanFrameApi::eAPI_FUNC_BITRATE:
+         if(!pclInterfaceP.isNull())
+         {
+            pclInterfaceP->setBitrate( clApiFrameR.bitrate(),
+                                       clApiFrameR.brsClock());
+         }
+         btResultT = true;
+         break;
+
+      case QCanFrameApi::eAPI_FUNC_CAN_MODE:
+
+         break;
+
+      case QCanFrameApi::eAPI_FUNC_CAN_STATE:
+
+         break;
+
+      case QCanFrameApi::eAPI_FUNC_DRIVER_INIT:
+
+         break;
+
+      case QCanFrameApi::eAPI_FUNC_DRIVER_RELEASE:
+
+         break;
+   }
+
+   ulCntFrameApiP++;
+   return(btResultT);
+}
+
+
+//----------------------------------------------------------------------------//
+// handleCanFrame()                                                           //
+// push QCan frame to all open sockets                                        //
+//----------------------------------------------------------------------------//
+bool  QCanNetwork::handleCanFrame(int32_t & slSockSrcR,
+                                  QByteArray & clSockDataR)
+{
+   int32_t        slSockIdxT;
+   bool           btResultT = false;
+   QTcpSocket *   pclSockS;
 
 
    //----------------------------------------------------------------
-   // check all open stubs and write CAN frame
+   // check all open sockets and write CAN frame
    //
-   for(slStubIdxT = 0; slStubIdxT < pclStubListP->size(); slStubIdxT++)
+   for(slSockIdxT = 0; slSockIdxT < pclTcpSockListP->size(); slSockIdxT++)
    {
-      if(slStubIdxT != slStubSrcR)
+      if(slSockIdxT != slSockSrcR)
       {
-         pclStubT = pclStubListP->at(slStubIdxT);
-         pclStubT->pushReceiveFifo(clCanFrameR);
+         pclSockS = pclTcpSockListP->at(slSockIdxT);
+         pclSockS->write(clSockDataR);
+         pclSockS->flush();
+         btResultT = true;
       }
    }
+
+   if(btResultT == true)
+   {
+      ulCntFrameCanP++;
+   }
+   return(btResultT);
+}
+
+
+//----------------------------------------------------------------------------//
+// handleErrorFrame()                                                         //
+//                                                                            //
+//----------------------------------------------------------------------------//
+bool  QCanNetwork::handleErrFrame(int32_t & slSockSrcR,
+                                  QCanFrameError & clErrorFrameR)
+{
+   bool           btResultT = false;
+
+   return(btResultT);
+}
+
+
+//----------------------------------------------------------------------------//
+// onTcpSrvNewConnection()                                                    //
+// slot that manages a new local server connection                            //
+//----------------------------------------------------------------------------//
+void QCanNetwork::onSocketConnect(void)
+{
+   QTcpSocket *    pclSocketT;
+
+   //----------------------------------------------------------------
+   // Get next pending connect and add this socket to the
+   // the socket list
+   //
+   pclSocketT =  pclTcpSrvP->nextPendingConnection();
+   clTcpSockMutexP.lock();
+   pclTcpSockListP->append(pclSocketT);
+   clTcpSockMutexP.unlock();
+
+   qDebug() << "QCanNetwork::onSocketConnect()" << pclTcpSockListP->size() << "open sockets";
+   qDebug() << "Socket" << pclSocketT;
+
+   //----------------------------------------------------------------
+   // Add a slot that handles the disconnection of the socket
+   // from the local server
+   //
+   connect( pclSocketT,
+            SIGNAL(disconnected()),
+            this,
+            SLOT(onSocketDisconnect())   );
+}
+
+
+//----------------------------------------------------------------------------//
+// setBitrate()                                                               //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void QCanNetwork::setBitrate(int32_t slBitrateV, int32_t slBrsClockV)
+{
+   slBitrateP  = slBitrateV;
+   slBrsClockP = slBrsClockV;
+}
+
+
+//----------------------------------------------------------------------------//
+// setDispatcherTime()                                                        //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void QCanNetwork::setDispatcherTime(uint32_t ulTimeV)
+{
+   ulDispatchTimeP = ulTimeV;
+}
+
+
+//----------------------------------------------------------------------------//
+// setErrorFramesEnabled()                                                    //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void QCanNetwork::setErrorFramesEnabled(bool btEnableV)
+{
+   if(hasErrorFramesSupport() == true)
+   {
+      btErrorFramesEnabledP = btEnableV;
+   }
+   else
+   {
+      btErrorFramesEnabledP = false;
+   }
+}
+
+
+//----------------------------------------------------------------------------//
+// setFastDataEnabled()                                                       //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void QCanNetwork::setFastDataEnabled(bool btEnableV)
+{
+   if(hasFastDataSupport() == true)
+   {
+      btFastDataEnabledP = btEnableV;
+   }
+   else
+   {
+      btFastDataEnabledP = false;
+   }
+}
+
+
+//----------------------------------------------------------------------------//
+// setListenOnlyEnabled()                                                     //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void QCanNetwork::setListenOnlyEnabled(bool btEnableV)
+{
+   {btListenOnlyEnabledP = btEnableV;};
+
+}
+
+
+//----------------------------------------------------------------------------//
+// setNetworkEnabled()                                                        //
+// start / stop the TCP server                                                //
+//----------------------------------------------------------------------------//
+void QCanNetwork::setNetworkEnabled(bool btEnableV)
+{
+
+   if(btEnableV == true)
+   {
+      //--------------------------------------------------------
+      // limit the number of connections
+      //
+      pclTcpSrvP->setMaxPendingConnections(QCAN_TCP_SOCKET_MAX);
+
+      if(!pclTcpSrvP->listen(clTcpHostAddrP, uwTcpPortP))
+      {
+         qDebug() << "QCanNetwork(): can not listen to " << clNetNameP;
+      }
+
+      //--------------------------------------------------------
+      // a new connection is handled by the onTcpSrvNewConnection()
+      // method
+      //
+      connect( pclTcpSrvP, SIGNAL(newConnection()),
+               this, SLOT(onSocketConnect()));
+
+
+      //--------------------------------------------------------
+      // start network thread
+      //
+      clDispatchTmrP.singleShot(ulDispatchTimeP, this, SLOT(onTimerEvent()));
+
+
+      //--------------------------------------------------------
+      // set flag for further operations
+      //
+      btNetworkEnabledP =  true;
+
+   }
+   else
+   {
+      //--------------------------------------------------------
+      // stop timer for message dispatching
+      //
+      clDispatchTmrP.stop();
+
+      //--------------------------------------------------------
+      // remove signal / slot connection
+      //
+      disconnect( pclTcpSrvP, SIGNAL(newConnection()),
+                     this, SLOT(onSocketConnect()));
+
+
+      //--------------------------------------------------------
+      // close TCP server
+      //
+      qDebug() << "Close server";
+      pclTcpSrvP->close();
+
+      //--------------------------------------------------------
+      // set flag for further operations
+      //
+      btNetworkEnabledP =  false;
+
+   }
+
+}
+
+
+//----------------------------------------------------------------------------//
+// onSocketDisconnect()                                                       //
+// remove local socket from list                                              //
+//----------------------------------------------------------------------------//
+void QCanNetwork::onSocketDisconnect(void)
+{
+   int32_t      slSockIdxT;
+   QTcpSocket * pclSockT;
+   QTcpSocket * pclSenderT;
+
+
+   //----------------------------------------------------------------
+   // get sender of signal
+   //
+   pclSenderT = (QTcpSocket* ) QObject::sender();
+
+   clTcpSockMutexP.lock();
+   for(slSockIdxT = 0; slSockIdxT < pclTcpSockListP->size(); slSockIdxT++)
+   {
+      pclSockT = pclTcpSockListP->at(slSockIdxT);
+      if(pclSockT == pclSenderT)
+      {
+         pclTcpSockListP->remove(slSockIdxT);
+         break;
+      }
+   }
+   clTcpSockMutexP.unlock();
+
+   qDebug() << "QCanNetwork::onSocketDisconnect()" << pclTcpSockListP->size() << "open sockets";
+
+}
+
+
+//----------------------------------------------------------------------------//
+// onTimerEvent()                                                             //
+// remove local socket from list                                              //
+//----------------------------------------------------------------------------//
+void QCanNetwork::onTimerEvent(void)
+{
+   static int32_t           slSockIdxS;
+   int32_t slDestIdxT;
+   int32_t  slListSizeT;
+   static QTcpSocket * pclSockS;
+   static QCanFrame         clCanFrameS;
+   static QByteArray        clSockDataS;
+   uint8_t  ubMsgT;
+
+   //----------------------------------------------------------------
+   // Start CAN network thread:
+   // It checks all CAN stubs in the list for messages which
+   // need to be send (transferred) to other stubs.
+   //
+   //qDebug() << "Start CAN network task";
+
+
+   ubMsgT = 1;
+   while(ubMsgT)
+   {
+
+      clTcpSockMutexP.lock();
+
+      //--------------------------------------------------------
+      // check all open sockets and read messages
+      //
+      slListSizeT = pclTcpSockListP->size();
+      for(slSockIdxS = 0; slSockIdxS < slListSizeT; slSockIdxS++)
+      {
+         pclSockS = pclTcpSockListP->at(slSockIdxS);
+         if(pclSockS->bytesAvailable() >= QCAN_FRAME_ARRAY_SIZE)
+         {
+            qDebug() << "Data on socket " <<  slSockIdxS;
+
+            clSockDataS = pclSockS->read(QCAN_FRAME_ARRAY_SIZE);
+            clCanFrameS.fromByteArray(clSockDataS);
+
+            switch(clCanFrameS.frameType())
+            {
+               case QCanFrame::eTYPE_QCAN_API:
+                  handleApiFrame(slSockIdxS, (QCanFrameApi &) clCanFrameS);
+                  break;
+
+               case QCanFrame::eTYPE_QCAN_ERR:
+                  handleErrFrame(slSockIdxS, (QCanFrameError &) clCanFrameS);
+                  break;
+
+               default:
+                  handleCanFrame(slSockIdxS, clSockDataS);
+                  break;
+            }
+         }
+         else
+         {
+            ubMsgT = 0;
+         }
+      }
+      clTcpSockMutexP.unlock();
+      ubMsgT = 0;
+
+   }
+
+   clDispatchTmrP.singleShot(ulDispatchTimeP, this, SLOT(onTimerEvent()));
 
 }
 
@@ -190,76 +537,4 @@ void QCanNetwork::removeInterface(void)
 {
 
 }
-
-
-//----------------------------------------------------------------------------//
-// run()                                                                      //
-// QCan Network thread                                                        //
-//----------------------------------------------------------------------------//
-void QCanNetwork::run()
-{
-   static int32_t    slStubIdxS;
-   static QCanStub * pclStubS;
-   static QCanFrame  clCanFrameS;
-
-   //----------------------------------------------------------------
-   // Start CAN network thread:
-   // It checks all CAN stubs in the list for messages which
-   // need to be send (transferred) to other stubs.
-   //
-   qDebug() << "Start CAN network thread";
-   while(1)
-   {
-      clStubMutexP.lock();
-
-      //--------------------------------------------------------
-      // check all open stubs and read messages
-      //
-      for(slStubIdxS = 0; slStubIdxS < pclStubListP->size(); slStubIdxS++)
-      {
-
-         pclStubS = pclStubListP->at(slStubIdxS);
-         if(pclStubS->popTransmitFifo(clCanFrameS))
-         {
-
-            switch(clCanFrameS.frameType())
-            {
-               case QCanFrame::eTYPE_QCAN_API:
-                  handleApiFrame(slStubIdxS, (QCanFrameApi &) clCanFrameS);
-                  break;
-
-               case QCanFrame::eTYPE_QCAN_ERR:
-                  handleErrorFrame(slStubIdxS, (QCanFrameError &) clCanFrameS);
-                  break;
-
-               default:
-                  handleQCanFrame(slStubIdxS, clCanFrameS);
-                  break;
-            }
-         }
-      }
-      clStubMutexP.unlock();
-
-      //--------------------------------------------------------
-      // check if the thread execution shall be stopped
-      //
-      if ( QThread::currentThread()->isInterruptionRequested() )
-      {
-         qDebug() << "Quit CAN network thread";
-         return;
-      }
-   }
-
-}
-
-uint32_t  QCanNetwork::stubCount(void)
-{
-   uint32_t ulCountT;
-
-   ulCountT = pclStubListP->size();
-
-   return(ulCountT);
-}
-
-
 

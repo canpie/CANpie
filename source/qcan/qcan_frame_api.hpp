@@ -60,9 +60,12 @@ public:
    
    ~QCanFrameApi();
 
+   int32_t  bitrate(void);
+   int32_t  brsClock(void);
+
    ApiFunc_e function(void);
 
-   void setBitrate();
+   void setBitrate(int32_t slBitrateV, int32_t slBrsClockV);
 
    void setDriverInit();
    void setDriverRelease();

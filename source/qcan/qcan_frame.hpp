@@ -3,7 +3,7 @@
 // Description:   QCAN classes - CAN frame                                    //
 //                                                                            //
 // Copyright (C) MicroControl GmbH & Co. KG                                   //
-// 53842 Troisdorf - Germany                                                  //
+// 53844 Troisdorf - Germany                                                  //
 // www.microcontrol.net                                                       //
 //                                                                            //
 //----------------------------------------------------------------------------//
@@ -59,6 +59,8 @@ typedef struct QCanTimestamp_s {
 
 #define  CAN_FRAME_DATA_MAX      64
 
+
+#define  QCAN_FRAME_ARRAY_SIZE      96
 
 
 //-----------------------------------------------------------------------------

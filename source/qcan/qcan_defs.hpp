@@ -2,10 +2,93 @@
 #define QCAN_DEFS_HPP_
 
 
-#define  QCAN_SOCKET_RCV_PORT       5566
-#define  QCAN_SOCKET_TRM_PORT       5567
+#define  QCAN_TCP_DEFAULT_PORT      55660
+
+#define  QCAN_TCP_SOCKET_MAX       16
+
+#define  QCAN_NETWORK_MAX              8
+
 
 namespace QCan {
+
+   enum CAN_Bitrate_e {
+      /*!
+       ** Bitrate 10 kBit/sec
+       */
+      eCAN_BITRATE_10K = 0,
+
+      /*!
+       ** Bitrate 20 kBit/sec
+       */
+      eCAN_BITRATE_20K,
+
+      /*!
+       ** Bitrate 50 kBit/sec
+       */
+      eCAN_BITRATE_50K,
+
+      /*!
+       ** Bitrate 100 kBit/sec
+       */
+      eCAN_BITRATE_100K,
+
+      /*!
+       ** Bitrate 125 kBit/sec
+       */
+      eCAN_BITRATE_125K,
+
+      /*!
+       ** Bitrate 250 kBit/sec
+       */
+      eCAN_BITRATE_250K,
+
+      /*!
+       ** Bitrate 500 kBit/sec
+       */
+      eCAN_BITRATE_500K,
+
+      /*!
+       ** Bitrate 800 kBit/sec
+       */
+      eCAN_BITRATE_800K,
+
+      /*!
+       ** Bitrate 1 MBit/sec
+       */
+      eCAN_BITRATE_1M,
+
+      /*!
+       ** Use automatic Bitrate detection
+       */
+      eCAN_BITRATE_AUTO
+   };
+
+   enum CAN_Channel_e {
+
+      /*! CAN interface 1              */
+      eCAN_CHANNEL_1 = 0,
+
+      /*! CAN interface 2              */
+      eCAN_CHANNEL_2,
+
+      /*! CAN interface 3              */
+      eCAN_CHANNEL_3,
+
+      /*! CAN interface 4              */
+      eCAN_CHANNEL_4,
+
+      /*! CAN interface 5              */
+      eCAN_CHANNEL_5,
+
+      /*! CAN interface 6              */
+      eCAN_CHANNEL_6,
+
+      /*! CAN interface 7              */
+      eCAN_CHANNEL_7,
+
+      /*! CAN interface 8              */
+      eCAN_CHANNEL_8
+   };
 
    enum CAN_State_e {
       /*!
