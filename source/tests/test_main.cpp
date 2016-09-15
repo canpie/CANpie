@@ -3,13 +3,14 @@
 
 using namespace std;
 
+#include <QCoreApplication>
 #include <QDebug>
 #include <QTest>
 
 
 #include "test_qcan_client.hpp"
 #include "test_qcan_frame.hpp"
-#include "test_qcan_stub.hpp"
+#include "test_qcan_socket.hpp"
 
 
 
@@ -33,8 +34,8 @@ int main(int argc, char *argv[])
    //----------------------------------------------------------------
    // test QCanStub
    //
-   TestQCanStub  clTestQCanStubT;
-   slResultT = QTest::qExec(&clTestQCanStubT) + slResultT;
+   TestQCanSocket  clTestQCanSockT;
+   slResultT = QTest::qExec(&clTestQCanSockT) + slResultT;
 
    //----------------------------------------------------------------
    // test QCanClient
