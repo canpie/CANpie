@@ -25,6 +25,7 @@ public slots:
    void onNetworkConfBitrate(int slBitrateV);
    void onNetworkConfEnable(bool btEnableV);
    void onNetworkConfListenOnly(bool btEnableV);
+   void onNetworkConfInterface(QMouseEvent *);
 
    void onNetworkShowLoad(int slLoadV);
 

@@ -17,7 +17,7 @@
    <iconset resource="../qcanserver.qrc">
     <normaloff>:/images/network-icon.png</normaloff>:/images/network-icon.png</iconset>
   </property>
-  <widget class="QPushButton" name="pclBtnApplyM">
+  <widget class="QPushButton" name="pclBtnCloseM">
    <property name="geometry">
     <rect>
      <x>510</x>
@@ -27,7 +27,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Apply</string>
+    <string>Close</string>
    </property>
   </widget>
   <widget class="QTabWidget" name="pclTabConfigM">
@@ -58,7 +58,7 @@
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QWidget" name="pclTbxWidget1_M">
+     <widget class="QCanInterfaceWidget" name="pclTbxWidget1_M">
       <property name="geometry">
        <rect>
         <x>0</x>
@@ -71,7 +71,7 @@
        <string>CAN 1</string>
       </attribute>
      </widget>
-     <widget class="QWidget" name="pclTbxWidget2_M">
+     <widget class="QCanInterfaceWidget" name="pclTbxWidget2_M">
       <property name="geometry">
        <rect>
         <x>0</x>
@@ -84,7 +84,7 @@
        <string>CAN 2</string>
       </attribute>
      </widget>
-     <widget class="QWidget" name="pclTbxWidget3_M">
+     <widget class="QCanInterfaceWidget" name="pclTbxWidget3_M">
       <property name="geometry">
        <rect>
         <x>0</x>
@@ -163,12 +163,12 @@
       </attribute>
      </widget>
     </widget>
-    <widget class="QGroupBox" name="groupBox_2">
+    <widget class="QGroupBox" name="pclGrpNetworkConfM">
      <property name="geometry">
       <rect>
        <x>130</x>
        <y>10</y>
-       <width>251</width>
+       <width>451</width>
        <height>161</height>
       </rect>
      </property>
@@ -178,8 +178,8 @@
      <widget class="QComboBox" name="pclCbbNetBitrateM">
       <property name="geometry">
        <rect>
-        <x>93</x>
-        <y>110</y>
+        <x>300</x>
+        <y>35</y>
         <width>131</width>
         <height>26</height>
        </rect>
@@ -233,8 +233,8 @@
      <widget class="QLabel" name="pclLblNetBitrateM">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>110</y>
+        <x>220</x>
+        <y>40</y>
         <width>59</width>
         <height>16</height>
        </rect>
@@ -305,12 +305,12 @@
       </property>
      </widget>
     </widget>
-    <widget class="QGroupBox" name="groupBox">
+    <widget class="QGroupBox" name="pclGrpNetworkStatM">
      <property name="geometry">
       <rect>
        <x>130</x>
        <y>210</y>
-       <width>431</width>
+       <width>451</width>
        <height>141</height>
       </rect>
      </property>
@@ -322,7 +322,7 @@
        <rect>
         <x>130</x>
         <y>30</y>
-        <width>118</width>
+        <width>281</width>
         <height>23</height>
        </rect>
       </property>
@@ -330,7 +330,7 @@
        <number>24</number>
       </property>
      </widget>
-     <widget class="QLabel" name="label_4">
+     <widget class="QLabel" name="pclLblStatMsgM">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -343,11 +343,11 @@
        <string>Messages / sec</string>
       </property>
      </widget>
-     <widget class="QLabel" name="label_5">
+     <widget class="QLabel" name="pclLblStatErrM">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>80</y>
+        <y>100</y>
         <width>101</width>
         <height>16</height>
        </rect>
@@ -356,46 +356,17 @@
        <string>Error frames:</string>
       </property>
      </widget>
-     <widget class="QLabel" name="label_6">
+     <widget class="QLabel" name="pclLblStatCanM">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>60</y>
+        <y>70</y>
         <width>101</width>
         <height>16</height>
        </rect>
       </property>
       <property name="text">
        <string>CAN frames:</string>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QGroupBox" name="groupBox_3">
-     <property name="geometry">
-      <rect>
-       <x>410</x>
-       <y>10</y>
-       <width>161</width>
-       <height>161</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>CAN interface</string>
-     </property>
-     <widget class="QGraphicsView" name="graphicsView">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>30</y>
-        <width>141</width>
-        <height>121</height>
-       </rect>
-      </property>
-      <property name="toolTip">
-       <string>Click to select CAN interface</string>
-      </property>
-      <property name="toolTipDuration">
-       <number>-1</number>
       </property>
      </widget>
     </widget>
@@ -490,8 +461,33 @@
    </property>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QCanInterfaceWidget</class>
+   <extends>QWidget</extends>
+   <header>qcan_interface_widget.hpp</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../qcanserver.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>pclBtnCloseM</sender>
+   <signal>clicked()</signal>
+   <receiver>ServerConfig</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>566</x>
+     <y>455</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>319</x>
+     <y>239</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

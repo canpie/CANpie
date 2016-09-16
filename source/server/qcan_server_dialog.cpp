@@ -86,6 +86,7 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    connect(ui.pclCbbNetBitrateM, SIGNAL(currentIndexChanged(int)),
            this, SLOT(onNetworkConfBitrate(int)));
 
+
    //----------------------------------------------------------------
    // load settings
    //
@@ -121,9 +122,14 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    createActions();
    createTrayIcon();
 
-   ui.pclTbxWidget1_M->
+   //->
    setIcon();
    pclIconTrayP->show();
+
+
+   QPalette clPaletteT(ui.pclTbxNetworkM->palette());
+
+   qDebug() << "Brush 1" << clPaletteT.brush(QPalette::Button);
 
 }
 
@@ -236,6 +242,10 @@ void QCanServerDialog::onNetworkConfEnable(bool btEnableV)
    }
 }
 
+void QCanServerDialog::onNetworkConfInterface(QMouseEvent * event)
+{
+   qDebug() << "Event!";
+}
 
 //----------------------------------------------------------------------------//
 // onNetworkConfListenOnly()                                                  //
