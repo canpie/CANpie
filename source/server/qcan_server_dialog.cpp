@@ -37,7 +37,7 @@
 #include <QCoreApplication>
 #include <QDebug>
 
-
+#include <QDir>
 
 
 /*----------------------------------------------------------------------------*\
@@ -131,6 +131,34 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
 
    qDebug() << "Brush 1" << clPaletteT.brush(QPalette::Button);
 
+
+   //----------------------------------------------------------------
+   //
+   //
+   QDir pluginsDir(qApp->applicationDirPath());
+#if defined(Q_OS_WIN)
+   if (pluginsDir.dirName().toLower() == "debug" || pluginsDir.dirName().toLower() == "release")
+       pluginsDir.cdUp();
+       pluginsDir.setPath(pluginsDir.path() + "/plugins");
+#elif defined(Q_OS_MAC)
+   if (pluginsDir.dirName() == "MacOS") {
+       pluginsDir.cdUp();
+       pluginsDir.cdUp();
+       pluginsDir.cdUp();
+       pluginsDir.setPath(pluginsDir.path() + "\plugins");
+   }
+#endif
+
+   ui.pclTbxQCanInterfaceWidget1_M->setPluginPath(pluginsDir);
+   ui.pclTbxQCanInterfaceWidget2_M->setPluginPath(pluginsDir);
+   ui.pclTbxQCanInterfaceWidget3_M->setPluginPath(pluginsDir);
+   ui.pclTbxQCanInterfaceWidget4_M->setPluginPath(pluginsDir);
+   ui.pclTbxQCanInterfaceWidget5_M->setPluginPath(pluginsDir);
+   ui.pclTbxQCanInterfaceWidget6_M->setPluginPath(pluginsDir);
+   ui.pclTbxQCanInterfaceWidget7_M->setPluginPath(pluginsDir);
+   ui.pclTbxQCanInterfaceWidget8_M->setPluginPath(pluginsDir);
+
+
 }
 
 
@@ -198,6 +226,8 @@ void QCanServerDialog::createTrayIcon(void)
    pclIconTrayP = new QSystemTrayIcon(this);
    pclIconTrayP->setContextMenu(pclMenuTrayP);
 }
+
+
 
 
 //----------------------------------------------------------------------------//

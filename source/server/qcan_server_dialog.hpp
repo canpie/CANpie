@@ -48,6 +48,8 @@ private:
 
     QCanServer *      pclCanServerP;
     QSettings *       pclSettingsP;
+
+
 };
 
 #endif // QCAN_SERVER_DIALOG_HPP_
