@@ -227,6 +227,7 @@ bool QCanSocket::writeFrame(const QCanFrame & clFrameR)
       QByteArray  clDatagramT = clFrameR.toByteArray();
       if(pclTcpSockP->write(clDatagramT) == QCAN_FRAME_ARRAY_SIZE)
       {
+         pclTcpSockP->flush();
          btResultT = true;
       }
    }
