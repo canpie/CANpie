@@ -58,104 +58,104 @@
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QCanInterfaceWidget" name="pclTbxQCanInterfaceWidget1_M">
+     <widget class="QCanInterfaceWidget" name="pclTbxWidget1_M">
       <property name="geometry">
        <rect>
         <x>0</x>
         <y>0</y>
         <width>101</width>
-        <height>145</height>
+        <height>89</height>
        </rect>
       </property>
       <attribute name="label">
        <string>CAN 1</string>
       </attribute>
      </widget>
-     <widget class="QCanInterfaceWidget" name="pclTbxQCanInterfaceWidget2_M">
+     <widget class="QCanInterfaceWidget" name="pclTbxWidget2_M">
       <property name="geometry">
        <rect>
         <x>0</x>
         <y>0</y>
         <width>101</width>
-        <height>145</height>
+        <height>89</height>
        </rect>
       </property>
       <attribute name="label">
        <string>CAN 2</string>
       </attribute>
      </widget>
-     <widget class="QCanInterfaceWidget" name="pclTbxQCanInterfaceWidget3_M">
+     <widget class="QCanInterfaceWidget" name="pclTbxWidget3_M">
       <property name="geometry">
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>98</width>
-        <height>28</height>
+        <width>101</width>
+        <height>89</height>
        </rect>
       </property>
       <attribute name="label">
        <string>CAN 3</string>
       </attribute>
      </widget>
-     <widget class="QCanInterfaceWidget" name="pclTbxQCanInterfaceWidget4_M">
+     <widget class="QWidget" name="pclTbxWidget4_M">
       <property name="geometry">
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>98</width>
-        <height>28</height>
+        <width>101</width>
+        <height>89</height>
        </rect>
       </property>
       <attribute name="label">
        <string>CAN 4</string>
       </attribute>
      </widget>
-     <widget class="QCanInterfaceWidget" name="pclTbxQCanInterfaceWidget5_M">
+     <widget class="QWidget" name="pclTbxWidget5_M">
       <property name="geometry">
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>98</width>
-        <height>28</height>
+        <width>101</width>
+        <height>89</height>
        </rect>
       </property>
       <attribute name="label">
        <string>CAN 5</string>
       </attribute>
      </widget>
-     <widget class="QCanInterfaceWidget" name="pclTbxQCanInterfaceWidget6_M">
+     <widget class="QWidget" name="pclTbxWidget6_M">
       <property name="geometry">
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>98</width>
-        <height>28</height>
+        <width>101</width>
+        <height>89</height>
        </rect>
       </property>
       <attribute name="label">
        <string>CAN 6</string>
       </attribute>
      </widget>
-     <widget class="QCanInterfaceWidget" name="pclTbxQCanInterfaceWidget7_M">
+     <widget class="QWidget" name="pclTbxWidget7_M">
       <property name="geometry">
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>98</width>
-        <height>28</height>
+        <width>101</width>
+        <height>89</height>
        </rect>
       </property>
       <attribute name="label">
        <string>CAN 7</string>
       </attribute>
      </widget>
-     <widget class="QCanInterfaceWidget" name="pclTbxQCanInterfaceWidget8_M">
+     <widget class="QWidget" name="pclTbxWidget8_M">
       <property name="geometry">
        <rect>
         <x>0</x>
         <y>0</y>
         <width>101</width>
-        <height>145</height>
+        <height>89</height>
        </rect>
       </property>
       <attribute name="label">
@@ -367,6 +367,38 @@
       </property>
       <property name="text">
        <string>CAN frames:</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="pclCntStatCanM">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>70</y>
+        <width>81</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>0</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="pclCntStatErrM">
+      <property name="geometry">
+       <rect>
+        <x>130</x>
+        <y>100</y>
+        <width>71</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>0</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
     </widget>
