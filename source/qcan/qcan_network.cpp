@@ -104,8 +104,18 @@ QCanNetwork::QCanNetwork(QObject * pclParentV,
    ulCntFrameCanP = 0;
    ulCntFrameErrP = 0;
 
-   ulDispatchTimeP = 20;
-   slBitrateP = QCan::eCAN_BITRATE_500K;
+   //----------------------------------------------------------------
+   // setup timing values
+   //
+   ulDispatchTimeP  = 20;
+   ulStatisticTimeP = 250;
+   ulStatisticTickP = ulStatisticTimeP / ulDispatchTimeP;
+
+
+   //----------------------------------------------------------------
+   // setup default bit-rate
+   //
+   setBitrate(QCan::eCAN_BITRATE_500K, -1);
 }
 
 
@@ -198,6 +208,14 @@ bool  QCanNetwork::handleApiFrame(int32_t & slSockSrcR,
          break;
 
       case QCanFrameApi::eAPI_FUNC_DRIVER_RELEASE:
+
+         break;
+
+      case QCanFrameApi::eAPI_FUNC_PROCESS_ID:
+
+         break;
+
+      default:
 
          break;
    }
@@ -464,6 +482,7 @@ void QCanNetwork::onTimerEvent(void)
    int32_t        slListSizeT;
    uint32_t       ulFrameCntT;
    uint32_t       ulFrameMaxT;
+   uint32_t       ulMsgPerSecT;
    QTcpSocket *   pclSockT;
    QCanFrame      clCanFrameT;
    QByteArray     clSockDataT;
@@ -529,10 +548,45 @@ void QCanNetwork::onTimerEvent(void)
    //----------------------------------------------------------------
    // signal current statistic values
    //
-   showApiFrames(ulCntFrameApiP);
-   showCanFrames(ulCntFrameCanP);
-   showErrFrames(ulCntFrameErrP);
-   showLoad(50, 1234);
+   if(ulStatisticTickP > 0)
+   {
+      ulStatisticTickP--;
+   }
+   else
+   {
+      //--------------------------------------------------------
+      // reload tick value
+      //
+      ulStatisticTickP = ulStatisticTimeP / ulDispatchTimeP;
+
+      //--------------------------------------------------------
+      // signal current counter values
+      //
+      showApiFrames(ulCntFrameApiP);
+      showCanFrames(ulCntFrameCanP);
+      showErrFrames(ulCntFrameErrP);
+
+      //--------------------------------------------------------
+      // calculate messages per second
+      //
+      ulMsgPerSecT = ulCntFrameCanP - ulFrameCntSaveP;
+      ulMsgPerSecT = ulMsgPerSecT * 4;
+
+      //--------------------------------------------------------
+      // todo: calculate bus load
+      //
+
+      //--------------------------------------------------------
+      // signal bus load and msg/sec
+      //
+      showLoad(0, ulMsgPerSecT);
+
+
+      //--------------------------------------------------------
+      // store actual frame counter value
+      //
+      ulFrameCntSaveP = ulCntFrameCanP;
+   }
 
    clDispatchTmrP.singleShot(ulDispatchTimeP, this, SLOT(onTimerEvent()));
 }

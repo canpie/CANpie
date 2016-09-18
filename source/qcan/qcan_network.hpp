@@ -240,9 +240,20 @@ private:
    int32_t                 slBitrateP;
    int32_t                 slBrsClockP;
 
+   //----------------------------------------------------------------
+   // statistic frame counter
+   //
    uint32_t                ulCntFrameApiP;
    uint32_t                ulCntFrameCanP;
    uint32_t                ulCntFrameErrP;
+
+   //----------------------------------------------------------------
+   // statistic timing
+   //
+   uint32_t                ulStatisticTickP;
+   uint32_t                ulStatisticTimeP;
+   uint32_t                ulFramePerSecMaxP;
+   uint32_t                ulFrameCntSaveP;
 
    bool                    btErrorFramesEnabledP;
    bool                    btFastDataEnabledP;
