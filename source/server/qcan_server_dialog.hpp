@@ -25,30 +25,33 @@ public slots:
    void onNetworkConfBitrate(int slBitrateV);
    void onNetworkConfEnable(bool btEnableV);
    void onNetworkConfListenOnly(bool btEnableV);
-   void onNetworkConfInterface(QMouseEvent *);
+   //void onNetworkConfInterface(QMouseEvent *);
 
-   void onNetworkShowLoad(int slLoadV);
+   void onNetworkShowCanFrames(uint32_t ulFrameCntV);
+   void onNetworkShowErrFrames(uint32_t ulFrameCntV);
+   void onNetworkShowLoad(uint8_t ubLoadV, uint32_t ulMsgPerSecV);
 
 private:
 
    uint8_t  currentNetwork(void);
    void     createActions(void);
    void     createTrayIcon(void);
-    void setupNetworks(void);
-    void showNetworkConfiguration(void);
-    void setIcon(void);
+   void     setupNetworks(void);
+   void     showNetworkConfiguration(void);
+   void     setIcon(void);
    void     updateUI(uint8_t ubNetworkIdxV);
 
-    Ui_ServerConfig   ui;
-    QAction *         pclActionCnfgP;
-    QAction *         pclActionQuitP;
+   Ui_ServerConfig   ui;
+   QAction *         pclActionCnfgP;
+   QAction *         pclActionQuitP;
 
-    QSystemTrayIcon * pclIconTrayP;
-    QMenu *           pclMenuTrayP;
+   QSystemTrayIcon * pclIconTrayP;
+   QMenu *           pclMenuTrayP;
 
-    QCanServer *      pclCanServerP;
-    QSettings *       pclSettingsP;
+   QCanServer *      pclCanServerP;
+   QSettings *       pclSettingsP;
 
+   int32_t           slLastNetworkIndexP;
 
 };
 

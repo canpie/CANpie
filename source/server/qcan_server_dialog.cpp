@@ -86,6 +86,18 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    connect(ui.pclCbbNetBitrateM, SIGNAL(currentIndexChanged(int)),
            this, SLOT(onNetworkConfBitrate(int)));
 
+   //----------------------------------------------------------------
+   // connect default signals / slots for statistic
+   //
+   pclNetworkT = pclCanServerP->network(0);
+   connect(pclNetworkT, SIGNAL(showCanFrames(uint32_t)),
+           this, SLOT(onNetworkShowCanFrames(uint32_t)) );
+
+   connect(pclNetworkT, SIGNAL(showErrFrames(uint32_t)),
+           this, SLOT(onNetworkShowErrFrames(uint32_t)) );
+
+   connect(pclNetworkT, SIGNAL(showLoad(uint8_t, uint32_t)),
+            this, SLOT(onNetworkShowLoad(uint8_t, uint32_t)) );
 
    //----------------------------------------------------------------
    // load settings
@@ -127,9 +139,6 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    pclIconTrayP->show();
 
 
-   QPalette clPaletteT(ui.pclTbxNetworkM->palette());
-
-   qDebug() << "Brush 1" << clPaletteT.brush(QPalette::Button);
 
 
    //----------------------------------------------------------------
@@ -160,6 +169,12 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    ui.pclTbxQCanInterfaceWidget8_M->setPluginPath(pluginsDir);
    */
 
+   //----------------------------------------------------------------
+   // show CAN channel 1 as default and update user interface
+   //
+   slLastNetworkIndexP = 0;
+   ui.pclTbxNetworkM->setCurrentIndex(0);
+   this->updateUI(0);
 }
 
 
@@ -193,10 +208,6 @@ QCanServerDialog::~QCanServerDialog()
    delete(pclSettingsP);
 }
 
-uint8_t QCanServerDialog::currentNetwork(void)
-{
-   return(ui.pclTbxNetworkM->currentIndex());
-}
 
 //----------------------------------------------------------------------------//
 // createActions()                                                            //
@@ -229,6 +240,14 @@ void QCanServerDialog::createTrayIcon(void)
 }
 
 
+//----------------------------------------------------------------------------//
+// currentNetwork()                                                           //
+//                                                                            //
+//----------------------------------------------------------------------------//
+uint8_t QCanServerDialog::currentNetwork(void)
+{
+   return(ui.pclTbxNetworkM->currentIndex());
+}
 
 
 //----------------------------------------------------------------------------//
@@ -237,8 +256,43 @@ void QCanServerDialog::createTrayIcon(void)
 //----------------------------------------------------------------------------//
 void QCanServerDialog::onNetworkChange(int slIndexV)
 {
-   qDebug() << "Set network" << slIndexV;
+   QCanNetwork *  pclNetworkT;
+
+   qDebug() << "onNetworkChange()" << slIndexV;
+
+   //----------------------------------------------------------------
+   // reconnect the signals / slots for statistic
+   //
+   pclNetworkT = pclCanServerP->network(slLastNetworkIndexP);
+   disconnect(pclNetworkT, SIGNAL(showCanFrames(uint32_t)),
+           this, SLOT(onNetworkShowCanFrames(uint32_t)) );
+
+   disconnect(pclNetworkT, SIGNAL(showErrFrames(uint32_t)),
+           this, SLOT(onNetworkShowErrFrames(uint32_t)) );
+
+   disconnect(pclNetworkT, SIGNAL(showLoad(uint8_t, uint32_t)),
+            this, SLOT(onNetworkShowLoad(uint8_t, uint32_t)) );
+
+
+   pclNetworkT = pclCanServerP->network(slIndexV);
+   connect(pclNetworkT, SIGNAL(showCanFrames(uint32_t)),
+           this, SLOT(onNetworkShowCanFrames(uint32_t)) );
+
+   connect(pclNetworkT, SIGNAL(showErrFrames(uint32_t)),
+           this, SLOT(onNetworkShowErrFrames(uint32_t)) );
+
+   connect(pclNetworkT, SIGNAL(showLoad(uint8_t, uint32_t)),
+            this, SLOT(onNetworkShowLoad(uint8_t, uint32_t)) );
+
+   //----------------------------------------------------------------
+   // update user interface
+   //
    this->updateUI(slIndexV);
+
+   //----------------------------------------------------------------
+   // store index for future access
+   //
+   slLastNetworkIndexP = slIndexV;
 }
 
 //----------------------------------------------------------------------------//
@@ -273,10 +327,11 @@ void QCanServerDialog::onNetworkConfEnable(bool btEnableV)
    }
 }
 
-void QCanServerDialog::onNetworkConfInterface(QMouseEvent * event)
-{
-   qDebug() << "Event!";
-}
+
+//void QCanServerDialog::onNetworkConfInterface(QMouseEvent * event)
+//{
+//   qDebug() << "Event!";
+//}
 
 //----------------------------------------------------------------------------//
 // onNetworkConfListenOnly()                                                  //
@@ -295,12 +350,32 @@ void QCanServerDialog::onNetworkConfListenOnly(bool btEnableV)
 
 
 //----------------------------------------------------------------------------//
+// onNetworkShowCanFrames()                                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void QCanServerDialog::onNetworkShowCanFrames(uint32_t ulFrameCntV)
+{
+   ui.pclCntStatCanM->setText(QString("%1").arg(ulFrameCntV));
+}
+
+//----------------------------------------------------------------------------//
+// onNetworkShowErrFrames()                                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void QCanServerDialog::onNetworkShowErrFrames(uint32_t ulFrameCntV)
+{
+   ui.pclCntStatErrM->setText(QString("%1").arg(ulFrameCntV));
+}
+
+
+//----------------------------------------------------------------------------//
 // onNetworkShowLoad()                                                        //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void QCanServerDialog::onNetworkShowLoad(int slLoadV)
+void QCanServerDialog::onNetworkShowLoad(uint8_t ubLoadV, uint32_t ulMsgPerSecV)
 {
-
+   ui.pclCntStatMsgM->setText(QString("%1").arg(ulMsgPerSecV));
+   ui.pclPgbStatLoadM->setValue(ubLoadV);
 }
 
 
