@@ -165,7 +165,6 @@ void QCanSocket::onSocketDisconnect(void)
 {
    qDebug() << "QCanSocket::onSocketDisconnect() ";
    btIsConnectedP = false;
-
 }
 
 
@@ -177,6 +176,19 @@ void QCanSocket::onSocketError(QAbstractSocket::SocketError eSocketErrorV)
 {
    qDebug() << "QCanSocket::onSocketError() ";
 
+   switch(eSocketErrorV)
+   {
+      case QAbstractSocket::RemoteHostClosedError:
+      case QAbstractSocket::NetworkError:
+         pclTcpSockP->abort();
+         btIsConnectedP = false;
+         break;
+
+      default:
+
+         break;
+
+   }
 }
 
 
@@ -187,8 +199,6 @@ void QCanSocket::onSocketError(QAbstractSocket::SocketError eSocketErrorV)
 void QCanSocket::onSocketReceive(void)
 {
    uint32_t    ulFrameCountT;
-
-   qDebug() << "QCanSocket::onSocketReceive() ";
 
    ulFrameCountT = pclTcpSockP->bytesAvailable() / QCAN_FRAME_ARRAY_SIZE;
    framesReceived(ulFrameCountT);
