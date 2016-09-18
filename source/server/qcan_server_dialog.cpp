@@ -145,10 +145,11 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
        pluginsDir.cdUp();
        pluginsDir.cdUp();
        pluginsDir.cdUp();
-       pluginsDir.setPath(pluginsDir.path() + "\plugins");
+       pluginsDir.setPath(pluginsDir.path() + "/plugins");
    }
 #endif
 
+   /*
    ui.pclTbxQCanInterfaceWidget1_M->setPluginPath(pluginsDir);
    ui.pclTbxQCanInterfaceWidget2_M->setPluginPath(pluginsDir);
    ui.pclTbxQCanInterfaceWidget3_M->setPluginPath(pluginsDir);
@@ -157,7 +158,7 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    ui.pclTbxQCanInterfaceWidget6_M->setPluginPath(pluginsDir);
    ui.pclTbxQCanInterfaceWidget7_M->setPluginPath(pluginsDir);
    ui.pclTbxQCanInterfaceWidget8_M->setPluginPath(pluginsDir);
-
+   */
 
 }
 
