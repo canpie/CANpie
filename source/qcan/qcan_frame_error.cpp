@@ -73,17 +73,50 @@ QCanFrameError::~QCanFrameError()
 }
 
 
-QCan::CAN_State_e QCanFrameError::state()
+QCan::CAN_State_e QCanFrameError::errorState(void) const
 {
    return((QCan::CAN_State_e) data(0));
 }
 
 
+//----------------------------------------------------------------------------//
+// setErrorCounterReceive()                                                   //
+// use data byte 2 for storage                                                //
+//----------------------------------------------------------------------------//
+void QCanFrameError::setErrorCounterReceive(const uint8_t & ubErrorCntR)
+{
+   setData(2, ubErrorCntR);
+}
+
+
+//----------------------------------------------------------------------------//
+// setErrorCounterTransmit()                                                  //
+// use data byte 3 for storage                                                //
+//----------------------------------------------------------------------------//
+void QCanFrameError::setErrorCounterTransmit(const uint8_t & ubErrorCntR)
+{
+   setData(3, ubErrorCntR);
+}
+
+
+//----------------------------------------------------------------------------//
+// setErrorStat()                                                             //
+// use data byte 0 for storage                                                //
+//----------------------------------------------------------------------------//
 void QCanFrameError::setErrorState(const QCan::CAN_State_e & ubStateR)
 {
    setData(0, ubStateR);
 }
 
+
+//----------------------------------------------------------------------------//
+// setErrorType()                                                             //
+// use data byte 1 for storage                                                //
+//----------------------------------------------------------------------------//
+void QCanFrameError::setErrorType(const ErrorType_e & ubTypeR)
+{
+   setData(1, ubTypeR);
+}
 
 //----------------------------------------------------------------------------//
 // toString()                                                                 //
