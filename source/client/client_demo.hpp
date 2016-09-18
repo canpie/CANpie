@@ -20,6 +20,7 @@ public slots:
    void  onClientConnect(void);
    void  onClientDisconnect(void);
    void  onClientNmtStart(void);
+   void  onClientNmtStop(void);
    void  onClientSync(void);
    void  onClientReceive(uint32_t ulFramesReceivedV);
 

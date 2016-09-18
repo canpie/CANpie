@@ -14,6 +14,12 @@ ClientDemo::ClientDemo(QWidget *parent)
 	connect(ui.pclBtnNmtStartM, SIGNAL(pressed()),
               this, SLOT(onClientNmtStart()));
 
+   connect(ui.pclBtnNmtStopM, SIGNAL(pressed()),
+              this, SLOT(onClientNmtStop()));
+
+   connect(ui.pclBtnNmtSyncM, SIGNAL(pressed()),
+              this, SLOT(onClientSync()));
+
 	pclCanSocketP = new QCanSocket;
 
 	connect( pclCanSocketP, SIGNAL(framesReceived(uint32_t)),
@@ -59,6 +65,24 @@ void  ClientDemo::onClientNmtStart(void)
    clCanFrameT.setDlc(2);
    clCanFrameT.setData(0, 1);
    clCanFrameT.setData(1, 0);
+
+   pclCanSocketP->writeFrame(clCanFrameT);
+}
+
+void  ClientDemo::onClientNmtStop(void)
+{
+   QCanFrame   clCanFrameT;
+
+   clCanFrameT.setStdId(0x60b);
+   clCanFrameT.setDlc(8);
+   clCanFrameT.setData(0, 0x22);
+   clCanFrameT.setData(1, 0x17);
+   clCanFrameT.setData(2, 0x10);
+   clCanFrameT.setData(3, 0x00);
+   clCanFrameT.setData(4, 0xC4);
+   clCanFrameT.setData(5, 0x00);
+   clCanFrameT.setData(6, 0x00);
+   clCanFrameT.setData(7, 0x00);
 
    pclCanSocketP->writeFrame(clCanFrameT);
 }
