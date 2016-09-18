@@ -10,6 +10,24 @@
     <height>480</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>640</width>
+    <height>480</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>640</width>
+    <height>480</height>
+   </size>
+  </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
@@ -318,16 +336,19 @@
       <string>CAN network statistics</string>
      </property>
      <widget class="QProgressBar" name="pclPgbStatLoadM">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
-        <x>130</x>
+        <x>330</x>
         <y>30</y>
-        <width>281</width>
+        <width>81</width>
         <height>23</height>
        </rect>
       </property>
       <property name="value">
-       <number>24</number>
+       <number>0</number>
       </property>
      </widget>
      <widget class="QLabel" name="pclLblStatMsgM">
@@ -340,14 +361,17 @@
        </rect>
       </property>
       <property name="text">
-       <string>Messages / sec</string>
+       <string>Messages / sec:</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
      <widget class="QLabel" name="pclLblStatErrM">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>100</y>
+        <y>90</y>
         <width>101</width>
         <height>16</height>
        </rect>
@@ -355,12 +379,15 @@
       <property name="text">
        <string>Error frames:</string>
       </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
      </widget>
      <widget class="QLabel" name="pclLblStatCanM">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>70</y>
+        <y>60</y>
         <width>101</width>
         <height>16</height>
        </rect>
@@ -368,13 +395,16 @@
       <property name="text">
        <string>CAN frames:</string>
       </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
      </widget>
      <widget class="QLabel" name="pclCntStatCanM">
       <property name="geometry">
        <rect>
-        <x>120</x>
-        <y>70</y>
-        <width>81</width>
+        <x>130</x>
+        <y>60</y>
+        <width>71</width>
         <height>20</height>
        </rect>
       </property>
@@ -389,7 +419,23 @@
       <property name="geometry">
        <rect>
         <x>130</x>
-        <y>100</y>
+        <y>90</y>
+        <width>71</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>0</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="pclCntStatMsgM">
+      <property name="geometry">
+       <rect>
+        <x>130</x>
+        <y>30</y>
         <width>71</width>
         <height>20</height>
        </rect>
@@ -420,12 +466,12 @@
     <attribute name="title">
      <string>Server configuration</string>
     </attribute>
-    <widget class="QLabel" name="label">
+    <widget class="QLabel" name="pclLblSrvPortM">
      <property name="geometry">
       <rect>
-       <x>50</x>
-       <y>10</y>
-       <width>111</width>
+       <x>30</x>
+       <y>20</y>
+       <width>141</width>
        <height>20</height>
       </rect>
      </property>
@@ -436,40 +482,52 @@
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
-    <widget class="QLabel" name="label_2">
+    <widget class="QLabel" name="pclLblSrvTimeM">
      <property name="geometry">
       <rect>
        <x>10</x>
        <y>50</y>
-       <width>211</width>
+       <width>161</width>
        <height>20</height>
       </rect>
      </property>
      <property name="text">
-      <string>Number of CAN networks</string>
+      <string>Message dispatch time</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
-    <widget class="QSpinBox" name="spinBox">
+    <widget class="QSpinBox" name="pclSpnSrvTimeM">
      <property name="geometry">
       <rect>
-       <x>270</x>
-       <y>60</y>
-       <width>48</width>
+       <x>200</x>
+       <y>50</y>
+       <width>91</width>
        <height>24</height>
       </rect>
      </property>
+     <property name="suffix">
+      <string> ms</string>
+     </property>
+     <property name="minimum">
+      <number>10</number>
+     </property>
+     <property name="maximum">
+      <number>200</number>
+     </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit">
+    <widget class="QLineEdit" name="pclEdtSrvPortM">
      <property name="geometry">
       <rect>
-       <x>250</x>
+       <x>200</x>
        <y>20</y>
        <width>113</width>
        <height>21</height>
       </rect>
+     </property>
+     <property name="maxLength">
+      <number>6</number>
      </property>
     </widget>
    </widget>
@@ -477,6 +535,38 @@
     <attribute name="title">
      <string>Information</string>
     </attribute>
+    <widget class="QLabel" name="pclLblInfoIconM">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>20</y>
+       <width>100</width>
+       <height>100</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="pixmap">
+      <pixmap resource="../qcanserver.qrc">:/images/network-icon.png</pixmap>
+     </property>
+     <property name="scaledContents">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLabel" name="pclLblInfoVersionM">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>40</y>
+       <width>421</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>QCanServer Version 1.00</string>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="Line" name="line">
