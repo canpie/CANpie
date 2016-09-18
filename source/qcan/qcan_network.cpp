@@ -104,7 +104,7 @@ QCanNetwork::QCanNetwork(QObject * pclParentV,
    ulCntFrameCanP = 0;
    ulCntFrameErrP = 0;
 
-   ulDispatchTimeP = 200;
+   ulDispatchTimeP = 20;
    slBitrateP = QCan::eCAN_BITRATE_500K;
 }
 
@@ -193,10 +193,6 @@ bool  QCanNetwork::handleApiFrame(int32_t & slSockSrcR,
 
          break;
 
-      case QCanFrameApi::eAPI_FUNC_CAN_STATE:
-
-         break;
-
       case QCanFrameApi::eAPI_FUNC_DRIVER_INIT:
 
          break;
@@ -236,6 +232,7 @@ bool  QCanNetwork::handleCanFrame(int32_t & slSockSrcR,
          btResultT = true;
       }
    }
+
 
    if(btResultT == true)
    {
@@ -463,69 +460,81 @@ void QCanNetwork::onSocketDisconnect(void)
 //----------------------------------------------------------------------------//
 void QCanNetwork::onTimerEvent(void)
 {
-   static int32_t           slSockIdxS;
-   int32_t slDestIdxT;
-   int32_t  slListSizeT;
-   static QTcpSocket * pclSockS;
-   static QCanFrame         clCanFrameS;
-   static QByteArray        clSockDataS;
-   uint8_t  ubMsgT;
+   int32_t        slSockIdxT;
+   int32_t        slListSizeT;
+   uint32_t       ulFrameCntT;
+   uint32_t       ulFrameMaxT;
+   QTcpSocket *   pclSockT;
+   QCanFrame      clCanFrameT;
+   QByteArray     clSockDataT;
+
 
    //----------------------------------------------------------------
-   // Start CAN network thread:
-   // It checks all CAN stubs in the list for messages which
-   // need to be send (transferred) to other stubs.
+   // lock socket list
    //
-   //qDebug() << "Start CAN network task";
+   clTcpSockMutexP.lock();
 
 
-   ubMsgT = 1;
-   while(ubMsgT)
+   //----------------------------------------------------------------
+   // check all open sockets and read messages
+   //
+   slListSizeT = pclTcpSockListP->size();
+   for(slSockIdxT = 0; slSockIdxT < slListSizeT; slSockIdxT++)
    {
-
-      clTcpSockMutexP.lock();
-
-      //--------------------------------------------------------
-      // check all open sockets and read messages
-      //
-      slListSizeT = pclTcpSockListP->size();
-      for(slSockIdxS = 0; slSockIdxS < slListSizeT; slSockIdxS++)
+      pclSockT = pclTcpSockListP->at(slSockIdxT);
+      ulFrameMaxT = (pclSockT->bytesAvailable()) / QCAN_FRAME_ARRAY_SIZE;
+      for(ulFrameCntT = 0; ulFrameCntT < ulFrameMaxT; ulFrameCntT++)
       {
-         pclSockS = pclTcpSockListP->at(slSockIdxS);
-         if(pclSockS->bytesAvailable() >= QCAN_FRAME_ARRAY_SIZE)
+         clSockDataT = pclSockT->read(QCAN_FRAME_ARRAY_SIZE);
+         clCanFrameT.fromByteArray(clSockDataT);
+
+         switch(clCanFrameT.frameType())
          {
-            qDebug() << "Data on socket " <<  slSockIdxS;
+            //---------------------------------------------
+            // handle API frames
+            //---------------------------------------------
+            case QCanFrame::eTYPE_QCAN_API:
+               handleApiFrame(slSockIdxT, (QCanFrameApi &) clCanFrameT);
+               break;
 
-            clSockDataS = pclSockS->read(QCAN_FRAME_ARRAY_SIZE);
-            clCanFrameS.fromByteArray(clSockDataS);
+            //---------------------------------------------
+            // handle error frames
+            //---------------------------------------------
+            case QCanFrame::eTYPE_QCAN_ERR:
+               handleErrFrame(slSockIdxT, (QCanFrameError &) clCanFrameT);
+               break;
 
-            switch(clCanFrameS.frameType())
-            {
-               case QCanFrame::eTYPE_QCAN_API:
-                  handleApiFrame(slSockIdxS, (QCanFrameApi &) clCanFrameS);
-                  break;
+            //---------------------------------------------
+            // handle CAN frames
+            //---------------------------------------------
+            default:
+               //-------------------------------------
+               // check for active CAN interface
+               //
+               if(pclInterfaceP.isNull() == false)
+               {
+                  pclInterfaceP->write(clCanFrameT);
+               }
 
-               case QCanFrame::eTYPE_QCAN_ERR:
-                  handleErrFrame(slSockIdxS, (QCanFrameError &) clCanFrameS);
-                  break;
-
-               default:
-                  handleCanFrame(slSockIdxS, clSockDataS);
-                  break;
-            }
-         }
-         else
-         {
-            ubMsgT = 0;
+               //-------------------------------------
+               // write to other sockets
+               //
+               handleCanFrame(slSockIdxT, clSockDataT);
+               break;
          }
       }
-      clTcpSockMutexP.unlock();
-      ubMsgT = 0;
-
    }
+   clTcpSockMutexP.unlock();
+
+   //----------------------------------------------------------------
+   // signal current statistic values
+   //
+   showApiFrames(ulCntFrameApiP);
+   showCanFrames(ulCntFrameCanP);
+   showErrFrames(ulCntFrameErrP);
+   showLoad(50, 1234);
 
    clDispatchTmrP.singleShot(ulDispatchTimeP, this, SLOT(onTimerEvent()));
-
 }
 
 
@@ -535,6 +544,6 @@ void QCanNetwork::onTimerEvent(void)
 //----------------------------------------------------------------------------//
 void QCanNetwork::removeInterface(void)
 {
-
+   pclInterfaceP.clear();
 }
 
