@@ -1,65 +1,152 @@
+//============================================================================//
+// File:          qcan_defs.hpp                                               //
+// Description:   QCAN classes - Definitions                                  //
+//                                                                            //
+// Copyright (C) MicroControl GmbH & Co. KG                                   //
+// 53844 Troisdorf - Germany                                                  //
+// www.microcontrol.net                                                       //
+//                                                                            //
+//----------------------------------------------------------------------------//
+// Redistribution and use in source and binary forms, with or without         //
+// modification, are permitted provided that the following conditions         //
+// are met:                                                                   //
+// 1. Redistributions of source code must retain the above copyright          //
+//    notice, this list of conditions, the following disclaimer and           //
+//    the referenced file 'LICENSE'.                                          //
+// 2. Redistributions in binary form must reproduce the above copyright       //
+//    notice, this list of conditions and the following disclaimer in the     //
+//    documentation and/or other materials provided with the distribution.    //
+// 3. Neither the name of MicroControl nor the names of its contributors      //
+//    may be used to endorse or promote products derived from this software   //
+//    without specific prior written permission.                              //
+//                                                                            //
+// Provided that this notice is retained in full, this software may be        //
+// distributed under the terms of the GNU Lesser General Public License       //
+// ("LGPL") version 3 as distributed in the 'LICENSE' file.                   //
+//                                                                            //
+//============================================================================//
+
+
 #ifndef QCAN_DEFS_HPP_
 #define QCAN_DEFS_HPP_
 
+//-----------------------------------------------------------------------------
+/*!
+** \file    qcan_defs.hpp
+** \brief   Global QCan definitions
+**
+** This file ...
+**
+*/
 
+/*----------------------------------------------------------------------------*\
+** Definitions                                                                **
+**                                                                            **
+\*----------------------------------------------------------------------------*/
+
+//-------------------------------------------------------------------
+/*!
+** \defgroup QCAN QCan definitions
+**
+**
+*/
+
+//-------------------------------------------------------------------
+/*!
+** \def     QCAN_TCP_DEFAULT_PORT
+** \ingroup QCAN
+** \brief   Default port for TCP server
+**
+** This symbol defines the default TCP port for the server.
+*/
 #define  QCAN_TCP_DEFAULT_PORT      55660
 
-#define  QCAN_TCP_SOCKET_MAX       16
 
-#define  QCAN_NETWORK_MAX              8
+//-------------------------------------------------------------------
+/*!
+** \def     QCAN_TCP_SOCKET_MAX
+** \ingroup QCAN
+** \brief   Maximum number of TCP sockets
+**
+** This symbol defines the maximum number of sockets connected to
+** the TCP server.
+*/
+#define  QCAN_TCP_SOCKET_MAX        16
 
 
+//-------------------------------------------------------------------
+/*!
+** \def     QCAN_NETWORK_MAX
+** \ingroup QCAN
+** \brief   Maximum number of networks
+**
+** This symbol defines the maximum number of networks.
+*/
+#define  QCAN_NETWORK_MAX           8
+
+
+//-------------------------------------------------------------------
+/*!
+** QCan namespace
+**
+*/
 namespace QCan {
 
    enum CAN_Bitrate_e {
+
       /*!
-       ** Bitrate 10 kBit/sec
-       */
+      ** No bit-rate defined
+      */
+      eCAN_BITRATE_NONE = -1,
+
+      /*!
+      ** bit-rate 10 kBit/sec
+      */
       eCAN_BITRATE_10K = 0,
 
       /*!
-       ** Bitrate 20 kBit/sec
-       */
+      ** bit-rate 20 kBit/sec
+      */
       eCAN_BITRATE_20K,
 
       /*!
-       ** Bitrate 50 kBit/sec
-       */
+      ** bit-rate 50 kBit/sec
+      */
       eCAN_BITRATE_50K,
 
       /*!
-       ** Bitrate 100 kBit/sec
-       */
+      ** bit-rate 100 kBit/sec
+      */
       eCAN_BITRATE_100K,
 
       /*!
-       ** Bitrate 125 kBit/sec
-       */
+      ** bit-rate 125 kBit/sec
+      */
       eCAN_BITRATE_125K,
 
       /*!
-       ** Bitrate 250 kBit/sec
-       */
+      ** bit-rate 250 kBit/sec
+      */
       eCAN_BITRATE_250K,
 
       /*!
-       ** Bitrate 500 kBit/sec
-       */
+      ** bit-rate 500 kBit/sec
+      */
       eCAN_BITRATE_500K,
 
       /*!
-       ** Bitrate 800 kBit/sec
-       */
+      ** bit-rate 800 kBit/sec
+      */
       eCAN_BITRATE_800K,
 
       /*!
-       ** Bitrate 1 MBit/sec
-       */
+      ** bit-rate 1 MBit/sec
+      */
       eCAN_BITRATE_1M,
 
       /*!
-       ** Use automatic Bitrate detection
-       */
+      ** Use automatic bit-rate detection
+      */
       eCAN_BITRATE_AUTO
    };
 
