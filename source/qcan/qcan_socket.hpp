@@ -76,7 +76,7 @@ public slots:
    void  onSocketConnect(void);
    void  onSocketDisconnect(void);
    void  onSocketError(QAbstractSocket::SocketError eSocketErrorV);
-   void  onSocketReceive(void);
+   virtual void  onSocketReceive(void);
 
 signals:
    void  framesReceived(uint32_t ulFrameCntV);
