@@ -324,6 +324,7 @@ void QCanServerDialog::onInterfaceChange(QCanInterface *pclCanIfV)
    if (pclCanIfV == Q_NULLPTR)
    {
       pclNetworkT->removeInterface();
+      currentInterfaceWidget()->setIcon(QIcon(":images/network-icon.png"));
    }
    else
    {
