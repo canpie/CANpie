@@ -24,7 +24,7 @@
 QCanInterfaceWidget::QCanInterfaceWidget()
  : QWidget()
 {
-   clIconP = QIcon(":images/network-icon.png");
+   clIconP = QIcon(":images/network-vcan.png");
    pclQCanInterfaceP = NULL;
 }
 
@@ -35,7 +35,6 @@ QCanInterfaceWidget::QCanInterfaceWidget()
 //----------------------------------------------------------------------------//
 void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
 {
-   //QList<QAction *> apclListActionsT;
    QAction * pclActionT;
    QPoint pos(this->mapFromParent(QCursor::pos()));
    QMenu clContextMenuT(tr("CAN interface selection"), this);
@@ -51,10 +50,8 @@ void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
    //----------------------------------------------------------------
    // create context menu with all available plugins
    //
-   pclActionT = new QAction("Virtual", this);
+   pclActionT = new QAction("Virtual CAN bus", this);
    pclActionT->setIcon(QIcon(":images/network-icon.png"));
-   //apclListActionsT.append(pclActionT);
-   //clContextMenuT.addAction(apclListActionsT.at(0));
    clContextMenuT.addAction(pclActionT);
 
    qint32 slCntrT = 0;
@@ -62,8 +59,6 @@ void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
    {
       pclActionT = new QAction(aclPluginNameListP.at(slCntrT), this);
       pclActionT->setIcon(aclIconListP.at(slCntrT));
-      //apclListActionsT.append(pclActionT);
-      //clContextMenuT.addAction(apclListActionsT.at(slCntrT+1));
       clContextMenuT.addAction(pclActionT);
       slCntrT++;
    }

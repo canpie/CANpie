@@ -324,7 +324,7 @@ void QCanServerDialog::onInterfaceChange(QCanInterface *pclCanIfV)
    if (pclCanIfV == Q_NULLPTR)
    {
       pclNetworkT->removeInterface();
-      currentInterfaceWidget()->setIcon(QIcon(":images/network-icon.png"));
+      currentInterfaceWidget()->setIcon(QIcon(":images/network-vcan.png"));
    }
    else
    {
@@ -488,9 +488,6 @@ void QCanServerDialog::setIcon(void)
 
     pclIconTrayP->setIcon(clIconT);
     pclIconTrayP->setToolTip("CAN network configuration");
-
-    //this->setWindowIcon(clIconT);
-
 }
 
 
