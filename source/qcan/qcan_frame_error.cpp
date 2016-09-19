@@ -73,9 +73,43 @@ QCanFrameError::~QCanFrameError()
 }
 
 
+//----------------------------------------------------------------------------//
+// errorCounterReceive()                                                      //
+// use data byte 2 for storage                                                //
+//----------------------------------------------------------------------------//
+uint8_t QCanFrameError::errorCounterReceive(void) const
+{
+   return(data(2));
+}
+
+
+//----------------------------------------------------------------------------//
+// errorCounterTransmit()                                                     //
+// use data byte 3 for storage                                                //
+//----------------------------------------------------------------------------//
+uint8_t QCanFrameError::errorCounterTransmit(void) const
+{
+   return(data(3));
+}
+
+
+//----------------------------------------------------------------------------//
+// errorState()                                                               //
+// use data byte 0 for storage                                                //
+//----------------------------------------------------------------------------//
 QCan::CAN_State_e QCanFrameError::errorState(void) const
 {
    return((QCan::CAN_State_e) data(0));
+}
+
+
+//----------------------------------------------------------------------------//
+// errorType()                                                                //
+// use data byte 1 for storage                                                //
+//----------------------------------------------------------------------------//
+QCanFrameError::ErrorType_e QCanFrameError::errorType(void) const
+{
+   return((QCanFrameError::ErrorType_e) data(1));
 }
 
 
@@ -127,49 +161,41 @@ QString QCanFrameError::toString(const bool & btShowTimeR)
    //----------------------------------------------------------------
    // setup a string object
    //
-   QString clStringT; //(QCAN_FRAME_STRING_SIZE, '\0');
+   QString clStringT;
    
    if(btShowTimeR == true)
    {
       
    }
    
-   
 
    //----------------------------------------------------------------
    // print frame format
    //
-   switch(frameType())
+   clStringT += "CAN error frame   ";
+
+   switch(this->errorState())
    {
-      case eTYPE_CAN_STD:
-         clStringT += "CAN-STD ";
+      case QCan::eCAN_STATE_BUS_ACTIVE:
+         clStringT += "Error active";
          break;
-         
-      case eTYPE_CAN_EXT:
-         clStringT += "CAN-EXT ";
+
+      case QCan::eCAN_STATE_BUS_WARN:
+         clStringT += "Warning level reached";
          break;
-         
-      case eTYPE_FD_STD:
-         clStringT += " FD-STD ";
+
+      case QCan::eCAN_STATE_BUS_PASSIVE:
+         clStringT += "Error passive";
          break;
-         
-      case eTYPE_FD_EXT:
-         clStringT += " FD-EXT ";
-         break;
-         
-      case eTYPE_QCAN_ERR:
-         clStringT += "QCan-ERR";
-         break;
-         
-      case eTYPE_QCAN_API:
-         clStringT += "QCan-API";
+
+      case QCan::eCAN_STATE_BUS_OFF:
+         clStringT += "Bus off";
          break;
 
       default:
-         clStringT += " N/A    ";
+
          break;
    }
-
    
    return(clStringT);
 }

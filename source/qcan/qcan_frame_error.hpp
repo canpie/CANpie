@@ -147,8 +147,22 @@ public:
    */
    void setErrorCounterTransmit(const uint8_t & ubErrorCntR);
 
+
+   /*!
+   ** \see  errorState()
+   **
+   ** This functions sets the current error state, defined by the
+   ** enumeration QCan::CAN_State_e.
+   */
    void setErrorState(const QCan::CAN_State_e & ubStateR);
 
+
+   /*!
+   ** \see  errorType()
+   **
+   ** This functions sets the error type which caused the last error
+   ** condition.
+   */
    void setErrorType(const ErrorType_e & ubTypeR);
 
 
