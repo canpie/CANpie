@@ -73,13 +73,13 @@ void  ClientDemo::onClientNmtStop(void)
 {
    QCanFrame   clCanFrameT;
 
-   clCanFrameT.setStdId(0x60b);
+   clCanFrameT.setStdId(0x60A);
    clCanFrameT.setDlc(8);
    clCanFrameT.setData(0, 0x22);
    clCanFrameT.setData(1, 0x17);
    clCanFrameT.setData(2, 0x10);
    clCanFrameT.setData(3, 0x00);
-   clCanFrameT.setData(4, 0xC4);
+   clCanFrameT.setData(4, 0x32);
    clCanFrameT.setData(5, 0x00);
    clCanFrameT.setData(6, 0x00);
    clCanFrameT.setData(7, 0x00);
