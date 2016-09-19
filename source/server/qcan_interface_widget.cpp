@@ -34,7 +34,7 @@ QCanInterfaceWidget::QCanInterfaceWidget()
 //----------------------------------------------------------------------------//
 void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
 {
-   QList<QAction> aclListActionsT;
+   QList<QAction *> aclListActionsT;
    QAction * pclActionT;
 
    quint32  ulCntrT;
@@ -47,14 +47,15 @@ void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
    if (!loadPlugin())
    {
        QMessageBox::information(this, "ERROR", "Could not load the any plugins!");
+       //return;
    }
 
-   qDebug() << clPluginItemListP.at(0);
+   //qDebug() << clPluginItemListP.at(0);
 
-//   pclActionT = new QAction("Virtual", this);
-//   pclActionT->setIcon(QIcon(":images/network-icon.png"));
-//   aclListActionsT->append(pclActionT);
-////   contextMenu.addAction(&(aclListActionsT.at(0)));
+   pclActionT = new QAction("Virtual", this);
+   pclActionT->setIcon(QIcon(":images/network-icon.png"));
+   aclListActionsT.append(pclActionT);
+   contextMenu.addAction((aclListActionsT.at(0)));
 
 //   ulCntrT = 0;
 //   while (ulCntrT < clPluginItemListP.count())
@@ -65,9 +66,9 @@ void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
 //   }
 
 //   clActionT =pclActionT;//aclListActionsT[0];
-   QAction clActionT("Virtual", this);
-   clActionT.setIcon(QIcon(":images/network-icon.png"));
-   contextMenu.addAction(&clActionT);
+//   QAction clActionT("Virtual", this);
+//   clActionT.setIcon(QIcon(":images/network-icon.png"));
+//   contextMenu.addAction(&clActionT);
 //   contextMenu.addAction(&aclListActionsT[1]);
 //   contextMenu.addAction(&aclListActionsT[2]);
 
