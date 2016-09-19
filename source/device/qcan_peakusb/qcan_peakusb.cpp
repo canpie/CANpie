@@ -336,9 +336,9 @@ void	QCanPeakUsb::statistic(QCanStatistic_ts &clStatisticR)
    clStatisticR = clStatisticP;
 }
 
-void QCanPeakUsb::icon(QIcon &clInconR)
+void QCanPeakUsb::icon(QIcon &clIconR)
 {
-   clInconR =  QIcon(":/Icon_PCAN-Nets-Configuration.png");
+   clIconR =  QIcon(":/qcan_peakusb.png");
 }
 
 //----------------------------------------------------------------------------//

@@ -122,7 +122,7 @@ public:
    int32_t write(const QCanFrame &clFrameR) Q_DECL_OVERRIDE;
    int32_t connect(void) Q_DECL_OVERRIDE;
    void disconnect(void) Q_DECL_OVERRIDE;
-   void icon(QIcon &clFrameR) Q_DECL_OVERRIDE;
+   void icon(QIcon &clIconR) Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
     void errorOccurred(int32_t slCanBusErrorV);

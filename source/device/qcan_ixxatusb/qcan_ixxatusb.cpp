@@ -379,7 +379,7 @@ void	QCanIxxatUsb::statistic(QCanStatistic_ts &clStatisticR)
 
 void QCanIxxatUsb::icon(QIcon &clInconR)
 {
-   clInconR =  QIcon(":/interfaces-usb-to-can-2-professional.png");
+   clInconR =  QIcon(":/qcan_ixxatusb.png");
 }
 
 //----------------------------------------------------------------------------//
