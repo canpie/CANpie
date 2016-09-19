@@ -224,7 +224,7 @@ private:
 
    bool  handleApiFrame(int32_t & slSockSrcR, QCanFrameApi & clApiFrameR);
    bool  handleCanFrame(int32_t & slSockSrcR, QByteArray & clSockDataR);
-   bool  handleErrFrame(int32_t & slSockSrcR, QCanFrameError & clErrorFrameR);
+   bool  handleErrFrame(int32_t & slSockSrcR, QByteArray & clSockDataR);
 
 
    QPointer<QCanInterface> pclInterfaceP;

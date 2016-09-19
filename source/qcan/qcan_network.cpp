@@ -282,10 +282,32 @@ bool  QCanNetwork::handleCanFrame(int32_t & slSockSrcR,
 //                                                                            //
 //----------------------------------------------------------------------------//
 bool  QCanNetwork::handleErrFrame(int32_t & slSockSrcR,
-                                  QCanFrameError & clErrorFrameR)
+                                  QByteArray & clSockDataR)
 {
+   int32_t        slSockIdxT;
    bool           btResultT = false;
+   QTcpSocket *   pclSockS;
 
+
+   //----------------------------------------------------------------
+   // check all open sockets and write CAN frame
+   //
+   for(slSockIdxT = 0; slSockIdxT < pclTcpSockListP->size(); slSockIdxT++)
+   {
+      if(slSockIdxT != slSockSrcR)
+      {
+         pclSockS = pclTcpSockListP->at(slSockIdxT);
+         pclSockS->write(clSockDataR);
+         pclSockS->flush();
+         btResultT = true;
+      }
+   }
+
+
+   if(btResultT == true)
+   {
+      ulCntFrameErrP++;
+   }
    return(btResultT);
 }
 
@@ -518,6 +540,8 @@ void QCanNetwork::onTimerEvent(void)
       slSockIdxT = QCAN_SOCKET_CAN_IF;
       while(pclInterfaceP->read(clCanFrameT) == QCanInterface::eERROR_OK)
       {
+         clSockDataT = clCanFrameT.toByteArray();
+
          switch(clCanFrameT.frameType())
          {
             //---------------------------------------------
@@ -531,7 +555,7 @@ void QCanNetwork::onTimerEvent(void)
             // handle error frames
             //---------------------------------------------
             case QCanFrame::eTYPE_QCAN_ERR:
-               handleErrFrame(slSockIdxT, (QCanFrameError &) clCanFrameT);
+               handleErrFrame(slSockIdxT, clSockDataT);
                break;
 
             //---------------------------------------------
@@ -542,7 +566,6 @@ void QCanNetwork::onTimerEvent(void)
                //-------------------------------------
                // write to other sockets
                //
-               clSockDataT = clCanFrameT.toByteArray();
                handleCanFrame(slSockIdxT, clSockDataT);
                break;
          }
@@ -575,7 +598,7 @@ void QCanNetwork::onTimerEvent(void)
             // handle error frames
             //---------------------------------------------
             case QCanFrame::eTYPE_QCAN_ERR:
-               handleErrFrame(slSockIdxT, (QCanFrameError &) clCanFrameT);
+               handleErrFrame(slSockIdxT, clSockDataT);
                break;
 
             //---------------------------------------------
