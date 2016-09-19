@@ -377,9 +377,9 @@ void	QCanIxxatUsb::statistic(QCanStatistic_ts &clStatisticR)
 }
 
 
-void QCanIxxatUsb::icon(QIcon &clInconR)
+void QCanIxxatUsb::icon(QIcon &clIconR)
 {
-   clInconR =  QIcon(":/qcan_ixxatusb.png");
+   clIconR =  QIcon(":/qcan_ixxatusb.png");
 }
 
 //----------------------------------------------------------------------------//
