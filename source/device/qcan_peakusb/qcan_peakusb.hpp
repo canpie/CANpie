@@ -32,7 +32,7 @@
 #include <QObject>
 #include <QtPlugin>
 #include <QLibrary>
-#include <qcan_interface.hpp>
+#include <QCanInterface>
 
 #ifdef Q_OS_WIN32
 #include <windows.h>
@@ -122,6 +122,7 @@ public:
    int32_t write(const QCanFrame &clFrameR) Q_DECL_OVERRIDE;
    int32_t connect(void) Q_DECL_OVERRIDE;
    void disconnect(void) Q_DECL_OVERRIDE;
+   void icon(QIcon &clFrameR) Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
     void errorOccurred(int32_t slCanBusErrorV);

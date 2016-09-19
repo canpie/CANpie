@@ -29,6 +29,7 @@ private:
    QDir     clPluginPathP;
    QCanInterface *qCanInterface;
    QStringList clPluginItemListP;
+   QList<QString> aclPluginListP;
 
 protected:
    void mousePressEvent(QMouseEvent *event);

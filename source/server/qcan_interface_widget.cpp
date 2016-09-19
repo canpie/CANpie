@@ -34,20 +34,42 @@ QCanInterfaceWidget::QCanInterfaceWidget()
 //----------------------------------------------------------------------------//
 void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
 {
-//   QPoint pos(pclEventV->x(),pclEventV->y());
+   QList<QAction> aclListActionsT;
+   QAction * pclActionT;
+
+   quint32  ulCntrT;
+
    quint8 ubCntrT = 0;
    QPoint pos(this->mapFromParent(QCursor::pos()));
 
    QMenu contextMenu(tr("Context menu"), this);
 
-//   QAction aclActionElementT;
-   QAction aclAction1T("Virtual", this);
-   QAction aclAction2T("Peak", this);
-   QAction aclAction3T("Peak", this);
+   if (!loadPlugin())
+   {
+       QMessageBox::information(this, "ERROR", "Could not load the any plugins!");
+   }
 
-//   aclActionElementT.append/*(aclActionT);
-//   contextMenu.addAction(&aclActionElementT[0]);
+   qDebug() << clPluginItemListP.at(0);
 
+//   pclActionT = new QAction("Virtual", this);
+//   pclActionT->setIcon(QIcon(":images/network-icon.png"));
+//   aclListActionsT->append(pclActionT);
+////   contextMenu.addAction(&(aclListActionsT.at(0)));
+
+//   ulCntrT = 0;
+//   while (ulCntrT < clPluginItemListP.count())
+//   {
+//      pclActionT = new QAction(clPluginItemListP.at(ulCntrT), this);
+//      aclListActionsT.append(pclActionT);
+//      ulCntrT++;
+//   }
+
+//   clActionT =pclActionT;//aclListActionsT[0];
+   QAction clActionT("Virtual", this);
+   clActionT.setIcon(QIcon(":images/network-icon.png"));
+   contextMenu.addAction(&clActionT);
+//   contextMenu.addAction(&aclListActionsT[1]);
+//   contextMenu.addAction(&aclListActionsT[2]);
 
    switch(pclEventV->button())
    {
@@ -57,21 +79,23 @@ void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
          //----------------------------------------------------------------
          // create CAN networks
          //
-         if (!loadPlugin())
-         {
-             QMessageBox::information(this, "ERROR", "Could not load the any plugins!");
+//         if (!loadPlugin())
+//         {
+//             QMessageBox::information(this, "ERROR", "Could not load the any plugins!");
       //       lineEdit->setEnabled(false);
       //       button->setEnabled(false);
-         }
+//         }
 
 //         while (ubCntrT < clPluginItemListP.count())
 //         {
 //            contextMenu.addAction(&aclActionElementT[0]);
 //         }
-           //    connect(&action1, SIGNAL(triggered()), this, SLOT(removeDataPoint()));
-            contextMenu.addAction(&aclAction1T);
-            contextMenu.addAction(&aclAction2T);
-            contextMenu.addAction(&aclAction3T);
+//           //    connect(&action1, SIGNAL(triggered()), this, SLOT(removeDataPoint()));
+//            contextMenu.addAction(&aclAction1T);
+//            contextMenu.addAction(&aclAction2T);
+//            contextMenu.addAction(&aclAction3T);
+
+//            contextMenu.addAction(&aclListActionsT);
             contextMenu.exec(pos);
 
 
@@ -95,8 +119,6 @@ void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
 //----------------------------------------------------------------------------//
 bool QCanInterfaceWidget::loadPlugin()
 {
-    QList<QString> aclDirListT;
-
     qWarning() << "loadPlugin(): used plugin path" << clPluginPathP.absolutePath();
 
     if (!clPluginPathP.exists())
@@ -106,12 +128,12 @@ bool QCanInterfaceWidget::loadPlugin()
     }
 
     clPluginItemListP.clear();
-    aclDirListT.clear();
+    aclPluginListP.clear();
     foreach (QString fileName, clPluginPathP.entryList(QDir::Files))
     {
         if (QLibrary::isLibrary(clPluginPathP.absoluteFilePath(fileName)))
         {
-           QPluginLoader pluginLoader( clPluginPathP.absoluteFilePath(fileName));
+           QPluginLoader pluginLoader(clPluginPathP.absoluteFilePath(fileName));
            QObject *plugin = pluginLoader.instance();
            if (plugin)
            {
@@ -120,7 +142,7 @@ bool QCanInterfaceWidget::loadPlugin()
                {
                   qInfo() << "loadPlugin(): found" << clPluginPathP.absoluteFilePath(fileName) << "plugin.";
                   clPluginItemListP.append(fileName);
-                  aclDirListT.append(clPluginPathP.absoluteFilePath(fileName));
+                  aclPluginListP.append(clPluginPathP.absoluteFilePath(fileName));
                }
            } else
            {

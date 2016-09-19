@@ -109,7 +109,7 @@ QString QCanIxxatUsb::echo(const QString &message)
       }
       else if (slStatusT != eERROR_FIFO_IN_EMPTY)
       {
-         qWarning() << "Warning: read() fail!";
+         qWarning() << "Warning: read() fail with " << QString::number(slStatusT,10);
       }
 
    }
@@ -374,6 +374,12 @@ int32_t	QCanIxxatUsb::state(void)
 void	QCanIxxatUsb::statistic(QCanStatistic_ts &clStatisticR)
 {
    clStatisticR = clStatisticP;
+}
+
+
+void QCanIxxatUsb::icon(QIcon &clInconR)
+{
+   clInconR =  QIcon(":/interfaces-usb-to-can-2-professional.png");
 }
 
 //----------------------------------------------------------------------------//

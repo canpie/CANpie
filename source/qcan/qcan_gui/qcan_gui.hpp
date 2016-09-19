@@ -31,7 +31,7 @@
 #define QCAN_GUI_H_
 
 #include <QWidget>
-#include <..\..\qcan\qcan_interface.hpp>
+#include <QCanInterface>
 
 QT_BEGIN_NAMESPACE
 class QString;

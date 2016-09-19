@@ -105,9 +105,8 @@ QString QCanPeakUsb::echo(const QString &message)
       }
       else if (slStatusT != eERROR_FIFO_IN_EMPTY)
       {
-         qWarning() << "Warning: read() fail!";
+         qWarning() << "Warning: read() fail with " << QString::number(slStatusT,10);
       }
-
    }
 
    if (message == "write")
@@ -335,6 +334,11 @@ int32_t	QCanPeakUsb::state(void)
 void	QCanPeakUsb::statistic(QCanStatistic_ts &clStatisticR)
 {
    clStatisticR = clStatisticP;
+}
+
+void QCanPeakUsb::icon(QIcon &clInconR)
+{
+   clInconR =  QIcon(":/Icon_PCAN-Nets-Configuration.png");
 }
 
 //----------------------------------------------------------------------------//

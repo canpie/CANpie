@@ -112,9 +112,25 @@ bool QCanGui::loadPlugin()
     }
 #endif
     pluginsDir.cd("plugins");
+
+
+    if (!pluginsDir.exists())
+    {
+      qDebug() << "ERROR: Plugin Path: " << pluginsDir.absolutePath() << " does not exist!";
+      return false;
+    }
+
+
     clSelectItemListT.clear();
     aclDirListP.clear();
-    foreach (QString fileName, pluginsDir.entryList(QDir::Files)) {
+    foreach (QString fileName, pluginsDir.entryList(QDir::Files))
+    {
+       qDebug() << "DEBUG: plugin file: " << pluginsDir.absoluteFilePath(fileName);
+
+       if (QLibrary::isLibrary(pluginsDir.absoluteFilePath(fileName)))
+       {
+           qDebug() << "DEBUG: plugin file is a library... ";
+       }
         QPluginLoader pluginLoader( pluginsDir.absoluteFilePath(fileName));
         QObject *plugin = pluginLoader.instance();
         if (plugin) {
@@ -131,7 +147,11 @@ bool QCanGui::loadPlugin()
 
 //                return true;
             }
-        }
+        } else
+
+                  {
+                     qDebug() << "DEBUG: not a plugin file...";
+                  }
     }
 
     if (clSelectItemListT.isEmpty())

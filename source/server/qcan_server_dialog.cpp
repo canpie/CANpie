@@ -158,7 +158,7 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    }
 #endif
 
-   /*
+
    ui.pclTbxQCanInterfaceWidget1_M->setPluginPath(pluginsDir);
    ui.pclTbxQCanInterfaceWidget2_M->setPluginPath(pluginsDir);
    ui.pclTbxQCanInterfaceWidget3_M->setPluginPath(pluginsDir);
@@ -167,7 +167,7 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    ui.pclTbxQCanInterfaceWidget6_M->setPluginPath(pluginsDir);
    ui.pclTbxQCanInterfaceWidget7_M->setPluginPath(pluginsDir);
    ui.pclTbxQCanInterfaceWidget8_M->setPluginPath(pluginsDir);
-   */
+
 
    //----------------------------------------------------------------
    // show CAN channel 1 as default and update user interface

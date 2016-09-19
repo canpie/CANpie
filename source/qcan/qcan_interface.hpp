@@ -179,6 +179,9 @@ public:
     // disconnect the device
     virtual void disconnect(void) = 0;
 
+    // icon of interface
+    virtual void icon(QIcon &clInconR) = 0;
+
 Q_SIGNALS:
     void errorOccurred(int32_t slCanBusErrorV);     //  QCanBusDevice::CanBusError
     void framesReceived(uint32_t ulFramesCountV);

@@ -28,7 +28,7 @@
 
 #include <QtWidgets>
 #include <qcan_gui.hpp>
-#include <..\..\qcan\qcan_interface.hpp>
+#include <QCanInterface>
 
 //! [0]
 int main(int argv, char *args[])
