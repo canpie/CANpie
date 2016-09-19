@@ -27,7 +27,10 @@
 //============================================================================//
 
 #include <QtWidgets>
-#include <qcan_peakusb.hpp>
+
+#include "qcan_defs.hpp"
+#include "qcan_peakusb.hpp"
+
 
 /*!
 ** \var aszErrTextG
@@ -53,7 +56,7 @@ QString QCanPeakUsb::echo(const QString &message)
 
    if (message == "bitrate")
    {
-      ulStatusT = setBitrate(eBITRATE_500K, 0);
+      ulStatusT = setBitrate(QCan::eCAN_BITRATE_500K, 0);
    }
 
    if (message == "run")
@@ -61,7 +64,7 @@ QString QCanPeakUsb::echo(const QString &message)
       if (connect() != eERROR_OK)
          qWarning() << "Warning: connect() fail!";
 
-      if (setBitrate(eBITRATE_500K, 0) != eERROR_OK)
+      if (setBitrate(QCan::eCAN_BITRATE_500K, 0) != eERROR_OK)
          qWarning() << "Warning: setBitrate() fail!";
 
       if (setMode(eMODE_START) != eERROR_OK)
@@ -158,18 +161,18 @@ QString QCanPeakUsb::echo(const QString &message)
 
    return ("peak: " + message);
 }
-//! [0]
+
 
 //----------------------------------------------------------------------------//
 // setBitrate()                                                               //
 //                                                                            //
 //----------------------------------------------------------------------------//
-int32_t QCanPeakUsb::setBitrate(uint32_t ulBitrateV, uint32_t ulBrsClockV)
+int32_t QCanPeakUsb::setBitrate(int32_t slBitrateV, int32_t slBrsClockV)
 {
    WORD uwBtr0Btr1T;
 
    //----------------------------------------------------------------
-   // check lib have been loaded
+   // check if library has been loaded
    //
    if (!btLibFuncLoadP)
    {
@@ -177,45 +180,54 @@ int32_t QCanPeakUsb::setBitrate(uint32_t ulBitrateV, uint32_t ulBrsClockV)
    }
 
    //----------------------------------------------------------------
-   // Check bitrate value
+   // Check bit-rate value
    //
-   if (ulBitrateV >= eBITRATE_MAX)
+   if (slBitrateV >= QCan::eCAN_BITRATE_AUTO)
    {
       // maybe we get a value in Hz, normalise it to kHz
-      ulBitrateV = ulBitrateV / 1000;
+      slBitrateV = slBitrateV / 1000;
+   }
+
+   //----------------------------------------------------------------
+   // Check BRS clock value for CAN-FD
+   // todo : test with CAN-FD interface
+   //
+   if (slBrsClockV != QCan::eCAN_BITRATE_NONE)
+   {
+
    }
 
    //----------------------------------------------------------------
    // select corresponding PEAK baud rate value
    //
-   switch (ulBitrateV)
+   switch(slBitrateV)
    {
       // value from CANpie enumeration
-      case eBITRATE_10K:
+      case QCan::eCAN_BITRATE_10K:
          uwBtr0Btr1T = PCAN_BAUD_10K;
          break;
-      case eBITRATE_20K:
+      case QCan::eCAN_BITRATE_20K:
          uwBtr0Btr1T = PCAN_BAUD_20K;
          break;
-      case eBITRATE_50K:
+      case QCan::eCAN_BITRATE_50K:
          uwBtr0Btr1T = PCAN_BAUD_50K;
          break;
-      case eBITRATE_100K:
+      case QCan::eCAN_BITRATE_100K:
          uwBtr0Btr1T = PCAN_BAUD_100K;
          break;
-      case eBITRATE_125K:
+      case QCan::eCAN_BITRATE_125K:
          uwBtr0Btr1T = PCAN_BAUD_125K;
          break;
-      case eBITRATE_250K:
+      case QCan::eCAN_BITRATE_250K:
          uwBtr0Btr1T = PCAN_BAUD_250K;
          break;
-      case eBITRATE_500K:
+      case QCan::eCAN_BITRATE_500K:
          uwBtr0Btr1T = PCAN_BAUD_500K;
          break;
-      case eBITRATE_800K:
+      case QCan::eCAN_BITRATE_800K:
          uwBtr0Btr1T = PCAN_BAUD_800K;
          break;
-      case eBITRATE_1M:
+      case QCan::eCAN_BITRATE_1M:
          uwBtr0Btr1T = PCAN_BAUD_1M;
          break;
 
@@ -277,7 +289,7 @@ int32_t QCanPeakUsb::setBitrate(uint32_t ulBitrateV, uint32_t ulBrsClockV)
 //----------------------------------------------------------------------------//
 int32_t	QCanPeakUsb::setMode(const Mode_te teModeV)
 {
-   TPCANStatus ulStatusT;
+   // TPCANStatus ulStatusT;
    uint8_t ubValueBufT;
 
    //----------------------------------------------------------------
@@ -352,9 +364,9 @@ QString QCanPeakUsb::name()
 //----------------------------------------------------------------------------//
 int32_t	QCanPeakUsb::read(QCanFrame &clFrameR)
 {
-   TPCANStatus ulStatusT;
-   int32_t slByteCntrT;
-   TPCANMsg tsCanMsgT;
+   TPCANStatus    ulStatusT;
+   uint8_t        ubByteCntrT;
+   TPCANMsg       tsCanMsgT;
    TPCANTimestamp tsTimestampBufferT;
 
    //----------------------------------------------------------------
@@ -366,26 +378,30 @@ int32_t	QCanPeakUsb::read(QCanFrame &clFrameR)
    }
 
    //----------------------------------------------------------------
-   // get next message in FIFO
+   // get next message from FIFO
    //
    ulStatusT = pfnCAN_ReadP(uwCanChannelP, &tsCanMsgT, &tsTimestampBufferT);
 
    if (ulStatusT == PCAN_ERROR_OK)
    {
+      //--------------------------------------------------------
       // handle data depending on type
+      //
       switch (tsCanMsgT.MSGTYPE)
       {
          case PCAN_MESSAGE_STANDARD :
-            qDebug() << tr("handle PCAN_MESSAGE_STANDARD");
 
-            // copy all needed parameters to QCanFrame structure
+            //---------------------------------------------
+            // copy all values to QCanFrame structure
+            //
+            clFrameR.setFrameType(QCanFrame::eTYPE_CAN_STD);
             clFrameR.setStdId((uint16_t)tsCanMsgT.ID);
 
             clFrameR.setDlc(tsCanMsgT.LEN);
 
-            for (slByteCntrT = 0; slByteCntrT < clFrameR.dlc(); slByteCntrT++)
+            for (ubByteCntrT = 0; ubByteCntrT < clFrameR.dlc(); ubByteCntrT++)
             {
-               clFrameR.setData(slByteCntrT, tsCanMsgT.DATA[slByteCntrT]);
+               clFrameR.setData(ubByteCntrT, tsCanMsgT.DATA[ubByteCntrT]);
             }
 
             clStatisticP.ulRcvCount++;
@@ -395,23 +411,26 @@ int32_t	QCanPeakUsb::read(QCanFrame &clFrameR)
             break;
 
          case PCAN_MESSAGE_EXTENDED :
-            qDebug() << tr("handle PCAN_MESSAGE_EXTENDED");
 
-            // copy all needed parameters to QCanFrame structure
+            //---------------------------------------------
+            // copy all values to QCanFrame structure
+            //
+            clFrameR.setFrameType(QCanFrame::eTYPE_CAN_EXT);
             clFrameR.setExtId(tsCanMsgT.ID);
 
             clFrameR.setDlc(tsCanMsgT.LEN);
 
-            for (slByteCntrT = 0; slByteCntrT < clFrameR.dlc(); slByteCntrT++)
+            for (ubByteCntrT = 0; ubByteCntrT < clFrameR.dlc(); ubByteCntrT++)
             {
-               clFrameR.setData(slByteCntrT, tsCanMsgT.DATA[slByteCntrT]);
+               clFrameR.setData(ubByteCntrT, tsCanMsgT.DATA[ubByteCntrT]);
             }
+            return eERROR_OK;
             break;
 
          case PCAN_MESSAGE_RTR :
             qDebug() << tr("handle PCAN_MESSAGE_RTR");
             break;
-
+         #if QCAN_SUPPORT_CAN_FD > 0
          case PCAN_MESSAGE_FD :
             qDebug() << tr("handle PCAN_MESSAGE_FD");
             break;
@@ -423,7 +442,7 @@ int32_t	QCanPeakUsb::read(QCanFrame &clFrameR)
          case PCAN_MESSAGE_ESI :
             qDebug() << tr("handle PCAN_MESSAGE_ESI");
             break;
-
+         #endif
          case PCAN_MESSAGE_STATUS :
             qDebug() << tr("handle PCAN_MESSAGE_STATUS");
             break;
@@ -525,14 +544,20 @@ int32_t QCanPeakUsb::connect(void)
    // Loads API functions
    //
    pfnCAN_InitializeP = (CAN_Initialize_tf) clCanLibP.resolve("CAN_Initialize");
+   #if QCAN_SUPPORT_CAN_FD > 0
    pfnCAN_InitializeFDP = (CAN_InitializeFD_tf) clCanLibP.resolve("CAN_InitializeFD");
+   #endif
    pfnCAN_UninitializeP = (CAN_Uninitialize_tf)clCanLibP.resolve("CAN_Uninitialize");
    pfnCAN_ResetP = (CAN_Reset_tf)clCanLibP.resolve("CAN_Reset");
    pfnCAN_GetStatusP = (CAN_GetStatus_tf)clCanLibP.resolve("CAN_GetStatus");
    pfnCAN_ReadP = (CAN_Read_tf)clCanLibP.resolve("CAN_Read");
+   #if QCAN_SUPPORT_CAN_FD > 0
    pfnCAN_ReadFDP = (CAN_ReadFD_tf)clCanLibP.resolve("CAN_ReadFD");
+   #endif
    pfnCAN_WriteP = (CAN_Write_tf)clCanLibP.resolve("CAN_Write");
+   #if QCAN_SUPPORT_CAN_FD > 0
    pfnCAN_WriteFDP = (CAN_WriteFD_tf)clCanLibP.resolve("CAN_WriteFD");
+   #endif
    pfnCAN_FilterMessagesP = (CAN_FilterMessages_tf)clCanLibP.resolve("CAN_FilterMessages");
    pfnCAN_GetValueP = (CAN_GetValue_tf)clCanLibP.resolve("CAN_GetValue");
    pfnCAN_SetValueP = (CAN_SetValue_tf)clCanLibP.resolve("CAN_SetValue");
@@ -542,11 +567,17 @@ int32_t QCanPeakUsb::connect(void)
    //----------------------------------------------------------------
    // check for success
    //
-   btLibFuncLoadP =  pfnCAN_InitializeP && pfnCAN_InitializeFDP &&
+   btLibFuncLoadP =  pfnCAN_InitializeP &&
+                     #if QCAN_SUPPORT_CAN_FD > 0
+                     pfnCAN_InitializeFDP &&
+                     #endif
                      pfnCAN_UninitializeP && pfnCAN_ResetP &&
                      pfnCAN_GetStatusP && pfnCAN_ReadP  &&
-                     pfnCAN_ReadFDP && pfnCAN_WriteP &&
-                     pfnCAN_WriteFDP && pfnCAN_FilterMessagesP &&
+                     pfnCAN_WriteP &&
+                     #if QCAN_SUPPORT_CAN_FD > 0
+                     pfnCAN_FilterMessagesP &&
+                     pfnCAN_ReadFDP && pfnCAN_WriteFDP &&
+                     #endif
                      pfnCAN_GetValueP && pfnCAN_SetValueP &&
                      pfnCAN_GetErrorTextP;
 
@@ -586,18 +617,20 @@ void QCanPeakUsb::disconnect(void)
    }
 
    pfnCAN_InitializeP = NULL;
-   pfnCAN_InitializeFDP = NULL;
    pfnCAN_UninitializeP = NULL;
    pfnCAN_ResetP = NULL;
    pfnCAN_GetStatusP = NULL;
    pfnCAN_ReadP = NULL;
-   pfnCAN_ReadFDP = NULL;
    pfnCAN_WriteP = NULL;
-   pfnCAN_WriteFDP = NULL;
    pfnCAN_FilterMessagesP = NULL;
    pfnCAN_GetValueP = NULL;
    pfnCAN_SetValueP = NULL;
    pfnCAN_GetErrorTextP = NULL;
 
+   #if QCAN_SUPPORT_CAN_FD > 0
+   pfnCAN_InitializeFDP = NULL;
+   pfnCAN_ReadFDP = NULL;
+   pfnCAN_WriteFDP = NULL;
+   #endif
    btLibFuncLoadP = false;
 }

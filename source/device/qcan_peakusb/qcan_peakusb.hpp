@@ -43,10 +43,15 @@
 #define DRV_CALLBACK_TYPE
 #endif
 
-
+#ifndef __APPLE__
 #include "PCANBasic.h"
-
-#define QCAN_PEAKLIB "PCANBasic.dll"
+#define  QCAN_SUPPORT_CAN_FD     1
+#define  QCAN_PEAKLIB            "PCANBasic.dll"
+#else
+#include "PCBUSB.h"
+#define  QCAN_SUPPORT_CAN_FD     0
+#define  QCAN_PEAKLIB            "libPCBUSB.0.6.dylib"
+#endif
 
 //----------------------------------------------------------------------------//
 // QCanPeakUsb                                                                //
@@ -65,14 +70,20 @@ private:
    // (Last Change 24.04.2015)
    //
    typedef TPCANStatus (*CAN_Initialize_tf)     (TPCANHandle uwChannelV, TPCANBaudrate uwBtr0Btr1V, TPCANType ubHwTypeV, DWORD ulIOPortV, WORD uwInterruptV);
+   #if QCAN_SUPPORT_CAN_FD > 0
    typedef TPCANStatus (*CAN_InitializeFD_tf)   (TPCANHandle uwChannelV, TPCANBitrateFD pszBitrateFDV);
+   #endif
    typedef TPCANStatus (*CAN_Uninitialize_tf)   (TPCANHandle uwChannelV);
    typedef TPCANStatus (*CAN_Reset_tf)          (TPCANHandle uwChannelV);
    typedef TPCANStatus (*CAN_GetStatus_tf)      (TPCANHandle uwChannelV);
    typedef TPCANStatus (*CAN_Read_tf)           (TPCANHandle uwChannelV, TPCANMsg *ptsMessageBufferV, TPCANTimestamp *tsTimestampBufferV);
+   #if QCAN_SUPPORT_CAN_FD > 0
    typedef TPCANStatus (*CAN_ReadFD_tf)         (TPCANHandle uwChannelV, TPCANMsgFD *ptsMessageBufferV, TPCANTimestampFD *puqTimestampBufferV);
+   #endif
    typedef TPCANStatus (*CAN_Write_tf)          (TPCANHandle uwChannelV, TPCANMsg *ptsMessageBufferV);
+   #if QCAN_SUPPORT_CAN_FD > 0
    typedef TPCANStatus (*CAN_WriteFD_tf)        (TPCANHandle uwChannelV, TPCANMsgFD *ptsMessageBufferV);
+   #endif
    typedef TPCANStatus (*CAN_FilterMessages_tf) (TPCANHandle uwChannelV, DWORD ulFromIDV, DWORD ulToIDV, TPCANMode ubModeV);
    typedef TPCANStatus (*CAN_GetValue_tf)       (TPCANHandle uwChannelV, TPCANParameter ubParameterV, void *pvdBufferV, DWORD ulBufferLengthV);
    typedef TPCANStatus (*CAN_SetValue_tf)       (TPCANHandle uwChannelV, TPCANParameter ubParameterV, void *pvdBufferV, DWORD ulBufferLengthV);
@@ -80,14 +91,20 @@ private:
 
 
    CAN_Initialize_tf      pfnCAN_InitializeP;
+   #if QCAN_SUPPORT_CAN_FD > 0
    CAN_InitializeFD_tf    pfnCAN_InitializeFDP;
+   #endif
    CAN_Uninitialize_tf    pfnCAN_UninitializeP;
    CAN_Reset_tf           pfnCAN_ResetP;
    CAN_GetStatus_tf       pfnCAN_GetStatusP;
    CAN_Read_tf            pfnCAN_ReadP;
+   #if QCAN_SUPPORT_CAN_FD > 0
    CAN_ReadFD_tf          pfnCAN_ReadFDP;
+   #endif
    CAN_Write_tf           pfnCAN_WriteP;
+   #if QCAN_SUPPORT_CAN_FD > 0
    CAN_WriteFD_tf         pfnCAN_WriteFDP;
+   #endif
    CAN_FilterMessages_tf  pfnCAN_FilterMessagesP;
    CAN_GetValue_tf        pfnCAN_GetValueP;
    CAN_SetValue_tf        pfnCAN_SetValueP;
@@ -114,7 +131,7 @@ private:
 public:
    QString echo(const QString &message) Q_DECL_OVERRIDE;
 
-   int32_t setBitrate(uint32_t ulBitrateV, uint32_t ulBrsClockV) Q_DECL_OVERRIDE;
+   int32_t setBitrate(int32_t slBitrateV, int32_t slBrsClockV) Q_DECL_OVERRIDE;
    int32_t setMode(const Mode_te teModeV) Q_DECL_OVERRIDE;
    int32_t state(void) Q_DECL_OVERRIDE;
    void statistic(QCanStatistic_ts &clStatisticR) Q_DECL_OVERRIDE;
