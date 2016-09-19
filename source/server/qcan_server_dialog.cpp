@@ -142,7 +142,7 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
 
 
    //----------------------------------------------------------------
-   //
+   // Intialise interface widgets for CAN interface selection
    //
    QDir pluginsDir(qApp->applicationDirPath());
 #if defined(Q_OS_WIN)
@@ -160,13 +160,36 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
 
 
    ui.pclTbxQCanInterfaceWidget1_M->setPluginPath(pluginsDir);
+   connect(ui.pclTbxQCanInterfaceWidget1_M, SIGNAL(interfaceChanged(QCanInterface*)),
+           this, SLOT(onInterfaceChange(QCanInterface*)) );
+
    ui.pclTbxQCanInterfaceWidget2_M->setPluginPath(pluginsDir);
+   connect(ui.pclTbxQCanInterfaceWidget2_M, SIGNAL(interfaceChanged(QCanInterface*)),
+           this, SLOT(onInterfaceChange(QCanInterface*)) );
+
    ui.pclTbxQCanInterfaceWidget3_M->setPluginPath(pluginsDir);
+   connect(ui.pclTbxQCanInterfaceWidget3_M, SIGNAL(interfaceChanged(QCanInterface*)),
+           this, SLOT(onInterfaceChange(QCanInterface*)) );
+
    ui.pclTbxQCanInterfaceWidget4_M->setPluginPath(pluginsDir);
+   connect(ui.pclTbxQCanInterfaceWidget4_M, SIGNAL(interfaceChanged(QCanInterface*)),
+           this, SLOT(onInterfaceChange(QCanInterface*)) );
+
    ui.pclTbxQCanInterfaceWidget5_M->setPluginPath(pluginsDir);
+   connect(ui.pclTbxQCanInterfaceWidget5_M, SIGNAL(interfaceChanged(QCanInterface*)),
+           this, SLOT(onInterfaceChange(QCanInterface*)) );
+
    ui.pclTbxQCanInterfaceWidget6_M->setPluginPath(pluginsDir);
+   connect(ui.pclTbxQCanInterfaceWidget6_M, SIGNAL(interfaceChanged(QCanInterface*)),
+           this, SLOT(onInterfaceChange(QCanInterface*)) );
+
    ui.pclTbxQCanInterfaceWidget7_M->setPluginPath(pluginsDir);
+   connect(ui.pclTbxQCanInterfaceWidget7_M, SIGNAL(interfaceChanged(QCanInterface*)),
+           this, SLOT(onInterfaceChange(QCanInterface*)) );
+
    ui.pclTbxQCanInterfaceWidget8_M->setPluginPath(pluginsDir);
+   connect(ui.pclTbxQCanInterfaceWidget8_M, SIGNAL(interfaceChanged(QCanInterface*)),
+           this, SLOT(onInterfaceChange(QCanInterface*)) );
 
 
    //----------------------------------------------------------------
@@ -247,6 +270,51 @@ void QCanServerDialog::createTrayIcon(void)
 uint8_t QCanServerDialog::currentNetwork(void)
 {
    return(ui.pclTbxNetworkM->currentIndex());
+}
+
+//----------------------------------------------------------------------------//
+// onInterfaceChange()                                                        //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void QCanServerDialog::onInterfaceChange(QCanInterface *pclIfV)
+{
+   QCanFrame clFrameT;
+   qDebug() << "QCanServerDialog:onInterfaceChange()...";
+
+
+   //----------------------------------------------------------------
+   // demo usage of given interface
+   //
+   if (pclIfV != 0)
+   {
+      if (pclIfV->connect() != QCanInterface::eERROR_OK)
+         qWarning() << "Warning: connect() fail!";
+
+      if (pclIfV->setBitrate(QCanInterface::eBITRATE_500K, 0) != QCanInterface::eERROR_OK)
+         qWarning() << "Warning: setBitrate() fail!";
+
+      if (pclIfV->setMode(QCanInterface::eMODE_START) != QCanInterface::eERROR_OK)
+         qWarning() << "Warning: setMode() fail!";
+
+      clFrameT.setStdId(175);
+      clFrameT.setDlc(5);
+      clFrameT.setData(0,5);
+      clFrameT.setData(1,4);
+      clFrameT.setData(2,3);
+      clFrameT.setData(3,2);
+      clFrameT.setData(4,1);
+
+      int32_t slStatusT = pclIfV->write(clFrameT);
+
+      if (slStatusT == QCanInterface::eERROR_OK)
+      {
+
+      }
+      else if (slStatusT != QCanInterface::eERROR_FIFO_IN_EMPTY)
+      {
+         qWarning() << "Warning: write() fail!";
+      }
+   }
 }
 
 

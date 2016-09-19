@@ -25,6 +25,7 @@ QCanInterfaceWidget::QCanInterfaceWidget()
  : QWidget()
 {
    clIconP = QIcon(":images/network-icon.png");
+   pclQCanInterfaceP = NULL;
 }
 
 
@@ -34,71 +35,74 @@ QCanInterfaceWidget::QCanInterfaceWidget()
 //----------------------------------------------------------------------------//
 void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
 {
-   QList<QAction> aclListActionsT;
+   QList<QAction *> apclListActionsT;
    QAction * pclActionT;
-
-   quint32  ulCntrT;
-
-   quint8 ubCntrT = 0;
    QPoint pos(this->mapFromParent(QCursor::pos()));
+   QMenu clContextMenuT(tr("CAN interface selection"), this);
 
-   QMenu contextMenu(tr("Context menu"), this);
-
+   //----------------------------------------------------------------
+   // check there are any plugins available
+   //
    if (!loadPlugin())
    {
        QMessageBox::information(this, "ERROR", "Could not load the any plugins!");
    }
 
-   qDebug() << clPluginItemListP.at(0);
+   //----------------------------------------------------------------
+   // create context menu with all available plugins
+   //
+   pclActionT = new QAction("Virtual", this);
+   pclActionT->setIcon(QIcon(":images/network-icon.png"));
+   apclListActionsT.append(pclActionT);
+   clContextMenuT.addAction(apclListActionsT.at(0));
 
-//   pclActionT = new QAction("Virtual", this);
-//   pclActionT->setIcon(QIcon(":images/network-icon.png"));
-//   aclListActionsT->append(pclActionT);
-////   contextMenu.addAction(&(aclListActionsT.at(0)));
+   quint32 ulCntrT = 0;
+   while (ulCntrT < aclPluginNameListP.count())
+   {
+      pclActionT = new QAction(aclPluginNameListP.at(ulCntrT), this);
+      pclActionT->setIcon(aclIconListP.at(ulCntrT));
+      apclListActionsT.append(pclActionT);
+      clContextMenuT.addAction(apclListActionsT.at(ulCntrT+1));
+      ulCntrT++;
+   }
 
-//   ulCntrT = 0;
-//   while (ulCntrT < clPluginItemListP.count())
-//   {
-//      pclActionT = new QAction(clPluginItemListP.at(ulCntrT), this);
-//      aclListActionsT.append(pclActionT);
-//      ulCntrT++;
-//   }
-
-//   clActionT =pclActionT;//aclListActionsT[0];
-   QAction clActionT("Virtual", this);
-   clActionT.setIcon(QIcon(":images/network-icon.png"));
-   contextMenu.addAction(&clActionT);
-//   contextMenu.addAction(&aclListActionsT[1]);
-//   contextMenu.addAction(&aclListActionsT[2]);
-
+   //----------------------------------------------------------------
+   // evaluate click operation
+   //
    switch(pclEventV->button())
    {
       case Qt::LeftButton:
+
          qDebug() << "Left button pressed";
-
-         //----------------------------------------------------------------
-         // create CAN networks
+         //-----------------------------------------------------
+         // show context menu
          //
-//         if (!loadPlugin())
-//         {
-//             QMessageBox::information(this, "ERROR", "Could not load the any plugins!");
-      //       lineEdit->setEnabled(false);
-      //       button->setEnabled(false);
-//         }
+         pclActionT = clContextMenuT.exec(pos);
 
-//         while (ubCntrT < clPluginItemListP.count())
-//         {
-//            contextMenu.addAction(&aclActionElementT[0]);
-//         }
-//           //    connect(&action1, SIGNAL(triggered()), this, SLOT(removeDataPoint()));
-//            contextMenu.addAction(&aclAction1T);
-//            contextMenu.addAction(&aclAction2T);
-//            contextMenu.addAction(&aclAction3T);
+         //-----------------------------------------------------
+         // evaluate selection
+         //
+         if (pclActionT != 0)
+         {
+            qint32 slIdxT = aclPluginNameListP.indexOf(pclActionT->text());
+            qDebug() << "mousePressEvent(): select index ..." << slIdxT;
 
-//            contextMenu.addAction(&aclListActionsT);
-            contextMenu.exec(pos);
+            pclQCanInterfaceP = NULL;
+            if (slIdxT > 0)
+            {
+               QPluginLoader clPluginLoaderT(aclPluginListP.at(slIdxT));
+               QObject *pclPluginT = clPluginLoaderT.instance();
+               if (pclPluginT)
+               {
+                   pclQCanInterfaceP = qobject_cast<QCanInterface *>(pclPluginT);
+               }
+            }
 
-
+            emit interfaceChanged(pclQCanInterfaceP);
+         } else
+         {
+            qDebug() << "mousePressEvent(): no index selected";
+         }
          break;
 
       case Qt::RightButton:
@@ -119,49 +123,65 @@ void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
 //----------------------------------------------------------------------------//
 bool QCanInterfaceWidget::loadPlugin()
 {
-    qWarning() << "loadPlugin(): used plugin path" << clPluginPathP.absolutePath();
+   QCanInterface *pclQCanIfT;
 
-    if (!clPluginPathP.exists())
-    {
+   qInfo() << "loadPlugin(): used plugin path" << clPluginPathP.absolutePath();
+
+   //----------------------------------------------------------------
+   // check plugin path
+   //
+   if (!clPluginPathP.exists())
+   {
       qWarning() << "loadPlugin(): plugin path does not exist!";
       return false;
-    }
+   }
 
-    clPluginItemListP.clear();
-    aclPluginListP.clear();
-    foreach (QString fileName, clPluginPathP.entryList(QDir::Files))
-    {
-        if (QLibrary::isLibrary(clPluginPathP.absoluteFilePath(fileName)))
-        {
-           QPluginLoader pluginLoader(clPluginPathP.absoluteFilePath(fileName));
-           QObject *plugin = pluginLoader.instance();
-           if (plugin)
-           {
-               qCanInterface = qobject_cast<QCanInterface *>(plugin);
-               if (qCanInterface)
-               {
-                  qInfo() << "loadPlugin(): found" << clPluginPathP.absoluteFilePath(fileName) << "plugin.";
-                  clPluginItemListP.append(fileName);
-                  aclPluginListP.append(clPluginPathP.absoluteFilePath(fileName));
-               }
-           } else
-           {
-              qWarning() << "loadPlugin(): plugin" << clPluginPathP.absoluteFilePath(fileName) << "could NOT be loaded or the root component object could NOT be instantiated!";
-           }
-        } else
-        {
-            qWarning() << "loadPlugin(): plugin" << clPluginPathP.absoluteFilePath(fileName) << "is NOT a library!";
-        }
-    }
+   //----------------------------------------------------------------
+   // check plugins and create a list with valid plugins
+   //
+   aclPluginNameListP.clear();
+   aclPluginListP.clear();
+   aclIconListP.clear();
+   foreach (QString clFileNameT, clPluginPathP.entryList(QDir::Files))
+   {
+      if (QLibrary::isLibrary(clPluginPathP.absoluteFilePath(clFileNameT)))
+      {
+         QPluginLoader clPluginLoaderT(clPluginPathP.absoluteFilePath(clFileNameT));
+         QObject *pclPluginT = clPluginLoaderT.instance();
+         if (pclPluginT)
+         {
+            pclQCanIfT = qobject_cast<QCanInterface *>(pclPluginT);
+            if (pclQCanIfT)
+            {
+               qInfo() << "loadPlugin(): found" << clPluginPathP.absoluteFilePath(clFileNameT) << "plugin.";
 
-    if (clPluginItemListP.isEmpty())
-    {
-        qWarning() << "loadPlugin(): NONE plugins have been found!";
-        return false;
-    }
+               //-------------------------------------
+               // collect all information of valid plugin
+               // \todo Get the PluginName and Icon
+               //
+               aclPluginNameListP.append(pclQCanIfT->name());
+               aclIconListP.append(pclQCanIfT->icon());
+               aclPluginListP.append(clPluginPathP.absoluteFilePath(clFileNameT));
+            }
+         } else
+         {
+            qWarning() << "loadPlugin(): plugin" << clPluginPathP.absoluteFilePath(clFileNameT) << "could NOT be loaded or the root component object could NOT be instantiated!";
+         }
+      } else
+      {
+         qWarning() << "loadPlugin(): plugin" << clPluginPathP.absoluteFilePath(clFileNameT) << "is NOT a library!";
+      }
+   }
 
-    qInfo() << "loadPlugin(): found" << QString::number(clPluginItemListP.count(),10) << "available plugins.";
-    return true;
+   if (aclPluginNameListP.isEmpty())
+   {
+      qWarning() << "loadPlugin(): NONE plugins have been found!";
+      return false;
+   }
+
+   qInfo() << "loadPlugin(): found" << QString::number(aclPluginNameListP.count(),10) << "available plugins.";
+
+   return true;
 }
 
 

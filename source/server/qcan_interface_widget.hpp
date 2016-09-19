@@ -27,9 +27,17 @@ private:
 
    QIcon    clIconP;
    QDir     clPluginPathP;
-   QCanInterface *qCanInterface;
-   QStringList clPluginItemListP;
+
+   /*!
+    * \brief qCanInterfaceP
+    * This pointer points to the actual selected interface.
+    * Otherwise this value is set to 0.
+    */
+   QCanInterface *pclQCanInterfaceP;
+
+   QList<QString> aclPluginNameListP;
    QList<QString> aclPluginListP;
+   QList<QIcon>   aclIconListP;
 
 protected:
    void mousePressEvent(QMouseEvent *event);
@@ -46,6 +54,7 @@ public slots:
 
 
 signals:
-   void  clicked(bool checked = false );
+   void clicked(bool checked = false );
+   void interfaceChanged(QCanInterface *pclIfV);
 
 };
