@@ -43,7 +43,11 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-
+//-------------------------------------------------------------------
+// The "socket number" of the physical CAN interface gets a high
+// value in order to avoid conflicts with real sockets
+//
+#define  QCAN_SOCKET_CAN_IF      22345
 
 
 /*----------------------------------------------------------------------------*\
@@ -148,8 +152,21 @@ bool QCanNetwork::addInterface(QCanInterface * pclCanIfV)
 
    if(pclInterfaceP.isNull())
    {
-      pclInterfaceP = pclCanIfV;
-      btResultT = true;
+      //--------------------------------------------------------
+      // connect the interface
+      //
+      if(pclCanIfV->connect() == QCanInterface::eERROR_OK)
+      {
+         if (pclCanIfV->setBitrate(slBitrateP, slBrsClockP) == QCanInterface::eERROR_OK)
+         {
+            if (pclCanIfV->setMode(QCanInterface::eMODE_START) == QCanInterface::eERROR_OK)
+            {
+               pclInterfaceP = pclCanIfV;
+               btResultT = true;
+            }
+         }
+      }
+
    }
    return (btResultT);
 }
@@ -493,7 +510,45 @@ void QCanNetwork::onTimerEvent(void)
    //
    clTcpSockMutexP.lock();
 
+   //----------------------------------------------------------------
+   // read messages from active CAN interface
+   //
+   if(pclInterfaceP.isNull() == false)
+   {
+      slSockIdxT = QCAN_SOCKET_CAN_IF;
+      while(pclInterfaceP->read(clCanFrameT) == QCanInterface::eERROR_OK)
+      {
+         switch(clCanFrameT.frameType())
+         {
+            //---------------------------------------------
+            // handle API frames
+            //---------------------------------------------
+            case QCanFrame::eTYPE_QCAN_API:
+               handleApiFrame(slSockIdxT, (QCanFrameApi &) clCanFrameT);
+               break;
 
+            //---------------------------------------------
+            // handle error frames
+            //---------------------------------------------
+            case QCanFrame::eTYPE_QCAN_ERR:
+               handleErrFrame(slSockIdxT, (QCanFrameError &) clCanFrameT);
+               break;
+
+            //---------------------------------------------
+            // handle CAN frames
+            //---------------------------------------------
+            default:
+
+               //-------------------------------------
+               // write to other sockets
+               //
+               clSockDataT = clCanFrameT.toByteArray();
+               handleCanFrame(slSockIdxT, clSockDataT);
+               break;
+         }
+
+      }
+   }
    //----------------------------------------------------------------
    // check all open sockets and read messages
    //
@@ -598,6 +653,10 @@ void QCanNetwork::onTimerEvent(void)
 //----------------------------------------------------------------------------//
 void QCanNetwork::removeInterface(void)
 {
+   if(pclInterfaceP.isNull() == false)
+   {
+      pclInterfaceP->disconnect();
+   }
    pclInterfaceP.clear();
 }
 
