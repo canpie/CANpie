@@ -20,7 +20,7 @@ public:
 
    QCanInterfaceWidget();
 
-   void setIcon(QIcon & clIconR);
+   void setIcon(QIcon clIconR);
    void setPluginPath(QDir);
 
 private:
