@@ -377,9 +377,14 @@ void	QCanIxxatUsb::statistic(QCanStatistic_ts &clStatisticR)
 }
 
 
-void QCanIxxatUsb::icon(QIcon &clInconR)
+QIcon QCanIxxatUsb::icon(void)
 {
-   clInconR =  QIcon(":/qcan_ixxatusb.png");
+   return QIcon(":/qcan_ixxatusb.png");
+}
+
+QString QCanIxxatUsb::name(void)
+{
+   return "IXXAT USB device";
 }
 
 //----------------------------------------------------------------------------//

@@ -180,7 +180,10 @@ public:
     virtual void disconnect(void) = 0;
 
     // icon of interface
-    virtual void icon(QIcon &clIconR) = 0;
+    virtual QIcon icon(void) = 0;
+
+    // name of interface
+    virtual QString name(void) = 0;
 
 Q_SIGNALS:
     void errorOccurred(int32_t slCanBusErrorV);     //  QCanBusDevice::CanBusError

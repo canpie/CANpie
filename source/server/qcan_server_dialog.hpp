@@ -26,6 +26,15 @@ public slots:
    void onNetworkConfEnable(bool btEnableV);
    void onNetworkConfListenOnly(bool btEnableV);
    //void onNetworkConfInterface(QMouseEvent *);
+   /*!
+    * \brief onInterfaceChange
+    * \param pclIfV
+    *
+    * This slot is triggered at change of the CAN interface.
+    * If pclIfV != 0 tha it points to the selected CAN interface,
+    * otherwise CAN interface is virtual.
+    */
+   void onInterfaceChange(QCanInterface *pclIfV);
 
    void onNetworkShowCanFrames(uint32_t ulFrameCntV);
    void onNetworkShowErrFrames(uint32_t ulFrameCntV);

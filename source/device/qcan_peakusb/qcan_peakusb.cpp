@@ -336,9 +336,14 @@ void	QCanPeakUsb::statistic(QCanStatistic_ts &clStatisticR)
    clStatisticR = clStatisticP;
 }
 
-void QCanPeakUsb::icon(QIcon &clIconR)
+QIcon QCanPeakUsb::icon()
 {
-   clIconR =  QIcon(":/qcan_peakusb.png");
+   return QIcon(":/qcan_peakusb.png");
+}
+
+QString QCanPeakUsb::name()
+{
+   return "PEAK USB device";
 }
 
 //----------------------------------------------------------------------------//
