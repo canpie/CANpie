@@ -262,6 +262,36 @@ void QCanServerDialog::createTrayIcon(void)
    pclIconTrayP->setContextMenu(pclMenuTrayP);
 }
 
+QCanInterfaceWidget * QCanServerDialog::currentInterfaceWidget(void)
+{
+   QCanInterfaceWidget * pclWidgetT = Q_NULLPTR;
+   switch(this->currentNetwork())
+   {
+      case 0:
+         pclWidgetT = ui.pclTbxQCanInterfaceWidget1_M;
+         break;
+
+      case 1:
+         pclWidgetT = ui.pclTbxQCanInterfaceWidget2_M;
+         break;
+
+      case 2:
+         pclWidgetT = ui.pclTbxQCanInterfaceWidget3_M;
+         break;
+
+      case 3:
+         pclWidgetT = ui.pclTbxQCanInterfaceWidget4_M;
+         break;
+
+      case 4:
+         pclWidgetT = ui.pclTbxQCanInterfaceWidget5_M;
+         break;
+
+   }
+
+
+   return(pclWidgetT);
+}
 
 //----------------------------------------------------------------------------//
 // currentNetwork()                                                           //
@@ -276,45 +306,33 @@ uint8_t QCanServerDialog::currentNetwork(void)
 // onInterfaceChange()                                                        //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void QCanServerDialog::onInterfaceChange(QCanInterface *pclIfV)
+void QCanServerDialog::onInterfaceChange(QCanInterface *pclCanIfV)
 {
-   QCanFrame clFrameT;
+   QCanNetwork *  pclNetworkT;
+
    qDebug() << "QCanServerDialog:onInterfaceChange()...";
 
 
    //----------------------------------------------------------------
-   // demo usage of given interface
+   // get selected QCanNetwork
    //
-   if (pclIfV != 0)
+   pclNetworkT = pclCanServerP->network(currentNetwork());
+
+   //----------------------------------------------------------------
+   // add / remove physical CAN interface
+   //
+   if (pclCanIfV == Q_NULLPTR)
    {
-      if (pclIfV->connect() != QCanInterface::eERROR_OK)
-         qWarning() << "Warning: connect() fail!";
-
-      if (pclIfV->setBitrate(QCanInterface::eBITRATE_500K, 0) != QCanInterface::eERROR_OK)
-         qWarning() << "Warning: setBitrate() fail!";
-
-      if (pclIfV->setMode(QCanInterface::eMODE_START) != QCanInterface::eERROR_OK)
-         qWarning() << "Warning: setMode() fail!";
-
-      clFrameT.setStdId(175);
-      clFrameT.setDlc(5);
-      clFrameT.setData(0,5);
-      clFrameT.setData(1,4);
-      clFrameT.setData(2,3);
-      clFrameT.setData(3,2);
-      clFrameT.setData(4,1);
-
-      int32_t slStatusT = pclIfV->write(clFrameT);
-
-      if (slStatusT == QCanInterface::eERROR_OK)
+      pclNetworkT->removeInterface();
+   }
+   else
+   {
+      if(pclNetworkT->addInterface(pclCanIfV) == true)
       {
-
-      }
-      else if (slStatusT != QCanInterface::eERROR_FIFO_IN_EMPTY)
-      {
-         qWarning() << "Warning: write() fail!";
+         currentInterfaceWidget()->setIcon(pclCanIfV->icon());
       }
    }
+
 }
 
 

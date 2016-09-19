@@ -26,22 +26,20 @@ public slots:
    void onNetworkConfEnable(bool btEnableV);
    void onNetworkConfListenOnly(bool btEnableV);
    //void onNetworkConfInterface(QMouseEvent *);
+
    /*!
-    * \brief onInterfaceChange
-    * \param pclIfV
-    *
-    * This slot is triggered at change of the CAN interface.
-    * If pclIfV != 0 tha it points to the selected CAN interface,
-    * otherwise CAN interface is virtual.
-    */
-   void onInterfaceChange(QCanInterface *pclIfV);
+   ** This slot is triggered on change of the physical CAN interface.
+   ** The parameter \c pclCanInterfaceV is a pointer to a new interface. If
+   ** \c pclCanInterfaceV is NULL, the physical interface shall be removed.
+   */
+   void onInterfaceChange(QCanInterface * pclCanIfV);
 
    void onNetworkShowCanFrames(uint32_t ulFrameCntV);
    void onNetworkShowErrFrames(uint32_t ulFrameCntV);
    void onNetworkShowLoad(uint8_t ubLoadV, uint32_t ulMsgPerSecV);
 
 private:
-
+   QCanInterfaceWidget * currentInterfaceWidget(void);
    uint8_t  currentNetwork(void);
    void     createActions(void);
    void     createTrayIcon(void);
