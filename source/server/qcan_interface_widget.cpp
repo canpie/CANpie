@@ -35,7 +35,7 @@ QCanInterfaceWidget::QCanInterfaceWidget()
 //----------------------------------------------------------------------------//
 void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
 {
-   QList<QAction *> apclListActionsT;
+   //QList<QAction *> apclListActionsT;
    QAction * pclActionT;
    QPoint pos(this->mapFromParent(QCursor::pos()));
    QMenu clContextMenuT(tr("CAN interface selection"), this);
@@ -45,7 +45,7 @@ void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
    //
    if (!loadPlugin())
    {
-       QMessageBox::information(this, "ERROR", "Could not load the any plugins!");
+       QMessageBox::information(this, "ERROR", "Could not load any plugins!");
    }
 
    //----------------------------------------------------------------
@@ -53,16 +53,18 @@ void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
    //
    pclActionT = new QAction("Virtual", this);
    pclActionT->setIcon(QIcon(":images/network-icon.png"));
-   apclListActionsT.append(pclActionT);
-   clContextMenuT.addAction(apclListActionsT.at(0));
+   //apclListActionsT.append(pclActionT);
+   //clContextMenuT.addAction(apclListActionsT.at(0));
+   clContextMenuT.addAction(pclActionT);
 
    qint32 slCntrT = 0;
    while (slCntrT < aclPluginNameListP.count())
    {
       pclActionT = new QAction(aclPluginNameListP.at(slCntrT), this);
       pclActionT->setIcon(aclIconListP.at(slCntrT));
-      apclListActionsT.append(pclActionT);
-      clContextMenuT.addAction(apclListActionsT.at(slCntrT+1));
+      //apclListActionsT.append(pclActionT);
+      //clContextMenuT.addAction(apclListActionsT.at(slCntrT+1));
+      clContextMenuT.addAction(pclActionT);
       slCntrT++;
    }
 
@@ -85,12 +87,13 @@ void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
          if (pclActionT != 0)
          {
             qint32 slIdxT = aclPluginNameListP.indexOf(pclActionT->text());
-            qDebug() << "mousePressEvent(): select index ..." << slIdxT;
+            qDebug() << "mousePressEvent(): select index" << slIdxT << "for" << pclActionT->text();
 
             pclQCanInterfaceP = NULL;
-            if (slIdxT > 0)
+            if (slIdxT >= 0)
             {
                QPluginLoader clPluginLoaderT(aclPluginListP.at(slIdxT));
+               qDebug() << "Use plugin:" << aclPluginListP.at(slIdxT);
                QObject *pclPluginT = clPluginLoaderT.instance();
                if (pclPluginT)
                {
@@ -191,12 +194,12 @@ bool QCanInterfaceWidget::loadPlugin()
 //----------------------------------------------------------------------------//
 void QCanInterfaceWidget::paintEvent(QPaintEvent * pclEventV)
 {
-   qDebug() << "Paint" << pclEventV->rect();
+   //qDebug() << "Paint" << pclEventV->rect();
 
    QPalette clPaletteT(this->palette());
    QPainter clPainterT(this);
    QBrush brush = QBrush(Qt::transparent, Qt::NoBrush);
-   qDebug() << "Brush" << brush;
+   //qDebug() << "Brush" << brush;
    clPainterT.setPen((Qt::white));
    clPainterT.setBrush(brush);
    //clPainterT.eraseRect(pclEventV->rect());
@@ -204,6 +207,17 @@ void QCanInterfaceWidget::paintEvent(QPaintEvent * pclEventV)
    //clPainterT.drawLine(1, 1, 80, 80);
 
    clIconP.paint(&clPainterT, pclEventV->rect(), Qt::AlignCenter);
+}
+
+
+//----------------------------------------------------------------------------//
+// setIcon()                                                                  //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void QCanInterfaceWidget::setIcon(QIcon clIconR)
+{
+   clIconP = clIconR;
+   this->repaint();
 }
 
 //----------------------------------------------------------------------------//
