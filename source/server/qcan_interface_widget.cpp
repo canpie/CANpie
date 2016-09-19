@@ -56,14 +56,14 @@ void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
    apclListActionsT.append(pclActionT);
    clContextMenuT.addAction(apclListActionsT.at(0));
 
-   quint32 ulCntrT = 0;
-   while (ulCntrT < aclPluginNameListP.count())
+   qint32 slCntrT = 0;
+   while (slCntrT < aclPluginNameListP.count())
    {
-      pclActionT = new QAction(aclPluginNameListP.at(ulCntrT), this);
-      pclActionT->setIcon(aclIconListP.at(ulCntrT));
+      pclActionT = new QAction(aclPluginNameListP.at(slCntrT), this);
+      pclActionT->setIcon(aclIconListP.at(slCntrT));
       apclListActionsT.append(pclActionT);
-      clContextMenuT.addAction(apclListActionsT.at(ulCntrT+1));
-      ulCntrT++;
+      clContextMenuT.addAction(apclListActionsT.at(slCntrT+1));
+      slCntrT++;
    }
 
    //----------------------------------------------------------------
