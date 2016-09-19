@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qcan_peakusb.png</file>
+    </qresource>
+</RCC>
