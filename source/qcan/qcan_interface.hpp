@@ -63,25 +63,7 @@ public:
        uint32_t   ulErrCount;
     } QCanStatistic_ts;
 
-   /*!
-   ** \enum    Bitrate_e
-   ** \brief   Fixed bitrates
-   **
-   ** The values of the enumeration are used as parameter for the
-   ** function setBitrate().
-   */
-   enum Bitrate_e {
-      eBITRATE_10K = 0,
-      eBITRATE_20K,
-      eBITRATE_50K,
-      eBITRATE_100K,
-      eBITRATE_125K,
-      eBITRATE_250K,
-      eBITRATE_500K,
-      eBITRATE_800K,
-      eBITRATE_1M,
-      eBITRATE_MAX
-   };
+
 
    /*!
    ** \enum    Error_e
@@ -148,7 +130,7 @@ public:
    **
    **	Set bitrate of CAN interface
    */
-   virtual int32_t   setBitrate(uint32_t ulBitrateV, uint32_t ulBrsClockV) = 0;
+   virtual int32_t   setBitrate(int32_t slBitrateV, int32_t slBrsClockV) = 0;
 
 
     /*!
