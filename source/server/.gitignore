@@ -1,2 +1,4 @@
 /qcanserver.app/
 /Makefile
+/.DS_Store
+/.qmake.stash
