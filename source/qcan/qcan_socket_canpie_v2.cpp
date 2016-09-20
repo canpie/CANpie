@@ -405,6 +405,7 @@ CpStatus_tv CpCoreBufferSend(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
    if(ubBufferIdxV < CP_BUFFER_1  ) return(CpErr_BUFFER);
    if(ubBufferIdxV > CP_BUFFER_MAX) return(CpErr_BUFFER);
 
+   //----------------------------------------------------------------
    // align buffer index
    //
    ubBufferIdxV = ubBufferIdxV - 1;
@@ -519,6 +520,8 @@ CpStatus_tv CpCoreBufferTransmit(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
                                  CpCanMsg_ts * ptsCanMsgV)
 {
    QCanSocketCp2 *   pclSockT;
+   QCanFrame         clFrameT;
+
 
    //----------------------------------------------------------------
    // get access to socket
@@ -540,10 +543,36 @@ CpStatus_tv CpCoreBufferTransmit(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
    if(ubBufferIdxV > CP_BUFFER_MAX) return(CpErr_BUFFER);
 
    //----------------------------------------------------------------
+   // align buffer index
+   //
+   ubBufferIdxV = ubBufferIdxV - 1;
+
+   //----------------------------------------------------------------
    // copy to simulated CAN buffer
    //
-   pclSockT->atsCanMsgM[ubBufferIdxV - 1].tuMsgId.ulExt = ptsCanMsgV->tuMsgId.ulExt;
-   pclSockT->atsCanMsgM[ubBufferIdxV - 1].ubMsgDLC      = ptsCanMsgV->ubMsgDLC;
+   pclSockT->atsCanMsgM[ubBufferIdxV].tuMsgId.ulExt = ptsCanMsgV->tuMsgId.ulExt;
+   pclSockT->atsCanMsgM[ubBufferIdxV].ubMsgDLC      = ptsCanMsgV->ubMsgDLC;
+   pclSockT->atsCanMsgM[ubBufferIdxV].tuMsgData.aulLong[0] = ptsCanMsgV->tuMsgData.aulLong[0];
+   pclSockT->atsCanMsgM[ubBufferIdxV].tuMsgData.aulLong[1] = ptsCanMsgV->tuMsgData.aulLong[1];
+
+
+   //----------------------------------------------------------------
+   // write CAN frame
+   //
+   clFrameT = pclSockT->fromCpMsg(ubBufferIdxV);
+   if(pclSockT->writeFrame(clFrameT) == false)
+   {
+      qDebug() << "Failed to write message";
+   }
+   else
+   {
+      if(pclSockT->pfnTrmIntHandlerP != 0)
+      {
+         (* pclSockT->pfnTrmIntHandlerP)(&(pclSockT->atsCanMsgM[ubBufferIdxV]),
+                                         ubBufferIdxV + 1);
+      }
+   }
+
 
    return (CpErr_OK);
 }
@@ -723,7 +752,7 @@ CpStatus_tv CpCoreMsgRead( CpPort_ts *   CPP_PARM_UNUSED(ptsPortV),
                            CpCanMsg_ts * CPP_PARM_UNUSED(ptsBufferV),
                            uint32_t *    CPP_PARM_UNUSED(pulBufferSizeV))
 {
-   return (CpErr_OK);
+   return (CpErr_RCV_EMPTY);
 }
 
 
@@ -846,6 +875,10 @@ void QCanSocketCp2::onSocketReceive()
                ptsCanBufT->ubMsgDLC             = tsCanMsgT.ubMsgDLC;
                ptsCanBufT->tuMsgData.aulLong[0] = tsCanMsgT.tuMsgData.aulLong[0];
                ptsCanBufT->tuMsgData.aulLong[1] = tsCanMsgT.tuMsgData.aulLong[1];
+               if(this->pfnRcvIntHandlerP != 0)
+               {
+                  (* this->pfnRcvIntHandlerP)(ptsCanBufT, ubBufferIdxT + 1);
+               }
 
             }
          }
