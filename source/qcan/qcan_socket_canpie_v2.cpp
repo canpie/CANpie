@@ -601,10 +601,10 @@ CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV)
 
    printf("CpCoreCanMode() ......");
 
-   while(pclSockT->isConnected() == false)
-   {
-      QApplication::processEvents();
-   }
+//   while(pclSockT->isConnected() == false)
+//   {
+//      QApplication::processEvents();
+//   }
 
    //----------------------------------------------------------------
    // switch CAN controller into mode "ubModeV"
