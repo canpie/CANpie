@@ -34,6 +34,7 @@
 
 #include <QDebug>
 
+#include "qcan_defs.hpp"
 #include "qcan_interface.hpp"
 #include "qcan_network.hpp"
 
@@ -155,11 +156,11 @@ bool QCanNetwork::addInterface(QCanInterface * pclCanIfV)
       //--------------------------------------------------------
       // connect the interface
       //
-      if(pclCanIfV->connect() == QCanInterface::eERROR_OK)
+      if(pclCanIfV->connect() == QCanInterface::eERROR_NONE)
       {
-         if (pclCanIfV->setBitrate(slBitrateP, slBrsClockP) == QCanInterface::eERROR_OK)
+         if (pclCanIfV->setBitrate(slBitrateP, slBrsClockP) == QCanInterface::eERROR_NONE)
          {
-            if (pclCanIfV->setMode(QCanInterface::eMODE_START) == QCanInterface::eERROR_OK)
+            if (pclCanIfV->setMode(QCan::eCAN_MODE_START) == QCanInterface::eERROR_NONE)
             {
                pclInterfaceP = pclCanIfV;
                btResultT = true;
@@ -538,7 +539,7 @@ void QCanNetwork::onTimerEvent(void)
    if(pclInterfaceP.isNull() == false)
    {
       slSockIdxT = QCAN_SOCKET_CAN_IF;
-      while(pclInterfaceP->read(clCanFrameT) == QCanInterface::eERROR_OK)
+      while(pclInterfaceP->read(clCanFrameT) == QCanInterface::eERROR_NONE)
       {
          clSockDataT = clCanFrameT.toByteArray();
 
