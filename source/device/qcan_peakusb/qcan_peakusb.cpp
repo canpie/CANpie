@@ -38,6 +38,121 @@
 */
 char aszErrTextG[128];
 
+
+
+//----------------------------------------------------------------------------//
+// connect()                                                                  //
+//                                                                            //
+//----------------------------------------------------------------------------//
+QCanInterface::InterfaceError_e QCanPeakUsb::connect(void)
+{
+   //-----------------------------------------------------------------------
+   // Loads library
+   //
+   clCanLibP.setFileName(QCAN_PEAKLIB);
+
+   if (!clCanLibP.load()) {
+       qCritical() << tr("Failed to load the library: ") + qPrintable(clCanLibP.fileName());
+       return eERROR_LIBRARY;
+   }
+
+   //----------------------------------------------------------------
+   // Loads API functions
+   //
+   pfnCAN_InitializeP = (CAN_Initialize_tf) clCanLibP.resolve("CAN_Initialize");
+   #if QCAN_SUPPORT_CAN_FD > 0
+   pfnCAN_InitializeFDP = (CAN_InitializeFD_tf) clCanLibP.resolve("CAN_InitializeFD");
+   #endif
+   pfnCAN_UninitializeP = (CAN_Uninitialize_tf)clCanLibP.resolve("CAN_Uninitialize");
+   pfnCAN_ResetP = (CAN_Reset_tf)clCanLibP.resolve("CAN_Reset");
+   pfnCAN_GetStatusP = (CAN_GetStatus_tf)clCanLibP.resolve("CAN_GetStatus");
+   pfnCAN_ReadP = (CAN_Read_tf)clCanLibP.resolve("CAN_Read");
+   #if QCAN_SUPPORT_CAN_FD > 0
+   pfnCAN_ReadFDP = (CAN_ReadFD_tf)clCanLibP.resolve("CAN_ReadFD");
+   #endif
+   pfnCAN_WriteP = (CAN_Write_tf)clCanLibP.resolve("CAN_Write");
+   #if QCAN_SUPPORT_CAN_FD > 0
+   pfnCAN_WriteFDP = (CAN_WriteFD_tf)clCanLibP.resolve("CAN_WriteFD");
+   #endif
+   pfnCAN_FilterMessagesP = (CAN_FilterMessages_tf)clCanLibP.resolve("CAN_FilterMessages");
+   pfnCAN_GetValueP = (CAN_GetValue_tf)clCanLibP.resolve("CAN_GetValue");
+   pfnCAN_SetValueP = (CAN_SetValue_tf)clCanLibP.resolve("CAN_SetValue");
+   pfnCAN_GetErrorTextP = (CAN_GetErrorText_tf)clCanLibP.resolve("CAN_GetErrorText");
+
+
+   //----------------------------------------------------------------
+   // check for success
+   //
+   btLibFuncLoadP =  pfnCAN_InitializeP &&
+                     #if QCAN_SUPPORT_CAN_FD > 0
+                     pfnCAN_InitializeFDP &&
+                     #endif
+                     pfnCAN_UninitializeP && pfnCAN_ResetP &&
+                     pfnCAN_GetStatusP && pfnCAN_ReadP  &&
+                     pfnCAN_WriteP &&
+                     #if QCAN_SUPPORT_CAN_FD > 0
+                     pfnCAN_FilterMessagesP &&
+                     pfnCAN_ReadFDP && pfnCAN_WriteFDP &&
+                     #endif
+                     pfnCAN_GetValueP && pfnCAN_SetValueP &&
+                     pfnCAN_GetErrorTextP;
+
+   //----------------------------------------------------------------
+   // If the API was not loaded (Wrong version), an error message is shown.
+   //
+   if (!btLibFuncLoadP)
+   {
+      qCritical() << tr("ERROR: DLL functions could not be loaded!");
+      return eERROR_LIBRARY;
+   }
+
+   qInfo() << tr("SUCCESS: All DLL functions could be loaded!");
+   return eERROR_NONE;
+}
+
+
+//----------------------------------------------------------------------------//
+// disconnect()                                                               //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void QCanPeakUsb::disconnect(void)
+{
+   //-----------------------------------------------------------------------
+   // If library have been loaded before unintitialize can device
+   //
+   if (btLibFuncLoadP)
+   {
+      pfnCAN_UninitializeP(uwCanChannelP);
+   }
+
+   //-----------------------------------------------------------------------
+   // Unload library and remove all API functions
+   //
+   if (clCanLibP.isLoaded())
+   {
+      clCanLibP.unload();
+   }
+
+   pfnCAN_InitializeP = NULL;
+   pfnCAN_UninitializeP = NULL;
+   pfnCAN_ResetP = NULL;
+   pfnCAN_GetStatusP = NULL;
+   pfnCAN_ReadP = NULL;
+   pfnCAN_WriteP = NULL;
+   pfnCAN_FilterMessagesP = NULL;
+   pfnCAN_GetValueP = NULL;
+   pfnCAN_SetValueP = NULL;
+   pfnCAN_GetErrorTextP = NULL;
+
+   #if QCAN_SUPPORT_CAN_FD > 0
+   pfnCAN_InitializeFDP = NULL;
+   pfnCAN_ReadFDP = NULL;
+   pfnCAN_WriteFDP = NULL;
+   #endif
+   btLibFuncLoadP = false;
+}
+
+
 //----------------------------------------------------------------------------//
 // echo()                                                                     //
 // dummy implementation of a function to evaluate string                      //
@@ -61,13 +176,13 @@ QString QCanPeakUsb::echo(const QString &message)
 
    if (message == "run")
    {
-      if (connect() != eERROR_OK)
+      if (connect() != eERROR_NONE)
          qWarning() << "Warning: connect() fail!";
 
-      if (setBitrate(QCan::eCAN_BITRATE_500K, 0) != eERROR_OK)
+      if (setBitrate(QCan::eCAN_BITRATE_500K, 0) != eERROR_NONE)
          qWarning() << "Warning: setBitrate() fail!";
 
-      if (setMode(eMODE_START) != eERROR_OK)
+      if (setMode(QCan::eCAN_MODE_START) != eERROR_NONE)
          qWarning() << "Warning: setMode() fail!";
 
    }
@@ -76,7 +191,7 @@ QString QCanPeakUsb::echo(const QString &message)
    {
       int32_t slStatusT = read(clFrameT);
 
-      if (slStatusT == eERROR_OK)
+      if (slStatusT == eERROR_NONE)
       {
          if (clFrameT.isExtended())
          {
@@ -106,7 +221,7 @@ QString QCanPeakUsb::echo(const QString &message)
                          QString::number((uint8_t)clFrameT.data(7),16) + "h ";
          }
       }
-      else if (slStatusT != eERROR_FIFO_IN_EMPTY)
+      else if (slStatusT != eERROR_FIFO_RCV_EMPTY)
       {
          qWarning() << "Warning: read() fail with " << QString::number(slStatusT,10);
       }
@@ -124,11 +239,11 @@ QString QCanPeakUsb::echo(const QString &message)
 
       int32_t slStatusT = write(clFrameT);
 
-      if (slStatusT == eERROR_OK)
+      if (slStatusT == eERROR_NONE)
       {
 
       }
-      else if (slStatusT != eERROR_FIFO_IN_EMPTY)
+      else if (slStatusT != eERROR_FIFO_TRM_FULL)
       {
          qWarning() << "Warning: write() fail!";
       }
@@ -149,11 +264,11 @@ QString QCanPeakUsb::echo(const QString &message)
 
       int32_t slStatusT = write(clFrameT);
 
-      if (slStatusT == eERROR_OK)
+      if (slStatusT == eERROR_NONE)
       {
 
       }
-      else if (slStatusT != eERROR_FIFO_IN_EMPTY)
+      else if (slStatusT != eERROR_FIFO_TRM_FULL)
       {
          qWarning() << "Warning: write() fail!";
       }
@@ -164,10 +279,139 @@ QString QCanPeakUsb::echo(const QString &message)
 
 
 //----------------------------------------------------------------------------//
+// icon()                                                                     //
+//                                                                            //
+//----------------------------------------------------------------------------//
+QIcon QCanPeakUsb::icon()
+{
+   return QIcon(":/qcan_peakusb.png");
+}
+
+
+//----------------------------------------------------------------------------//
+// name()                                                                     //
+//                                                                            //
+//----------------------------------------------------------------------------//
+QString QCanPeakUsb::name()
+{
+   return "PEAK USB device";
+}
+
+
+
+//----------------------------------------------------------------------------//
+// read()                                                                     //
+//                                                                            //
+//----------------------------------------------------------------------------//
+QCanInterface::InterfaceError_e  QCanPeakUsb::read(QCanFrame &clFrameR)
+{
+   TPCANStatus    ulStatusT;
+   uint8_t        ubByteCntrT;
+   TPCANMsg       tsCanMsgT;
+   TPCANTimestamp tsTimestampBufferT;
+
+   //----------------------------------------------------------------
+   // check lib have been loaded
+   //
+   if (!btLibFuncLoadP)
+   {
+      return eERROR_LIBRARY;
+   }
+
+   //----------------------------------------------------------------
+   // get next message from FIFO
+   //
+   ulStatusT = pfnCAN_ReadP(uwCanChannelP, &tsCanMsgT, &tsTimestampBufferT);
+
+   if (ulStatusT == PCAN_ERROR_OK)
+   {
+      //--------------------------------------------------------
+      // handle data depending on type
+      //
+      switch (tsCanMsgT.MSGTYPE)
+      {
+         case PCAN_MESSAGE_STANDARD :
+
+            //---------------------------------------------
+            // copy all values to QCanFrame structure
+            //
+            clFrameR.setFrameType(QCanFrame::eTYPE_CAN_STD);
+            clFrameR.setStdId((uint16_t)tsCanMsgT.ID);
+
+            clFrameR.setDlc(tsCanMsgT.LEN);
+
+            for (ubByteCntrT = 0; ubByteCntrT < clFrameR.dlc(); ubByteCntrT++)
+            {
+               clFrameR.setData(ubByteCntrT, tsCanMsgT.DATA[ubByteCntrT]);
+            }
+
+            clStatisticP.ulRcvCount++;
+
+            return eERROR_NONE;
+
+            break;
+
+         case PCAN_MESSAGE_EXTENDED :
+
+            //---------------------------------------------
+            // copy all values to QCanFrame structure
+            //
+            clFrameR.setFrameType(QCanFrame::eTYPE_CAN_EXT);
+            clFrameR.setExtId(tsCanMsgT.ID);
+
+            clFrameR.setDlc(tsCanMsgT.LEN);
+
+            for (ubByteCntrT = 0; ubByteCntrT < clFrameR.dlc(); ubByteCntrT++)
+            {
+               clFrameR.setData(ubByteCntrT, tsCanMsgT.DATA[ubByteCntrT]);
+            }
+            return eERROR_NONE;
+            break;
+
+         case PCAN_MESSAGE_RTR :
+            qDebug() << tr("handle PCAN_MESSAGE_RTR");
+            break;
+         #if QCAN_SUPPORT_CAN_FD > 0
+         case PCAN_MESSAGE_FD :
+            qDebug() << tr("handle PCAN_MESSAGE_FD");
+            break;
+
+         case PCAN_MESSAGE_BRS :
+            qDebug() << tr("handle PCAN_MESSAGE_BRS");
+            break;
+
+         case PCAN_MESSAGE_ESI :
+            qDebug() << tr("handle PCAN_MESSAGE_ESI");
+            break;
+         #endif
+         case PCAN_MESSAGE_STATUS :
+            qDebug() << tr("handle PCAN_MESSAGE_STATUS");
+            break;
+
+         default :
+            qDebug() << tr("UNKNOWN Message Type");
+            break;
+      }
+   }
+
+   else if (ulStatusT != (TPCANStatus)PCAN_ERROR_QRCVEMPTY)
+   {
+      qWarning() << tr("Fail to call CAN_Read(): ") + QString::number(ulStatusT,16);
+      return eERROR_DEVICE;
+   }
+
+
+   return eERROR_FIFO_RCV_EMPTY;
+
+}
+
+
+//----------------------------------------------------------------------------//
 // setBitrate()                                                               //
 //                                                                            //
 //----------------------------------------------------------------------------//
-int32_t QCanPeakUsb::setBitrate(int32_t slBitrateV, int32_t slBrsClockV)
+QCanInterface::InterfaceError_e QCanPeakUsb::setBitrate( int32_t slBitrateV,
+                                                         int32_t slBrsClockV)
 {
    WORD uwBtr0Btr1T;
 
@@ -279,7 +523,7 @@ int32_t QCanPeakUsb::setBitrate(int32_t slBitrateV, int32_t slBrsClockV)
       return eERROR_DEVICE;
    }
 
-   return eERROR_OK;
+   return eERROR_NONE;
 }
 
 
@@ -287,7 +531,7 @@ int32_t QCanPeakUsb::setBitrate(int32_t slBitrateV, int32_t slBrsClockV)
 // setMode()                                                                  //
 //                                                                            //
 //----------------------------------------------------------------------------//
-int32_t	QCanPeakUsb::setMode(const Mode_te teModeV)
+QCanInterface::InterfaceError_e	QCanPeakUsb::setMode(const QCan::CAN_Mode_e teModeV)
 {
    // TPCANStatus ulStatusT;
    uint8_t ubValueBufT;
@@ -305,7 +549,7 @@ int32_t	QCanPeakUsb::setMode(const Mode_te teModeV)
    //
    switch (teModeV)
    {
-      case eMODE_START :
+      case QCan::eCAN_MODE_START :
 
          //---------------------------------------------------
          // reset statistic values
@@ -321,7 +565,7 @@ int32_t	QCanPeakUsb::setMode(const Mode_te teModeV)
          }
          break;
 
-      case eMODE_STOP :
+      case QCan::eCAN_MODE_STOP :
 
          break;
 
@@ -330,145 +574,51 @@ int32_t	QCanPeakUsb::setMode(const Mode_te teModeV)
          break;
    }
 
-   return eERROR_OK;
+   return eERROR_NONE;
 }
 
 
-int32_t	QCanPeakUsb::state(void)
+QCan::CAN_State_e	QCanPeakUsb::state(void)
 {
-   return 0;
+   return QCan::eCAN_STATE_BUS_ACTIVE;
 }
 
 //----------------------------------------------------------------------------//
 // statistic()                                                                //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void	QCanPeakUsb::statistic(QCanStatistic_ts &clStatisticR)
+QCanInterface::InterfaceError_e	QCanPeakUsb::statistic(QCanStatistic_ts &clStatisticR)
 {
    clStatisticR = clStatisticP;
+
+   return(eERROR_NONE);
 }
 
-QIcon QCanPeakUsb::icon()
-{
-   return QIcon(":/qcan_peakusb.png");
-}
-
-QString QCanPeakUsb::name()
-{
-   return "PEAK USB device";
-}
 
 //----------------------------------------------------------------------------//
-// read()                                                                     //
+// supportedFeatures()                                                        //
 //                                                                            //
 //----------------------------------------------------------------------------//
-int32_t	QCanPeakUsb::read(QCanFrame &clFrameR)
+uint32_t QCanPeakUsb::supportedFeatures(void)
 {
-   TPCANStatus    ulStatusT;
-   uint8_t        ubByteCntrT;
-   TPCANMsg       tsCanMsgT;
-   TPCANTimestamp tsTimestampBufferT;
+   uint32_t ulFeaturesT;
 
-   //----------------------------------------------------------------
-   // check lib have been loaded
-   //
-   if (!btLibFuncLoadP)
-   {
-      return eERROR_LIBRARY;
-   }
+   ulFeaturesT  = QCAN_IF_SUPPORT_ERROR_FRAMES;
+   ulFeaturesT += QCAN_IF_SUPPORT_LISTEN_ONLY;
 
-   //----------------------------------------------------------------
-   // get next message from FIFO
-   //
-   ulStatusT = pfnCAN_ReadP(uwCanChannelP, &tsCanMsgT, &tsTimestampBufferT);
+   #if QCAN_SUPPORT_CAN_FD > 0
+   ulFeaturesT += QCAN_IF_SUPPORT_CAN_FD;
+   #endif
 
-   if (ulStatusT == PCAN_ERROR_OK)
-   {
-      //--------------------------------------------------------
-      // handle data depending on type
-      //
-      switch (tsCanMsgT.MSGTYPE)
-      {
-         case PCAN_MESSAGE_STANDARD :
-
-            //---------------------------------------------
-            // copy all values to QCanFrame structure
-            //
-            clFrameR.setFrameType(QCanFrame::eTYPE_CAN_STD);
-            clFrameR.setStdId((uint16_t)tsCanMsgT.ID);
-
-            clFrameR.setDlc(tsCanMsgT.LEN);
-
-            for (ubByteCntrT = 0; ubByteCntrT < clFrameR.dlc(); ubByteCntrT++)
-            {
-               clFrameR.setData(ubByteCntrT, tsCanMsgT.DATA[ubByteCntrT]);
-            }
-
-            clStatisticP.ulRcvCount++;
-
-            return eERROR_OK;
-
-            break;
-
-         case PCAN_MESSAGE_EXTENDED :
-
-            //---------------------------------------------
-            // copy all values to QCanFrame structure
-            //
-            clFrameR.setFrameType(QCanFrame::eTYPE_CAN_EXT);
-            clFrameR.setExtId(tsCanMsgT.ID);
-
-            clFrameR.setDlc(tsCanMsgT.LEN);
-
-            for (ubByteCntrT = 0; ubByteCntrT < clFrameR.dlc(); ubByteCntrT++)
-            {
-               clFrameR.setData(ubByteCntrT, tsCanMsgT.DATA[ubByteCntrT]);
-            }
-            return eERROR_OK;
-            break;
-
-         case PCAN_MESSAGE_RTR :
-            qDebug() << tr("handle PCAN_MESSAGE_RTR");
-            break;
-         #if QCAN_SUPPORT_CAN_FD > 0
-         case PCAN_MESSAGE_FD :
-            qDebug() << tr("handle PCAN_MESSAGE_FD");
-            break;
-
-         case PCAN_MESSAGE_BRS :
-            qDebug() << tr("handle PCAN_MESSAGE_BRS");
-            break;
-
-         case PCAN_MESSAGE_ESI :
-            qDebug() << tr("handle PCAN_MESSAGE_ESI");
-            break;
-         #endif
-         case PCAN_MESSAGE_STATUS :
-            qDebug() << tr("handle PCAN_MESSAGE_STATUS");
-            break;
-
-         default :
-            qDebug() << tr("UNKNOWN Message Type");
-            break;
-      }
-   }
-
-   else if (ulStatusT != (TPCANStatus)PCAN_ERROR_QRCVEMPTY)
-   {
-      qWarning() << tr("Fail to call CAN_Read(): ") + QString::number(ulStatusT,16);
-      return eERROR_DEVICE;
-   }
-
-
-   return eERROR_FIFO_IN_EMPTY;
-
+   return(ulFeaturesT);
 }
+
 
 //----------------------------------------------------------------------------//
 // write()                                                                    //
 //                                                                            //
 //----------------------------------------------------------------------------//
-int32_t	QCanPeakUsb::write(const QCanFrame &clFrameR)
+QCanInterface::InterfaceError_e	QCanPeakUsb::write(const QCanFrame &clFrameR)
 {
    TPCANStatus ulStatusT;
    TPCANMsg    tsCanMsgT;
@@ -511,7 +661,7 @@ int32_t	QCanPeakUsb::write(const QCanFrame &clFrameR)
       qDebug() << tr("CAN_Write() OK");
 
       clStatisticP.ulTrmCount++;
-      return eERROR_OK;
+      return eERROR_NONE;
    }
    else if (ulStatusT != (TPCANStatus)PCAN_ERROR_QRCVEMPTY)
    {
@@ -519,118 +669,7 @@ int32_t	QCanPeakUsb::write(const QCanFrame &clFrameR)
       return eERROR_DEVICE;
    }
 
-   return eERROR_FIFO_OUT_FULL;
+   return eERROR_FIFO_TRM_FULL;
 
 }
 
-
-//----------------------------------------------------------------------------//
-// connect()                                                                  //
-//                                                                            //
-//----------------------------------------------------------------------------//
-int32_t QCanPeakUsb::connect(void)
-{
-   //-----------------------------------------------------------------------
-   // Loads library
-   //
-   clCanLibP.setFileName(QCAN_PEAKLIB);
-
-   if (!clCanLibP.load()) {
-       qCritical() << tr("Failed to load the library: ") + qPrintable(clCanLibP.fileName());
-       return eERROR_LIBRARY;
-   }
-
-   //----------------------------------------------------------------
-   // Loads API functions
-   //
-   pfnCAN_InitializeP = (CAN_Initialize_tf) clCanLibP.resolve("CAN_Initialize");
-   #if QCAN_SUPPORT_CAN_FD > 0
-   pfnCAN_InitializeFDP = (CAN_InitializeFD_tf) clCanLibP.resolve("CAN_InitializeFD");
-   #endif
-   pfnCAN_UninitializeP = (CAN_Uninitialize_tf)clCanLibP.resolve("CAN_Uninitialize");
-   pfnCAN_ResetP = (CAN_Reset_tf)clCanLibP.resolve("CAN_Reset");
-   pfnCAN_GetStatusP = (CAN_GetStatus_tf)clCanLibP.resolve("CAN_GetStatus");
-   pfnCAN_ReadP = (CAN_Read_tf)clCanLibP.resolve("CAN_Read");
-   #if QCAN_SUPPORT_CAN_FD > 0
-   pfnCAN_ReadFDP = (CAN_ReadFD_tf)clCanLibP.resolve("CAN_ReadFD");
-   #endif
-   pfnCAN_WriteP = (CAN_Write_tf)clCanLibP.resolve("CAN_Write");
-   #if QCAN_SUPPORT_CAN_FD > 0
-   pfnCAN_WriteFDP = (CAN_WriteFD_tf)clCanLibP.resolve("CAN_WriteFD");
-   #endif
-   pfnCAN_FilterMessagesP = (CAN_FilterMessages_tf)clCanLibP.resolve("CAN_FilterMessages");
-   pfnCAN_GetValueP = (CAN_GetValue_tf)clCanLibP.resolve("CAN_GetValue");
-   pfnCAN_SetValueP = (CAN_SetValue_tf)clCanLibP.resolve("CAN_SetValue");
-   pfnCAN_GetErrorTextP = (CAN_GetErrorText_tf)clCanLibP.resolve("CAN_GetErrorText");
-
-
-   //----------------------------------------------------------------
-   // check for success
-   //
-   btLibFuncLoadP =  pfnCAN_InitializeP &&
-                     #if QCAN_SUPPORT_CAN_FD > 0
-                     pfnCAN_InitializeFDP &&
-                     #endif
-                     pfnCAN_UninitializeP && pfnCAN_ResetP &&
-                     pfnCAN_GetStatusP && pfnCAN_ReadP  &&
-                     pfnCAN_WriteP &&
-                     #if QCAN_SUPPORT_CAN_FD > 0
-                     pfnCAN_FilterMessagesP &&
-                     pfnCAN_ReadFDP && pfnCAN_WriteFDP &&
-                     #endif
-                     pfnCAN_GetValueP && pfnCAN_SetValueP &&
-                     pfnCAN_GetErrorTextP;
-
-   //----------------------------------------------------------------
-   // If the API was not loaded (Wrong version), an error message is shown.
-   //
-   if (!btLibFuncLoadP)
-   {
-      qCritical() << tr("ERROR: DLL functions could not be loaded!");
-      return eERROR_LIBRARY;
-   }
-
-   qInfo() << tr("SUCCESS: All DLL functions could be loaded!");
-   return eERROR_OK;
-}
-
-//----------------------------------------------------------------------------//
-// disconnect()                                                               //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void QCanPeakUsb::disconnect(void)
-{
-   //-----------------------------------------------------------------------
-   // If library have been loaded before unintitialize can device
-   //
-   if (btLibFuncLoadP)
-   {
-      pfnCAN_UninitializeP(uwCanChannelP);
-   }
-
-   //-----------------------------------------------------------------------
-   // Unload library and remove all API functions
-   //
-   if (clCanLibP.isLoaded())
-   {
-      clCanLibP.unload();
-   }
-
-   pfnCAN_InitializeP = NULL;
-   pfnCAN_UninitializeP = NULL;
-   pfnCAN_ResetP = NULL;
-   pfnCAN_GetStatusP = NULL;
-   pfnCAN_ReadP = NULL;
-   pfnCAN_WriteP = NULL;
-   pfnCAN_FilterMessagesP = NULL;
-   pfnCAN_GetValueP = NULL;
-   pfnCAN_SetValueP = NULL;
-   pfnCAN_GetErrorTextP = NULL;
-
-   #if QCAN_SUPPORT_CAN_FD > 0
-   pfnCAN_InitializeFDP = NULL;
-   pfnCAN_ReadFDP = NULL;
-   pfnCAN_WriteFDP = NULL;
-   #endif
-   btLibFuncLoadP = false;
-}
