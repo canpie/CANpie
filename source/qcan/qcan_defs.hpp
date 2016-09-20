@@ -46,7 +46,7 @@
 
 //-------------------------------------------------------------------
 /*!
-** \defgroup QCAN QCan definitions
+** \defgroup QCAN_NW QCan network definitions
 **
 **
 */
@@ -54,7 +54,7 @@
 //-------------------------------------------------------------------
 /*!
 ** \def     QCAN_TCP_DEFAULT_PORT
-** \ingroup QCAN
+** \ingroup QCAN_NW
 ** \brief   Default port for TCP server
 **
 ** This symbol defines the default TCP port for the server.
@@ -65,7 +65,7 @@
 //-------------------------------------------------------------------
 /*!
 ** \def     QCAN_TCP_SOCKET_MAX
-** \ingroup QCAN
+** \ingroup QCAN_NW
 ** \brief   Maximum number of TCP sockets
 **
 ** This symbol defines the maximum number of sockets connected to
@@ -77,12 +77,55 @@
 //-------------------------------------------------------------------
 /*!
 ** \def     QCAN_NETWORK_MAX
-** \ingroup QCAN
+** \ingroup QCAN_NW
 ** \brief   Maximum number of networks
 **
 ** This symbol defines the maximum number of networks.
 */
 #define  QCAN_NETWORK_MAX           8
+
+
+//-------------------------------------------------------------------
+/*!
+** \defgroup QCAN_IF QCan interface definitions
+**
+**
+*/
+
+//-------------------------------------------------------------------
+/*!
+** \def     QCAN_IF_SUPPORT_ERROR_FRAMES
+** \ingroup QCAN_IF
+** \brief   Support error frames
+**
+** The bit-mask value defines if error frames are supported by
+** a CAN interface.
+*/
+#define  QCAN_IF_SUPPORT_ERROR_FRAMES     ((uint32_t) (0x00000001))
+
+
+//-------------------------------------------------------------------
+/*!
+** \def     QCAN_IF_SUPPORT_LISTEN_ONLY
+** \ingroup QCAN_IF
+** \brief   Support listen-only mode
+**
+** The bit-mask value defines if the listen-only mode is supported by
+** a CAN interface.
+*/
+#define  QCAN_IF_SUPPORT_LISTEN_ONLY      ((uint32_t) (0x00000002))
+
+
+//-------------------------------------------------------------------
+/*!
+** \def     QCAN_IF_SUPPORT_CAN_FD
+** \ingroup QCAN_IF
+** \brief   Support CAN FD
+**
+** The bit-mask value defines if CAN FD is supported by
+** a CAN interface.
+*/
+#define  QCAN_IF_SUPPORT_CAN_FD           ((uint32_t) (0x00000004))
 
 
 //-------------------------------------------------------------------
