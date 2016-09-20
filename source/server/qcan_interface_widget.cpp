@@ -51,7 +51,7 @@ void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
    // create context menu with all available plugins
    //
    pclActionT = new QAction("Virtual CAN bus", this);
-   pclActionT->setIcon(QIcon(":images/network-icon.png"));
+   pclActionT->setIcon(QIcon(":images/network-vcan.png"));
    clContextMenuT.addAction(pclActionT);
 
    qint32 slCntrT = 0;

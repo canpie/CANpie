@@ -523,6 +523,8 @@ CpStatus_tv CpCoreBufferTransmit(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
    QCanFrame         clFrameT;
 
 
+   qDebug() << "CpCoreBufferTransmit()...";
+
    //----------------------------------------------------------------
    // get access to socket
    //
