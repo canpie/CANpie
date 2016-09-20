@@ -3,7 +3,7 @@
 // Description:   Virtual CAN interface class                                 //
 //                                                                            //
 // Copyright (C) MicroControl GmbH & Co. KG                                   //
-// 53842 Troisdorf - Germany                                                  //
+// 53844 Troisdorf - Germany                                                  //
 // www.microcontrol.net                                                       //
 //                                                                            //
 //----------------------------------------------------------------------------//
@@ -12,7 +12,7 @@
 // are met:                                                                   //
 // 1. Redistributions of source code must retain the above copyright          //
 //    notice, this list of conditions, the following disclaimer and           //
-//    the referenced file 'COPYING'.                                          //
+//    the referenced file 'LICENSE'.                                          //
 // 2. Redistributions in binary form must reproduce the above copyright       //
 //    notice, this list of conditions and the following disclaimer in the     //
 //    documentation and/or other materials provided with the distribution.    //
@@ -22,7 +22,7 @@
 //                                                                            //
 // Provided that this notice is retained in full, this software may be        //
 // distributed under the terms of the GNU Lesser General Public License       //
-// ("LGPL") version 3 as distributed in the 'COPYING' file.                   //
+// ("LGPL") version 3 as distributed in the 'LICENSE' file.                   //
 //                                                                            //
 //============================================================================//
 
@@ -41,8 +41,9 @@
 #define QCAN_INTERFACE_HPP_
 
 #include <stdint.h>
+#include "qcan_defs.hpp"
 #include "qcan_frame.hpp"
-//#include "canpie.h"
+
 
 
 
@@ -66,106 +67,112 @@ public:
 
 
    /*!
-   ** \enum    Error_e
-   ** \brief   Fixed errors
+   ** \enum    InterfaceError_e
    **
-   ** The values of the enumeration are used as return values
+   ** This enum describes possible error conditions.
    */
-   enum Error_e {
+   enum InterfaceError_e {
+      /*! An unknown error occurred.                  */
       eERROR_UNKNOWN = -1,
-      eERROR_OK,
+
+      /*! No error occurred.                          */
+      eERROR_NONE,
+
+      /*! Access to library / plugin failed           */
       eERROR_LIBRARY,
+
       eERROR_CHANNEL,
+
+      /*! Bit-rate not supported                      */
       eERROR_BITRATE,
+
       eERROR_DEVICE,
+
       eERROR_MODE,
-      eERROR_FIFO_IN_EMPTY,
-      eERROR_FIFO_OUT_FULL
+
+      /*! No message in receive FIFO available        */
+      eERROR_FIFO_RCV_EMPTY,
+
+      /*! Transmit FIFO is full                       */
+      eERROR_FIFO_TRM_FULL
    };
 
-   /*----------------------------------------------------------------------------*/
    /*!
-   ** \enum    Mode_e
-   ** \brief   Mode of CAN controller
+   ** \see disconnect()
    **
-   ** These values are used as parameter for the function setMode() in
-   ** order to change the state of the CAN controller.
+   ** Connect CAN interface
    */
-   typedef enum Mode_e {
-      /*!   Set controller in Stop mode (no reception / transmission possible)
-      */
-      eMODE_STOP = 0,
+   virtual InterfaceError_e connect(void) = 0;
 
-      /*!   Set controller into normal operation
-      */
-      eMODE_START,
+   /*!
+   ** \see connect()
+   **
+   ** Disconnect CAN interface
+   */
+   virtual void disconnect(void) = 0;
 
-      /*!   Set controller into listen-only mode
-      */
-      eMODE_LISTEN_ONLY,
-
-      /*!   Set controller into Sleep mode
-      */
-      eMODE_SLEEP
-   }Mode_te;
-
-//   typedef struct QCanStatistic_e {
-//      uint32_t   ulRcvCount;
-//      uint32_t   ulTrmCount;
-//      uint32_t   ulErrCount;
-//   } QCanStatistic_te;
-
-//   QCanInterface();
-
-//   QCanInterface(QString clName);
-
-//   virtual ~QCanInterface() {};
-//    explicit QCanBusDevice(QObject *parent = Q_NULLPTR);
 
    // Demo Function
    virtual QString echo(const QString &message) = 0;
 
    /*!
-   **	\brief	set bitrate
-   **
-   **	Set bitrate of CAN interface
+   ** Get icon of CAN interface
    */
-   virtual int32_t   setBitrate(int32_t slBitrateV, int32_t slBrsClockV) = 0;
+   virtual QIcon icon(void) = 0;
+
+   /*!
+   ** Get name of CAN interface
+   */
+   virtual QString name(void) = 0;
+
+   /*!
+   ** \see  write()
+   **
+   ** The functions reads a CAN message from the physical CAN interface.
+   ** If no message is available, the function will return
+   **
+   */
+   virtual InterfaceError_e   read(QCanFrame &clFrameR) = 0;
+
+   /*!
+   **	This function sets the bit-rate of the CAN interface. If the physical
+   **	CAN interface does not support CAN FD, the parameter \c slBrsClockV
+   **	is not evaluated.
+   */
+   virtual InterfaceError_e   setBitrate(int32_t slBitrateV, int32_t slBrsClockV) = 0;
 
 
-    /*!
-    **	\brief	Set Mode
-    **
-    **	Set mode of CAN interface
-    */
-    virtual int32_t	setMode(const Mode_te teModeV) = 0;
+   /*!
+   ** Set mode of CAN interface
+   */
+   virtual InterfaceError_e	setMode(const QCan::CAN_Mode_e teModeV) = 0;
 
 
-    /*!
-       ** \brief   get CAN state
-       **
-       ** get state  of CAN interface
-       */
-    virtual int32_t	state(void) = 0;
+   /*!
+   ** Get current state of physical CAN interface
+   */
+   virtual QCan::CAN_State_e	state(void) = 0;
 
-    virtual void	statistic(QCanStatistic_ts &clStatisticR) = 0;
 
+   virtual InterfaceError_e   statistic(QCanStatistic_ts &clStatisticR) = 0;
+
+   /*!
+   ** The function returns the supported features of a CAN interface.
+   ** The return value is a bit-mask using values defined in the header
+   ** file qcan_defs.hpp.
+   **
+   */
+   virtual uint32_t           supportedFeatures(void) = 0;
 	
-    virtual int32_t	read(QCanFrame &clFrameR) = 0;
+   /*!
+   ** \see  read()
+   **
+   ** The functions writes a CAN message to the physical CAN interface.
+   **
+   */
+   virtual InterfaceError_e	write(const QCanFrame &clFrameR) = 0;
 
-    virtual int32_t	write(const QCanFrame &clFrameR) = 0;
 
-    // connect the device
-    virtual int32_t connect(void) = 0;
-
-    // disconnect the device
-    virtual void disconnect(void) = 0;
-
-    // icon of interface
-    virtual QIcon icon(void) = 0;
-
-    // name of interface
-    virtual QString name(void) = 0;
 
 Q_SIGNALS:
     void errorOccurred(int32_t slCanBusErrorV);     //  QCanBusDevice::CanBusError
