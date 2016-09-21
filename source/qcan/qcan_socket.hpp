@@ -9,6 +9,8 @@
 
 #include "qcan_defs.hpp"
 #include "qcan_frame.hpp"
+#include "qcan_frame_api.hpp"
+
 
 //-----------------------------------------------------------------------------
 /*!
@@ -70,6 +72,7 @@ public:
    */
    bool  writeFrame(const QCanFrame & clFrameR);
 
+   bool  writeFrame(const QCanFrameApi & clFrameR);
 
 
 public slots:
