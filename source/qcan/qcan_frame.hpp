@@ -175,9 +175,9 @@ public:
    
    void        setUser(const uint32_t & ulUserValueR);
    
-   QByteArray  toByteArray() const;
+   virtual QByteArray toByteArray() const;
    
-   virtual QString   toString(const bool & btShowTimeR = false);
+   virtual QString    toString(const bool & btShowTimeR = false);
    
    bool operator==(const QCanFrame & clCanFrameR);
    
