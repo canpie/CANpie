@@ -821,6 +821,10 @@ QCanInterface::InterfaceError_e	QCanIxxatUsb::write( const QCanFrame &clFrameR,
    //----------------------------------------------------------------
    // prepare CAN message
    //
+   tsCanMsgT.uMsgInfo.Bytes.bAccept = 0;
+   tsCanMsgT.uMsgInfo.Bytes.bAddFlags = 0;
+   tsCanMsgT.uMsgInfo.Bytes.bFlags = 0;
+   tsCanMsgT.uMsgInfo.Bytes.bType = 0;
 
    // copy all needed parameters to QCanFrame structure
    if (clFrameR.isExtended())
@@ -830,6 +834,7 @@ QCanInterface::InterfaceError_e	QCanIxxatUsb::write( const QCanFrame &clFrameR,
    {
       tsCanMsgT.uMsgInfo.Bits.ext = 0;
    }
+
    tsCanMsgT.dwMsgId = clFrameR.identifier();
 
    tsCanMsgT.uMsgInfo.Bits.dlc = clFrameR.dlc();
