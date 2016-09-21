@@ -447,7 +447,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>QCanServer Version 1.00</string>
+      <string>QCanServer Version 0.80</string>
      </property>
     </widget>
    </widget>

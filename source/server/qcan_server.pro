@@ -2,12 +2,12 @@ TEMPLATE = app
 
 
 QT += core network widgets
-QT += testlib
+#QT += testlib
 
-CONFIG += debug
+CONFIG += debug_and_release
 CONFIG += silent
 
-TARGET = qcanserver
+TARGET = CANpie_server
 
 INCLUDEPATH += .
 INCLUDEPATH += ../qcan
@@ -45,4 +45,9 @@ macx {
    QMAKE_INFO_PLIST = Info.plist
    ICON = ./images/qcanserver.icns
 }
+win32 {
+   message("Building for WIN 32 ...")
+   RC_FILE += qcan_server.rc
+}
+
             

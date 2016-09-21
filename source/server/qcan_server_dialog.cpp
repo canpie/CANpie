@@ -183,6 +183,7 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    // show CAN channel 1 as default and update user interface
    //
    slLastNetworkIndexP = 0;
+   ui.pclTabConfigM->setCurrentIndex(0);
    pclTbxNetworkM->setCurrentIndex(0);
    this->updateUI(0);
 }
