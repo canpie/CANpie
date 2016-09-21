@@ -50,8 +50,8 @@ void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
    //----------------------------------------------------------------
    // create context menu with all available plugins
    //
-   pclActionT = new QAction("Virtual CAN bus", this);
-   pclActionT->setIcon(QIcon(":images/network-vcan.png"));
+   pclActionT = new QAction(QCAN_IF_VCAN_NAME, this);
+   pclActionT->setIcon(QIcon(QCAN_IF_VCAN_ICON));
    clContextMenuT.addAction(pclActionT);
 
    qint32 slCntrT = 0;
@@ -204,6 +204,34 @@ void QCanInterfaceWidget::paintEvent(QPaintEvent * pclEventV)
    clIconP.paint(&clPainterT, pclEventV->rect(), Qt::AlignCenter);
 }
 
+//----------------------------------------------------------------------------//
+// pluginName()                                                               //
+//                                                                            //
+//----------------------------------------------------------------------------//
+QString QCanInterfaceWidget::pluginName()
+{
+   if (pclQCanInterfaceP != NULL)
+   {
+      return pclQCanInterfaceP->name();
+   }
+
+   return "Virtual CAN bus";
+}
+
+//----------------------------------------------------------------------------//
+// pluginName()                                                               //
+//                                                                            //
+//----------------------------------------------------------------------------//
+uint8_t QCanInterfaceWidget::pluginChannel()
+{
+   if (pclQCanInterfaceP != NULL)
+   {
+      return ubPluginChannelP;
+   }
+
+   return 0;
+}
+
 
 //----------------------------------------------------------------------------//
 // setIcon()                                                                  //
@@ -215,6 +243,43 @@ void QCanInterfaceWidget::setIcon(QIcon clIconR)
    this->repaint();
 }
 
+
+//----------------------------------------------------------------------------//
+// setPlugin()                                                                //
+//                                                                            //
+//----------------------------------------------------------------------------//
+bool QCanInterfaceWidget::setPlugin(QString clNameV, quint8 ubChannelV)
+{
+   qInfo() << "Set plugin "  << clNameV << QString::number(ubChannelV,10);
+
+   //----------------------------------------------------------------
+   // check there are any plugins available
+   //
+   if (loadPlugin())
+   {
+      qint32 slIdxT = aclPluginNameListP.indexOf(clNameV);
+      qDebug() << "setPlugin(): select index" << slIdxT << "for" << clNameV;
+      if (slIdxT >= 0)
+      {
+         pclQCanInterfaceP = NULL;
+         QPluginLoader clPluginLoaderT(aclPluginListP.at(slIdxT));
+         qDebug() << "Use plugin:" << aclPluginListP.at(slIdxT);
+         QObject *pclPluginT = clPluginLoaderT.instance();
+         if (pclPluginT)
+         {
+             pclQCanInterfaceP = qobject_cast<QCanInterface *>(pclPluginT);
+         }
+
+         emit interfaceChanged(pclQCanInterfaceP);
+
+         return true;
+      }
+   }
+
+   return false;
+}
+
+
 //----------------------------------------------------------------------------//
 // setPluginPath()                                                            //
 //                                                                            //
@@ -222,5 +287,7 @@ void QCanInterfaceWidget::setIcon(QIcon clIconR)
 void QCanInterfaceWidget::setPluginPath(QDir clPluginPathV)
 {
    clPluginPathP = clPluginPathV;
-   qDebug() << "INFO: Plugin Path is set to" << clPluginPathP.absolutePath();
+   qInfo() << "Plugin Path is set to" << clPluginPathP.absolutePath();
 }
+
+

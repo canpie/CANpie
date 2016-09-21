@@ -40,6 +40,7 @@ public slots:
 
 private:
    QCanInterfaceWidget * currentInterfaceWidget(void);
+   QCanInterfaceWidget * interfaceWidget(uint8_t ubNetworkV);
    uint8_t  currentNetwork(void);
    void     createActions(void);
    void     createTrayIcon(void);

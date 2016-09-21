@@ -18,10 +18,36 @@ class QCanInterfaceWidget : public QWidget
 
 public:
 
+   #define QCAN_IF_VCAN_NAME "Virtual CAN bus"
+   #define QCAN_IF_VCAN_ICON ":images/network-vcan.png"
    QCanInterfaceWidget();
 
+   /*!
+    * \brief setIcon
+    * \param clIconR - Icon
+    */
    void setIcon(QIcon clIconR);
    void setPluginPath(QDir);
+
+   /*!
+    * \brief setPlugin
+    * \param clNameV - Name of a plugin
+    * \param ubChannelV - Channel number
+    * \return Returns true if given plugin could be set
+    */
+   bool setPlugin(QString clNameV, uint8_t ubChannelV = 0);
+
+   /*!
+    * \brief pluginName
+    * \return Name of acutaly used plugin
+    */
+   QString pluginName(void);
+
+   /*!
+    * \brief pluginChannel
+    * \return Selected channel number of plugin
+    */
+   uint8_t pluginChannel(void);
 
 private:
 
@@ -38,6 +64,7 @@ private:
    QList<QString> aclPluginNameListP;
    QList<QString> aclPluginListP;
    QList<QIcon>   aclIconListP;
+   uint8_t        ubPluginChannelP = 0;
 
 protected:
    void mousePressEvent(QMouseEvent *event);
