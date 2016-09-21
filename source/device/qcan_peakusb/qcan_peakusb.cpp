@@ -44,7 +44,7 @@ char aszErrTextG[128];
 // connect()                                                                  //
 //                                                                            //
 //----------------------------------------------------------------------------//
-QCanInterface::InterfaceError_e QCanPeakUsb::connect(void)
+QCanInterface::InterfaceError_e QCanPeakUsb::connect(uint8_t ubChannelV)
 {
    //-----------------------------------------------------------------------
    // Loads library
@@ -115,7 +115,7 @@ QCanInterface::InterfaceError_e QCanPeakUsb::connect(void)
 // disconnect()                                                               //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void QCanPeakUsb::disconnect(void)
+void QCanPeakUsb::disconnect(uint8_t ubChannelV)
 {
    //-----------------------------------------------------------------------
    // If library have been loaded before unintitialize can device
@@ -282,7 +282,7 @@ QString QCanPeakUsb::echo(const QString &message)
 // icon()                                                                     //
 //                                                                            //
 //----------------------------------------------------------------------------//
-QIcon QCanPeakUsb::icon()
+QIcon QCanPeakUsb::icon(uint8_t ubChannelV)
 {
    return QIcon(":/qcan_peakusb.png");
 }
@@ -292,7 +292,7 @@ QIcon QCanPeakUsb::icon()
 // name()                                                                     //
 //                                                                            //
 //----------------------------------------------------------------------------//
-QString QCanPeakUsb::name()
+QString QCanPeakUsb::name(uint8_t ubChannelV)
 {
    return "PEAK USB device";
 }
@@ -303,7 +303,8 @@ QString QCanPeakUsb::name()
 // read()                                                                     //
 //                                                                            //
 //----------------------------------------------------------------------------//
-QCanInterface::InterfaceError_e  QCanPeakUsb::read(QCanFrame &clFrameR)
+QCanInterface::InterfaceError_e  QCanPeakUsb::read(QCanFrame &clFrameR,
+                                                   uint8_t ubChannelV)
 {
    TPCANStatus    ulStatusT;
    uint8_t        ubByteCntrT;
@@ -411,7 +412,8 @@ QCanInterface::InterfaceError_e  QCanPeakUsb::read(QCanFrame &clFrameR)
 //                                                                            //
 //----------------------------------------------------------------------------//
 QCanInterface::InterfaceError_e QCanPeakUsb::setBitrate( int32_t slBitrateV,
-                                                         int32_t slBrsClockV)
+                                                         int32_t slBrsClockV,
+                                                         uint8_t ubChannelV)
 {
    WORD uwBtr0Btr1T;
 
@@ -531,7 +533,8 @@ QCanInterface::InterfaceError_e QCanPeakUsb::setBitrate( int32_t slBitrateV,
 // setMode()                                                                  //
 //                                                                            //
 //----------------------------------------------------------------------------//
-QCanInterface::InterfaceError_e	QCanPeakUsb::setMode(const QCan::CAN_Mode_e teModeV)
+QCanInterface::InterfaceError_e	QCanPeakUsb::setMode(const QCan::CAN_Mode_e teModeV,
+                                                      uint8_t ubChannelV)
 {
    // TPCANStatus ulStatusT;
    uint8_t ubValueBufT;
@@ -578,7 +581,7 @@ QCanInterface::InterfaceError_e	QCanPeakUsb::setMode(const QCan::CAN_Mode_e teMo
 }
 
 
-QCan::CAN_State_e	QCanPeakUsb::state(void)
+QCan::CAN_State_e	QCanPeakUsb::state(uint8_t ubChannelV)
 {
    return QCan::eCAN_STATE_BUS_ACTIVE;
 }
@@ -587,7 +590,8 @@ QCan::CAN_State_e	QCanPeakUsb::state(void)
 // statistic()                                                                //
 //                                                                            //
 //----------------------------------------------------------------------------//
-QCanInterface::InterfaceError_e	QCanPeakUsb::statistic(QCanStatistic_ts &clStatisticR)
+QCanInterface::InterfaceError_e	QCanPeakUsb::statistic( QCanStatistic_ts &clStatisticR,
+                                                         uint8_t ubChannelV)
 {
    clStatisticR = clStatisticP;
 
@@ -599,7 +603,7 @@ QCanInterface::InterfaceError_e	QCanPeakUsb::statistic(QCanStatistic_ts &clStati
 // supportedFeatures()                                                        //
 //                                                                            //
 //----------------------------------------------------------------------------//
-uint32_t QCanPeakUsb::supportedFeatures(void)
+uint32_t QCanPeakUsb::supportedFeatures(uint8_t ubChannelV)
 {
    uint32_t ulFeaturesT;
 
@@ -618,7 +622,8 @@ uint32_t QCanPeakUsb::supportedFeatures(void)
 // write()                                                                    //
 //                                                                            //
 //----------------------------------------------------------------------------//
-QCanInterface::InterfaceError_e	QCanPeakUsb::write(const QCanFrame &clFrameR)
+QCanInterface::InterfaceError_e	QCanPeakUsb::write(const QCanFrame &clFrameR,
+                                                    uint8_t ubChannelV)
 {
    TPCANStatus ulStatusT;
    TPCANMsg    tsCanMsgT;
