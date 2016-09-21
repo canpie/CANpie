@@ -124,6 +124,11 @@ void QCanFrameApi::setDriverRelease()
 
 }
 
+QByteArray QCanFrameApi::toByteArray() const
+{
+   return(QCanFrame::toByteArray());
+}
+
 //----------------------------------------------------------------------------//
 // toString()                                                                 //
 // print CAN frame                                                            //

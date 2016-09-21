@@ -38,8 +38,12 @@
 \*----------------------------------------------------------------------------*/
 
 #include <QApplication>
+#include <QTimer>
 #include <QVector>
 
+
+#include "qcan_frame_api.hpp"
+#include "qcan_frame_error.hpp"
 #include "qcan_socket_canpie_v2.hpp"
 #include "cp_core.h"
 #include "cp_msg.h"
@@ -50,8 +54,14 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-#define  CP_USER_FLAG_RCV     (uint32_t)(0x00000001)
-#define  CP_USER_FLAG_TRM     (uint32_t)(0x00000002)
+#define  CP_USER_FLAG_RCV        ((uint32_t)(0x00000001))
+#define  CP_USER_FLAG_TRM        ((uint32_t)(0x00000002))
+
+//-------------------------------------------------------------------
+// time to wait (in ms) for socket connection
+//
+#define  SOCKET_CONNECT_WAIT     ((int32_t)(50))
+
 
 /*----------------------------------------------------------------------------*\
 ** Internal function                                                          **
@@ -136,28 +146,64 @@ CpStatus_tv CpCoreAutobaud(CpPort_ts * ptsPortV,
 //----------------------------------------------------------------------------//
 CpStatus_tv CpCoreBaudrate(CpPort_ts * ptsPortV, uint8_t ubBaudSelV)
 {
+   QCanFrameApi      clFrameT;
+   QCanSocketCp2 *   pclSockT;
+   int32_t           slBitrateT;
+
    //----------------------------------------------------------------
-   // avoid compiler warning
+   // debug information
+   //
+   qDebug() << "CpCoreBaudrate() .... :" << ubBaudSelV;
+
+   //----------------------------------------------------------------
+   // get access to socket
    //
    if(ptsPortV == 0L)
    {
       return(CpErr_PARAM);
    }
-   printf("ptsPortV - %p \n", ptsPortV);
-
-   qDebug() << "CpCoreBaudrate() ....." << ptsPortV;
-
-   while(aclCanSockListS[ptsPortV->ubPhyIf].isConnected() == false)
+   if(ptsPortV->ubPhyIf >= QCAN_NETWORK_MAX)
    {
-      QApplication::processEvents();
+      return(CpErr_PARAM);
    }
+   pclSockT = &(aclCanSockListS[ptsPortV->ubPhyIf]);
 
+
+   //----------------------------------------------------------------
+   // test parameter value
+   //
    if(ubBaudSelV > CP_BAUD_MAX)
    {
       return(CpErr_BAUDRATE);
    }
 
-   printf("OK\n");
+   //----------------------------------------------------------------
+   // Make sure that the socket is connected.
+   //
+   QTimer clTimeOutT;
+   clTimeOutT.start(SOCKET_CONNECT_WAIT);
+   while(pclSockT->isConnected() == false)
+   {
+      QApplication::processEvents();
+      if(clTimeOutT.isActive() == false)
+      {
+         return(CpErr_INIT_FAIL);
+      }
+   }
+
+   //----------------------------------------------------------------
+   // The parameter ubBaudSelV uses the same enumeration values
+   // as defined in QCan::CAN_Bitrate_e, so it can be copied.
+   //
+   slBitrateT = ubBaudSelV;
+   clFrameT.setBitrate(slBitrateT, QCan::eCAN_BITRATE_NONE);
+
+   if(pclSockT->writeFrame(clFrameT) == false)
+   {
+      qDebug() << "CpCoreBaudrate(): Failed to set bitrate";
+      return(CpErr_INIT_FAIL);
+   }
+
 
    return (CpErr_OK);
 }
@@ -312,28 +358,34 @@ CpStatus_tv CpCoreBufferInit( CpPort_ts * ptsPortV, CpCanMsg_ts * ptsCanMsgV,
    if(ubBufferIdxV > CP_BUFFER_MAX) return(CpErr_BUFFER);
 
    //----------------------------------------------------------------
+   // align buffer index
+   //
+   ubBufferIdxV = ubBufferIdxV - 1;
+
+   //----------------------------------------------------------------
    // copy to simulated CAN buffer
    //
-   pclSockT->atsCanMsgM[ubBufferIdxV - 1].tuMsgId.ulExt = ptsCanMsgV->tuMsgId.ulExt;
-   pclSockT->atsCanMsgM[ubBufferIdxV - 1].ubMsgDLC      = ptsCanMsgV->ubMsgDLC;
+   pclSockT->atsCanMsgM[ubBufferIdxV].tuMsgId.ulExt = ptsCanMsgV->tuMsgId.ulExt;
+   pclSockT->atsCanMsgM[ubBufferIdxV].ubMsgDLC      = ptsCanMsgV->ubMsgDLC;
+   pclSockT->atsCanMsgM[ubBufferIdxV].ubMsgCtrl     = ptsCanMsgV->ubMsgCtrl;
 
    //----------------------------------------------------------------
    // mark Tx/Rx message
    //
    if(ubDirectionV == CP_BUFFER_DIR_TX)
    {
-      pclSockT->atsCanMsgM[ubBufferIdxV - 1].ulMsgUser = CP_USER_FLAG_TRM;
+      pclSockT->atsCanMsgM[ubBufferIdxV].ulMsgUser = CP_USER_FLAG_TRM;
    }
    else
    {
-      pclSockT->atsCanMsgM[ubBufferIdxV - 1].ulMsgUser = CP_USER_FLAG_RCV;
+      pclSockT->atsCanMsgM[ubBufferIdxV].ulMsgUser = CP_USER_FLAG_RCV;
    }
 
 
    //----------------------------------------------------------------
    // set acceptance mask to default value
    //
-   pclSockT->atsAccMaskM[ubBufferIdxV - 1] = 0x1FFFFFFF;
+   pclSockT->atsAccMaskM[ubBufferIdxV] = 0x1FFFFFFF;
 
    return (CpErr_OK);
 }
@@ -554,8 +606,10 @@ CpStatus_tv CpCoreBufferTransmit(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
    //
    pclSockT->atsCanMsgM[ubBufferIdxV].tuMsgId.ulExt = ptsCanMsgV->tuMsgId.ulExt;
    pclSockT->atsCanMsgM[ubBufferIdxV].ubMsgDLC      = ptsCanMsgV->ubMsgDLC;
+   pclSockT->atsCanMsgM[ubBufferIdxV].ubMsgCtrl     = ptsCanMsgV->ubMsgCtrl;
    pclSockT->atsCanMsgM[ubBufferIdxV].tuMsgData.aulLong[0] = ptsCanMsgV->tuMsgData.aulLong[0];
    pclSockT->atsCanMsgM[ubBufferIdxV].tuMsgData.aulLong[1] = ptsCanMsgV->tuMsgData.aulLong[1];
+   pclSockT->atsCanMsgM[ubBufferIdxV].ulMsgUser     = CP_USER_FLAG_TRM;
 
 
    //----------------------------------------------------------------
@@ -586,7 +640,14 @@ CpStatus_tv CpCoreBufferTransmit(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV)
 {
    uint8_t           ubStatusT;
+   QCanFrameApi      clFrameT;
    QCanSocketCp2 *   pclSockT;
+
+   //----------------------------------------------------------------
+   // debug information
+   //
+   qDebug() << "CpCoreMode() ........ :" << ubModeV;
+
 
    //----------------------------------------------------------------
    // get access to socket
@@ -601,12 +662,19 @@ CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV)
    }
    pclSockT = &(aclCanSockListS[ptsPortV->ubPhyIf]);
 
-   printf("CpCoreCanMode() ......");
 
-//   while(pclSockT->isConnected() == false)
-//   {
-//      QApplication::processEvents();
-//   }
+   //----------------------------------------------------------------
+   // check connection state
+   //
+   if(pclSockT->isConnected() == false)
+   {
+      if(ubModeV == CP_MODE_STOP)
+      {
+         return(CpErr_OK);
+      }
+      return(CpErr_GENERIC);
+   }
+
 
    //----------------------------------------------------------------
    // switch CAN controller into mode "ubModeV"
@@ -617,32 +685,32 @@ CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV)
       // Stop the CAN controller (passive on the bus)
       //
       case CP_MODE_STOP:
-         ubStatusT = CpErr_OK;
+         clFrameT.setMode(QCan::eCAN_MODE_STOP);
          break;
 
       //--------------------------------------------------------
       // Start the CAN controller (active on the bus)
       //
       case CP_MODE_START:
-         ubStatusT = CpErr_OK;
+         clFrameT.setMode(QCan::eCAN_MODE_START);
          break;
 
       //--------------------------------------------------------
       // Start the CAN controller (Listen-Only)
       //
       case CP_MODE_LISTEN_ONLY:
-         ubStatusT = CpErr_OK;
+         clFrameT.setMode(QCan::eCAN_MODE_LISTEN_ONLY);
          break;
 
       //--------------------------------------------------------
       // Other modes are not supported
       //
       default:
-         ubStatusT = CpErr_NOT_SUPPORTED;
+         return(CpErr_NOT_SUPPORTED);
          break;
    }
 
-   printf("OK\n");
+
    return(ubStatusT);
 }
 
@@ -681,16 +749,50 @@ CpStatus_tv CpCoreCanState(CpPort_ts * ptsPortV, CpState_ts * ptsStateV)
 //----------------------------------------------------------------------------//
 CpStatus_tv CpCoreDriverInit(uint8_t ubPhyIfV, CpPort_ts * ptsPortV)
 {
-   aclCanSockListS[ubPhyIfV].connectNetwork((QCan::CAN_Channel_e) ubPhyIfV);
+   QCanSocketCp2 *   pclSockT;
 
-   while(aclCanSockListS[ubPhyIfV].isConnected() == false)
+   //----------------------------------------------------------------
+   // debug information
+   //
+   qDebug() << "CpCoreDriverInit() .. :" << ubPhyIfV;
+
+   //----------------------------------------------------------------
+   // test parameter
+   //
+   if(ubPhyIfV >= QCAN_NETWORK_MAX)
    {
-      QApplication::processEvents();
+      return(CpErr_CHANNEL);
    }
 
+
+   aclCanSockListS[ubPhyIfV].connectNetwork((QCan::CAN_Channel_e) ubPhyIfV);
+
+   //----------------------------------------------------------------
+   // get access to socket
+   //
+   pclSockT = &(aclCanSockListS[ubPhyIfV]);
+   pclSockT->connectNetwork((QCan::CAN_Channel_e) ubPhyIfV);
+
+
+   //----------------------------------------------------------------
+   // Make sure that the socket is connected.
+   //
+   QTimer clTimeOutT;
+   clTimeOutT.start(SOCKET_CONNECT_WAIT);
+   while(pclSockT->isConnected() == false)
+   {
+      QApplication::processEvents();
+      if(clTimeOutT.isActive() == false)
+      {
+         ptsPortV->ubPhyIf = 255;   // make channel out of range
+         return(CpErr_INIT_FAIL);
+      }
+   }
+
+   //----------------------------------------------------------------
+   // store physical channel information
+   //
    ptsPortV->ubPhyIf = ubPhyIfV;
-   qDebug() << "CpCoreDriverInit() ..." << ptsPortV;
-   printf("ptsPortV - %p\n", ptsPortV);
    return (CpErr_OK);
 }
 
