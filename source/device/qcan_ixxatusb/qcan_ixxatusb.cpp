@@ -27,510 +27,20 @@
 //============================================================================//
 
 #include <QtWidgets>
+#include "qcan_defs.hpp"
 #include <qcan_ixxatusb.hpp>
 
 /*!
 ** \var aszErrTextG
 ** Zero terminated string buffer to print error descriptions
 */
-char aszErrTextG[128];
+//char aszErrTextG[128];
 
 //----------------------------------------------------------------------------//
-// echo()                                                                     //
-// dummy implementation of a function to evaluate string                      //
-//----------------------------------------------------------------------------//
-QString QCanIxxatUsb::echo(const QString &message)
-{
-   uint32_t ulStatusT;
-   QString clRetStringT;
-   QCanFrame clFrameT;
-
-   aszErrTextG[0] = 0;
-   aszErrTextG[1] = 0;
-   aszErrTextG[2] = 0;
-
-   if (message == "load")
-   {
-      connect();
-      clRetStringT = ";)";
-   }
-
-   if (message == "bitrate")
-   {
-      ulStatusT = setBitrate(eBITRATE_500K, 0);
-   }
-
-   if (message == "run")
-   {
-      if (connect() != eERROR_OK)
-         qWarning() << "Warning: connect() fail!";
-
-      if (setBitrate(eBITRATE_500K, 0) != eERROR_OK)
-         qWarning() << "Warning: setBitrate() fail!";
-
-      if (setMode(eMODE_START) != eERROR_OK)
-         qWarning() << "Warning: setMode() fail!";
-
-   }
-
-   if (message == "read")
-   {
-      int32_t slStatusT = read(clFrameT);
-
-      if (slStatusT == eERROR_OK)
-      {
-         if (clFrameT.isExtended())
-         {
-            qDebug() << "Receive Ext: " + QString::number((uint32_t)clFrameT.identifier(),16) + "h " +
-                         QString::number((uint8_t)clFrameT.dlc(),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(0),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(1),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(2),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(3),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(4),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(5),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(6),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(7),16) + "h ";
-
-
-         } else
-         {
-            qDebug() << "Receive Std: " + QString::number((uint32_t)clFrameT.identifier(),16) + "h " +
-                         QString::number((uint8_t)clFrameT.dlc(),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(0),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(1),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(2),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(3),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(4),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(5),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(6),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(7),16) + "h ";
-         }
-      }
-      else if (slStatusT != eERROR_FIFO_IN_EMPTY)
-      {
-         qWarning() << "Warning: read() fail with " << QString::number(slStatusT,10);
-      }
-
-   }
-
-   if (message == "write")
-   {
-      clFrameT.setStdId(175);
-      clFrameT.setDlc(5);
-      clFrameT.setData(0,5);
-      clFrameT.setData(1,4);
-      clFrameT.setData(2,3);
-      clFrameT.setData(3,2);
-      clFrameT.setData(4,1);
-
-      int32_t slStatusT = write(clFrameT);
-
-      if (slStatusT == eERROR_OK)
-      {
-
-      }
-      else if (slStatusT != eERROR_FIFO_IN_EMPTY)
-      {
-         qWarning() << "Warning: write() fail!";
-      }
-   }
-
-   if (message == "write_ext")
-   {
-      clFrameT.setExtId(175234);
-      clFrameT.setDlc(8);
-      clFrameT.setData(0,0x55);
-      clFrameT.setData(1,0x44);
-      clFrameT.setData(2,0x33);
-      clFrameT.setData(3,0x22);
-      clFrameT.setData(4,0x11);
-      clFrameT.setData(5,0x14);
-      clFrameT.setData(6,0x15);
-      clFrameT.setData(7,0x16);
-
-      int32_t slStatusT = write(clFrameT);
-
-      if (slStatusT == eERROR_OK)
-      {
-
-      }
-      else if (slStatusT != eERROR_FIFO_IN_EMPTY)
-      {
-         qWarning() << "Warning: write() fail!";
-      }
-   }
-
-   return ("ixxat: " + message);
-}
-
-//----------------------------------------------------------------------------//
-// disconnect()                                                               //
+// connect()                                                                  //
 //                                                                            //
 //----------------------------------------------------------------------------//
-int32_t QCanIxxatUsb::setBitrate(uint32_t ulBitrateV, uint32_t ulBrsClockV)
-{
-   //----------------------------------------------------------------
-   // check lib have been loaded
-   //
-   if (!btLibFuncLoadP)
-   {
-      return eERROR_LIBRARY;
-   }
-
-
-   //----------------------------------------------------------------
-   // open control interface of selected device
-   //
-   if (pfnCanControlOpenP(vdCanInterfaceP,0,&vdCanControlP) != VCI_OK)
-   {
-      qWarning() << tr("WARNING: Fail to open control interface!");
-   }
-
-
-   //----------------------------------------------------------------
-   // Check bitrate value
-   //
-   if (ulBitrateV >= eBITRATE_MAX)
-   {
-      // maybe we get a value in Hz, normalise it to kHz
-      ulBitrateV = ulBitrateV / 1000;
-   }
-
-   //----------------------------------------------------------------
-   // select corresponding PEAK baud rate value
-   //
-   switch (ulBitrateV)
-   {
-      // value from CANpie enumeration
-      case eBITRATE_10K:
-         tsBitrateP.ubBtr0 = CAN_BT0_10KB;
-         tsBitrateP.ubBtr1 = CAN_BT1_10KB;
-         break;
-      case eBITRATE_20K:
-         tsBitrateP.ubBtr0 = CAN_BT0_20KB;
-         tsBitrateP.ubBtr1 = CAN_BT1_20KB;
-         break;
-      case eBITRATE_50K:
-         tsBitrateP.ubBtr0 = CAN_BT0_50KB;
-         tsBitrateP.ubBtr1 = CAN_BT1_50KB;
-         break;
-      case eBITRATE_100K:
-         tsBitrateP.ubBtr0 = CAN_BT0_100KB;
-         tsBitrateP.ubBtr1 = CAN_BT1_100KB;
-         break;
-      case eBITRATE_125K:
-         tsBitrateP.ubBtr0 = CAN_BT0_125KB;
-         tsBitrateP.ubBtr1 = CAN_BT1_125KB;
-         break;
-      case eBITRATE_250K:
-         tsBitrateP.ubBtr0 = CAN_BT0_250KB;
-         tsBitrateP.ubBtr1 = CAN_BT1_250KB;
-         break;
-      case eBITRATE_500K:
-         tsBitrateP.ubBtr0 = CAN_BT0_500KB;
-         tsBitrateP.ubBtr1 = CAN_BT1_500KB;
-         break;
-      case eBITRATE_800K:
-         tsBitrateP.ubBtr0 = CAN_BT0_800KB;
-         tsBitrateP.ubBtr1 = CAN_BT1_800KB;
-         break;
-      case eBITRATE_1M:
-         tsBitrateP.ubBtr0 = CAN_BT0_1000KB;
-         tsBitrateP.ubBtr1 = CAN_BT0_1000KB;
-         break;
-
-      // value normalized to kHz
-      case 10:
-         tsBitrateP.ubBtr0 = CAN_BT0_10KB;
-         tsBitrateP.ubBtr1 = CAN_BT1_10KB;
-         break;
-      case 20:
-         tsBitrateP.ubBtr0 = CAN_BT0_20KB;
-         tsBitrateP.ubBtr1 = CAN_BT1_20KB;
-      break;
-      case 50:
-         tsBitrateP.ubBtr0 = CAN_BT0_50KB;
-         tsBitrateP.ubBtr1 = CAN_BT1_50KB;
-         break;
-      case 100:
-         tsBitrateP.ubBtr0 = CAN_BT0_100KB;
-         tsBitrateP.ubBtr1 = CAN_BT1_100KB;
-         break;
-      case 125:
-         tsBitrateP.ubBtr0 = CAN_BT0_125KB;
-         tsBitrateP.ubBtr1 = CAN_BT1_125KB;
-         break;
-      case 250:
-         tsBitrateP.ubBtr0 = CAN_BT0_250KB;
-         tsBitrateP.ubBtr1 = CAN_BT1_250KB;
-         break;
-      case 500:
-         tsBitrateP.ubBtr0 = CAN_BT0_500KB;
-         tsBitrateP.ubBtr1 = CAN_BT1_500KB;
-         break;
-      case 800:
-         tsBitrateP.ubBtr0 = CAN_BT0_800KB;
-         tsBitrateP.ubBtr1 = CAN_BT1_800KB;
-         break;
-      case 1000:
-         tsBitrateP.ubBtr0 = CAN_BT0_1000KB;
-         tsBitrateP.ubBtr1 = CAN_BT1_1000KB;
-         break;
-
-      default:
-         tsBitrateP.ubBtr0 = 0;
-         tsBitrateP.ubBtr1 = 0;
-
-         return eERROR_BITRATE;
-         break;
-   }
-
-   return eERROR_OK;
-}
-
-//----------------------------------------------------------------------------//
-// setMode()                                                                  //
-//                                                                            //
-//----------------------------------------------------------------------------//
-int32_t	QCanIxxatUsb::setMode(const Mode_te teModeV)
-{
-   //----------------------------------------------------------------
-   // check lib have been loaded
-   //
-   if (!btLibFuncLoadP)
-   {
-      return eERROR_LIBRARY;
-   }
-
-   //----------------------------------------------------------------
-   // select mode
-   //
-   switch (teModeV)
-   {
-      case eMODE_START :
-         //---------------------------------------------------
-         // reset statistic values
-         //
-         clStatisticP.ulErrCount = 0;
-         clStatisticP.ulRcvCount = 0;
-         clStatisticP.ulTrmCount = 0;
-
-         pfnCanControlResetP(vdCanControlP);
-         if (pfnCanControlInitializeP(vdCanControlP,
-                                      (CAN_OPMODE_STANDARD |
-                                       CAN_OPMODE_EXTENDED |
-                                       CAN_OPMODE_ERRFRAME),
-                                      tsBitrateP.ubBtr0,
-                                      tsBitrateP.ubBtr1) != VCI_OK)
-         {
-            qWarning() << tr("WARNING: Fail to intialize control interface!");
-         }
-
-         if (pfnCanControlStartP(vdCanControlP,true) != VCI_OK)
-         {
-            qWarning() << tr("WARNING: Fail to start control interface!");
-         }
-
-         // open a can channel in NOT exlusive mode
-         pfnCanChannelCloseP(vdCanChannelP);
-         if (pfnCanChannelOpenP(vdCanInterfaceP,uwCanChannelP,false,&vdCanChannelP) != VCI_OK)
-         {
-            qWarning() << tr("WARNING: Fail to open a channel on seleceted interface!");
-         }
-
-         if (pfnCanChannelInitializeP(vdCanChannelP,64,1,64,1) != VCI_OK)
-         {
-            qWarning() << tr("WARNING: Fail to initialise CAN channel!");
-         }
-
-         if (pfnCanChannelActivateP(vdCanChannelP,true) != VCI_OK)
-         {
-            qWarning() << tr("WARNING: Fail to activate CAN channel!");
-         }
-
-         break;
-
-      case eMODE_STOP :
-         if (pfnCanChannelActivateP(vdCanChannelP,false) != VCI_OK)
-         {
-            qWarning() << tr("WARNING: Fail to deactivate CAN channel!");
-         }
-         break;
-
-      default :
-         return eERROR_MODE;
-         break;
-   }
-
-   return eERROR_OK;
-}
-
-int32_t	QCanIxxatUsb::state(void)
-{
-   return 0;
-}
-
-void	QCanIxxatUsb::statistic(QCanStatistic_ts &clStatisticR)
-{
-   clStatisticR = clStatisticP;
-}
-
-
-QIcon QCanIxxatUsb::icon(void)
-{
-   return QIcon(":/qcan_ixxatusb.png");
-}
-
-QString QCanIxxatUsb::name(void)
-{
-   return "IXXAT USB device";
-}
-
-//----------------------------------------------------------------------------//
-// read()                                                                     //
-//                                                                            //
-//----------------------------------------------------------------------------//
-int32_t	QCanIxxatUsb::read(QCanFrame &clFrameR)
-{
-   CANMSG  tsCanMsgT;
-   HRESULT slResultT;
-   int32_t slByteCntrT;
-
-   //----------------------------------------------------------------
-   // check lib have been loaded
-   //
-   if (!btLibFuncLoadP)
-   {
-      return eERROR_LIBRARY;
-   }
-
-   //----------------------------------------------------------------
-   // get next message in FIFO
-   //
-   slResultT = pfnCanChannelPeekMessageP(vdCanChannelP,&tsCanMsgT);
-
-   if (slResultT == VCI_OK)
-   {
-      // handle data depending on type
-      switch (tsCanMsgT.uMsgInfo.Bytes.bType)
-      {
-         case CAN_MSGTYPE_DATA :
-            qDebug() << tr("handle CAN_MSGTYPE_DATA");
-
-            // copy all needed parameters to QCanFrame structure
-            if (tsCanMsgT.uMsgInfo.Bits.ext)
-            {
-               clFrameR.setExtId(tsCanMsgT.dwMsgId);
-            } else
-            {
-               clFrameR.setStdId((uint16_t)tsCanMsgT.dwMsgId);
-            }
-
-            clFrameR.setDlc(tsCanMsgT.uMsgInfo.Bits.dlc);
-
-            for (slByteCntrT = 0; slByteCntrT < clFrameR.dlc(); slByteCntrT++)
-            {
-               clFrameR.setData(slByteCntrT, tsCanMsgT.abData[slByteCntrT]);
-            }
-
-            clStatisticP.ulRcvCount++;
-
-            return eERROR_OK;
-
-            break;
-
-         case CAN_MSGTYPE_INFO :
-            qDebug() << tr("handle CAN_MSGTYPE_INFO");
-            break;
-
-         case CAN_MSGTYPE_ERROR :
-            qDebug() << tr("handle CAN_MSGTYPE_ERROR");
-            break;
-
-         case CAN_MSGTYPE_STATUS :
-            qDebug() << tr("handle CAN_MSGTYPE_STATUS");
-            break;
-
-         default :
-            qDebug() << tr("UNKNOWN Message Type");
-            break;
-      }
-   }
-   else if (slResultT != (HRESULT)VCI_E_RXQUEUE_EMPTY)
-   {
-      qWarning() << tr("Fail to call PeekMessage(): ") + QString::number(slResultT,16);
-      return eERROR_DEVICE;
-   }
-
-
-   return eERROR_FIFO_IN_EMPTY;
-}
-
-//----------------------------------------------------------------------------//
-// write()                                                                    //
-//                                                                            //
-//----------------------------------------------------------------------------//
-int32_t	QCanIxxatUsb::write(const QCanFrame &clFrameR)
-{
-   CANMSG  tsCanMsgT;
-   HRESULT slResultT;
-   int32_t slByteCntrT;
-
-   //----------------------------------------------------------------
-   // check lib have been loaded
-   //
-   if (!btLibFuncLoadP)
-   {
-      return eERROR_LIBRARY;
-   }
-
-   //----------------------------------------------------------------
-   // prepare CAN message
-   //
-
-   // copy all needed parameters to QCanFrame structure
-   if (clFrameR.isExtended())
-   {
-      tsCanMsgT.uMsgInfo.Bits.ext = 1;
-   } else
-   {
-      tsCanMsgT.uMsgInfo.Bits.ext = 0;
-   }
-   tsCanMsgT.dwMsgId = clFrameR.identifier();
-
-   tsCanMsgT.uMsgInfo.Bits.dlc = clFrameR.dlc();
-
-   for (slByteCntrT = 0; slByteCntrT < clFrameR.dlc(); slByteCntrT++)
-   {
-      tsCanMsgT.abData[slByteCntrT] = clFrameR.data(slByteCntrT);
-   }
-   tsCanMsgT.uMsgInfo.Bytes.bType = CAN_MSGTYPE_DATA;
-   tsCanMsgT.dwTime = 0;
-   slResultT = pfnCanChannelPostMessageP(vdCanChannelP, &tsCanMsgT);
-
-   if (slResultT == VCI_OK)
-   {
-      qDebug() << tr("PosMessage() OK");
-
-      clStatisticP.ulTrmCount++;
-      return eERROR_OK;
-   }
-   else if (slResultT != (HRESULT)VCI_E_TXQUEUE_FULL)
-   {
-      qWarning() << tr("Fail to call PeekMessage(): ") + QString::number(slResultT,16);
-      return eERROR_DEVICE;
-   }
-
-   return eERROR_FIFO_OUT_FULL;
-
-}
-
-//----------------------------------------------------------------------------//
-// disconnect()                                                               //
-//                                                                            //
-//----------------------------------------------------------------------------//
-int32_t QCanIxxatUsb::connect(void)
+QCanInterface::InterfaceError_e QCanIxxatUsb::connect(void)
 {
    //-----------------------------------------------------------------------
    // Loads library
@@ -716,7 +226,7 @@ int32_t QCanIxxatUsb::connect(void)
       return eERROR_DEVICE;
    }
 
-   return eERROR_OK;
+   return eERROR_NONE;
 }
 
 //----------------------------------------------------------------------------//
@@ -799,3 +309,548 @@ void QCanIxxatUsb::disconnect(void)
 
    btLibFuncLoadP = false;
 }
+
+//----------------------------------------------------------------------------//
+// echo()                                                                     //
+// dummy implementation of a function to evaluate string                      //
+//----------------------------------------------------------------------------//
+QString QCanIxxatUsb::echo(const QString &message)
+{
+   uint32_t ulStatusT;
+   QString clRetStringT;
+   QCanFrame clFrameT;
+
+//   aszErrTextG[0] = 0;
+//   aszErrTextG[1] = 0;
+//   aszErrTextG[2] = 0;
+
+   if (message == "load")
+   {
+      connect();
+      clRetStringT = ";)";
+   }
+
+   if (message == "bitrate")
+   {
+      ulStatusT = setBitrate(QCan::eCAN_BITRATE_500K, 0);
+   }
+
+   if (message == "run")
+   {
+      if (connect() != eERROR_NONE)
+         qWarning() << "Warning: connect() fail!";
+
+      if (setBitrate(QCan::eCAN_BITRATE_500K, 0) != eERROR_NONE)
+         qWarning() << "Warning: setBitrate() fail!";
+
+      if (setMode(QCan::eCAN_MODE_START) != eERROR_NONE)
+         qWarning() << "Warning: setMode() fail!";
+
+   }
+
+   if (message == "read")
+   {
+      int32_t slStatusT = read(clFrameT);
+
+      if (slStatusT == eERROR_NONE)
+      {
+         if (clFrameT.isExtended())
+         {
+            qDebug() << "Receive Ext: " + QString::number((uint32_t)clFrameT.identifier(),16) + "h " +
+                         QString::number((uint8_t)clFrameT.dlc(),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(0),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(1),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(2),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(3),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(4),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(5),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(6),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(7),16) + "h ";
+
+
+         } else
+         {
+            qDebug() << "Receive Std: " + QString::number((uint32_t)clFrameT.identifier(),16) + "h " +
+                         QString::number((uint8_t)clFrameT.dlc(),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(0),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(1),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(2),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(3),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(4),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(5),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(6),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(7),16) + "h ";
+         }
+      }
+      else if (slStatusT != eERROR_FIFO_RCV_EMPTY)
+      {
+         qWarning() << "Warning: read() fail with " << QString::number(slStatusT,10);
+      }
+
+   }
+
+   if (message == "write")
+   {
+      clFrameT.setStdId(175);
+      clFrameT.setDlc(5);
+      clFrameT.setData(0,5);
+      clFrameT.setData(1,4);
+      clFrameT.setData(2,3);
+      clFrameT.setData(3,2);
+      clFrameT.setData(4,1);
+
+      int32_t slStatusT = write(clFrameT);
+
+      if (slStatusT == eERROR_NONE)
+      {
+
+      }
+      else if (slStatusT != eERROR_FIFO_TRM_FULL)
+      {
+         qWarning() << "Warning: write() fail!";
+      }
+   }
+
+   if (message == "write_ext")
+   {
+      clFrameT.setExtId(175234);
+      clFrameT.setDlc(8);
+      clFrameT.setData(0,0x55);
+      clFrameT.setData(1,0x44);
+      clFrameT.setData(2,0x33);
+      clFrameT.setData(3,0x22);
+      clFrameT.setData(4,0x11);
+      clFrameT.setData(5,0x14);
+      clFrameT.setData(6,0x15);
+      clFrameT.setData(7,0x16);
+
+      int32_t slStatusT = write(clFrameT);
+
+      if (slStatusT == eERROR_NONE)
+      {
+
+      }
+      else if (slStatusT != eERROR_FIFO_TRM_FULL)
+      {
+         qWarning() << "Warning: write() fail!";
+      }
+   }
+
+   return ("ixxat: " + message);
+}
+
+
+//----------------------------------------------------------------------------//
+// icon()                                                                     //
+//                                                                            //
+//----------------------------------------------------------------------------//
+QIcon QCanIxxatUsb::icon(void)
+{
+   return QIcon(":/qcan_ixxatusb.png");
+}
+
+
+//----------------------------------------------------------------------------//
+// name()                                                                     //
+//                                                                            //
+//----------------------------------------------------------------------------//
+QString QCanIxxatUsb::name(void)
+{
+   return "IXXAT USB device";
+}
+
+
+//----------------------------------------------------------------------------//
+// read()                                                                     //
+//                                                                            //
+//----------------------------------------------------------------------------//
+QCanInterface::InterfaceError_e QCanIxxatUsb::read(QCanFrame &clFrameR)
+{
+   CANMSG  tsCanMsgT;
+   HRESULT slResultT;
+   int32_t slByteCntrT;
+
+   //----------------------------------------------------------------
+   // check lib have been loaded
+   //
+   if (!btLibFuncLoadP)
+   {
+      return eERROR_LIBRARY;
+   }
+
+   //----------------------------------------------------------------
+   // get next message in FIFO
+   //
+   slResultT = pfnCanChannelPeekMessageP(vdCanChannelP,&tsCanMsgT);
+
+   if (slResultT == VCI_OK)
+   {
+      // handle data depending on type
+      switch (tsCanMsgT.uMsgInfo.Bytes.bType)
+      {
+         case CAN_MSGTYPE_DATA :
+            qDebug() << tr("handle CAN_MSGTYPE_DATA");
+
+            // copy all needed parameters to QCanFrame structure
+            if (tsCanMsgT.uMsgInfo.Bits.ext)
+            {
+               clFrameR.setExtId(tsCanMsgT.dwMsgId);
+            } else
+            {
+               clFrameR.setStdId((uint16_t)tsCanMsgT.dwMsgId);
+            }
+
+            clFrameR.setDlc(tsCanMsgT.uMsgInfo.Bits.dlc);
+
+            for (slByteCntrT = 0; slByteCntrT < clFrameR.dlc(); slByteCntrT++)
+            {
+               clFrameR.setData(slByteCntrT, tsCanMsgT.abData[slByteCntrT]);
+            }
+
+            clStatisticP.ulRcvCount++;
+
+            return eERROR_NONE;
+
+            break;
+
+         case CAN_MSGTYPE_INFO :
+            qDebug() << tr("handle CAN_MSGTYPE_INFO");
+            break;
+
+         case CAN_MSGTYPE_ERROR :
+            qDebug() << tr("handle CAN_MSGTYPE_ERROR");
+            break;
+
+         case CAN_MSGTYPE_STATUS :
+            qDebug() << tr("handle CAN_MSGTYPE_STATUS");
+            break;
+
+         default :
+            qDebug() << tr("UNKNOWN Message Type");
+            break;
+      }
+   }
+
+   else if (slResultT != (HRESULT)VCI_E_RXQUEUE_EMPTY)
+   {
+      qWarning() << tr("Fail to call PeekMessage(): ") + QString::number(slResultT,16);
+      return eERROR_DEVICE;
+   }
+
+
+   return eERROR_FIFO_RCV_EMPTY;
+}
+
+
+//----------------------------------------------------------------------------//
+// setBitrate()                                                               //
+//                                                                            //
+//----------------------------------------------------------------------------//
+QCanInterface::InterfaceError_e QCanIxxatUsb::setBitrate(int32_t slBitrateV,
+                                                         int32_t slBrsClockV)
+{
+   //----------------------------------------------------------------
+   // check lib have been loaded
+   //
+   if (!btLibFuncLoadP)
+   {
+      return eERROR_LIBRARY;
+   }
+
+   //----------------------------------------------------------------
+   // open control interface of selected device
+   //
+   if (pfnCanControlOpenP(vdCanInterfaceP,0,&vdCanControlP) != VCI_OK)
+   {
+      qWarning() << tr("WARNING: Fail to open control interface!");
+   }
+
+   //----------------------------------------------------------------
+   // Check bit-rate value
+   //
+   if (slBitrateV >= QCan::eCAN_BITRATE_AUTO)
+   {
+      // maybe we get a value in Hz, normalise it to kHz
+      slBitrateV = slBitrateV / 1000;
+   }
+
+   //----------------------------------------------------------------
+   // Check BRS clock value for CAN-FD
+   // todo : test with CAN-FD interface
+   //
+   if (slBrsClockV != QCan::eCAN_BITRATE_NONE)
+   {
+
+   }
+
+   //----------------------------------------------------------------
+   // select corresponding PEAK baud rate value
+   //
+   switch (slBitrateV)
+   {
+      // value from CANpie enumeration
+      case QCan::eCAN_BITRATE_10K:
+         tsBitrateP.ubBtr0 = CAN_BT0_10KB;
+         tsBitrateP.ubBtr1 = CAN_BT1_10KB;
+         break;
+      case QCan::eCAN_BITRATE_20K:
+         tsBitrateP.ubBtr0 = CAN_BT0_20KB;
+         tsBitrateP.ubBtr1 = CAN_BT1_20KB;
+         break;
+      case QCan::eCAN_BITRATE_50K:
+         tsBitrateP.ubBtr0 = CAN_BT0_50KB;
+         tsBitrateP.ubBtr1 = CAN_BT1_50KB;
+         break;
+      case QCan::eCAN_BITRATE_100K:
+         tsBitrateP.ubBtr0 = CAN_BT0_100KB;
+         tsBitrateP.ubBtr1 = CAN_BT1_100KB;
+         break;
+      case QCan::eCAN_BITRATE_125K:
+         tsBitrateP.ubBtr0 = CAN_BT0_125KB;
+         tsBitrateP.ubBtr1 = CAN_BT1_125KB;
+         break;
+      case QCan::eCAN_BITRATE_250K:
+         tsBitrateP.ubBtr0 = CAN_BT0_250KB;
+         tsBitrateP.ubBtr1 = CAN_BT1_250KB;
+         break;
+      case QCan::eCAN_BITRATE_500K:
+         tsBitrateP.ubBtr0 = CAN_BT0_500KB;
+         tsBitrateP.ubBtr1 = CAN_BT1_500KB;
+         break;
+      case QCan::eCAN_BITRATE_800K:
+         tsBitrateP.ubBtr0 = CAN_BT0_800KB;
+         tsBitrateP.ubBtr1 = CAN_BT1_800KB;
+         break;
+      case QCan::eCAN_BITRATE_1M:
+         tsBitrateP.ubBtr0 = CAN_BT0_1000KB;
+         tsBitrateP.ubBtr1 = CAN_BT0_1000KB;
+         break;
+
+      // value normalized to kHz
+      case 10:
+         tsBitrateP.ubBtr0 = CAN_BT0_10KB;
+         tsBitrateP.ubBtr1 = CAN_BT1_10KB;
+         break;
+      case 20:
+         tsBitrateP.ubBtr0 = CAN_BT0_20KB;
+         tsBitrateP.ubBtr1 = CAN_BT1_20KB;
+      break;
+      case 50:
+         tsBitrateP.ubBtr0 = CAN_BT0_50KB;
+         tsBitrateP.ubBtr1 = CAN_BT1_50KB;
+         break;
+      case 100:
+         tsBitrateP.ubBtr0 = CAN_BT0_100KB;
+         tsBitrateP.ubBtr1 = CAN_BT1_100KB;
+         break;
+      case 125:
+         tsBitrateP.ubBtr0 = CAN_BT0_125KB;
+         tsBitrateP.ubBtr1 = CAN_BT1_125KB;
+         break;
+      case 250:
+         tsBitrateP.ubBtr0 = CAN_BT0_250KB;
+         tsBitrateP.ubBtr1 = CAN_BT1_250KB;
+         break;
+      case 500:
+         tsBitrateP.ubBtr0 = CAN_BT0_500KB;
+         tsBitrateP.ubBtr1 = CAN_BT1_500KB;
+         break;
+      case 800:
+         tsBitrateP.ubBtr0 = CAN_BT0_800KB;
+         tsBitrateP.ubBtr1 = CAN_BT1_800KB;
+         break;
+      case 1000:
+         tsBitrateP.ubBtr0 = CAN_BT0_1000KB;
+         tsBitrateP.ubBtr1 = CAN_BT1_1000KB;
+         break;
+
+      default:
+         tsBitrateP.ubBtr0 = 0;
+         tsBitrateP.ubBtr1 = 0;
+
+         return eERROR_BITRATE;
+         break;
+   }
+
+   return eERROR_NONE;
+}
+
+
+//----------------------------------------------------------------------------//
+// setMode()                                                                  //
+//                                                                            //
+//----------------------------------------------------------------------------//
+QCanInterface::InterfaceError_e	QCanIxxatUsb::setMode(const QCan::CAN_Mode_e teModeV)
+{
+   //----------------------------------------------------------------
+   // check lib have been loaded
+   //
+   if (!btLibFuncLoadP)
+   {
+      return eERROR_LIBRARY;
+   }
+
+   //----------------------------------------------------------------
+   // select mode
+   //
+   switch (teModeV)
+   {
+      case QCan::eCAN_MODE_START :
+         //---------------------------------------------------
+         // reset statistic values
+         //
+         clStatisticP.ulErrCount = 0;
+         clStatisticP.ulRcvCount = 0;
+         clStatisticP.ulTrmCount = 0;
+
+         pfnCanControlResetP(vdCanControlP);
+         if (pfnCanControlInitializeP(vdCanControlP,
+                                      (CAN_OPMODE_STANDARD |
+                                       CAN_OPMODE_EXTENDED |
+                                       CAN_OPMODE_ERRFRAME),
+                                      tsBitrateP.ubBtr0,
+                                      tsBitrateP.ubBtr1) != VCI_OK)
+         {
+            qWarning() << tr("WARNING: Fail to intialize control interface!");
+         }
+
+         if (pfnCanControlStartP(vdCanControlP,true) != VCI_OK)
+         {
+            qWarning() << tr("WARNING: Fail to start control interface!");
+         }
+
+         // open a can channel in NOT exlusive mode
+         pfnCanChannelCloseP(vdCanChannelP);
+         if (pfnCanChannelOpenP(vdCanInterfaceP,uwCanChannelP,false,&vdCanChannelP) != VCI_OK)
+         {
+            qWarning() << tr("WARNING: Fail to open a channel on seleceted interface!");
+         }
+
+         if (pfnCanChannelInitializeP(vdCanChannelP,64,1,64,1) != VCI_OK)
+         {
+            qWarning() << tr("WARNING: Fail to initialise CAN channel!");
+         }
+
+         if (pfnCanChannelActivateP(vdCanChannelP,true) != VCI_OK)
+         {
+            qWarning() << tr("WARNING: Fail to activate CAN channel!");
+         }
+
+         break;
+
+      case QCan::eCAN_MODE_STOP :
+         if (pfnCanChannelActivateP(vdCanChannelP,false) != VCI_OK)
+         {
+            qWarning() << tr("WARNING: Fail to deactivate CAN channel!");
+         }
+         break;
+
+      default :
+         return eERROR_MODE;
+         break;
+   }
+
+   return eERROR_NONE;
+}
+
+
+//----------------------------------------------------------------------------//
+// state()                                                                    //
+//                                                                            //
+//----------------------------------------------------------------------------//
+QCan::CAN_State_e	QCanIxxatUsb::state(void)
+{
+   return QCan::eCAN_STATE_BUS_ACTIVE;
+}
+
+
+//----------------------------------------------------------------------------//
+// statistic()                                                                //
+//                                                                            //
+//----------------------------------------------------------------------------//
+QCanInterface::InterfaceError_e	QCanIxxatUsb::statistic(QCanStatistic_ts &clStatisticR)
+{
+   clStatisticR = clStatisticP;
+
+   return(eERROR_NONE);
+}
+
+
+//----------------------------------------------------------------------------//
+// supportedFeatures()                                                        //
+//                                                                            //
+//----------------------------------------------------------------------------//
+uint32_t QCanIxxatUsb::supportedFeatures(void)
+{
+   uint32_t ulFeaturesT;
+
+   ulFeaturesT  = QCAN_IF_SUPPORT_ERROR_FRAMES;
+   ulFeaturesT += QCAN_IF_SUPPORT_LISTEN_ONLY;
+
+   #if QCAN_SUPPORT_CAN_FD > 0
+   ulFeaturesT += QCAN_IF_SUPPORT_CAN_FD;
+   #endif
+
+   return(ulFeaturesT);
+}
+
+
+//----------------------------------------------------------------------------//
+// write()                                                                    //
+//                                                                            //
+//----------------------------------------------------------------------------//
+QCanInterface::InterfaceError_e	QCanIxxatUsb::write(const QCanFrame &clFrameR)
+{
+   CANMSG  tsCanMsgT;
+   HRESULT slResultT;
+   int32_t slByteCntrT;
+
+   //----------------------------------------------------------------
+   // check lib have been loaded
+   //
+   if (!btLibFuncLoadP)
+   {
+      return eERROR_LIBRARY;
+   }
+
+   //----------------------------------------------------------------
+   // prepare CAN message
+   //
+
+   // copy all needed parameters to QCanFrame structure
+   if (clFrameR.isExtended())
+   {
+      tsCanMsgT.uMsgInfo.Bits.ext = 1;
+   } else
+   {
+      tsCanMsgT.uMsgInfo.Bits.ext = 0;
+   }
+   tsCanMsgT.dwMsgId = clFrameR.identifier();
+
+   tsCanMsgT.uMsgInfo.Bits.dlc = clFrameR.dlc();
+
+   for (slByteCntrT = 0; slByteCntrT < clFrameR.dlc(); slByteCntrT++)
+   {
+      tsCanMsgT.abData[slByteCntrT] = clFrameR.data(slByteCntrT);
+   }
+   tsCanMsgT.uMsgInfo.Bytes.bType = CAN_MSGTYPE_DATA;
+   tsCanMsgT.dwTime = 0;
+   slResultT = pfnCanChannelPostMessageP(vdCanChannelP, &tsCanMsgT);
+
+   if (slResultT == VCI_OK)
+   {
+      qDebug() << tr("PosMessage() OK");
+
+      clStatisticP.ulTrmCount++;
+      return eERROR_NONE;
+   }
+   else if (slResultT != (HRESULT)VCI_E_TXQUEUE_FULL)
+   {
+      qWarning() << tr("Fail to call PeekMessage(): ") + QString::number(slResultT,16);
+      return eERROR_DEVICE;
+   }
+
+   return eERROR_FIFO_TRM_FULL;
+
+}
+

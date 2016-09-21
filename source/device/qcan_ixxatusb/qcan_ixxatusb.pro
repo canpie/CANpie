@@ -8,7 +8,8 @@ INCLUDEPATH    += ./../../include
 INCLUDEPATH    += ./inc
 HEADERS         = qcan_ixxatusb.hpp \
                   ./../../qcan/qcan_frame.hpp \
-                  ./../../qcan/qcan_interafce.hpp
+                  ./../../qcan/qcan_frame_error.hpp \
+                  ./../../qcan/qcan_interface.hpp
 SOURCES         = qcan_ixxatusb.cpp \
                   ./../../qcan/qcan_frame.cpp
 TARGET          = $$qtLibraryTarget(QCanIxxatUsb)
