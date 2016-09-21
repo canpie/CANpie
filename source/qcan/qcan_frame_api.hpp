@@ -31,7 +31,7 @@
 #ifndef QCAN_FRAME_API_HPP_
 #define QCAN_FRAME_API_HPP_
 
-
+#include "qcan_defs.hpp"
 #include "qcan_frame.hpp"
 
 
@@ -66,12 +66,16 @@ public:
 
    ApiFunc_e function(void);
 
+   QCan::CAN_Mode_e  mode(void);
+
    void setBitrate(int32_t slBitrateV, int32_t slBrsClockV);
 
    void setDriverInit();
    void setDriverRelease();
+   void  setMode(QCan::CAN_Mode_e teModeV);
 
-   virtual QString   toString(const bool & btShowTimeR = false);
+   QByteArray toByteArray() const;
+   QString    toString(const bool & btShowTimeR = false);
    
 private:
    
