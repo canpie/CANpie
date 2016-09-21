@@ -21,10 +21,11 @@
 // QCanInterfaceWidget()                                                      //
 // constructor                                                                //
 //----------------------------------------------------------------------------//
-QCanInterfaceWidget::QCanInterfaceWidget()
+QCanInterfaceWidget::QCanInterfaceWidget(uint8_t ubIdxV)
  : QWidget()
 {
-   clIconP = QIcon(":images/network-vcan.png");
+   ubInterfaceIdxP = ubIdxV;
+   clIconP = QIcon(QCAN_IF_VCAN_ICON);
    pclQCanInterfaceP = NULL;
 }
 
@@ -96,7 +97,7 @@ void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
                }
             }
 
-            emit interfaceChanged(pclQCanInterfaceP);
+            emit interfaceChanged(ubInterfaceIdxP,pclQCanInterfaceP);
          } else
          {
             qDebug() << "mousePressEvent(): no index selected";
@@ -270,7 +271,7 @@ bool QCanInterfaceWidget::setPlugin(QString clNameV, quint8 ubChannelV)
              pclQCanInterfaceP = qobject_cast<QCanInterface *>(pclPluginT);
          }
 
-         emit interfaceChanged(pclQCanInterfaceP);
+         emit interfaceChanged(ubInterfaceIdxP,pclQCanInterfaceP);
 
          return true;
       }

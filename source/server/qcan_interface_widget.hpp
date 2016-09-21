@@ -20,7 +20,8 @@ public:
 
    #define QCAN_IF_VCAN_NAME "Virtual CAN bus"
    #define QCAN_IF_VCAN_ICON ":images/network-vcan.png"
-   QCanInterfaceWidget();
+
+   QCanInterfaceWidget(uint8_t ubIdxV);
 
    /*!
     * \brief setIcon
@@ -50,6 +51,8 @@ public:
    uint8_t pluginChannel(void);
 
 private:
+
+   uint8_t  ubInterfaceIdxP;
 
    QIcon    clIconP;
    QDir     clPluginPathP;
@@ -82,6 +85,6 @@ public slots:
 
 signals:
    void clicked(bool checked = false );
-   void interfaceChanged(QCanInterface *pclIfV);
+   void interfaceChanged(uint8_t ubIdxV, QCanInterface *pclIfV);
 
 };

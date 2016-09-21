@@ -64,123 +64,6 @@
     <attribute name="title">
      <string>Network configuration</string>
     </attribute>
-    <widget class="QToolBox" name="pclTbxNetworkM">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>0</y>
-       <width>101</width>
-       <height>361</height>
-      </rect>
-     </property>
-     <property name="currentIndex">
-      <number>4</number>
-     </property>
-     <widget class="QCanInterfaceWidget" name="pclTbxQCanInterfaceWidget1_M">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>101</width>
-        <height>145</height>
-       </rect>
-      </property>
-      <attribute name="label">
-       <string>CAN 1</string>
-      </attribute>
-     </widget>
-     <widget class="QCanInterfaceWidget" name="pclTbxQCanInterfaceWidget2_M">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>101</width>
-        <height>145</height>
-       </rect>
-      </property>
-      <attribute name="label">
-       <string>CAN 2</string>
-      </attribute>
-     </widget>
-     <widget class="QCanInterfaceWidget" name="pclTbxQCanInterfaceWidget3_M">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>101</width>
-        <height>145</height>
-       </rect>
-      </property>
-      <attribute name="label">
-       <string>CAN 3</string>
-      </attribute>
-     </widget>
-     <widget class="QCanInterfaceWidget" name="pclTbxQCanInterfaceWidget4_M">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>101</width>
-        <height>145</height>
-       </rect>
-      </property>
-      <attribute name="label">
-       <string>CAN 4</string>
-      </attribute>
-     </widget>
-     <widget class="QCanInterfaceWidget" name="pclTbxQCanInterfaceWidget5_M">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>101</width>
-        <height>145</height>
-       </rect>
-      </property>
-      <attribute name="label">
-       <string>CAN 5</string>
-      </attribute>
-     </widget>
-     <widget class="QCanInterfaceWidget" name="pclTbxQCanInterfaceWidget6_M">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>101</width>
-        <height>145</height>
-       </rect>
-      </property>
-      <attribute name="label">
-       <string>CAN 6</string>
-      </attribute>
-     </widget>
-     <widget class="QCanInterfaceWidget" name="pclTbxQCanInterfaceWidget7_M">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>101</width>
-        <height>145</height>
-       </rect>
-      </property>
-      <attribute name="label">
-       <string>CAN 7</string>
-      </attribute>
-     </widget>
-     <widget class="QCanInterfaceWidget" name="pclTbxQCanInterfaceWidget8_M">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>101</width>
-        <height>145</height>
-       </rect>
-      </property>
-      <attribute name="label">
-       <string>CAN 8</string>
-      </attribute>
-     </widget>
-    </widget>
     <widget class="QGroupBox" name="pclGrpNetworkConfM">
      <property name="geometry">
       <rect>
@@ -583,14 +466,6 @@
    </property>
   </widget>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>QCanInterfaceWidget</class>
-   <extends>QWidget</extends>
-   <header>qcan_interface_widget.hpp</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources>
   <include location="../qcanserver.qrc"/>
  </resources>

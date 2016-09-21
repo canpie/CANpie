@@ -7,9 +7,11 @@
 #include <QMenu>
 #include <QSettings>
 #include <QSystemTrayIcon>
+#include <QToolBox>
 
 #include "ui_ServerConfig.h"
 #include "qcan_server.hpp"
+#include "qcan_interface_widget.hpp"
 
 class QCanServerDialog : public QDialog
 {
@@ -18,6 +20,9 @@ class QCanServerDialog : public QDialog
 public:
     QCanServerDialog(QWidget *parent = 0);
     ~QCanServerDialog();
+
+    QToolBox *pclTbxNetworkM;
+    QCanInterfaceWidget *apclTbxQCanInterfaceWidgetM[QCAN_NETWORK_MAX];
 
 public slots:
 
@@ -32,16 +37,13 @@ public slots:
    ** The parameter \c pclCanInterfaceV is a pointer to a new interface. If
    ** \c pclCanInterfaceV is NULL, the physical interface shall be removed.
    */
-   void onInterfaceChange(QCanInterface * pclCanIfV);
+   void onInterfaceChange(uint8_t ubIdxV, QCanInterface * pclCanIfV);
 
    void onNetworkShowCanFrames(uint32_t ulFrameCntV);
    void onNetworkShowErrFrames(uint32_t ulFrameCntV);
    void onNetworkShowLoad(uint8_t ubLoadV, uint32_t ulMsgPerSecV);
 
 private:
-   QCanInterfaceWidget * currentInterfaceWidget(void);
-   QCanInterfaceWidget * interfaceWidget(uint8_t ubNetworkV);
-   uint8_t  currentNetwork(void);
    void     createActions(void);
    void     createTrayIcon(void);
    void     setupNetworks(void);
