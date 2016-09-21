@@ -245,6 +245,10 @@ bool QCanSocket::writeFrame(const QCanFrame & clFrameR)
    return(btResultT);
 }
 
+//----------------------------------------------------------------------------//
+// writeFrame()                                                               //
+//                                                                            //
+//----------------------------------------------------------------------------//
 bool QCanSocket::writeFrame(const QCanFrameApi & clFrameR)
 {
    bool  btResultT = false;
