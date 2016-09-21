@@ -317,27 +317,32 @@ private:
 public:
    QString echo(const QString &message) Q_DECL_OVERRIDE;
 
-   InterfaceError_e  connect(void) Q_DECL_OVERRIDE;
+   InterfaceError_e  connect(uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
 
-   void              disconnect(void) Q_DECL_OVERRIDE;
+   void              disconnect(uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
 
-   QIcon             icon(void) Q_DECL_OVERRIDE;
-   QString           name(void) Q_DECL_OVERRIDE;
+   QIcon             icon(uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
+   QString           name(uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
 
-   InterfaceError_e  read(QCanFrame &clFrameR) Q_DECL_OVERRIDE;
+   InterfaceError_e  read( QCanFrame &clFrameR,
+                           uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
 
    InterfaceError_e  setBitrate( int32_t slBitrateV,
-                                 int32_t slBrsClockV) Q_DECL_OVERRIDE;
+                                 int32_t slBrsClockV,
+                                 uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
 
-   InterfaceError_e  setMode(const QCan::CAN_Mode_e teModeV) Q_DECL_OVERRIDE;
+   InterfaceError_e  setMode( const QCan::CAN_Mode_e teModeV,
+                              uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
 
-   QCan::CAN_State_e state(void) Q_DECL_OVERRIDE;
+   QCan::CAN_State_e state(uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
 
-   InterfaceError_e  statistic(QCanStatistic_ts &clStatisticR) Q_DECL_OVERRIDE;
+   InterfaceError_e  statistic(QCanStatistic_ts &clStatisticR,
+                               uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
 
-   uint32_t          supportedFeatures(void) Q_DECL_OVERRIDE;
+   uint32_t          supportedFeatures(uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
 
-   InterfaceError_e  write(const QCanFrame &clFrameR) Q_DECL_OVERRIDE;
+   InterfaceError_e  write(const QCanFrame &clFrameR,
+                           uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
     void errorOccurred(int32_t slCanBusErrorV);

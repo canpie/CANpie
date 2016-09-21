@@ -40,7 +40,7 @@
 // connect()                                                                  //
 //                                                                            //
 //----------------------------------------------------------------------------//
-QCanInterface::InterfaceError_e QCanIxxatUsb::connect(void)
+QCanInterface::InterfaceError_e QCanIxxatUsb::connect(uint8_t ubChannelV)
 {
    //-----------------------------------------------------------------------
    // Loads library
@@ -233,7 +233,7 @@ QCanInterface::InterfaceError_e QCanIxxatUsb::connect(void)
 // disconnect()                                                               //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void QCanIxxatUsb::disconnect(void)
+void QCanIxxatUsb::disconnect(uint8_t ubChannelV)
 {
    //-----------------------------------------------------------------------
    // If library have been loaded before close device list
@@ -444,7 +444,7 @@ QString QCanIxxatUsb::echo(const QString &message)
 // icon()                                                                     //
 //                                                                            //
 //----------------------------------------------------------------------------//
-QIcon QCanIxxatUsb::icon(void)
+QIcon QCanIxxatUsb::icon(uint8_t ubChannelV)
 {
    return QIcon(":/qcan_ixxatusb.png");
 }
@@ -454,7 +454,7 @@ QIcon QCanIxxatUsb::icon(void)
 // name()                                                                     //
 //                                                                            //
 //----------------------------------------------------------------------------//
-QString QCanIxxatUsb::name(void)
+QString QCanIxxatUsb::name(uint8_t ubChannelV)
 {
    return "IXXAT USB device";
 }
@@ -464,7 +464,8 @@ QString QCanIxxatUsb::name(void)
 // read()                                                                     //
 //                                                                            //
 //----------------------------------------------------------------------------//
-QCanInterface::InterfaceError_e QCanIxxatUsb::read(QCanFrame &clFrameR)
+QCanInterface::InterfaceError_e QCanIxxatUsb::read(QCanFrame &clFrameR,
+                                                   uint8_t ubChannelV)
 {
    CANMSG  tsCanMsgT;
    HRESULT slResultT;
@@ -547,7 +548,8 @@ QCanInterface::InterfaceError_e QCanIxxatUsb::read(QCanFrame &clFrameR)
 //                                                                            //
 //----------------------------------------------------------------------------//
 QCanInterface::InterfaceError_e QCanIxxatUsb::setBitrate(int32_t slBitrateV,
-                                                         int32_t slBrsClockV)
+                                                         int32_t slBrsClockV,
+                                                         uint8_t ubChannelV)
 {
    //----------------------------------------------------------------
    // check lib have been loaded
@@ -680,7 +682,8 @@ QCanInterface::InterfaceError_e QCanIxxatUsb::setBitrate(int32_t slBitrateV,
 // setMode()                                                                  //
 //                                                                            //
 //----------------------------------------------------------------------------//
-QCanInterface::InterfaceError_e	QCanIxxatUsb::setMode(const QCan::CAN_Mode_e teModeV)
+QCanInterface::InterfaceError_e	QCanIxxatUsb::setMode(const QCan::CAN_Mode_e teModeV,
+                                                       uint8_t ubChannelV)
 {
    //----------------------------------------------------------------
    // check lib have been loaded
@@ -758,7 +761,7 @@ QCanInterface::InterfaceError_e	QCanIxxatUsb::setMode(const QCan::CAN_Mode_e teM
 // state()                                                                    //
 //                                                                            //
 //----------------------------------------------------------------------------//
-QCan::CAN_State_e	QCanIxxatUsb::state(void)
+QCan::CAN_State_e	QCanIxxatUsb::state(uint8_t ubChannelV)
 {
    return QCan::eCAN_STATE_BUS_ACTIVE;
 }
@@ -768,7 +771,8 @@ QCan::CAN_State_e	QCanIxxatUsb::state(void)
 // statistic()                                                                //
 //                                                                            //
 //----------------------------------------------------------------------------//
-QCanInterface::InterfaceError_e	QCanIxxatUsb::statistic(QCanStatistic_ts &clStatisticR)
+QCanInterface::InterfaceError_e	QCanIxxatUsb::statistic(QCanStatistic_ts &clStatisticR,
+                                                         uint8_t ubChannelV)
 {
    clStatisticR = clStatisticP;
 
@@ -780,7 +784,7 @@ QCanInterface::InterfaceError_e	QCanIxxatUsb::statistic(QCanStatistic_ts &clStat
 // supportedFeatures()                                                        //
 //                                                                            //
 //----------------------------------------------------------------------------//
-uint32_t QCanIxxatUsb::supportedFeatures(void)
+uint32_t QCanIxxatUsb::supportedFeatures(uint8_t ubChannelV)
 {
    uint32_t ulFeaturesT;
 
@@ -799,7 +803,8 @@ uint32_t QCanIxxatUsb::supportedFeatures(void)
 // write()                                                                    //
 //                                                                            //
 //----------------------------------------------------------------------------//
-QCanInterface::InterfaceError_e	QCanIxxatUsb::write(const QCanFrame &clFrameR)
+QCanInterface::InterfaceError_e	QCanIxxatUsb::write( const QCanFrame &clFrameR,
+                                                      uint8_t ubChannelV)
 {
    CANMSG  tsCanMsgT;
    HRESULT slResultT;
