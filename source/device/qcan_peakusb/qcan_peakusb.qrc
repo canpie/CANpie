@@ -1,5 +1,9 @@
 <RCC>
     <qresource prefix="/">
         <file>qcan_peakusb.png</file>
+        <file>images/pcan_usb_fd_icon.ico</file>
+        <file>images/pcan_usb_icon.ico</file>
+        <file>images/pcan_usb_pro_fd_icon.ico</file>
+        <file>images/pcan_usb_pro_icon.ico</file>
     </qresource>
 </RCC>

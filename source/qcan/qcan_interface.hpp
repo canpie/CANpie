@@ -97,6 +97,14 @@ public:
       eERROR_FIFO_TRM_FULL
    };
 
+
+   /*!
+   ** \see channel()
+   **
+   ** Gives nbumber of available channels.
+   */
+   virtual uint8_t channel(void) = 0;
+
    /*!
    ** \see disconnect()
    **
@@ -111,7 +119,7 @@ public:
    ** Disconnect from the physical channel \c ubChannelV of the CAN interface.
    ** The first CAN channel starts at index 0.
    */
-   virtual void disconnect(uint8_t ubChannelV = 0) = 0;
+   virtual InterfaceError_e disconnect(uint8_t ubChannelV = 0) = 0;
 
 
    /*!

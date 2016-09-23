@@ -132,8 +132,8 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    for(ubNetworkIdxT = 0; ubNetworkIdxT < QCAN_NETWORK_MAX; ubNetworkIdxT++)
    {
       apclTbxQCanInterfaceWidgetM[ubNetworkIdxT]->setPluginPath(pluginsDir);
-      connect(apclTbxQCanInterfaceWidgetM[ubNetworkIdxT], SIGNAL(interfaceChanged(uint8_t, QCanInterface*)),
-            this, SLOT(onInterfaceChange(uint8_t, QCanInterface*)) );
+      connect(apclTbxQCanInterfaceWidgetM[ubNetworkIdxT], SIGNAL(interfaceChanged(uint8_t, QCanInterface*, uint8_t)),
+            this, SLOT(onInterfaceChange(uint8_t, QCanInterface*, uint8_t)) );
    }
 
 
@@ -259,11 +259,11 @@ void QCanServerDialog::createTrayIcon(void)
 // onInterfaceChange()                                                        //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void QCanServerDialog::onInterfaceChange(uint8_t ubIdxV, QCanInterface *pclCanIfV)
+void QCanServerDialog::onInterfaceChange(uint8_t ubIdxV, QCanInterface *pclCanIfV, uint8_t ubChannelV)
 {
    QCanNetwork *  pclNetworkT;
 
-   qDebug() << "QCanServerDialog:onInterfaceChange() " << QString::number(ubIdxV);
+   qDebug() << "QCanServerDialog:onInterfaceChange() ToolBox Index " << QString::number(ubIdxV) << " for Channel" << QString::number(ubChannelV);
 
 
    //----------------------------------------------------------------
@@ -277,7 +277,7 @@ void QCanServerDialog::onInterfaceChange(uint8_t ubIdxV, QCanInterface *pclCanIf
    if (pclCanIfV == Q_NULLPTR)
    {
       pclNetworkT->removeInterface();
-      apclTbxQCanInterfaceWidgetM[ubIdxV]->setIcon(QIcon(":images/network-vcan.png"));
+      apclTbxQCanInterfaceWidgetM[ubIdxV]->setIcon(QIcon(QCAN_IF_VCAN_ICON));
       qDebug() << " set vCAN icon";
    }
    else
@@ -285,7 +285,7 @@ void QCanServerDialog::onInterfaceChange(uint8_t ubIdxV, QCanInterface *pclCanIf
       qDebug() << " set plugin icon";
       if(pclNetworkT->addInterface(pclCanIfV) == true)
       {
-         apclTbxQCanInterfaceWidgetM[ubIdxV]->setIcon(pclCanIfV->icon());
+         apclTbxQCanInterfaceWidgetM[ubIdxV]->setIcon(pclCanIfV->icon(ubChannelV));
       } else
       {
          qWarning() << "Fail to add interface!";

@@ -36,11 +36,7 @@
 
 #ifdef Q_OS_WIN32
 #include <windows.h>
-#ifdef DRV_CALLBACK_TYPE
 #define DRV_CALLBACK_TYPE WINAPI
-#endif
-#else
-#define DRV_CALLBACK_TYPE
 #endif
 
 #ifndef __APPLE__
@@ -69,25 +65,25 @@ private:
    // Type definitions of PCANBasic.dll taken from PCANBasic.h
    // (Last Change 24.04.2015)
    //
-   typedef TPCANStatus (*CAN_Initialize_tf)     (TPCANHandle uwChannelV, TPCANBaudrate uwBtr0Btr1V, TPCANType ubHwTypeV, DWORD ulIOPortV, WORD uwInterruptV);
+   typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_Initialize_tf)     (TPCANHandle uwChannelV, TPCANBaudrate uwBtr0Btr1V, TPCANType ubHwTypeV, DWORD ulIOPortV, WORD uwInterruptV);
    #if QCAN_SUPPORT_CAN_FD > 0
-   typedef TPCANStatus (*CAN_InitializeFD_tf)   (TPCANHandle uwChannelV, TPCANBitrateFD pszBitrateFDV);
+   typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_InitializeFD_tf)   (TPCANHandle uwChannelV, TPCANBitrateFD pszBitrateFDV);
    #endif
-   typedef TPCANStatus (*CAN_Uninitialize_tf)   (TPCANHandle uwChannelV);
-   typedef TPCANStatus (*CAN_Reset_tf)          (TPCANHandle uwChannelV);
-   typedef TPCANStatus (*CAN_GetStatus_tf)      (TPCANHandle uwChannelV);
-   typedef TPCANStatus (*CAN_Read_tf)           (TPCANHandle uwChannelV, TPCANMsg *ptsMessageBufferV, TPCANTimestamp *tsTimestampBufferV);
+   typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_Uninitialize_tf)   (TPCANHandle uwChannelV);
+   typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_Reset_tf)          (TPCANHandle uwChannelV);
+   typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_GetStatus_tf)      (TPCANHandle uwChannelV);
+   typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_Read_tf)           (TPCANHandle uwChannelV, TPCANMsg *ptsMessageBufferV, TPCANTimestamp *tsTimestampBufferV);
    #if QCAN_SUPPORT_CAN_FD > 0
-   typedef TPCANStatus (*CAN_ReadFD_tf)         (TPCANHandle uwChannelV, TPCANMsgFD *ptsMessageBufferV, TPCANTimestampFD *puqTimestampBufferV);
+   typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_ReadFD_tf)         (TPCANHandle uwChannelV, TPCANMsgFD *ptsMessageBufferV, TPCANTimestampFD *puqTimestampBufferV);
    #endif
-   typedef TPCANStatus (*CAN_Write_tf)          (TPCANHandle uwChannelV, TPCANMsg *ptsMessageBufferV);
+   typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_Write_tf)          (TPCANHandle uwChannelV, TPCANMsg *ptsMessageBufferV);
    #if QCAN_SUPPORT_CAN_FD > 0
-   typedef TPCANStatus (*CAN_WriteFD_tf)        (TPCANHandle uwChannelV, TPCANMsgFD *ptsMessageBufferV);
+   typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_WriteFD_tf)        (TPCANHandle uwChannelV, TPCANMsgFD *ptsMessageBufferV);
    #endif
-   typedef TPCANStatus (*CAN_FilterMessages_tf) (TPCANHandle uwChannelV, DWORD ulFromIDV, DWORD ulToIDV, TPCANMode ubModeV);
-   typedef TPCANStatus (*CAN_GetValue_tf)       (TPCANHandle uwChannelV, TPCANParameter ubParameterV, void *pvdBufferV, DWORD ulBufferLengthV);
-   typedef TPCANStatus (*CAN_SetValue_tf)       (TPCANHandle uwChannelV, TPCANParameter ubParameterV, void *pvdBufferV, DWORD ulBufferLengthV);
-   typedef TPCANStatus (*CAN_GetErrorText_tf)   (TPCANStatus ulErrorV, WORD uwLanguageV, LPSTR pszBufferV);
+   typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_FilterMessages_tf) (TPCANHandle uwChannelV, DWORD ulFromIDV, DWORD ulToIDV, TPCANMode ubModeV);
+   typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_GetValue_tf)       (TPCANHandle uwChannelV, TPCANParameter ubParameterV, void *pvdBufferV, DWORD ulBufferLengthV);
+   typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_SetValue_tf)       (TPCANHandle uwChannelV, TPCANParameter ubParameterV, void *pvdBufferV, DWORD ulBufferLengthV);
+   typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_GetErrorText_tf)   (TPCANStatus ulErrorV, WORD uwLanguageV, LPSTR pszBufferV);
 
 
    CAN_Initialize_tf      pfnCAN_InitializeP;
@@ -116,24 +112,46 @@ private:
    QLibrary clCanLibP;
 
 
+   typedef struct CanChannel_s {
+      TPCANHandle uwChannel;
+      bool        btAvailable;   // true if channel can be handled
+      bool        btConnected;   // true if channel have been intialised
+      uint8_t     ubNumber;      // true if channel have been intialised
+      QString     clName;
+   } CanChannel_ts;
+
    /*!
     * \brief uwCanChannelP
     */
-   uint16_t uwCanChannelP = PCAN_USBBUS1;
+   QList<CanChannel_ts> atsCanChannelP;
 
-   bool     btLibFuncLoadP = false;
+   bool     btLibFuncLoadP;
 
    /*!
     * \brief clStatisticP
     */
    QCanStatistic_ts clStatisticP;
 
+   /*!
+    * \brief QCanPeakUsb::formatedError
+    * \param tvErrorV
+    * \return
+    *  This function returns error text of a specified error code!
+    */
+   QString formatedError(TPCANStatus tvErrorV);
+
+
+   uint8_t ubChannelP;
+
 public:
+   QCanPeakUsb();
+   ~QCanPeakUsb();
+
    QString echo(const QString &message) Q_DECL_OVERRIDE;
 
    InterfaceError_e  connect(uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
 
-   void              disconnect(uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
+   InterfaceError_e  disconnect(uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
 
    QIcon             icon(uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
    QString           name(uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
@@ -157,6 +175,8 @@ public:
 
    InterfaceError_e  write(const QCanFrame &clFrameR,
                            uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
+
+   uint8_t          channel(void) Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
     void errorOccurred(int32_t slCanBusErrorV);

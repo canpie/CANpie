@@ -233,7 +233,7 @@ QCanInterface::InterfaceError_e QCanIxxatUsb::connect(uint8_t ubChannelV)
 // disconnect()                                                               //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void QCanIxxatUsb::disconnect(uint8_t ubChannelV)
+QCanInterface::InterfaceError_e QCanIxxatUsb::disconnect(uint8_t ubChannelV)
 {
    //-----------------------------------------------------------------------
    // If library have been loaded before close device list

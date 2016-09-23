@@ -32,99 +32,130 @@
 #include "qcan_peakusb.hpp"
 
 
-/*!
-** \var aszErrTextG
-** Zero terminated string buffer to print error descriptions
-*/
-char aszErrTextG[128];
-
-uint8_t ubDataG[128];
-
 //----------------------------------------------------------------------------//
-// connect()                                                                  //
+// QCanPeakUsb()                                                              //
 //                                                                            //
 //----------------------------------------------------------------------------//
-QCanInterface::InterfaceError_e QCanPeakUsb::connect(uint8_t ubChannelV)
+QCanPeakUsb::QCanPeakUsb()
 {
+   CanChannel_ts tsCanChnT;
 
+   qDebug() << "Constructor: prepare for PEAKUSB Library...";
 
-   //-----------------------------------------------------------------------
-   // Loads library
-   //
-   clCanLibP.setFileName(QCAN_PEAKLIB);
-
-   if (!clCanLibP.load()) {
-       qCritical() << "Failed to load the library:" << qPrintable(clCanLibP.fileName());
-       return eERROR_LIBRARY;
-   }
+   btLibFuncLoadP = false;
+   ubChannelP = 0;
+   atsCanChannelP.clear();
 
    //----------------------------------------------------------------
-   // Loads API functions
+   // add all channels
    //
-   pfnCAN_InitializeP = (CAN_Initialize_tf) clCanLibP.resolve("CAN_Initialize");
-   #if QCAN_SUPPORT_CAN_FD > 0
-   pfnCAN_InitializeFDP = (CAN_InitializeFD_tf) clCanLibP.resolve("CAN_InitializeFD");
-   #endif
-   pfnCAN_UninitializeP = (CAN_Uninitialize_tf)clCanLibP.resolve("CAN_Uninitialize");
-   pfnCAN_ResetP = (CAN_Reset_tf)clCanLibP.resolve("CAN_Reset");
-   pfnCAN_GetStatusP = (CAN_GetStatus_tf)clCanLibP.resolve("CAN_GetStatus");
-   pfnCAN_ReadP = (CAN_Read_tf)clCanLibP.resolve("CAN_Read");
-   #if QCAN_SUPPORT_CAN_FD > 0
-   pfnCAN_ReadFDP = (CAN_ReadFD_tf)clCanLibP.resolve("CAN_ReadFD");
-   #endif
-   pfnCAN_WriteP = (CAN_Write_tf)clCanLibP.resolve("CAN_Write");
-   #if QCAN_SUPPORT_CAN_FD > 0
-   pfnCAN_WriteFDP = (CAN_WriteFD_tf)clCanLibP.resolve("CAN_WriteFD");
-   #endif
-   pfnCAN_FilterMessagesP = (CAN_FilterMessages_tf)clCanLibP.resolve("CAN_FilterMessages");
-   pfnCAN_GetValueP = (CAN_GetValue_tf)clCanLibP.resolve("CAN_GetValue");
-   pfnCAN_SetValueP = (CAN_SetValue_tf)clCanLibP.resolve("CAN_SetValue");
-   pfnCAN_GetErrorTextP = (CAN_GetErrorText_tf)clCanLibP.resolve("CAN_GetErrorText");
+   tsCanChnT.uwChannel = PCAN_USBBUS1;
+   tsCanChnT.btAvailable = false;
+   tsCanChnT.btConnected = false;
+   tsCanChnT.ubNumber = 0;
+   tsCanChnT.clName.clear();
+   atsCanChannelP.append(tsCanChnT);
+   tsCanChnT.uwChannel = PCAN_USBBUS2;
+   atsCanChannelP.append(tsCanChnT);
+   tsCanChnT.uwChannel = PCAN_USBBUS3;
+   atsCanChannelP.append(tsCanChnT);
+   tsCanChnT.uwChannel = PCAN_USBBUS4;
+   atsCanChannelP.append(tsCanChnT);
+   tsCanChnT.uwChannel = PCAN_USBBUS5;
+   atsCanChannelP.append(tsCanChnT);
+   tsCanChnT.uwChannel = PCAN_USBBUS6;
+   atsCanChannelP.append(tsCanChnT);
+   tsCanChnT.uwChannel = PCAN_USBBUS7;
+   atsCanChannelP.append(tsCanChnT);
+   tsCanChnT.uwChannel = PCAN_USBBUS8;
+   atsCanChannelP.append(tsCanChnT);
+   tsCanChnT.uwChannel = PCAN_USBBUS9;
+   atsCanChannelP.append(tsCanChnT);
+   tsCanChnT.uwChannel = PCAN_USBBUS10;
+   atsCanChannelP.append(tsCanChnT);
+   tsCanChnT.uwChannel = PCAN_USBBUS11;
+   atsCanChannelP.append(tsCanChnT);
+   tsCanChnT.uwChannel = PCAN_USBBUS12;
+   atsCanChannelP.append(tsCanChnT);
+   tsCanChnT.uwChannel = PCAN_USBBUS13;
+   atsCanChannelP.append(tsCanChnT);
+   tsCanChnT.uwChannel = PCAN_USBBUS14;
+   atsCanChannelP.append(tsCanChnT);
+   tsCanChnT.uwChannel = PCAN_USBBUS15;
+   atsCanChannelP.append(tsCanChnT);
+   tsCanChnT.uwChannel = PCAN_USBBUS16;
+   atsCanChannelP.append(tsCanChnT);
 
 
-   //----------------------------------------------------------------
-   // check for success
-   //
-   btLibFuncLoadP =  pfnCAN_InitializeP &&
-                     #if QCAN_SUPPORT_CAN_FD > 0
-                     pfnCAN_InitializeFDP &&
-                     #endif
-                     pfnCAN_UninitializeP && pfnCAN_ResetP &&
-                     pfnCAN_GetStatusP && pfnCAN_ReadP  &&
-                     pfnCAN_WriteP &&
-                     #if QCAN_SUPPORT_CAN_FD > 0
-                     pfnCAN_FilterMessagesP &&
-                     pfnCAN_ReadFDP && pfnCAN_WriteFDP &&
-                     #endif
-                     pfnCAN_GetValueP && pfnCAN_SetValueP &&
-                     pfnCAN_GetErrorTextP;
-
-   //----------------------------------------------------------------
-   // If the API was not loaded (Wrong version), an error message is shown.
-   //
-   if (!btLibFuncLoadP)
+   // connect to library and check the state for each channel
+   for (uint8_t ubCntrT = 0; ubCntrT < atsCanChannelP.length(); ubCntrT++)
    {
-      qCritical() << "ERROR: DLL functions could not be loaded!";
-      return eERROR_LIBRARY;
+      if(connect(ubCntrT) == eERROR_NONE)
+      {
+         if (setBitrate(QCan::eCAN_BITRATE_500K, 0,ubCntrT) == eERROR_NONE)
+         {
+
+            TPCANStatus tsStatusT;
+            uint8_t     ubParmBufferT;
+            char        aszBufferT[64];
+
+            // get device number of channel
+            tsStatusT = pfnCAN_GetValueP(atsCanChannelP[ubCntrT].uwChannel, PCAN_DEVICE_NUMBER, (void*)&ubParmBufferT, sizeof(ubParmBufferT));
+
+            if (tsStatusT != PCAN_ERROR_OK)
+            {
+               qCritical() << "FAIL to get parameter PCAN_DEVICE_NUMBER with error [hex]:" << QString::number(tsStatusT,16 );
+            } else
+            {
+               qDebug() << "Channel" << QString::number(ubCntrT,10) << "PCAN_DEVICE_NUMBER:" << QString::number(ubParmBufferT,10);
+               atsCanChannelP[ubCntrT].ubNumber = ubParmBufferT;
+            }
+
+
+            // get name of channel
+            tsStatusT = pfnCAN_GetValueP(atsCanChannelP[ubCntrT].uwChannel, PCAN_HARDWARE_NAME, (void*)&aszBufferT[0], sizeof(aszBufferT));
+
+            if (tsStatusT != PCAN_ERROR_OK)
+            {
+               qDebug() << "FAIL to get parameter PCAN_HARDWARE_NAME with error [hex]:" << QString::number(tsStatusT,16 );
+            } else
+            {
+               qDebug() << "Channel" << QString::number(ubCntrT,10) << "PCAN_HARDWARE_NAME:" << QLatin1String(aszBufferT);
+               atsCanChannelP[ubCntrT].clName.append(QLatin1String(aszBufferT));
+            }
+
+            // increment total number of available channels
+            ubChannelP++;
+         }
+      }
    }
 
-   qInfo() << "SUCCESS: All DLL functions could be loaded!";
-   return eERROR_NONE;
+   // disconnect all channels from library
+   for (uint8_t ubCntrT = 0; ubCntrT < atsCanChannelP.length(); ubCntrT++)
+   {
+      if (disconnect(ubCntrT) != eERROR_NONE)
+      {
+         break;
+      }
+   }
+
 }
 
-
 //----------------------------------------------------------------------------//
-// disconnect()                                                               //
+// ~QCanPeakUsb()                                                             //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void QCanPeakUsb::disconnect(uint8_t ubChannelV)
+QCanPeakUsb::~QCanPeakUsb()
 {
-   //-----------------------------------------------------------------------
-   // If library have been loaded before unintitialize can device
-   //
-   if (btLibFuncLoadP)
+   qDebug() << "Destructor: release PEAKUSB Library...";
+
+   // disconnect all channels from library
+   for (uint8_t ubCntrT = 0; ubCntrT < atsCanChannelP.length(); ubCntrT++)
    {
-      pfnCAN_UninitializeP(uwCanChannelP);
+      if (disconnect(ubCntrT) != eERROR_NONE)
+      {
+         break;
+      }
    }
 
    //-----------------------------------------------------------------------
@@ -152,9 +183,205 @@ void QCanPeakUsb::disconnect(uint8_t ubChannelV)
    pfnCAN_WriteFDP = NULL;
    #endif
    btLibFuncLoadP = false;
+
+}
+
+//----------------------------------------------------------------------------//
+// channels()                                                                 //
+//                                                                            //
+//----------------------------------------------------------------------------//
+uint8_t QCanPeakUsb::channel()
+{
+   return ubChannelP;
+}
+
+//----------------------------------------------------------------------------//
+// connect()                                                                  //
+//                                                                            //
+//----------------------------------------------------------------------------//
+QCanInterface::InterfaceError_e QCanPeakUsb::connect(uint8_t ubChannelV)
+{
+   //-----------------------------------------------------------------------
+   // Load library only if it hase not been laoded yet
+   //
+   if (!btLibFuncLoadP)
+   {
+      // get file name
+      clCanLibP.setFileName(QCAN_PEAKLIB);
+
+      if (!clCanLibP.load()) {
+          qCritical() << "Failed to load the library:" << qPrintable(clCanLibP.fileName());
+          return eERROR_LIBRARY;
+      }
+
+      //----------------------------------------------------------------
+      // Loads API functions
+      //
+      pfnCAN_InitializeP = (CAN_Initialize_tf) clCanLibP.resolve("CAN_Initialize");
+      #if QCAN_SUPPORT_CAN_FD > 0
+      pfnCAN_InitializeFDP = (CAN_InitializeFD_tf) clCanLibP.resolve("CAN_InitializeFD");
+      #endif
+      pfnCAN_UninitializeP = (CAN_Uninitialize_tf)clCanLibP.resolve("CAN_Uninitialize");
+      pfnCAN_ResetP = (CAN_Reset_tf)clCanLibP.resolve("CAN_Reset");
+      pfnCAN_GetStatusP = (CAN_GetStatus_tf)clCanLibP.resolve("CAN_GetStatus");
+      pfnCAN_ReadP = (CAN_Read_tf)clCanLibP.resolve("CAN_Read");
+      #if QCAN_SUPPORT_CAN_FD > 0
+      pfnCAN_ReadFDP = (CAN_ReadFD_tf)clCanLibP.resolve("CAN_ReadFD");
+      #endif
+      pfnCAN_WriteP = (CAN_Write_tf)clCanLibP.resolve("CAN_Write");
+      #if QCAN_SUPPORT_CAN_FD > 0
+      pfnCAN_WriteFDP = (CAN_WriteFD_tf)clCanLibP.resolve("CAN_WriteFD");
+      #endif
+      pfnCAN_FilterMessagesP = (CAN_FilterMessages_tf)clCanLibP.resolve("CAN_FilterMessages");
+      pfnCAN_GetValueP = (CAN_GetValue_tf)clCanLibP.resolve("CAN_GetValue");
+      pfnCAN_SetValueP = (CAN_SetValue_tf)clCanLibP.resolve("CAN_SetValue");
+      pfnCAN_GetErrorTextP = (CAN_GetErrorText_tf)clCanLibP.resolve("CAN_GetErrorText");
+
+
+      //----------------------------------------------------------------
+      // check for success
+      //
+      btLibFuncLoadP =  pfnCAN_InitializeP &&
+                        #if QCAN_SUPPORT_CAN_FD > 0
+                        pfnCAN_InitializeFDP &&
+                        #endif
+                        pfnCAN_UninitializeP && pfnCAN_ResetP &&
+                        pfnCAN_GetStatusP && pfnCAN_ReadP  &&
+                        pfnCAN_WriteP &&
+                        #if QCAN_SUPPORT_CAN_FD > 0
+                        pfnCAN_FilterMessagesP &&
+                        pfnCAN_ReadFDP && pfnCAN_WriteFDP &&
+                        #endif
+                        pfnCAN_GetValueP && pfnCAN_SetValueP &&
+                        pfnCAN_GetErrorTextP;
+
+      //----------------------------------------------------------------
+      // If the API was not loaded (Wrong version), an error message is shown.
+      //
+      if (!btLibFuncLoadP)
+      {
+         qCritical() << "ERROR: DLL functions could not be loaded!";
+         return eERROR_LIBRARY;
+      }
+
+      qInfo() << "SUCCESS: All DLL functions could be loaded!";
+   }
+   else
+   {
+      qInfo() << "INFO: Library have been already loaded!";
+   }
+
+   //----------------------------------------------------------------
+   // connect only not connected channel
+   //
+   if (ubChannelV >= atsCanChannelP.length())
+   {
+      qCritical() << "FAIL: Channel" << QString::number(ubChannelV,10) << "is out of range!";
+      return eERROR_CHANNEL;
+   }
+
+   //----------------------------------------------------------------
+   // check channels for connection
+   //
+   if (!atsCanChannelP[ubChannelV].btAvailable &&
+       !atsCanChannelP[ubChannelV].btConnected)
+   {
+      TPCANStatus tsStatusT;
+      uint32_t    ulParmBufferT;
+
+      tsStatusT = pfnCAN_GetValueP(atsCanChannelP[ubChannelV].uwChannel, PCAN_CHANNEL_CONDITION, (void*)&ulParmBufferT, sizeof(ulParmBufferT));
+      if (tsStatusT != PCAN_ERROR_OK)
+      {
+         qDebug() << formatedError(tsStatusT);
+      } else if ((ulParmBufferT & PCAN_CHANNEL_AVAILABLE) == PCAN_CHANNEL_AVAILABLE)
+      {
+         qInfo() << "SUCCESS: Channel" << QString::number(ubChannelV,10) << "is available!";
+         atsCanChannelP[ubChannelV].btAvailable = true;
+      } else
+      {
+         qWarning() << "WARNING: Channel" << QString::number(ubChannelV,10) << "is NOT available!";
+         return eERROR_CHANNEL;
+      }
+   } else
+   {
+      qInfo() << "INFO: Channel" << QString::number(ubChannelV,10) << "is already masked as available or is already connected!";
+   }
+
+   return eERROR_NONE;
+}
+
+
+//----------------------------------------------------------------------------//
+// disconnect()                                                               //
+//                                                                            //
+//----------------------------------------------------------------------------//
+QCanInterface::InterfaceError_e QCanPeakUsb::disconnect(uint8_t ubChannelV)
+{
+   //-----------------------------------------------------------------------
+   //
+   //
+   if (ubChannelV >= atsCanChannelP.length())
+   {
+      qCritical() << "FAIL: Channel" << QString::number(ubChannelV,10) << "is out of range!";
+      return eERROR_CHANNEL;
+   }
+
+   //-----------------------------------------------------------------------
+   // unintitialize can channels
+   //
+   if (btLibFuncLoadP)
+   {
+      if (atsCanChannelP[ubChannelV].btConnected)
+      {
+         pfnCAN_UninitializeP(atsCanChannelP[ubChannelV].uwChannel);
+         atsCanChannelP[ubChannelV].btConnected = false;
+      }
+   }
+
+   //-----------------------------------------------------------------------
+   // if one of channels is connected,  than we return here and do not
+   // disconnect the the lib
+   //
+   for (ubChannelV = 0; ubChannelV < atsCanChannelP.length(); ubChannelV++)
+   {
+      if (atsCanChannelP[ubChannelV].btConnected)
+      {
+         qInfo() << "Channel" << QString::number(ubChannelV,10) << "is still connected, so lib will be not disconnected!";
+         return eERROR_LIBRARY;
+      }
+   }
+
+   //-----------------------------------------------------------------------
+   // Unload library and remove all API functions
+   //
+   if (clCanLibP.isLoaded())
+   {
+      clCanLibP.unload();
+   }
+
+   pfnCAN_InitializeP = NULL;
+   pfnCAN_UninitializeP = NULL;
+   pfnCAN_ResetP = NULL;
+   pfnCAN_GetStatusP = NULL;
+   pfnCAN_ReadP = NULL;
+   pfnCAN_WriteP = NULL;
+   pfnCAN_FilterMessagesP = NULL;
+   pfnCAN_GetValueP = NULL;
+   pfnCAN_SetValueP = NULL;
+   pfnCAN_GetErrorTextP = NULL;
+
+   #if QCAN_SUPPORT_CAN_FD > 0
+   pfnCAN_InitializeFDP = NULL;
+   pfnCAN_ReadFDP = NULL;
+   pfnCAN_WriteFDP = NULL;
+   #endif
+   btLibFuncLoadP = false;
+
+   return eERROR_NONE;
 }
 
 QString MyReturnStringG;
+uint16_t dev;
 //----------------------------------------------------------------------------//
 // echo()                                                                     //
 // dummy implementation of a function to evaluate string                      //
@@ -171,7 +398,77 @@ QString QCanPeakUsb::echo(const QString &message)
    if (message.contains("load"))
    {
       connect(0);
+      connect(1);
+      connect(2);
       clRetStringT = ";)";
+
+//      tsStatusT = pfnCAN_GetValueP(PCAN_USBBUS1, PCAN_CHANNEL_AVAILABLE, (void*)&iBuffer, sizeof(iBuffer));
+//      if (tsStatusT != PCAN_ERROR_OK)
+//      {
+//         qDebug() << "Fail to get PCAN_CHANNEL_AVAILABLE with error [hex]:" << QString::number(tsStatusT,16 );
+//      } else
+//      {
+//         qDebug() << "Av1 [dec]:" << QString::number(iBuffer,10);
+//      }
+
+//      tsStatusT = pfnCAN_GetValueP(PCAN_USBBUS2, PCAN_CHANNEL_AVAILABLE, (void*)&iBuffer, sizeof(iBuffer));
+//      if (tsStatusT != PCAN_ERROR_OK)
+//      {
+//         qDebug() << "Fail to get PCAN_CHANNEL_AVAILABLE with error [hex]:" << QString::number(tsStatusT,16 );
+//      } else
+//      {
+//         qDebug() << "Av2 [dec]:" << QString::number(iBuffer,10);
+//      }
+
+//      // Checks for a Plug&Play Handle and, according with the return value, includes it
+//      // into the list of available hardware channels.
+//      //
+
+//      for (dev = PCAN_USBBUS1; dev < PCAN_USBBUS8; dev++)
+//      {
+//         qDebug() << "Check USB device" << QString::number(dev,16);
+
+//         tsStatusT = pfnCAN_GetValueP((TPCANHandle)dev, PCAN_CHANNEL_CONDITION, (void*)&iBuffer, sizeof(iBuffer));
+//         if (tsStatusT != PCAN_ERROR_OK)
+//         {
+//            qDebug() << "Fail to get PCAN_CHANNEL_CONDITION with error [hex]:" << QString::number(tsStatusT,10);
+//         } else if ((iBuffer & PCAN_CHANNEL_AVAILABLE) == PCAN_CHANNEL_AVAILABLE)
+//         {
+//            qDebug() << "PCAN_CHANNEL_CONDITION [dec]:" << QString::number(iBuffer,10);
+
+//            tsStatusT = pfnCAN_GetValueP((TPCANHandle)dev, PCAN_CHANNEL_FEATURES, (void*)&iBuffer, sizeof(iBuffer));
+//            if (tsStatusT != PCAN_ERROR_OK)
+//            {
+//               qDebug() << "Fail to get PCAN_CHANNEL_FEATURES with error [hex]:" << QString::number(tsStatusT,16 );
+//            } else
+//            {
+//               qDebug() << "PCAN_CHANNEL_FEATURES [hex]:" << QString::number(iBuffer,16);
+//            }
+//         }
+//      }
+
+
+//      stsResult = m_objPCANBasic->GetValue((TPCANHandle)m_HandlesArray[i], PCAN_CHANNEL_CONDITION, (void*)&iBuffer, sizeof(iBuffer));
+//      if ((stsResult == PCAN_ERROR_OK) && ((iBuffer & PCAN_CHANNEL_AVAILABLE) == PCAN_CHANNEL_AVAILABLE))
+//      {
+//         stsResult = m_objPCANBasic->GetValue((TPCANHandle)m_HandlesArray[i], PCAN_CHANNEL_FEATURES, (void*)&iBuffer, sizeof(iBuffer));
+//         isFD = (stsResult == PCAN_ERROR_OK) && (iBuffer & FEATURE_FD_CAPABLE);
+//         cbbChannel->Items->Add(FormatChannelName(m_HandlesArray[i], isFD));
+//      }
+
+
+   }
+
+   if (message.contains("name"))
+   {
+      qInfo() << "Name: " << name(0);
+      qInfo() << "Name: " << name(1);
+      qInfo() << "Name: " << name(2);
+   }
+
+   if (message == "channel")
+   {
+      qInfo() << "Number of available channel is " << QString::number(channel(),10);
    }
 
    if (message == "bitrate")
@@ -185,6 +482,10 @@ QString QCanPeakUsb::echo(const QString &message)
          qWarning() << "Warning: connect() fail!";
 
       if (setBitrate(QCan::eCAN_BITRATE_500K, 0,0) != eERROR_NONE)
+         qWarning() << "Warning: setBitrate() fail!";
+
+
+      if (setBitrate(QCan::eCAN_BITRATE_500K, 0,1) != eERROR_NONE)
          qWarning() << "Warning: setBitrate() fail!";
 
       if (setMode(QCan::eCAN_MODE_START,0) != eERROR_NONE)
@@ -202,7 +503,7 @@ QString QCanPeakUsb::echo(const QString &message)
             qDebug() << "1: Status of getValue [dec]:" << QString::number(iBuffer,10);
          }
 
-         tsStatusT = pfnCAN_GetValueP(PCAN_USBBUS2, PCAN_DEVICE_NUMBER, (void*)&iBuffer, sizeof(iBuffer));
+         tsStatusT = pfnCAN_GetValueP(PCAN_USBBUS2, PCAN_CONTROLLER_NUMBER, (void*)&iBuffer, sizeof(iBuffer));
          if (tsStatusT != PCAN_ERROR_OK)
          {
             qDebug() << "2: Fail to get Value with error [hex]:" << QString::number(tsStatusT,16 );
@@ -314,7 +615,30 @@ QString QCanPeakUsb::echo(const QString &message)
 //----------------------------------------------------------------------------//
 QIcon QCanPeakUsb::icon(uint8_t ubChannelV)
 {
-   return QIcon(":/qcan_peakusb.png");
+   //----------------------------------------------------------------
+   // check channel have been connected
+   //
+   if (ubChannelV >= atsCanChannelP.length())
+   {
+       return QIcon(":/qcan_peakusb.png");
+   }
+
+   //----------------------------------------------------------------
+   // check channel is avilable
+   //
+   if (!atsCanChannelP[ubChannelV].btAvailable)
+   {
+       return QIcon(":/qcan_peakusb.png");
+   }
+
+   QString clIconNameT = atsCanChannelP[ubChannelV].clName;
+   clIconNameT = clIconNameT.toLower();
+   clIconNameT.replace(QString("-"),QString("_"));
+   clIconNameT.replace(QString(" "),QString("_"));
+
+   qDebug() << " return icon: " << QString(":/images/"+clIconNameT+"_icon.ico");
+
+   return QIcon(":/images/"+clIconNameT+"_icon.ico");
 }
 
 
@@ -324,7 +648,23 @@ QIcon QCanPeakUsb::icon(uint8_t ubChannelV)
 //----------------------------------------------------------------------------//
 QString QCanPeakUsb::name(uint8_t ubChannelV)
 {
-   return "PEAK USB device";
+   //----------------------------------------------------------------
+   // check channel have been connected
+   //
+   if (ubChannelV >= atsCanChannelP.length())
+   {
+      return "FAIL: Channel out of range";
+   }
+
+   //----------------------------------------------------------------
+   // check channel is avilable
+   //
+   if (!atsCanChannelP[ubChannelV].btAvailable)
+   {
+      return "FAIL: Channel is not available";
+   }
+
+   return QString(atsCanChannelP[ubChannelV].clName +" "+ QString::number(atsCanChannelP[ubChannelV].ubNumber,16).toUpper() + "h [" + QString::number(ubChannelV+1,10) + "]");
 }
 
 
@@ -350,9 +690,17 @@ QCanInterface::InterfaceError_e  QCanPeakUsb::read(QCanFrame &clFrameR,
    }
 
    //----------------------------------------------------------------
+   // check channel have been connected
+   //
+   if (ubChannelV >= atsCanChannelP.length())
+   {
+      return eERROR_CHANNEL;
+   }
+
+   //----------------------------------------------------------------
    // get next message from FIFO
    //
-   ulStatusT = pfnCAN_ReadP(uwCanChannelP, &tsCanMsgT, &tsTimestampBufferT);
+   ulStatusT = pfnCAN_ReadP(atsCanChannelP[ubChannelV].uwChannel, &tsCanMsgT, &tsTimestampBufferT);
 
    if (ulStatusT == PCAN_ERROR_OK)
    {
@@ -456,6 +804,14 @@ QCanInterface::InterfaceError_e QCanPeakUsb::setBitrate( int32_t slBitrateV,
    }
 
    //----------------------------------------------------------------
+   // check channel have been connected
+   //
+   if (ubChannelV >= atsCanChannelP.length())
+   {
+      return eERROR_CHANNEL;
+   }
+
+   //----------------------------------------------------------------
    // Check bit-rate value
    //
    if (slBitrateV >= QCan::eCAN_BITRATE_AUTO)
@@ -544,27 +900,15 @@ QCanInterface::InterfaceError_e QCanPeakUsb::setBitrate( int32_t slBitrateV,
    //----------------------------------------------------------------
    // perform initalisation CAN Interface
    //
-   pfnCAN_UninitializeP(uwCanChannelP);
-   uint32_t ulStatusT = pfnCAN_InitializeP(uwCanChannelP, uwBtr0Btr1T, 0, 0, 0);
+   pfnCAN_UninitializeP(atsCanChannelP[ubChannelV].uwChannel);
+   uint32_t ulStatusT = pfnCAN_InitializeP(atsCanChannelP[ubChannelV].uwChannel, uwBtr0Btr1T, 0, 0, 0);
    if (ulStatusT != PCAN_ERROR_OK)
    {
       // get default description string of error code
-      pfnCAN_GetErrorTextP(ulStatusT,0x00,aszErrTextG);
-      qCritical() << "ERROR: " << QString(QLatin1String(aszErrTextG));
+      qCritical() << formatedError(ulStatusT);
 
       return eERROR_DEVICE;
    }
-
-   ulStatusT = pfnCAN_InitializeP(uwCanChannelP+1, uwBtr0Btr1T, 0, 0, 0);
-   if (ulStatusT != PCAN_ERROR_OK)
-   {
-      // get default description string of error code
-      pfnCAN_GetErrorTextP(ulStatusT,0x00,aszErrTextG);
-      qCritical() << "ERROR: " << QString(QLatin1String(aszErrTextG));
-
-      return eERROR_DEVICE;
-   }
-
 
    return eERROR_NONE;
 }
@@ -589,6 +933,14 @@ QCanInterface::InterfaceError_e	QCanPeakUsb::setMode(const QCan::CAN_Mode_e teMo
    }
 
    //----------------------------------------------------------------
+   // check channel have been connected
+   //
+   if (ubChannelV >= atsCanChannelP.length())
+   {
+      return eERROR_CHANNEL;
+   }
+
+   //----------------------------------------------------------------
    // select mode
    //
    switch (teModeV)
@@ -603,7 +955,7 @@ QCanInterface::InterfaceError_e	QCanPeakUsb::setMode(const QCan::CAN_Mode_e teMo
          clStatisticP.ulTrmCount = 0;
 
          ubValueBufT = 1;
-         if (pfnCAN_SetValueP(uwCanChannelP,PCAN_BUSOFF_AUTORESET,&ubValueBufT,1))
+         if (pfnCAN_SetValueP(atsCanChannelP[ubChannelV].uwChannel,PCAN_BUSOFF_AUTORESET,&ubValueBufT,sizeof(ubValueBufT)))
          {
             qWarning() << "WARNING: Fail to set AutoReset of Device!";
          }
@@ -621,9 +973,21 @@ QCanInterface::InterfaceError_e	QCanPeakUsb::setMode(const QCan::CAN_Mode_e teMo
    return eERROR_NONE;
 }
 
-
+//----------------------------------------------------------------------------//
+// state()                                                                    //
+//                                                                            //
+//----------------------------------------------------------------------------//
 QCan::CAN_State_e	QCanPeakUsb::state(uint8_t ubChannelV)
 {
+   //----------------------------------------------------------------
+   // check channel have been connected
+   //
+   if (ubChannelV >= atsCanChannelP.length())
+   {
+      return QCan::eCAN_STATE_STOPPED;
+   }
+
+
    return QCan::eCAN_STATE_BUS_ACTIVE;
 }
 
@@ -634,6 +998,15 @@ QCan::CAN_State_e	QCanPeakUsb::state(uint8_t ubChannelV)
 QCanInterface::InterfaceError_e	QCanPeakUsb::statistic( QCanStatistic_ts &clStatisticR,
                                                          uint8_t ubChannelV)
 {
+   //----------------------------------------------------------------
+   // check channel have been connected
+   //
+   if (ubChannelV >= atsCanChannelP.length())
+   {
+      return eERROR_CHANNEL;
+   }
+
+
    clStatisticR = clStatisticP;
 
    return(eERROR_NONE);
@@ -647,6 +1020,14 @@ QCanInterface::InterfaceError_e	QCanPeakUsb::statistic( QCanStatistic_ts &clStat
 uint32_t QCanPeakUsb::supportedFeatures(uint8_t ubChannelV)
 {
    uint32_t ulFeaturesT;
+
+   //----------------------------------------------------------------
+   // check channel have been connected
+   //
+   if (ubChannelV >= atsCanChannelP.length())
+   {
+      return eERROR_CHANNEL;
+   }
 
    ulFeaturesT  = QCAN_IF_SUPPORT_ERROR_FRAMES;
    ulFeaturesT += QCAN_IF_SUPPORT_LISTEN_ONLY;
@@ -679,6 +1060,14 @@ QCanInterface::InterfaceError_e	QCanPeakUsb::write(const QCanFrame &clFrameR,
    }
 
    //----------------------------------------------------------------
+   // check channel have been connected
+   //
+   if (ubChannelV >= atsCanChannelP.length())
+   {
+      return eERROR_CHANNEL;
+   }
+
+   //----------------------------------------------------------------
    // prepare CAN message
    //
 
@@ -700,7 +1089,7 @@ QCanInterface::InterfaceError_e	QCanPeakUsb::write(const QCanFrame &clFrameR,
       tsCanMsgT.DATA[slByteCntrT] = clFrameR.data(slByteCntrT);
    }
 
-   ulStatusT = pfnCAN_WriteP(uwCanChannelP, &tsCanMsgT);
+   ulStatusT = pfnCAN_WriteP(atsCanChannelP[ubChannelV].uwChannel, &tsCanMsgT);
 
    if (ulStatusT == PCAN_ERROR_OK)
    {
@@ -715,5 +1104,35 @@ QCanInterface::InterfaceError_e	QCanPeakUsb::write(const QCanFrame &clFrameR,
 
    return eERROR_FIFO_TRM_FULL;
 
+}
+
+//----------------------------------------------------------------------------//
+// formatedError()                                                            //
+//                                                                            //
+//----------------------------------------------------------------------------//
+QString QCanPeakUsb::formatedError(TPCANStatus tvErrorV)
+{
+   TPCANStatus tvStatusT;
+   char aszBufferT[256];
+   QString clResultT;
+
+   memset(aszBufferT,'\0',256);
+
+   // Gets the text using the GetErrorText API function
+   // If the function success, the translated error is returned. If it fails,
+   // a text describing the current error is returned.
+   //
+//qCritical() << "ERROR: " << QString(QLatin1String(aszBufferT));
+
+   tvStatusT = pfnCAN_GetErrorTextP(tvErrorV,0x00,aszBufferT);
+   if(tvStatusT != PCAN_ERROR_OK)
+   {
+      clResultT = ("An error ocurred. Error-code's text ("+ QString::number(tvErrorV,16).toUpper() + "h) couldn't be retrieved");
+   } else
+   {
+      clResultT = QLatin1String(aszBufferT);
+   }
+
+   return clResultT;
 }
 

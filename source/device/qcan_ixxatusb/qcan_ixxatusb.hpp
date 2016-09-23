@@ -315,11 +315,12 @@ private:
    QCanStatistic_ts clStatisticP;
 
 public:
+
    QString echo(const QString &message) Q_DECL_OVERRIDE;
 
    InterfaceError_e  connect(uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
 
-   void              disconnect(uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
+   InterfaceError_e  disconnect(uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
 
    QIcon             icon(uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
    QString           name(uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;

@@ -37,7 +37,7 @@ public slots:
    ** The parameter \c pclCanInterfaceV is a pointer to a new interface. If
    ** \c pclCanInterfaceV is NULL, the physical interface shall be removed.
    */
-   void onInterfaceChange(uint8_t ubIdxV, QCanInterface * pclCanIfV);
+   void onInterfaceChange(uint8_t ubIdxV, QCanInterface * pclCanIfV, uint8_t ubChannelV);
 
    void onNetworkShowCanFrames(uint32_t ulFrameCntV);
    void onNetworkShowErrFrames(uint32_t ulFrameCntV);

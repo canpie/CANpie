@@ -64,9 +64,19 @@ private:
     */
    QCanInterface *pclQCanInterfaceP;
 
-   QList<QString> aclPluginNameListP;
-   QList<QString> aclPluginListP;
-   QList<QIcon>   aclIconListP;
+   typedef struct Channel_s {
+      QString clPlugin;
+      uint8_t ubChannel;
+      QString clName;
+      QIcon   clIcon;
+   } Channel_ts;
+
+//   QList<QString> aclPluginNameListP;
+//   QList<QString> aclPluginListP;
+//   QList<QIcon>   aclIconListP;
+
+   QList<Channel_ts> atsChannelListP;
+
    uint8_t        ubPluginChannelP = 0;
 
 protected:
@@ -85,6 +95,6 @@ public slots:
 
 signals:
    void clicked(bool checked = false );
-   void interfaceChanged(uint8_t ubIdxV, QCanInterface *pclIfV);
+   void interfaceChanged(uint8_t ubIdxV, QCanInterface *pclIfV, uint8_t ubChannelV);
 
 };
