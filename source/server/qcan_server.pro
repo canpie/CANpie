@@ -4,10 +4,12 @@ TEMPLATE = app
 QT += core network widgets
 #QT += testlib
 
+
 CONFIG += debug_and_release
 CONFIG += silent
 
-TARGET = CANpie_server
+#TARGET = CANpie_server
+TARGET = qcanserver
 
 INCLUDEPATH += .
 INCLUDEPATH += ../qcan
@@ -42,6 +44,7 @@ HEADERS +=  ../qcan/qcan_frame.hpp        \
 
 macx {
    message("Building for Mac OS X ...")
+   QMAKE_MAC_SDK = macosx10.12
    QMAKE_INFO_PLIST = Info.plist
    ICON = ./images/qcanserver.icns
 }

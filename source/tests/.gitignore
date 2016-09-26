@@ -1,0 +1,4 @@
+/moc_*.cpp
+/*.o
+/qcantest.app
+/Makefile
