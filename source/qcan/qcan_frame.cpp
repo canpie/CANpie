@@ -85,6 +85,15 @@ QCanFrame::QCanFrame()
 QCanFrame::QCanFrame(const Type_e & ubTypeR, const uint32_t & ulIdentifierR, 
                      const uint8_t & ubDlcR)
 {
+   setFrameType(ubTypeR);
+   if((ubTypeR == eTYPE_CAN_STD) || (ubTypeR == eTYPE_FD_STD))
+   {
+      setStdId(ulIdentifierR);
+   }
+   else
+   {
+      setExtId(ulIdentifierR);
+   }
    ulIdentifierP = ulIdentifierR;
    for(uint8_t ubPosT = 0; ubPosT < CAN_FRAME_DATA_MAX; ubPosT++)
    {
@@ -101,6 +110,11 @@ QCanFrame::QCanFrame(const Type_e & ubTypeR, const uint32_t & ulIdentifierR,
    ulMsgMarkerP = 0;   
 }
 
+
+//----------------------------------------------------------------------------//
+// ~QCanFrame()                                                               //
+// destructor                                                                 //
+//----------------------------------------------------------------------------//
 QCanFrame::~QCanFrame()
 {
 
@@ -434,6 +448,64 @@ void QCanFrame::setData(const uint8_t & ubPosR, const uint8_t & ubValueR)
 
 
 //----------------------------------------------------------------------------//
+// setDataSize()                                                              //
+// set data size value                                                        //
+//----------------------------------------------------------------------------//
+void QCanFrame::setDataSize(uint8_t ubSizeV)
+{
+   if(frameType() > eTYPE_CAN_EXT)
+   {
+      //--------------------------------------------------------
+      // set DLC value to maximum requested size value
+      //
+      if(ubSizeV <= 8)
+      {
+         ubMsgDlcP = ubSizeV;
+      }
+      else if((ubSizeV > 8) && (ubSizeV <= 12))
+      {
+         ubMsgDlcP = 9;
+      }
+      else if((ubSizeV > 12) && (ubSizeV <= 16))
+      {
+         ubMsgDlcP = 10;
+      }
+      else if((ubSizeV > 16) && (ubSizeV <= 20))
+      {
+         ubMsgDlcP = 11;
+      }
+      else if((ubSizeV > 20) && (ubSizeV <= 24))
+      {
+         ubMsgDlcP = 12;
+      }
+      else if((ubSizeV > 24) && (ubSizeV <= 32))
+      {
+         ubMsgDlcP = 13;
+      }
+      else if((ubSizeV > 32) && (ubSizeV <= 48))
+      {
+         ubMsgDlcP = 14;
+      }
+      else
+      {
+         ubMsgDlcP = 15;
+      }
+   }
+   else
+   {
+      //--------------------------------------------------------
+      // Classic CAN supports 0 .. 8 byte
+      //
+      if(ubSizeV > 8)
+      {
+         ubSizeV = 8;
+      }
+      ubMsgDlcP = ubSizeV;
+   }
+}
+
+
+//----------------------------------------------------------------------------//
 // setDataUInt16()                                                            //
 // set data value                                                             //
 //----------------------------------------------------------------------------//
@@ -505,19 +577,28 @@ void QCanFrame::setDataUInt32(const uint8_t & ubPosR,
 //----------------------------------------------------------------------------//
 void QCanFrame::setDlc(uint8_t ubDlcV)
 {
-   if(ubDlcV < 16)
+   //----------------------------------------------------------------
+   // limit the DLC value range from 0 .. 15
+   //
+   ubDlcV = ubDlcV & 0x0F;
+   
+   if(frameType() < eTYPE_FD_STD)
    {
-      if((ubMsgCtrlP & QCAN_FRAME_FORMAT_FD) > 0)
+      //--------------------------------------------------------
+      // classic CAN is limited to a DLC value of 8
+      //
+      if(ubDlcV > 8)
       {
-         ubMsgDlcP = ubDlcV;
+         ubDlcV = 8;
       }
-      else
-      {
-         if(ubDlcV < 9)
-         {
-            ubMsgDlcP = ubDlcV;
-         }
-      }
+      ubMsgDlcP = ubDlcV;
+   }
+   else
+   {
+      //--------------------------------------------------------
+      // CAN FD can have DLC values from 0 .. 15
+      //
+      ubMsgDlcP = ubDlcV;
    }
 }
 
@@ -532,10 +613,26 @@ void QCanFrame::setExtId(uint32_t ulIdentifierV)
    ubMsgCtrlP   |= QCAN_FRAME_FORMAT_EXT;
 }
 
+
+//----------------------------------------------------------------------------//
+// setFrameType()                                                             //
+// set the frame type                                                         //
+//----------------------------------------------------------------------------//
 void QCanFrame::setFrameType(const Type_e &ubTypeR)
 {
    ubMsgCtrlP &= (~0x33);     // remove existing frame type bits
    ubMsgCtrlP |= ubTypeR;
+   
+   //----------------------------------------------------------------
+   // make sure the DLC value is limited to 8 for classic CAN
+   //
+   if(ubTypeR < eTYPE_FD_STD)
+   {
+      if(ubMsgDlcP > 8)
+      {
+         ubMsgDlcP = 8;
+      }
+   }
 }
 
 void QCanFrame::setMarker(const uint32_t & ulMarkerValueR)
