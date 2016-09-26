@@ -114,6 +114,13 @@ public:
    
    QByteArray  data(void) const;
    
+   /*!
+   ** \see  dlc()
+   ** 
+   ** The function returns the number of bytes that are valid
+   ** for the CAN frame. The possible value range is 0 to 8 for
+   ** classic CAN frames and 0 to 64 for CAN FD frames.
+   */
    uint8_t     dataSize(void) const;
 
    uint16_t    dataUInt16(const uint8_t & ubPosR,
@@ -122,6 +129,14 @@ public:
    uint32_t    dataUInt32(const uint8_t & ubPosR,
                           const bool & btMsbFirstR = 0) const;
    
+
+   /*!
+   ** \see  dataSize()
+   ** 
+   ** The function returns the DLC value (data length code)
+   ** for the CAN frame. The possible value range is 0 to 8 for
+   ** classic CAN frames and 0 to 15 for CAN FD frames.
+   */
    uint8_t     dlc(void) const;
    
    Type_e      frameType(void) const;
@@ -151,15 +166,29 @@ public:
    void        setData(const uint8_t & ubPosR, const uint8_t & ubValueR);
 
    void        setData(const QByteArray &clDataR);
-
-   void        setDataSize(uint8_t &ubSizeR);
+   
+   /*!
+   ** \see  setDlc()
+   ** 
+   ** The function sets the number of data bytes that are valid
+   ** for the CAN frame. The possible value range is 0 to 8 for
+   ** classic CAN frames and 0 to 64 for CAN FD frames.
+   */
+   void        setDataSize(uint8_t ubSizeV);
 
    void        setDataUInt16(const uint8_t & ubPosR, const uint16_t & uwValueR,
                              const bool & btMsbFirstR = 0);
 
    void        setDataUInt32(const uint8_t & ubPosR, const uint32_t & ulValueR,
                              const bool & btMsbFirstR = 0);
-   
+
+   /*!
+   ** \see  setDataSize()
+   ** 
+   ** The function sets the DLC value (data length code)
+   ** for the CAN frame. The possible value range is 0 to 8 for
+   ** classic CAN frames and 0 to 15 for CAN FD frames.
+   */   
    void        setDlc(uint8_t ubDlcV);
    
    void        setExtId(uint32_t ulIdentifierV);
