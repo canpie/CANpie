@@ -108,9 +108,121 @@ void TestQCanFrame::checkFrameId()
 //----------------------------------------------------------------------------//
 void TestQCanFrame::checkFrameDlc()
 {
+   uint8_t  ubSizeT;
+   
+   //----------------------------------------------------------------
+   // Test 1: set the DLC value for classic CAN and CAN FD and
+   // check the result for the dataSize() return
+   //
+   for(ubSizeT = 0; ubSizeT < 16; ubSizeT++)
+   {
+      pclCanStdP->setDlc(ubSizeT);
+      pclFdStdP->setDlc(ubSizeT);
+      
+      //--------------------------------------------------------
+      // check data size
+      //
+      if(ubSizeT < 9)
+      {
+         QVERIFY(pclCanStdP->dataSize() == ubSizeT);
+         QVERIFY(pclFdStdP->dataSize() == ubSizeT);
+      }
+      else
+      {
+         //------------------------------------------------
+         // copy FD frame contents and convert type to
+         // classic CAN
+         //
+         *pclFrameP = *pclFdStdP;
+         pclFrameP->setFrameType(QCanFrame::eTYPE_CAN_STD);
+         
+         //------------------------------------------------
+         // make sure maximum dataSize of classic CAN is 8
+         //
+         QVERIFY(pclFrameP->dataSize()  == 8);
+         QVERIFY(pclCanStdP->dataSize() == 8);
+         
+         //------------------------------------------------
+         // check data size of CAN FD 
+         //
+         switch(ubSizeT)
+         {
+            case 9:
+               QVERIFY(pclFdStdP->dataSize() == 12);
+               break;
+               
+            case 10:
+               QVERIFY(pclFdStdP->dataSize() == 16);
+               break;
+               
+            case 11:
+               QVERIFY(pclFdStdP->dataSize() == 20);
+               break;
+               
+            case 12:
+               QVERIFY(pclFdStdP->dataSize() == 24);
+               break;
+               
+            case 13:
+               QVERIFY(pclFdStdP->dataSize() == 32);
+               break;
+
+            case 14:
+               QVERIFY(pclFdStdP->dataSize() == 48);
+               break;
+
+            case 15:
+               QVERIFY(pclFdStdP->dataSize() == 64);
+               break;
+               
+            default:
+               
+               break;
+         }
+      }
+      
+      //--------------------------------------------------------
+      // check DLC
+      //
+      if(ubSizeT < 9)
+      {
+         QVERIFY(pclCanStdP->dlc() == ubSizeT);
+         QVERIFY(pclFdStdP->dlc() == ubSizeT);
+      }
+      else
+      {
+         QVERIFY(pclCanStdP->dlc() == 8);
+         QVERIFY(pclFdStdP->dlc() == ubSizeT);
+      }
+   }
+
+   //----------------------------------------------------------------
+   // Test 2: set DLC value out of range
+   //
+   pclCanStdP->setDlc(22);
+   pclFdStdP->setDlc(22);
+   QVERIFY(pclCanStdP->dlc() <= 8);
+   QVERIFY(pclFdStdP->dlc()  <= 15);
+      
+   
 
 }
 
+void TestQCanFrame::checkFrameDataSize()
+{
+   uint8_t  ubSizeT;
+   
+   //----------------------------------------------------------------
+   // Test 3: set the data size value for classic CAN and CAN FD and
+   // check the result for the dlc() return
+   //
+   for(ubSizeT = 0; ubSizeT < 70; ubSizeT++)
+   {
+      pclCanStdP->setDataSize(ubSizeT);
+      pclFdStdP->setDataSize(ubSizeT);
+      
+   }
+}
 
 //----------------------------------------------------------------------------//
 // checkFrameData()                                                           //
@@ -139,11 +251,20 @@ void TestQCanFrame::checkFrameData()
 }
 
 
+//----------------------------------------------------------------------------//
+// checkFrameRemote()                                                         //
+// check remote frame                                                         //
+//----------------------------------------------------------------------------//
 void TestQCanFrame::checkFrameRemote()
 {
-
+   
 }
 
+
+//----------------------------------------------------------------------------//
+// checkFrameData()                                                           //
+// check frame data                                                           //
+//----------------------------------------------------------------------------//
 void TestQCanFrame::checkByteArray()
 {
    QByteArray  clByteArrayT;

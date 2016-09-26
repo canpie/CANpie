@@ -26,51 +26,39 @@
 
 
 
-#ifndef TEST_QCAN_FRAME_HPP_
-#define TEST_QCAN_FRAME_HPP_
+#ifndef TEST_QCAN_SOCKET_HPP_
+#define TEST_QCAN_SOCKET_HPP_
 
 
 #include <QTest>
-#include <QCanFrame>
+#include <QCanSocket>
 
 
 //-----------------------------------------------------------------------------
 /*!
-** \class   TestQCanFrame
-** \brief   Test CAN frame
+** \class   TestQCanClient
+** \brief   Test CAN client
 ** 
 */
-class TestQCanFrame : public QObject
+class TestQCanSocket : public QObject
 {
    Q_OBJECT
 
 public:
    
-   TestQCanFrame();
+   TestQCanSocket();
    
    
-   ~TestQCanFrame();
-
+   ~TestQCanSocket();
+private:
 private:
    
-   QCanFrame *    pclCanStdP;
-   QCanFrame *    pclCanExtP;
-   QCanFrame *    pclFdStdP;
-   QCanFrame *    pclFdExtP;
-   QCanFrame *    pclFrameP;
-
+   QCanSocket *    pclSockStdP;
+   
 private slots:
-
    void initTestCase();
    
-   void checkFrameType();
-   void checkFrameId();
-   void checkFrameDlc();
-   void checkFrameDataSize();
-   
-   void checkFrameData();
-   void checkFrameRemote();
-   void checkByteArray();
+   void checkConnect();
    void cleanupTestCase();
 };
 

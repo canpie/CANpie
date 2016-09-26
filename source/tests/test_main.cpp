@@ -37,12 +37,6 @@ int main(int argc, char *argv[])
    TestQCanSocket  clTestQCanSockT;
    slResultT = QTest::qExec(&clTestQCanSockT) + slResultT;
 
-   //----------------------------------------------------------------
-   // test QCanClient
-   //
-   TestQCanClient  clTestQCanClientT;
-   slResultT = QTest::qExec(&clTestQCanClientT) + slResultT;
-
 
    cout << "\n";
    cout << "#===========================================================\n";
