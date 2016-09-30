@@ -34,19 +34,23 @@
 #include <QLibrary>
 #include <QCanInterface>
 
-#ifdef Q_OS_WIN32
+#ifdef   Q_OS_WIN32
 #include <windows.h>
-#define DRV_CALLBACK_TYPE WINAPI
-#endif
-
-#ifndef __APPLE__
 #include "PCANBasic.h"
+#define  DRV_CALLBACK_TYPE       WINAPI
 #define  QCAN_SUPPORT_CAN_FD     1
 #define  QCAN_PEAKLIB            "PCANBasic.dll"
-#else
+#endif
+
+#ifdef   Q_OS_OSX
 #include "PCBUSB.h"
+#define  DRV_CALLBACK_TYPE
 #define  QCAN_SUPPORT_CAN_FD     0
 #define  QCAN_PEAKLIB            "libPCBUSB.0.6.dylib"
+#endif
+
+#ifndef  QCAN_PEAKLIB
+#error   Operating system not supported
 #endif
 
 //----------------------------------------------------------------------------//

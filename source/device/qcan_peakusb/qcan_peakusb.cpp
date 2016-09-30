@@ -69,6 +69,11 @@ QCanPeakUsb::QCanPeakUsb()
    atsCanChannelP.append(tsCanChnT);
    tsCanChnT.uwChannel = PCAN_USBBUS8;
    atsCanChannelP.append(tsCanChnT);
+
+   //----------------------------------------------------------------
+   // more than 8 USB channels only suppoted by Windows DLL
+   //
+   #ifdef   Q_OS_WIN32
    tsCanChnT.uwChannel = PCAN_USBBUS9;
    atsCanChannelP.append(tsCanChnT);
    tsCanChnT.uwChannel = PCAN_USBBUS10;
@@ -85,6 +90,7 @@ QCanPeakUsb::QCanPeakUsb()
    atsCanChannelP.append(tsCanChnT);
    tsCanChnT.uwChannel = PCAN_USBBUS16;
    atsCanChannelP.append(tsCanChnT);
+   #endif
 
 
    // connect to library and check the state for each channel
