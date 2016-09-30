@@ -1,31 +1,35 @@
-//============================================================================//
-// File:          qcan_network.cpp                                            //
-// Description:   QCAN classes - CAN network                                  //
+//****************************************************************************//
+// File:          device_can.c                                                //
+// Description:   CANpie Core functions template                              //
+// Author:        Uwe Koppe                                                   //
+// e-mail:        koppe@microcontrol.net                                      //
 //                                                                            //
 // Copyright (C) MicroControl GmbH & Co. KG                                   //
-// 53842 Troisdorf - Germany                                                  //
-// www.microcontrol.net                                                       //
+// Lindlaustr. 2c                                                             //
+// 53842 Troisdorf                                                            //
+// Germany                                                                    //
+// Tel: +49-2241-25659-0                                                      //
+// Fax: +49-2241-25659-11                                                     //
 //                                                                            //
+// The copyright to the computer program(s) herein is the property of         //
+// MicroControl GmbH & Co. KG, Germany. The program(s) may be used            //
+// and/or copied only with the written permission of MicroControl GmbH &      //
+// Co. KG or in accordance with the terms and conditions stipulated in        //
+// the agreement/contract under which the program(s) have been supplied.      //
 //----------------------------------------------------------------------------//
-// Redistribution and use in source and binary forms, with or without         //
-// modification, are permitted provided that the following conditions         //
-// are met:                                                                   //
-// 1. Redistributions of source code must retain the above copyright          //
-//    notice, this list of conditions, the following disclaimer and           //
-//    the referenced file 'COPYING'.                                          //
-// 2. Redistributions in binary form must reproduce the above copyright       //
-//    notice, this list of conditions and the following disclaimer in the     //
-//    documentation and/or other materials provided with the distribution.    //
-// 3. Neither the name of MicroControl nor the names of its contributors      //
-//    may be used to endorse or promote products derived from this software   //
-//    without specific prior written permission.                              //
 //                                                                            //
-// Provided that this notice is retained in full, this software may be        //
-// distributed under the terms of the GNU Lesser General Public License       //
-// ("LGPL") version 3 as distributed in the 'COPYING' file.                   //
+// Date        History                                                        //
+// ----------  -------------------------------------------------------------- //
+// 08.02.2013  Initial version                                                //
 //                                                                            //
-//============================================================================//
+//                                                                            //
+//****************************************************************************//
 
+
+//------------------------------------------------------------------------------
+// SVN  $Date: 2014-12-06 16:42:14 +0100 (Sa, 06 Dez 2014) $
+// SVN  $Rev: 6365 $ --- $Author: koppe $
+//------------------------------------------------------------------------------
 
 
 /*----------------------------------------------------------------------------*\
@@ -33,11 +37,16 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
+#include <QApplication>
+#include <QTimer>
+#include <QVector>
 
-#include "qcan_socket.hpp"
-#include "cp_core.h"
-#include "cp_msg.h"
 
+#include "qcan_frame_api.hpp"
+#include "qcan_frame_error.hpp"
+#include "qcan_socket_canpie_v3.hpp"
+#include "../include/cp_core.h"
+#include "../include/cp_msg.h"
 
 
 /*----------------------------------------------------------------------------*\
@@ -45,6 +54,19 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
+#define  CP_USER_FLAG_RCV        ((uint32_t)(0x00000001))
+#define  CP_USER_FLAG_TRM        ((uint32_t)(0x00000002))
+
+//-------------------------------------------------------------------
+// time to wait (in ms) for socket connection
+//
+#define  SOCKET_CONNECT_WAIT     ((int32_t)(50))
+
+
+/*----------------------------------------------------------------------------*\
+** Internal function                                                          **
+**                                                                            **
+\*----------------------------------------------------------------------------*/
 
 
 /*----------------------------------------------------------------------------*\
@@ -59,29 +81,10 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-
-//-------------------------------------------------------------------
-// simulation of CAN message buffer
-//
-static CpCanMsg_ts atsCanMsgS[CP_BUFFER_MAX];
-static uint32_t    atsAccMaskS[CP_BUFFER_MAX];
-
-
-//-------------------------------------------------------------------
-// these pointers store the callback handlers
-//
-uint8_t           (* pfnRcvIntHandler) (CpCanMsg_ts *, uint8_t);
-uint8_t           (* pfnTrmIntHandler) (CpCanMsg_ts *, uint8_t);
-uint8_t           (* pfnErrIntHandler) (CpState_ts *);
+static QCanSocketCp3  aclCanSockListS[QCAN_NETWORK_MAX];
 
 
 
-/*----------------------------------------------------------------------------*\
-** Internal function                                                          **
-**                                                                            **
-\*----------------------------------------------------------------------------*/
-static QCanFrame fromCpMsg(CpCanMsg_ts * ptsCanMsgV);
-static void      toCpMsg(CpCanMsg_ts * ptsCanMsgV, QCanFrame & clCanFrameR);
 
 /*----------------------------------------------------------------------------*\
 ** Function implementation                                                    **
@@ -90,103 +93,74 @@ static void      toCpMsg(CpCanMsg_ts * ptsCanMsgV, QCanFrame & clCanFrameR);
 
 
 
-//----------------------------------------------------------------------------//
-// CpCoreAutobaud()                                                           //
-// run automatic baudrate detection                                           //
-//----------------------------------------------------------------------------//
-#if CP_AUTOBAUD == 0
-CpStatus_tv CpCoreAutobaud(CpPort_ts * ptsPortV, 
-                           uint8_t *  CPP_PARM_UNUSED(pubBaudSelV),
-                           uint16_t * CPP_PARM_UNUSED(puwWaitV))
-#else
-CpStatus_tv CpCoreAutobaud(CpPort_ts * ptsPortV,
-                           uint8_t *   pubBaudSelV,
-                           uint16_t *  puwWaitV)
-#endif
-{
-   //----------------------------------------------------------------
-   // avoid compiler warning
-   //
-   #if CP_SMALL_CODE == 0
-   if(ptsPortV == 0L)
-   {
-      return(CpErr_PARAM);
-   }
-   #endif
-
-   //----------------------------------------------------------------
-   // check if automatic bitrate detection is enabled
-   //
-   #if CP_AUTOBAUD == 0
-   return(CpErr_NOT_SUPPORTED);
-   #else
-
-   if(pubBaudSelV != 0L)
-   {
-      *pubBaudSelV = CP_BAUD_500K;
-   }
-
-   if(puwWaitV != 0L)
-   {
-      *puwWaitV    = 0;
-   }
-
-   return(CpErr_OK);
-   #endif
-}
-
 
 //----------------------------------------------------------------------------//
-// CpCoreBaudrate()                                                           //
+// CpCoreBitrate()                                                            //
 // Setup baudrate of CAN controller                                           //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreBaudrate(CpPort_ts * ptsPortV, uint8_t ubBaudSelV)
+CpStatus_tv CpCoreBitrate( CpPort_ts * ptsPortV, int32_t slBitrateV,
+                           int32_t slBrsClockV)
 {
+   QCanFrameApi      clFrameT;
+   QCanSocketCp3 *   pclSockT;
+   int32_t           slBitrateT;
+
    //----------------------------------------------------------------
-   // avoid compiler warning
+   // debug information
    //
-   #if CP_SMALL_CODE == 0
+   qDebug() << "CpCoreBitrate() ..... :" << slBitrateV << slBrsClockV;
+
+   //----------------------------------------------------------------
+   // get access to socket
+   //
    if(ptsPortV == 0L)
    {
-      return(CpErr_PARAM);
+      return(eCP_ERR_PARAM);
    }
-   #endif
-
-   if(ubBaudSelV > eCP_BITRATE_MAX)
+   if(ptsPortV->ubPhyIf >= QCAN_NETWORK_MAX)
    {
-      return(CpErr_BAUDRATE);
+      return(eCP_ERR_PARAM);
    }
-   return (CpErr_OK);
-}
-
-
-//----------------------------------------------------------------------------//
-// CpCoreBufferAccMask()                                                      //
-//                                                                            //
-//----------------------------------------------------------------------------//
-CpStatus_tv CpCoreBufferAccMask( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
-                                 uint32_t ulAccMaskV)
-{
-   //----------------------------------------------------------------
-   // avoid compiler warning
-   //
-   #if CP_SMALL_CODE == 0
-   if(ptsPortV == 0L)
-   {
-      return(CpErr_PARAM);
-   }
-   #endif
+   pclSockT = &(aclCanSockListS[ptsPortV->ubPhyIf]);
 
 
    //----------------------------------------------------------------
-   // check for valid buffer number
+   // test parameter value
    //
-   if(ubBufferIdxV < eCP_BUFFER_1  ) return(CpErr_BUFFER);
-   if(ubBufferIdxV > CP_BUFFER_MAX) return(CpErr_BUFFER);
+   if(slBitrateV > eCP_BITRATE_MAX)
+   {
+      return(eCP_ERR_BITRATE);
+   }
 
-   atsAccMaskS[ubBufferIdxV - 1] = ulAccMaskV;
+   //----------------------------------------------------------------
+   // Make sure that the socket is connected.
+   //
+   QTimer clTimeOutT;
+   clTimeOutT.start(SOCKET_CONNECT_WAIT);
+   while(pclSockT->isConnected() == false)
+   {
+      QApplication::processEvents();
+      if(clTimeOutT.isActive() == false)
+      {
+         return(eCP_ERR_INIT_FAIL);
+      }
+   }
 
-   return(CpErr_OK);
+   //----------------------------------------------------------------
+   // The parameter ubBaudSelV uses the same enumeration values
+   // as defined in QCan::CAN_Bitrate_e, so it can be copied.
+   //
+   slBitrateT = slBitrateV;
+   clFrameT.setBitrate(slBitrateT, slBrsClockV);
+
+   if(pclSockT->writeFrame(clFrameT) == false)
+   {
+      qDebug() << "CpCoreBitrate(): Failed to set bitrate";
+      return(eCP_ERR_INIT_FAIL);
+   }
+
+
+   return (eCP_ERR_NONE);
 }
 
 
@@ -199,37 +173,48 @@ CpStatus_tv CpCoreBufferGetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
                                  uint8_t   ubStartPosV,
                                  uint8_t   ubSizeV)
 {
-   uint8_t  ubCntT;
-
+   uint8_t           ubCntT;
+   QCanSocketCp3 *   pclSockT;
 
    //----------------------------------------------------------------
-   // avoid compiler warning
+   // get access to socket
    //
-   #if CP_SMALL_CODE == 0
    if(ptsPortV == 0L)
    {
-      return(CpErr_PARAM);
+      return(eCP_ERR_PARAM);
    }
-   #endif
+   if(ptsPortV->ubPhyIf >= QCAN_NETWORK_MAX)
+   {
+      return(eCP_ERR_PARAM);
+   }
+   pclSockT = &(aclCanSockListS[ptsPortV->ubPhyIf]);
 
+   //----------------------------------------------------------------
+   // check for valid data range
+   //
+   if( (ubStartPosV + ubSizeV) > CP_DATA_SIZE)
+   {
+      return(eCP_ERR_PARAM);
+   }
 
    //----------------------------------------------------------------
    // check for valid buffer number
    //
-   if(ubBufferIdxV < eCP_BUFFER_1  ) return(CpErr_BUFFER);
-   if(ubBufferIdxV > CP_BUFFER_MAX) return(CpErr_BUFFER);
+   if(ubBufferIdxV < eCP_BUFFER_1  ) return(eCP_ERR_BUFFER);
+   if(ubBufferIdxV > CP_BUFFER_MAX) return(eCP_ERR_BUFFER);
 
 
    //----------------------------------------------------------------
    // copy data from simulated CAN buffer
    //
-   for(ubCntT = 0; ubCntT < 8; ubCntT++)
+   for(ubCntT = ubStartPosV; ubCntT < (ubStartPosV + ubSizeV); ubCntT++)
    {
-      *pubDestDataV = CpMsgGetData(&atsCanMsgS[ubBufferIdxV - 1], ubCntT);
+      *pubDestDataV = CpMsgGetData(&(pclSockT->atsCanMsgM[ubBufferIdxV - 1]),
+                               ubCntT);
       pubDestDataV++;
    }
 
-   return (CpErr_OK);
+   return (eCP_ERR_NONE);
 }
 
 
@@ -240,28 +225,34 @@ CpStatus_tv CpCoreBufferGetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 CpStatus_tv CpCoreBufferGetDlc(  CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
                                  uint8_t * pubDlcV)
 {
+   QCanSocketCp3 *   pclSockT;
+
    //----------------------------------------------------------------
-   // avoid compiler warning
+   // get access to socket
    //
-   #if CP_SMALL_CODE == 0
    if(ptsPortV == 0L)
    {
-      return(CpErr_PARAM);
+      return(eCP_ERR_PARAM);
    }
-   #endif
+   if(ptsPortV->ubPhyIf >= QCAN_NETWORK_MAX)
+   {
+      return(eCP_ERR_PARAM);
+   }
+   pclSockT = &(aclCanSockListS[ptsPortV->ubPhyIf]);
 
    //----------------------------------------------------------------
    // check for valid buffer number
    //
-   if(ubBufferIdxV < eCP_BUFFER_1  ) return(CpErr_BUFFER);
-   if(ubBufferIdxV > CP_BUFFER_MAX) return(CpErr_BUFFER);
+   if(ubBufferIdxV < eCP_BUFFER_1  ) return(eCP_ERR_BUFFER);
+   if(ubBufferIdxV > CP_BUFFER_MAX)  return(eCP_ERR_BUFFER);
+
 
    //----------------------------------------------------------------
    // read DLC from simulated CAN buffer
    //
-   *pubDlcV = atsCanMsgS[ubBufferIdxV - 1].ubMsgDLC;
+   *pubDlcV = pclSockT->atsCanMsgM[ubBufferIdxV - 1].ubMsgDLC;
 
-   return (CpErr_OK);
+   return (eCP_ERR_NONE);
 }
 
 
@@ -269,37 +260,65 @@ CpStatus_tv CpCoreBufferGetDlc(  CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 // CpCoreBufferInit()                                                         //
 // Initialise CAN message buffer                                              //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreBufferInit( CpPort_ts * ptsPortV, CpCanMsg_ts * ptsCanMsgV,
-                              uint8_t ubBufferIdxV, uint8_t ubDirectionV)
+CpStatus_tv CpCoreBufferConfig( CpPort_ts * ptsPortV,
+                                uint8_t   ubBufferIdxV,
+                                uint32_t  ulIdentifierV,
+                                uint32_t  ulAcceptMaskV,
+                                uint8_t   ubControlV,
+                                uint8_t   ubDirectionV)
 {
+   QCanSocketCp3 *   pclSockT;
+
    //----------------------------------------------------------------
-   // avoid compiler warning
+   // get access to socket
    //
-   #if CP_SMALL_CODE == 0
    if(ptsPortV == 0L)
    {
-      return(CpErr_PARAM);
+      return(eCP_ERR_PARAM);
    }
-   #endif
-
+   if(ptsPortV->ubPhyIf >= QCAN_NETWORK_MAX)
+   {
+      return(eCP_ERR_PARAM);
+   }
+   pclSockT = &(aclCanSockListS[ptsPortV->ubPhyIf]);
 
    //----------------------------------------------------------------
    // check for valid buffer number
    //
-   if(ubBufferIdxV < eCP_BUFFER_1  ) return(CpErr_BUFFER);
-   if(ubBufferIdxV > CP_BUFFER_MAX ) return(CpErr_BUFFER);
+   if(ubBufferIdxV < eCP_BUFFER_1  ) return(eCP_ERR_BUFFER);
+   if(ubBufferIdxV > CP_BUFFER_MAX) return(eCP_ERR_BUFFER);
+
+   //----------------------------------------------------------------
+   // align buffer index
+   //
+   ubBufferIdxV = ubBufferIdxV - 1;
 
    //----------------------------------------------------------------
    // copy to simulated CAN buffer
    //
-   atsCanMsgS[ubBufferIdxV - 1].tuMsgId.ulExt = ptsCanMsgV->tuMsgId.ulExt;
-   atsCanMsgS[ubBufferIdxV - 1].ubMsgDLC      = ptsCanMsgV->ubMsgDLC;
+   pclSockT->atsCanMsgM[ubBufferIdxV].tuMsgId.ulExt = ulIdentifierV;
+   pclSockT->atsCanMsgM[ubBufferIdxV].ubMsgCtrl     = ubControlV;
 
-   if(ubDirectionV == eCP_BUFFER_DIR_TX)
+   qDebug() << "BufferConfig()" << ubBufferIdxV << ": ID =" << ulIdentifierV << "control = " << ubControlV;
+   //----------------------------------------------------------------
+   // mark Tx/Rx message
+   //
+   if(ubDirectionV == eCP_BUFFER_DIR_TRM)
    {
-      atsCanMsgS[ubBufferIdxV - 1].ubMsgCtrl = 0x80;
+      pclSockT->atsCanMsgM[ubBufferIdxV].ulMsgUser = CP_USER_FLAG_TRM;
    }
-   return (CpErr_OK);
+   else
+   {
+      pclSockT->atsCanMsgM[ubBufferIdxV].ulMsgUser = CP_USER_FLAG_RCV;
+   }
+
+
+   //----------------------------------------------------------------
+   // set acceptance mask to default value
+   //
+   pclSockT->atsAccMaskM[ubBufferIdxV] = ulAcceptMaskV;
+
+   return (eCP_ERR_NONE);
 }
 
 
@@ -309,25 +328,35 @@ CpStatus_tv CpCoreBufferInit( CpPort_ts * ptsPortV, CpCanMsg_ts * ptsCanMsgV,
 //----------------------------------------------------------------------------//
 CpStatus_tv CpCoreBufferRelease( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 {
+   QCanSocketCp3 *   pclSockT;
+
    //----------------------------------------------------------------
-   // avoid compiler warning
+   // get access to socket
    //
-   #if CP_SMALL_CODE == 0
    if(ptsPortV == 0L)
    {
-      return(CpErr_PARAM);
+      return(eCP_ERR_PARAM);
    }
-   #endif
+   if(ptsPortV->ubPhyIf >= QCAN_NETWORK_MAX)
+   {
+      return(eCP_ERR_PARAM);
+   }
+   pclSockT = &(aclCanSockListS[ptsPortV->ubPhyIf]);
 
-
-   //-----------------------------------------------------------------
+   //----------------------------------------------------------------
    // check for valid buffer number
    //
-   if(ubBufferIdxV < eCP_BUFFER_1  ) return(CpErr_BUFFER);
-   if(ubBufferIdxV > CP_BUFFER_MAX) return(CpErr_BUFFER);
+   if(ubBufferIdxV < eCP_BUFFER_1  ) return(eCP_ERR_BUFFER);
+   if(ubBufferIdxV > CP_BUFFER_MAX) return(eCP_ERR_BUFFER);
 
+   //----------------------------------------------------------------
+   // clear simulated CAN buffer
+   //
+   pclSockT->atsCanMsgM[ubBufferIdxV - 1].tuMsgId.ulExt = 0;
+   pclSockT->atsCanMsgM[ubBufferIdxV - 1].ubMsgDLC      = 0;
+   pclSockT->atsCanMsgM[ubBufferIdxV - 1].ubMsgCtrl     = 0;
 
-   return (CpErr_OK);
+   return (eCP_ERR_NONE);
 }
 
 
@@ -337,18 +366,52 @@ CpStatus_tv CpCoreBufferRelease( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 //----------------------------------------------------------------------------//
 CpStatus_tv CpCoreBufferSend(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 {
-   QCanFrame   clFrameT;
+   QCanFrame         clFrameT;
+   QCanSocketCp3 *   pclSockT;
+
+   //----------------------------------------------------------------
+   // get access to socket
+   //
+   if(ptsPortV == 0L)
+   {
+      return(eCP_ERR_PARAM);
+   }
+   if(ptsPortV->ubPhyIf >= QCAN_NETWORK_MAX)
+   {
+      return(eCP_ERR_PARAM);
+   }
+   pclSockT = &(aclCanSockListS[ptsPortV->ubPhyIf]);
 
    //----------------------------------------------------------------
    // check for valid buffer number
    //
-   if(ubBufferIdxV < eCP_BUFFER_1  ) return(CpErr_BUFFER);
-   if(ubBufferIdxV > CP_BUFFER_MAX ) return(CpErr_BUFFER);
+   if(ubBufferIdxV < eCP_BUFFER_1  ) return(eCP_ERR_BUFFER);
+   if(ubBufferIdxV > CP_BUFFER_MAX) return(eCP_ERR_BUFFER);
 
-   clFrameT = fromCpMsg(&atsCanMsgS[ubBufferIdxV - 1]);
-   ptsPortV->writeFrame(clFrameT);
+   //----------------------------------------------------------------
+   // align buffer index
+   //
+   ubBufferIdxV = ubBufferIdxV - 1;
 
-   return (CpErr_OK);
+
+   //----------------------------------------------------------------
+   // write CAN frame
+   //
+   clFrameT = pclSockT->fromCpMsg(ubBufferIdxV);
+   if(pclSockT->writeFrame(clFrameT) == false)
+   {
+      qDebug() << "Failed to write message";
+   }
+   else
+   {
+      if(pclSockT->pfnTrmIntHandlerP != 0)
+      {
+         (* pclSockT->pfnTrmIntHandlerP)(&(pclSockT->atsCanMsgM[ubBufferIdxV]),
+                                         ubBufferIdxV + 1);
+      }
+   }
+
+   return (eCP_ERR_NONE);
 }
 
 
@@ -357,29 +420,51 @@ CpStatus_tv CpCoreBufferSend(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 //                                                                            //
 //----------------------------------------------------------------------------//
 CpStatus_tv CpCoreBufferSetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
-      uint8_t * pubSrcDataV,
-      uint8_t   ubStartPosV,
-      uint8_t   ubSizeV)
+                                 uint8_t * pubSrcDataV,
+                                 uint8_t   ubStartPosV,
+                                 uint8_t   ubSizeV)
 {
-   uint8_t  ubCntT;
+   uint8_t           ubCntT;
+   QCanSocketCp3 *   pclSockT;
 
+   //----------------------------------------------------------------
+   // get access to socket
+   //
+   if(ptsPortV == 0L)
+   {
+      return(eCP_ERR_PARAM);
+   }
+   if(ptsPortV->ubPhyIf >= QCAN_NETWORK_MAX)
+   {
+      return(eCP_ERR_PARAM);
+   }
+   pclSockT = &(aclCanSockListS[ptsPortV->ubPhyIf]);
 
-   //-----------------------------------------------------------------
+   //----------------------------------------------------------------
+   // check for valid data range
+   //
+   if( (ubStartPosV + ubSizeV) > CP_DATA_SIZE)
+   {
+      return(eCP_ERR_PARAM);
+   }
+
+   //----------------------------------------------------------------
    // check for valid buffer number
    //
-   if(ubBufferIdxV < eCP_BUFFER_1  ) return(CpErr_BUFFER);
-   if(ubBufferIdxV > CP_BUFFER_MAX ) return(CpErr_BUFFER);
+   if(ubBufferIdxV < eCP_BUFFER_1  ) return(eCP_ERR_BUFFER);
+   if(ubBufferIdxV > CP_BUFFER_MAX) return(eCP_ERR_BUFFER);
 
    //----------------------------------------------------------------
    // copy data to simulated CAN buffer
    //
-   for(ubCntT = 0; ubCntT < 8; ubCntT++)
+   for(ubCntT = ubStartPosV; ubCntT < (ubStartPosV + ubSizeV); ubCntT++)
    {
-      CpMsgSetData(&atsCanMsgS[ubBufferIdxV - 1], ubCntT, *pubSrcDataV);
+      CpMsgSetData(&(pclSockT->atsCanMsgM[ubBufferIdxV - 1]),
+                   ubCntT, *pubSrcDataV);
       pubSrcDataV++;
    }
 
-   return (CpErr_OK);
+   return (eCP_ERR_NONE);
 }
 
 
@@ -390,64 +475,35 @@ CpStatus_tv CpCoreBufferSetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 CpStatus_tv CpCoreBufferSetDlc(  CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
                                  uint8_t ubDlcV)
 {
+   QCanSocketCp3 *   pclSockT;
+
    //----------------------------------------------------------------
-   // avoid compiler warning
+   // get access to socket
    //
-   #if CP_SMALL_CODE == 0
    if(ptsPortV == 0L)
    {
-      return(CpErr_PARAM);
+      return(eCP_ERR_PARAM);
    }
-   #endif
-
+   if(ptsPortV->ubPhyIf >= QCAN_NETWORK_MAX)
+   {
+      return(eCP_ERR_PARAM);
+   }
+   pclSockT = &(aclCanSockListS[ptsPortV->ubPhyIf]);
 
    //----------------------------------------------------------------
    // check for valid buffer number
    //
-   if(ubBufferIdxV < eCP_BUFFER_1  ) return(CpErr_BUFFER);
-   if(ubBufferIdxV > CP_BUFFER_MAX) return(CpErr_BUFFER);
+   if(ubBufferIdxV < eCP_BUFFER_1  ) return(eCP_ERR_BUFFER);
+   if(ubBufferIdxV > CP_BUFFER_MAX) return(eCP_ERR_BUFFER);
 
    //----------------------------------------------------------------
    // write DLC to simulated CAN buffer
    //
-   atsCanMsgS[ubBufferIdxV - 1].ubMsgDLC = ubDlcV;
+   pclSockT->atsCanMsgM[ubBufferIdxV - 1].ubMsgDLC = ubDlcV;
 
-   return (CpErr_OK);
+   return (eCP_ERR_NONE);
 }
 
-
-//----------------------------------------------------------------------------//
-// CpCoreBufferTransmit()                                                     //
-//                                                                            //
-//----------------------------------------------------------------------------//
-CpStatus_tv CpCoreBufferTransmit(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
-                                 CpCanMsg_ts * ptsCanMsgV)
-{
-   //----------------------------------------------------------------
-   // avoid compiler warning
-   //
-   #if CP_SMALL_CODE == 0
-   if(ptsPortV == 0L)
-   {
-      return(CpErr_PARAM);
-   }
-   #endif
-
-
-   //----------------------------------------------------------------
-   // check for valid buffer number
-   //
-   if(ubBufferIdxV < eCP_BUFFER_1  ) return(CpErr_BUFFER);
-   if(ubBufferIdxV > CP_BUFFER_MAX) return(CpErr_BUFFER);
-
-   //----------------------------------------------------------------
-   // copy to simulated CAN buffer
-   //
-   atsCanMsgS[ubBufferIdxV - 1].tuMsgId.ulExt = ptsCanMsgV->tuMsgId.ulExt;
-   atsCanMsgS[ubBufferIdxV - 1].ubMsgDLC      = ptsCanMsgV->ubMsgDLC;
-
-   return (CpErr_OK);
-}
 
 //----------------------------------------------------------------------------//
 // CpCoreCanMode()                                                            //
@@ -455,17 +511,40 @@ CpStatus_tv CpCoreBufferTransmit(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 //----------------------------------------------------------------------------//
 CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV)
 {
-   uint8_t  ubStatusT;
+   QCanFrameApi      clFrameT;
+   QCanSocketCp3 *   pclSockT;
 
    //----------------------------------------------------------------
-   // avoid compiler warning
+   // debug information
    //
-   #if CP_SMALL_CODE == 0
+   qDebug() << "CpCoreMode() ........ :" << ubModeV;
+
+
+   //----------------------------------------------------------------
+   // get access to socket
+   //
    if(ptsPortV == 0L)
    {
-      return(CpErr_PARAM);
+      return(eCP_ERR_PARAM);
    }
-   #endif
+   if(ptsPortV->ubPhyIf >= QCAN_NETWORK_MAX)
+   {
+      return(eCP_ERR_PARAM);
+   }
+   pclSockT = &(aclCanSockListS[ptsPortV->ubPhyIf]);
+
+
+   //----------------------------------------------------------------
+   // check connection state
+   //
+   if(pclSockT->isConnected() == false)
+   {
+      if(ubModeV == eCP_MODE_STOP)
+      {
+         return(eCP_ERR_NONE);
+      }
+      return(eCP_ERR_GENERIC);
+   }
 
 
    //----------------------------------------------------------------
@@ -477,33 +556,33 @@ CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV)
       // Stop the CAN controller (passive on the bus)
       //
       case eCP_MODE_STOP:
-         ubStatusT = CpErr_OK;
+         clFrameT.setMode(QCan::eCAN_MODE_STOP);
          break;
 
       //--------------------------------------------------------
       // Start the CAN controller (active on the bus)
       //
       case eCP_MODE_START:
-         ubStatusT = CpErr_OK;
+         clFrameT.setMode(QCan::eCAN_MODE_START);
          break;
 
       //--------------------------------------------------------
       // Start the CAN controller (Listen-Only)
       //
       case eCP_MODE_LISTEN_ONLY:
-         ubStatusT = CpErr_OK;
+         clFrameT.setMode(QCan::eCAN_MODE_LISTEN_ONLY);
          break;
 
       //--------------------------------------------------------
       // Other modes are not supported
       //
       default:
-         ubStatusT = CpErr_NOT_SUPPORTED;
+         return(eCP_ERR_NOT_SUPPORTED);
          break;
    }
 
 
-   return(ubStatusT);
+   return(eCP_ERR_NONE);
 }
 
 
@@ -515,15 +594,15 @@ CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV)
 CpStatus_tv CpCoreCanState(CpPort_ts * ptsPortV, CpState_ts * ptsStateV)
 {
    //----------------------------------------------------------------
-   // avoid compiler warning
+   // check port
    //
-   #if CP_SMALL_CODE == 0
    if(ptsPortV == 0L)
    {
-      return(CpErr_PARAM);
+      return(eCP_ERR_PARAM);
    }
-   #endif
 
+   ptsStateV->ubCanErrState = eCP_STATE_BUS_ACTIVE;
+   ptsStateV->ubCanErrType  = eCP_ERR_TYPE_NONE;
 
    //----------------------------------------------------------------
    // get current error counter
@@ -531,7 +610,7 @@ CpStatus_tv CpCoreCanState(CpPort_ts * ptsPortV, CpState_ts * ptsStateV)
    ptsStateV->ubCanTrmErrCnt = 0;
    ptsStateV->ubCanRcvErrCnt = 0;
 
-   return(CpErr_OK);
+   return(eCP_ERR_NONE);
 }
 
 
@@ -539,12 +618,54 @@ CpStatus_tv CpCoreCanState(CpPort_ts * ptsPortV, CpState_ts * ptsStateV)
 // CpCoreDriverInit()                                                         //
 // init CAN controller                                                        //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreDriverInit(uint8_t ubPhyIfV, CpPort_ts * ptsPortV)
+CpStatus_tv CpCoreDriverInit(uint8_t ubPhyIfV, CpPort_ts * ptsPortV,
+                             uint8_t ubConfigV)
 {
-   ptsPortV = new QCanSocket();
-   ptsPortV->connectNetwork((QCan::CAN_Channel_e) ubPhyIfV);
+   QCanSocketCp3 *   pclSockT;
 
-   return (CpErr_OK);
+   //----------------------------------------------------------------
+   // debug information
+   //
+   qDebug() << "CpCoreDriverInit() .. :" << ubPhyIfV << ubConfigV;
+
+   //----------------------------------------------------------------
+   // test parameter
+   //
+   if(ubPhyIfV >= QCAN_NETWORK_MAX)
+   {
+      return(eCP_ERR_CHANNEL);
+   }
+
+
+   aclCanSockListS[ubPhyIfV].connectNetwork((QCan::CAN_Channel_e) ubPhyIfV);
+
+   //----------------------------------------------------------------
+   // get access to socket
+   //
+   pclSockT = &(aclCanSockListS[ubPhyIfV]);
+   pclSockT->connectNetwork((QCan::CAN_Channel_e) ubPhyIfV);
+
+
+   //----------------------------------------------------------------
+   // Make sure that the socket is connected.
+   //
+   QTimer clTimeOutT;
+   clTimeOutT.start(SOCKET_CONNECT_WAIT);
+   while(pclSockT->isConnected() == false)
+   {
+      QApplication::processEvents();
+      if(clTimeOutT.isActive() == false)
+      {
+         ptsPortV->ubPhyIf = 255;   // make channel out of range
+         return(eCP_ERR_INIT_FAIL);
+      }
+   }
+
+   //----------------------------------------------------------------
+   // store physical channel information
+   //
+   ptsPortV->ubPhyIf = ubPhyIfV;
+   return (eCP_ERR_NONE);
 }
 
 
@@ -557,7 +678,7 @@ CpStatus_tv CpCoreDriverRelease(CpPort_ts * ptsPortV)
    CpStatus_tv tvStatusT;
 
    tvStatusT = CpCoreCanMode(ptsPortV, eCP_MODE_STOP);
-   ptsPortV->disconnectNetwork();
+   aclCanSockListS[ptsPortV->ubPhyIf].disconnectNetwork();
 
    return (tvStatusT);
 }
@@ -572,25 +693,30 @@ CpStatus_tv CpCoreIntFunctions(CpPort_ts * ptsPortV,
                         uint8_t (* pfnTrmHandler)(CpCanMsg_ts *, uint8_t),
                         uint8_t (* pfnErrHandler)(CpState_ts *) )
 {
+   QCanSocketCp3 *   pclSockT;
+
    //----------------------------------------------------------------
-   // avoid compiler warning
+   // get access to socket
    //
-   #if CP_SMALL_CODE == 0
    if(ptsPortV == 0L)
    {
-      return(CpErr_PARAM);
+      return(eCP_ERR_PARAM);
    }
-   #endif
+   if(ptsPortV->ubPhyIf >= QCAN_NETWORK_MAX)
+   {
+      return(eCP_ERR_PARAM);
+   }
+   pclSockT = &(aclCanSockListS[ptsPortV->ubPhyIf]);
 
    //----------------------------------------------------------------
    // store the new callbacks
    //
-   pfnRcvIntHandler = pfnRcvHandler;
-   pfnTrmIntHandler = pfnTrmHandler;
-   pfnErrIntHandler = pfnErrHandler;
+   pclSockT->pfnRcvIntHandlerP = pfnRcvHandler;
+   pclSockT->pfnTrmIntHandlerP = pfnTrmHandler;
+   pclSockT->pfnErrIntHandlerP = pfnErrHandler;
 
 
-   return (CpErr_OK);
+   return (eCP_ERR_NONE);
 }
 
 
@@ -602,7 +728,7 @@ CpStatus_tv CpCoreMsgRead( CpPort_ts *   CPP_PARM_UNUSED(ptsPortV),
                            CpCanMsg_ts * CPP_PARM_UNUSED(ptsBufferV),
                            uint32_t *    CPP_PARM_UNUSED(pulBufferSizeV))
 {
-   return (CpErr_OK);
+   return (eCP_ERR_RCV_EMPTY);
 }
 
 
@@ -618,7 +744,7 @@ CpStatus_tv CpCoreStatistic(CpPort_ts * ptsPortV, CpStatistic_ts * ptsStatsV)
    #if CP_SMALL_CODE == 0
    if(ptsPortV == 0L)
    {
-      return(CpErr_PARAM);
+      return(eCP_ERR_PARAM);
    }
    #endif
 
@@ -626,33 +752,61 @@ CpStatus_tv CpCoreStatistic(CpPort_ts * ptsPortV, CpStatistic_ts * ptsStatsV)
    ptsStatsV->ulRcvMsgCount = 0;
    ptsStatsV->ulTrmMsgCount = 0;
 
-   return(CpErr_OK);
+   return(eCP_ERR_NONE);
 }
 
+QCanSocketCp3::QCanSocketCp3()
+{
+   pfnRcvIntHandlerP = 0;
+   pfnTrmIntHandlerP = 0;
 
+}
 
 //----------------------------------------------------------------------------//
 // fromCpMsg()                                                                //
 // message conversion                                                         //
 //----------------------------------------------------------------------------//
-static QCanFrame fromCpMsg(CpCanMsg_ts * ptsCanMsgV)
+QCanFrame QCanSocketCp3::fromCpMsg(uint8_t ubMsgBufferV)
 {
-   QCanFrame   clCanFrameT;
-   uint8_t     ubDataCntT;
+   QCanFrame      clCanFrameT;
+   CpCanMsg_ts *  ptsCanMsgT;
+   uint8_t        ubDataCntT;
 
-   if(CpMsgIsExtended(ptsCanMsgV))
+   ptsCanMsgT = &(atsCanMsgM[ubMsgBufferV]);
+
+   if(CpMsgIsFastData(ptsCanMsgT))
    {
-      clCanFrameT.setExtId(CpMsgGetExtId(ptsCanMsgV));
+      qDebug() << "FD frame";
+      if(CpMsgIsExtended(ptsCanMsgT))
+      {
+         clCanFrameT.setFrameType(QCanFrame::eTYPE_FD_EXT);
+         clCanFrameT.setExtId(CpMsgGetExtId(ptsCanMsgT));
+      }
+      else
+      {
+         clCanFrameT.setFrameType(QCanFrame::eTYPE_FD_STD);
+         clCanFrameT.setStdId(CpMsgGetStdId(ptsCanMsgT));
+      }
    }
    else
    {
-      clCanFrameT.setStdId(CpMsgGetStdId(ptsCanMsgV));
+      qDebug() << "Classic frame";
+      if(CpMsgIsExtended(ptsCanMsgT))
+      {
+         clCanFrameT.setFrameType(QCanFrame::eTYPE_CAN_EXT);
+         clCanFrameT.setExtId(CpMsgGetExtId(ptsCanMsgT));
+      }
+      else
+      {
+         clCanFrameT.setFrameType(QCanFrame::eTYPE_CAN_STD);
+         clCanFrameT.setStdId(CpMsgGetStdId(ptsCanMsgT));
+      }
    }
 
-   clCanFrameT.setDlc(CpMsgGetDlc(ptsCanMsgV));
-   for(ubDataCntT = 0; ubDataCntT < CpMsgGetDlc(ptsCanMsgV); ubDataCntT++)
+   clCanFrameT.setDlc(CpMsgGetDlc(ptsCanMsgT));
+   for(ubDataCntT = 0; ubDataCntT < CpMsgGetDlc(ptsCanMsgT); ubDataCntT++)
    {
-      clCanFrameT.setData(ubDataCntT, CpMsgGetData(ptsCanMsgV, ubDataCntT));
+      clCanFrameT.setData(ubDataCntT, CpMsgGetData(ptsCanMsgT, ubDataCntT));
    }
 
    return(clCanFrameT);
@@ -660,19 +814,134 @@ static QCanFrame fromCpMsg(CpCanMsg_ts * ptsCanMsgV)
 
 
 //----------------------------------------------------------------------------//
-// toCpMsg()                                                                  //
+// onSocketReceive()                                                          //
+// receive CAN message                                                        //
+//----------------------------------------------------------------------------//
+void QCanSocketCp3::onSocketReceive()
+{
+   QCanFrame      clFrameT;
+   CpCanMsg_ts    tsCanMsgT;
+   CpCanMsg_ts *  ptsCanBufT;
+   uint32_t       ulFrameCntT;
+   uint32_t       ulFrameMaxT;
+   uint32_t       ulAccMaskT;
+   uint8_t        ubBufferIdxT;
+
+   ulFrameMaxT = framesAvailable();
+   for(ulFrameCntT = 0; ulFrameCntT < ulFrameMaxT; ulFrameCntT++)
+   {
+      readFrame(clFrameT);
+      tsCanMsgT = fromCanFrame(clFrameT);
+
+      //----------------------------------------------------------------
+      // run through all possible message buffer
+      //
+      for(ubBufferIdxT = 0; ubBufferIdxT < CP_BUFFER_MAX; ubBufferIdxT++)
+      {
+         //--------------------------------------------------------
+         // setup pointer to CAN message buffer
+         //
+         ptsCanBufT = &(this->atsCanMsgM[ubBufferIdxT]);
+
+         //--------------------------------------------------------
+         // get acceptance mask
+         //
+         ulAccMaskT = this->atsAccMaskM[ubBufferIdxT];
+
+         //--------------------------------------------------------
+         // test direction flag
+         //
+         if( ((ptsCanBufT->ulMsgUser) & CP_USER_FLAG_RCV) == 0) continue;
+
+         //--------------------------------------------------------
+         // distinguish frame types
+         //
+         if(CpMsgIsExtended(&tsCanMsgT))
+         {
+            //------------------------------------------------
+            // check for extended frames
+            //
+            if( (CpMsgGetExtId(ptsCanBufT) & ulAccMaskT) ==
+                (CpMsgGetExtId(&tsCanMsgT) & ulAccMaskT)    )
+            {
+               //----------------------------------------
+               // copy to buffer
+               //
+               ptsCanBufT->tuMsgId.ulExt        = tsCanMsgT.tuMsgId.ulExt;
+               ptsCanBufT->ubMsgDLC             = tsCanMsgT.ubMsgDLC;
+               memcpy(&(ptsCanBufT->tuMsgData.aubByte[0]),
+                      &(tsCanMsgT.tuMsgData.aulLong[0]),
+                      CP_DATA_SIZE );
+               if(this->pfnRcvIntHandlerP != 0)
+               {
+                  (* this->pfnRcvIntHandlerP)(ptsCanBufT, ubBufferIdxT + 1);
+               }
+
+            }
+         }
+         else
+          {
+             //------------------------------------------------
+             // check for standard frames
+             //
+             if( (CpMsgGetStdId(ptsCanBufT) & ulAccMaskT) ==
+                 (CpMsgGetStdId(&tsCanMsgT) & ulAccMaskT)    )
+             {
+                //----------------------------------------
+                // copy to buffer
+                //
+                ptsCanBufT->tuMsgId.uwStd        = tsCanMsgT.tuMsgId.uwStd;
+                ptsCanBufT->ubMsgDLC             = tsCanMsgT.ubMsgDLC;
+                memcpy(&(ptsCanBufT->tuMsgData.aubByte[0]),
+                       &(tsCanMsgT.tuMsgData.aulLong[0]),
+                       CP_DATA_SIZE );
+                #if CP_CAN_FD > 0
+
+                #endif
+                if(this->pfnRcvIntHandlerP != 0)
+                {
+                   (* this->pfnRcvIntHandlerP)(ptsCanBufT, ubBufferIdxT + 1);
+                }
+
+             }
+          }
+      }
+
+   }
+
+   qDebug() << "Bingo baby .. :-)";
+
+
+}
+
+
+//----------------------------------------------------------------------------//
+// fromCanFrame()                                                             //
 // message conversion                                                         //
 //----------------------------------------------------------------------------//
-static void toCpMsg(CpCanMsg_ts * ptsCanMsgV, QCanFrame & clCanFrameR)
+CpCanMsg_ts QCanSocketCp3::fromCanFrame(QCanFrame & clCanFrameR)
 {
-   CpMsgClear(ptsCanMsgV);
+   CpCanMsg_ts    tsCanMsgT;
+   uint8_t        ubDataCntT;
+
+
+   CpMsgClear(&tsCanMsgT);
 
    if(clCanFrameR.isExtended() == true)
    {
-      CpMsgSetExtId(ptsCanMsgV, clCanFrameR.identifier());
+      CpMsgSetExtId(&tsCanMsgT, clCanFrameR.identifier());
    }
    else
    {
-      CpMsgSetStdId(ptsCanMsgV, clCanFrameR.identifier());
+      CpMsgSetStdId(&tsCanMsgT, clCanFrameR.identifier());
    }
+
+   CpMsgSetDlc(&tsCanMsgT, clCanFrameR.dlc());
+
+   for(ubDataCntT = 0; ubDataCntT < 8; ubDataCntT++)
+   {
+      CpMsgSetData(&tsCanMsgT, ubDataCntT, clCanFrameR.data(ubDataCntT));
+   }
+
+   return(tsCanMsgT);
 }
