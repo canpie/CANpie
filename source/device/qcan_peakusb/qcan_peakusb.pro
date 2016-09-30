@@ -33,7 +33,6 @@ SOURCES         = qcan_peakusb.cpp                    \
 
 DESTDIR         = ../../qcan/plugins
 
-
 RESOURCES      += qcan_peakusb.qrc
 
 EXAMPLE_FILES = plugin.json

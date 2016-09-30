@@ -40,22 +40,176 @@ QCanGui::QCanGui()
     if (!loadPlugin()) {
         QMessageBox::information(this, "Error", "Could not load the plugin");
         lineEdit->setEnabled(false);
-        button->setEnabled(false);
     }
 }
 //! [0]
 
-//! [1]
-void QCanGui::sendEcho()
+uint32_t QCanGui::parmValue(QStringList clCmdV, uint8_t ubParmNrV)
 {
-    QString text = qCanInterface->echo(lineEdit->text());
-    label->setText(text);
-}
-//! [1]
+   bool     btResultT;
+   uint32_t ulValueT = 0;
 
-void QCanGui::receiveError(int32_t slErrorV)
+   if (clCmdV.length() > ubParmNrV)
+   {
+      ulValueT = clCmdV.at(ubParmNrV).toUInt(&btResultT, 10);
+      if (!btResultT)
+      {
+         ulValueT = 0;
+      }
+   }
+
+   return ulValueT;
+}
+
+void QCanGui::triggerCmd()
 {
-//    label->setText("HI");
+   uint8_t  ubChnNrT = 0;
+   QString  clStringT;
+
+   QStringList clCmdT = lineEdit->text().split(' ');
+   lineEdit->clear();
+
+   uint32_t ulStatusT;
+   QCanFrame clFrameT;
+
+   ubChnNrT = (uint8_t) parmValue(clCmdT,1);
+
+
+   //------------------------------------------------------------------
+   // connect
+   //
+   if (clCmdT.at(0)  == "connect")
+   {
+      ulStatusT = (uint32_t) qCanInterface->connect(ubChnNrT);
+      qInfo() << QString("connect(" + QString::number(ubChnNrT) + ") => " + QString::number(ulStatusT));
+   }
+
+   if (clCmdT.at(0) == "name")
+   {
+      clStringT = qCanInterface->name(ubChnNrT);
+      qInfo() << QString("name(" + QString::number(ubChnNrT) + ") => " + clStringT);
+   }
+
+   if (clCmdT.at(0) == "channel")
+   {
+      ulStatusT = (uint32_t) qCanInterface->channel();
+      qInfo() << QString("channel() => " + ulStatusT);
+   }
+
+   if (clCmdT.at(0) == "bitrate")
+   {
+      int32_t slBitrateT = (int32_t) parmValue(clCmdT,1);
+      int32_t slBrsClockV = (int32_t) parmValue(clCmdT,2);
+
+      ubChnNrT = (uint8_t) parmValue(clCmdT,3);
+
+      ulStatusT = qCanInterface->setBitrate((QCan::CAN_Bitrate_e) slBitrateT, slBrsClockV, ubChnNrT);
+      qInfo() << QString("bitrate(" + QString::number(slBitrateT) +"," +QString::number(slBrsClockV)+"," + QString::number(ubChnNrT) + ") => " + QString::number(ulStatusT));
+   }
+
+   if (clCmdT.at(0) == "runtest")
+   {
+      switch (parmValue(clCmdT,1))
+      {
+         case 0 :
+         if (qCanInterface->connect(0) != QCanInterface::eERROR_NONE)
+            qWarning() << "Warning: connect() fail!";
+
+         if (qCanInterface->setBitrate(QCan::eCAN_BITRATE_500K, 0,0) != QCanInterface::eERROR_NONE)
+            qWarning() << "Warning: setBitrate() fail!";
+
+         if (qCanInterface->setMode(QCan::eCAN_MODE_START,0) != QCanInterface::eERROR_NONE)
+            qWarning() << "Warning: setMode() fail!";
+         break;
+      }
+   }
+
+   if (clCmdT.at(0) == "write")
+   {
+      clFrameT.setStdId(175);
+      clFrameT.setDlc(5);
+      clFrameT.setData(0,5);
+      clFrameT.setData(1,4);
+      clFrameT.setData(2,3);
+      clFrameT.setData(3,2);
+      clFrameT.setData(4,1);
+
+      int32_t slStatusT = qCanInterface->write(clFrameT,0);
+
+      if (slStatusT ==  QCanInterface::eERROR_NONE)
+      {
+
+      }
+      else if (slStatusT !=  QCanInterface::eERROR_FIFO_TRM_FULL)
+      {
+         qWarning() << "Warning: write() fail!";
+      }
+   }
+
+   if (clCmdT.at(0) == "read")
+   {
+      int32_t slStatusT = qCanInterface->read(clFrameT,0);
+
+      if (slStatusT == QCanInterface::eERROR_NONE)
+      {
+         if (clFrameT.isExtended())
+         {
+            qDebug() << "Receive Ext: " + QString::number((uint32_t)clFrameT.identifier(),16) + "h " +
+                         QString::number((uint8_t)clFrameT.dlc(),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(0),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(1),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(2),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(3),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(4),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(5),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(6),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(7),16) + "h ";
+
+
+         } else
+         {
+            qDebug() << "Receive Std: " + QString::number((uint32_t)clFrameT.identifier(),16) + "h " +
+                         QString::number((uint8_t)clFrameT.dlc(),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(0),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(1),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(2),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(3),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(4),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(5),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(6),16) + "h " +
+                         QString::number((uint8_t)clFrameT.data(7),16) + "h ";
+         }
+      }
+      else if (slStatusT != QCanInterface::eERROR_FIFO_RCV_EMPTY)
+      {
+         qWarning() << "Warning: read() fail with " << QString::number(slStatusT,10);
+      }
+   }
+
+   if (clCmdT.at(0) == "write_ext")
+   {
+      clFrameT.setExtId(175234);
+      clFrameT.setDlc(8);
+      clFrameT.setData(0,0x55);
+      clFrameT.setData(1,0x44);
+      clFrameT.setData(2,0x33);
+      clFrameT.setData(3,0x22);
+      clFrameT.setData(4,0x11);
+      clFrameT.setData(5,0x14);
+      clFrameT.setData(6,0x15);
+      clFrameT.setData(7,0x16);
+
+      int32_t slStatusT = qCanInterface->write(clFrameT,0);
+
+      if (slStatusT == QCanInterface::eERROR_NONE)
+      {
+
+      }
+      else if (slStatusT != QCanInterface::eERROR_FIFO_TRM_FULL)
+      {
+         qWarning() << "Warning: write() fail!";
+      }
+   }
 }
 
 
@@ -69,29 +223,25 @@ void QCanGui::changePlugin(int slIdxV)
 }
 
 
-
-//! [2]
 void QCanGui::createGUI()
 {
     lineEdit = new QLineEdit;
-    label = new QLabel;
+//    label = new QLabel;
     comboBox = new QComboBox;
-    label->setFrameStyle(QFrame::Box | QFrame::Plain);
-    button = new QPushButton(tr("Send Message"));
+//    label->setFrameStyle(QFrame::Box | QFrame::Plain);
+//    button = new QPushButton(tr("Send Message"));
 
-    connect(lineEdit, SIGNAL(editingFinished()),
-            this, SLOT(sendEcho()));
-    connect(button, SIGNAL(clicked()),
-            this, SLOT(sendEcho()));
+    connect(lineEdit, SIGNAL( returnPressed()),
+            this, SLOT(triggerCmd()));
 
     layout = new QGridLayout;
     layout->addWidget(new QLabel(tr("Plugin:")), 0, 0);
     layout->addWidget(comboBox, 0, 1);
     layout->addWidget(new QLabel(tr("Message:")), 1, 0);
     layout->addWidget(lineEdit, 1, 1);
-    layout->addWidget(new QLabel(tr("Answer:")), 2, 0);
-    layout->addWidget(label, 2, 1);
-    layout->addWidget(button, 3, 1, Qt::AlignRight);
+//    layout->addWidget(new QLabel(tr("Answer:")), 2, 0);
+//    layout->addWidget(label, 2, 1);
+//    layout->addWidget(button, 3, 1, Qt::AlignRight);
     layout->setSizeConstraint(QLayout::SetFixedSize);
 }
 //! [2]
@@ -139,13 +289,6 @@ bool QCanGui::loadPlugin()
             {
                 clSelectItemListT.append(fileName);
                 aclDirListP.append(pluginsDir.absoluteFilePath(fileName));
-//                plugin->connect(plugin, SIGNAL(errorOccurred(int32_t) ),
-//                                this,          SLOT(  receiveError(int32_t) ) );
-//                connect(plugin, SIGNAL(errorOccurred() ),
-//                        this,   SLOT(  receiveError() ) );
-
-
-//                return true;
             }
         } else
 

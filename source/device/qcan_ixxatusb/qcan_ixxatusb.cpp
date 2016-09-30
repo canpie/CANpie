@@ -30,11 +30,25 @@
 #include "qcan_defs.hpp"
 #include <qcan_ixxatusb.hpp>
 
-/*!
-** \var aszErrTextG
-** Zero terminated string buffer to print error descriptions
-*/
-//char aszErrTextG[128];
+
+QCanIxxatUsb::QCanIxxatUsb()
+{
+
+}
+
+QCanIxxatUsb::~QCanIxxatUsb()
+{
+
+}
+
+//----------------------------------------------------------------------------//
+// channel()                                                                  //
+//                                                                            //
+//----------------------------------------------------------------------------//
+uint8_t QCanIxxatUsb::channel()
+{
+   return ubChannelP;
+}
 
 //----------------------------------------------------------------------------//
 // connect()                                                                  //
@@ -308,135 +322,6 @@ QCanInterface::InterfaceError_e QCanIxxatUsb::disconnect(uint8_t ubChannelV)
    pfnCanSchedulerStopMessageP = NULL;
 
    btLibFuncLoadP = false;
-}
-
-//----------------------------------------------------------------------------//
-// echo()                                                                     //
-// dummy implementation of a function to evaluate string                      //
-//----------------------------------------------------------------------------//
-QString QCanIxxatUsb::echo(const QString &message)
-{
-   uint32_t ulStatusT;
-   QString clRetStringT;
-   QCanFrame clFrameT;
-
-//   aszErrTextG[0] = 0;
-//   aszErrTextG[1] = 0;
-//   aszErrTextG[2] = 0;
-
-   if (message == "load")
-   {
-      connect();
-      clRetStringT = ";)";
-   }
-
-   if (message == "bitrate")
-   {
-      ulStatusT = setBitrate(QCan::eCAN_BITRATE_500K, 0);
-   }
-
-   if (message == "run")
-   {
-      if (connect() != eERROR_NONE)
-         qWarning() << "Warning: connect() fail!";
-
-      if (setBitrate(QCan::eCAN_BITRATE_500K, 0) != eERROR_NONE)
-         qWarning() << "Warning: setBitrate() fail!";
-
-      if (setMode(QCan::eCAN_MODE_START) != eERROR_NONE)
-         qWarning() << "Warning: setMode() fail!";
-
-   }
-
-   if (message == "read")
-   {
-      int32_t slStatusT = read(clFrameT);
-
-      if (slStatusT == eERROR_NONE)
-      {
-         if (clFrameT.isExtended())
-         {
-            qDebug() << "Receive Ext: " + QString::number((uint32_t)clFrameT.identifier(),16) + "h " +
-                         QString::number((uint8_t)clFrameT.dlc(),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(0),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(1),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(2),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(3),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(4),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(5),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(6),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(7),16) + "h ";
-
-
-         } else
-         {
-            qDebug() << "Receive Std: " + QString::number((uint32_t)clFrameT.identifier(),16) + "h " +
-                         QString::number((uint8_t)clFrameT.dlc(),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(0),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(1),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(2),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(3),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(4),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(5),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(6),16) + "h " +
-                         QString::number((uint8_t)clFrameT.data(7),16) + "h ";
-         }
-      }
-      else if (slStatusT != eERROR_FIFO_RCV_EMPTY)
-      {
-         qWarning() << "Warning: read() fail with " << QString::number(slStatusT,10);
-      }
-
-   }
-
-   if (message == "write")
-   {
-      clFrameT.setStdId(175);
-      clFrameT.setDlc(5);
-      clFrameT.setData(0,5);
-      clFrameT.setData(1,4);
-      clFrameT.setData(2,3);
-      clFrameT.setData(3,2);
-      clFrameT.setData(4,1);
-
-      int32_t slStatusT = write(clFrameT);
-
-      if (slStatusT == eERROR_NONE)
-      {
-
-      }
-      else if (slStatusT != eERROR_FIFO_TRM_FULL)
-      {
-         qWarning() << "Warning: write() fail!";
-      }
-   }
-
-   if (message == "write_ext")
-   {
-      clFrameT.setExtId(175234);
-      clFrameT.setDlc(8);
-      clFrameT.setData(0,0x55);
-      clFrameT.setData(1,0x44);
-      clFrameT.setData(2,0x33);
-      clFrameT.setData(3,0x22);
-      clFrameT.setData(4,0x11);
-      clFrameT.setData(5,0x14);
-      clFrameT.setData(6,0x15);
-      clFrameT.setData(7,0x16);
-
-      int32_t slStatusT = write(clFrameT);
-
-      if (slStatusT == eERROR_NONE)
-      {
-
-      }
-      else if (slStatusT != eERROR_FIFO_TRM_FULL)
-      {
-         qWarning() << "Warning: write() fail!";
-      }
-   }
-
-   return ("ixxat: " + message);
 }
 
 

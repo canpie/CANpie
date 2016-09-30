@@ -51,10 +51,11 @@ public:
     QCanGui();
 
 public slots:
-    void receiveError(int32_t);
+
 
 private slots:
-    void sendEcho();
+    uint32_t parmValue(QStringList clCmdV, uint8_t ubParmNrV);
+    void triggerCmd();
     void changePlugin(int slIdxV);
 
 private:
@@ -65,8 +66,6 @@ private:
     QList<QString> aclDirListP;
     QLineEdit *lineEdit;
     QComboBox *comboBox;
-    QLabel *label;
-    QPushButton *button;
     QGridLayout *layout;
 };
 //! [0]

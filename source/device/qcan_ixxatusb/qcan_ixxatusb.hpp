@@ -314,11 +314,15 @@ private:
     */
    QCanStatistic_ts clStatisticP;
 
-public:
+   uint8_t ubChannelP;
 
-   QString echo(const QString &message) Q_DECL_OVERRIDE;
+public:
+   QCanIxxatUsb();
+   ~QCanIxxatUsb();
 
    InterfaceError_e  connect(uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
+
+   uint8_t           channel(void) Q_DECL_OVERRIDE;
 
    InterfaceError_e  disconnect(uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
 

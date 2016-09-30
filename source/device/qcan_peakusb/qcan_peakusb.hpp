@@ -147,9 +147,9 @@ public:
    QCanPeakUsb();
    ~QCanPeakUsb();
 
-   QString echo(const QString &message) Q_DECL_OVERRIDE;
-
    InterfaceError_e  connect(uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
+
+   uint8_t           channel(void) Q_DECL_OVERRIDE;
 
    InterfaceError_e  disconnect(uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
 
@@ -175,8 +175,6 @@ public:
 
    InterfaceError_e  write(const QCanFrame &clFrameR,
                            uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
-
-   uint8_t          channel(void) Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
     void errorOccurred(int32_t slCanBusErrorV);

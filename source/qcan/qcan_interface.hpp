@@ -123,14 +123,6 @@ public:
 
 
    /*!
-   ** \internal
-   **
-   ** Test functions
-   */
-   virtual QString echo(const QString &message) = 0;
-
-
-   /*!
    ** Get icon from the physical channel \c ubChannelV of the CAN interface.
    ** The first CAN channel starts at index 0.
    */
