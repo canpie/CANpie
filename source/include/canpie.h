@@ -131,7 +131,7 @@
 ** it is also possible to emulate these. A value of 0 denotes that
 ** there are no message buffers available. This also means all buffer
 ** functions (e.g. CpCoreBufferInit(), etc.) return the error code
-** #CpErr_NOT_SUPPORTED.
+** #eCP_ERR_NOT_SUPPORTED.
 */
 #ifndef  CP_BUFFER_MAX
 #define  CP_BUFFER_MAX              0
@@ -230,7 +230,7 @@
 ** This symbol defines if the driver support statistic information.
 ** A value of 0 denotes that no statistic information is available.
 ** This also means that the function CpCoreStatistic() returns the
-** error code #CpErr_NOT_SUPPORTED.
+** error code #eCP_ERR_NOT_SUPPORTED.
 ** - 0 = no statistic information (not supported by driver)
 ** - 1 = enable statistic information
 */
@@ -282,7 +282,18 @@
 ** Bit mask for the EXT bit (extended frame) in the \c ubMsgCtrl 
 ** field of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
 */
-#define  CP_MASK_EXT_BIT      0x01
+#define  CP_MSG_CTRL_EXT_BIT     0x01
+
+
+/*-------------------------------------------------------------------*/
+/*!
+** \def     CP_MSG_CTRL_FD_BIT
+** \ingroup CP_MSG_CTRL
+**
+** Bit mask for the FD bit (FD frame) in the \c ubMsgCtrl
+** field of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
+*/
+#define  CP_MSG_CTRL_FD_BIT      0x02
 
 
 /*-------------------------------------------------------------------*/
@@ -329,32 +340,6 @@
 
 
 
-//-----------------------------------------------------------------------------
-/*!
-** \defgroup CP_ACC_MASK Mask values for acceptance filter
-**
-** The following definitions are used in combination with the
-** function CpCoreBufferAccMask()
-*/
-
-/*-------------------------------------------------------------------*/
-/*!
-** \def     CP_ACC_MASK_EXT
-** \ingroup CP_ACC_MASK
-** 
-** Bit mask for extended frame format.
-*/
-#define  CP_ACC_MASK_EXT      0x20000000
-
-/*-------------------------------------------------------------------*/
-/*!
-** \def     CP_ACC_MASK_RTR
-** \ingroup CP_ACC_MASK
-** 
-** Bit mask for remote frame format.
-*/
-#define  CP_ACC_MASK_RTR      0x40000000
-
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -374,7 +359,7 @@
 
 /*----------------------------------------------------------------------------*/
 /*!
-** \enum    CpErr
+** \enum    CpErr_e
 ** \brief   CANpie Error codes
 **
 ** All functions that may cause an error condition will return an
@@ -383,112 +368,112 @@
 ** table with hardware specific error codes, which must be in the range
 ** from 128 to 255.
 */
-enum CpErr {
+enum CpErr_e {
 
    /*!   No error (00dec / 00hex)
    */
-   CpErr_OK = 0,
+   eCP_ERR_NONE = 0,
 
    /*!   Error not specified (01dec / 01hex)
    */
-   CpErr_GENERIC,
+   eCP_ERR_GENERIC,
 
    /*!   Hardware failure (02dec / 02hex)
    */
-   CpErr_HARDWARE,
+   eCP_ERR_HARDWARE,
 
    /*!   Initialisation failure (03dec / 03hex)
    */
-   CpErr_INIT_FAIL,
+   eCP_ERR_INIT_FAIL,
 
    /*!   Channel is initialised, ready to run (04dec / 04hex)
    */
-   CpErr_INIT_READY,
+   eCP_ERR_INIT_READY,
 
    /*!    CAN channel was not initialised (05dec / 05hex)
    */
-   CpErr_INIT_MISSING,
+   eCP_ERR_INIT_MISSING,
 
    /*!   Receive buffer is empty (05dec / 05hex)
    */
-   CpErr_RCV_EMPTY,
+   eCP_ERR_RCV_EMPTY,
 
    /*!   Receive buffer overrun (06dec / 06hex)
    */
-   CpErr_OVERRUN,
+   eCP_ERR_OVERRUN,
 
    /*!   Transmit buffer is full (07dec / 07hex)
    */
-   CpErr_TRM_FULL,
+   eCP_ERR_TRM_FULL,
 
    /*!   CAN message has wrong format (10dec / 0Ahex)
    */
-   CpErr_CAN_MESSAGE = 10,
+   eCP_ERR_CAN_MESSAGE = 10,
 
    /*!   CAN identifier not valid (11dec / 0Bhex)
    */
-   CpErr_CAN_ID,
+   eCP_ERR_CAN_ID,
 
    /*!   CAN data length code not valid (12dec / 0Chex)
    */
-   CpErr_CAN_DLC,
+   eCP_ERR_CAN_DLC,
 
    /*!   FIFO is empty (20dec / 14hex)
    */
-   CpErr_FIFO_EMPTY = 20,
+   eCP_ERR_FIFO_EMPTY = 20,
 
    /*!   Message is waiting in FIFO (21dec / 15hex)
    */
-   CpErr_FIFO_WAIT,
+   eCP_ERR_FIFO_WAIT,
 
    /*!   FIFO is full (22dec / 16hex)
    */
-   CpErr_FIFO_FULL,
+   eCP_ERR_FIFO_FULL,
 
    /*!   FIFO size is out of range (23dec / 17hex)
    */
-   CpErr_FIFO_SIZE,
+   eCP_ERR_FIFO_SIZE,
 
    /*!   Parameter of FIFO function is out of range (24dec / 18hex)
    */
-   CpErr_FIFO_PARM,
+   eCP_ERR_FIFO_PARM,
 
    /*!   Controller is in error passive (30dec / 1Ehex)
    */
-   CpErr_BUS_PASSIVE = 30,
+   eCP_ERR_BUS_PASSIVE = 30,
 
    /*!   Controller is in bus off (31dec / 1Fhex)
    */
-   CpErr_BUS_OFF,
+   eCP_ERR_BUS_OFF,
 
    /*!   Controller is in warning status (32dec / 20hex)
    */
-   CpErr_BUS_WARNING,
+   eCP_ERR_BUS_WARNING,
 
 
    /*!   Channel out of range (40dec / 28hex)
    */
-   CpErr_CHANNEL = 40,
+   eCP_ERR_CHANNEL = 40,
 
    /*!   Register address out of range (41dec / 29hex)
    */
-   CpErr_REGISTER,
+   eCP_ERR_REGISTER,
 
    /*!   Bitrate out of range (42dec / 2Ahex)
    */
-   CpErr_BAUDRATE,
+   eCP_ERR_BITRATE,
 
    /*!   Buffer number out of range (43dec / 2Bhex)
    */
-   CpErr_BUFFER,
+   eCP_ERR_BUFFER,
 
    /*!   Parameter number out of range (44dec / 2Chex)
    */
-   CpErr_PARAM,
+   eCP_ERR_PARAM,
 
    /*!   Function is not supported (50dec / 32hex)
    */
-   CpErr_NOT_SUPPORTED = 50
+   eCP_ERR_NOT_SUPPORTED = 50
 };
 
 
@@ -729,9 +714,21 @@ enum CpState_e {
 
 };
 
+/*----------------------------------------------------------------------------*/
+/*!
+** \enum    CpErrType_e
+** \brief   Error type
+**
+** These values are used as return value for the function CpCoreCanState().
+*/
 enum CpErrType_e {
+
+   /*! No error                        */
    eCP_ERR_TYPE_NONE   = 0,
+
+   /*! Bit 0 error                     */
    eCP_ERR_TYPE_BIT0,
+
    eCP_ERR_TYPE_BIT1,
    eCP_ERR_TYPE_STUFF,
    eCP_ERR_TYPE_FORM,
@@ -748,8 +745,12 @@ enum CpErrType_e {
 ** FullCAN controller. The index for the first buffer starts at 0.
 */
 enum CpBuffer_e {
+   /*! First buffer of FullCAN controller             */
    eCP_BUFFER_1 = 1,
+
+   /*! Seconds buffer of FullCAN controller           */
    eCP_BUFFER_2,
+
    eCP_BUFFER_3,
    eCP_BUFFER_4,
    eCP_BUFFER_5,
@@ -771,19 +772,20 @@ enum CpBuffer_e {
 /*!
 ** \enum    CpBufferDir_e
 ** \brief   Buffer direction definition
+**
+** The enumeration CpBufferDir_e is used to define the direction of
+** a message buffer (transmit or receive). The enumeration values are
+** used by the function CpCoreBufferConfig().
+**
 */
 enum CpBufferDir_e {
-   /*!
-   **    Buffer direction is receive
-   */
-   eCP_BUFFER_DIR_RX = 0,
 
-   /*!
-   **    Buffer direction is transmit
-   */
-   eCP_BUFFER_DIR_TX
+   /*! Message buffer direction is receive               */
+   eCP_BUFFER_DIR_RCV = 0,
+
+   /*! Message buffer direction is transmit              */
+   eCP_BUFFER_DIR_TRM
 };
-
 
 /*----------------------------------------------------------------------------*\
 ** Structures                                                                 **
@@ -866,8 +868,8 @@ struct CpCanMsg_s {
    ** The structure member \c ubMsgCtrl defines the
    ** different data frames (2.0A / 2.0B) and the RTR frames.
    ** <ul>
-   ** <li>Bit 0: Frame Format 0
-   ** <li>Bit 1: Frame Format 1
+   ** <li>Bit 0: Std. / Ext. Frame
+   ** <li>Bit 1: Classic CAN / CAN FD
    ** <li>Bit 2: Remote Frame
    ** <li>Bit 3: Overload Frame
    ** <li>Bit 4: reserved, always 0
@@ -1052,12 +1054,12 @@ typedef struct CpStatistic_s {
 typedef struct CpState_s {
 
    /*!   CAN error state 
-   **    Value should correspond to values from #CP_STATE
+   **    Value should correspond to values from #CpState_e
    */
    uint8_t     ubCanErrState;
 
    /*!   Last error type occurred
-   **    Value should correspond to values from #CP_ERR_TYPE 
+   **    Value should correspond to values from #CpErrType_e
    */
    uint8_t     ubCanErrType;
 
