@@ -73,8 +73,9 @@ void  ClientDemo::onClientNmtStop(void)
 {
    QCanFrame   clCanFrameT;
 
+   clCanFrameT.setFrameType(QCanFrame::eTYPE_FD_STD);
    clCanFrameT.setStdId(0x60A);
-   clCanFrameT.setDlc(8);
+   clCanFrameT.setDlc(12);
    clCanFrameT.setData(0, 0x22);
    clCanFrameT.setData(1, 0x17);
    clCanFrameT.setData(2, 0x10);
