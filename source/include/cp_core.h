@@ -54,7 +54,7 @@
 ** (hardware). Please note that due to hardware limitations maybe certain
 ** functions are not implemented on the target platform. A call to an
 ** unsupported function will always return the error code
-** #CpErr_NOT_SUPPORTED.
+** #eCP_ERR_NOT_SUPPORTED.
 ** <p>
 ** For a "FullCAN" controller (i.e. a CAN controller that has several message
 ** buffers) an extended set of powerful functions (CpCoreBuffer..())is provided.
@@ -66,7 +66,7 @@
 ** nor switch the CAN controller to active operation. The following core
 ** functions must be called in that order:
 ** \li CpCoreDriverInit()
-** \li CpCoreBaudrate() / CpCoreBittiming()
+** \li CpCoreBitrate()
 ** \li CpCoreCanMode()
 **
 ** The function CpCoreDriverInit() must be called before any other core
@@ -81,15 +81,15 @@
 **    // setup the CAN controller / open a physical CAN
 **    // port
 **    //
-**    CpCoreDriverInit(CP_CHANNEL_1, &tsCanPortT);
+**    CpCoreDriverInit(eCP_CHANNEL_1, &tsCanPortT);
 **    //---------------------------------------------------
 **    // setup 500 kBit/s
 **    //
-**    CpCoreBaudrate(&tsCanPortT, CP_BAUD_500K);
+**    CpCoreBaudrate(&tsCanPortT, eCP_BITRATE_500K);
 **    //---------------------------------------------------
 **    // start CAN operation
 **    //
-**    CpCoreCanMode(&tsCanPortT, CP_MODE_START);
+**    CpCoreCanMode(&tsCanPortT, eCP_MODE_START);
 **    //.. now we are operational
 ** }
 ** \endcode
@@ -125,12 +125,8 @@ extern "C" {                                                         //
 **
 */
 #if   CP_SMALL_CODE == 1
-#define  CpCoreAccMask(CH, A)                CpCoreAccMask(A)
-#define  CpCoreAutobaud(CH, A, B)            CpCoreAutobaud(A, B)
-#define  CpCoreBaudrate(CH, A)               CpCoreBaudrate(A)
-#define  CpCoreBittiming(CH, A)              CpCoreBittiming(A)
+#define  CpCoreBitrate(CH, A, B)             CpCoreBaudrate(A, B)
 
-#define  CpCoreBufferAccMask(CH, A, B)       CpCoreBufferAccMask(A, B)
 #define  CpCoreBufferGetData(CH, A, B)       CpCoreBufferGetData(A, B)
 #define  CpCoreBufferGetDlc(CH, A, B)        CpCoreBufferGetDlc(A, B)
 #define  CpCoreBufferInit(CH, A, B, C)       CpCoreBufferInit(A, B, C)
@@ -138,7 +134,6 @@ extern "C" {                                                         //
 #define  CpCoreBufferSetData(CH, A, B)       CpCoreBufferSetData(A, B)
 #define  CpCoreBufferSetDlc(CH, A, B)        CpCoreBufferSetDlc(A, B)
 #define  CpCoreBufferSend(CH, A)             CpCoreBufferSend(A)
-#define  CpCoreBufferTransmit(CH, A, B)      CpCoreBufferTransmit(A, B)
 #define  CpCoreCanMode(CH, A)                CpCoreCanMode(A)
 #define  CpCoreCanState(CH, A)               CpCoreCanState(A)
 
@@ -169,30 +164,39 @@ extern "C" {                                                         //
 ** \param   ptsPortV       Pointer to CAN port structure
 ** \param   ulBitrateV     Bitrate selection
 **
-** \return  Error code taken from the #CpErr enumeration. If no error
-**          occurred, the function will return \c CpErr_OK.
+** \return  Error code taken from the #CpErr_e enumeration. If no error
+**          occurred, the function will return \c eCP_ERR_NONE.
 */
-CpStatus_tv CpCoreBitrate( CpPort_ts * ptsPortV, uint32_t ulBitrateV,
-                           uint32_t ulBrsClockV);
+CpStatus_tv CpCoreBitrate( CpPort_ts * ptsPortV, int32_t slBitrateV,
+                           int32_t slBrsClockV);
 
 /*!
-** \brief   Initialise buffer in FullCAN controller
-** \param   ptsPortV       Pointer to CAN port structure
-** \param   ptsCanMsgV     Pointer to a CAN message structure
-** \param   ubBufferIdxV   Buffer number
-** \param   ubDirectionV   Direction of message
+** \brief   Initialise message buffer
+** \param   ptsPortV          Pointer to CAN port structure
+** \param   ubBufferIdxV      Buffer number
+** \param   ulIdentifierV     Identifier value
+** \param   ulAcceptMaskV     Acceptance mask value
+** \param   ubControlV        Direction of message
+** \param   ubDirectionV      Message direction
 **
-** \return  Error code taken from the #CpErr enumeration. If no error
-**          occurred, the function will return \c CpErr_OK.
+** \return  Error code taken from the #CpErr_e enumeration. If no error
+**          occurred, the function will return \c eCP_ERR_NONE.
 **
 ** \see     CpCoreBufferRelease()
 **
-** This function allocates the message buffer in a FullCAN controller.
-** The number of the message buffer inside the FullCAN controller is
-** denoted via the parameter \c ubBufferIdxV.
-** The parameter \c ubDirectionV can have the following values:
-** \li CP_BUFFER_DIR_RX: receive
-** \li CP_BUFFER_DIR_TX: transmit
+** This function allocates a message buffer in a CAN controller.
+** The number of the message buffer inside the CAN controller is
+** denoted via the parameter \c ubBufferIdxV. The first buffer starts
+** at position eCP_BUFFER_1. The message buffer is allocated with the
+** identifier value \c ulIdentifierV. If the buffer is used for
+** reception (parameter \c ubDirectionV is eCP_BUFFER_DIR_RCV), the
+** parameter \c ulAcceptMaskV is used for acceptance filtering.
+**
+**
+** The parameter \c ubControlV can have the following values:
+** \li #CP_MSG_CTRL_EXT_BIT : Extended frame
+** \li #CP_MSG_CTRL_FD_BIT  : FD frame
+** \li #CP_MSG_CTRL_RTR_BIT : RTR frame
 **
 ** The following example shows the setup of a transmit buffer
 ** \dontinclude buf_init.c
@@ -203,21 +207,23 @@ CpStatus_tv CpCoreBitrate( CpPort_ts * ptsPortV, uint32_t ulBitrateV,
 ** CpCoreBufferSend().
 */
 CpStatus_tv CpCoreBufferConfig( CpPort_ts * ptsPortV, 
-                                uint8_t  ubBufferIdxV, 
-                                uint32_t ulIdentifierV,
-                                uint32_t ulAcceptanceMaskV,
-                                uint8_t  ubControlV);
+                                uint8_t   ubBufferIdxV,
+                                uint32_t  ulIdentifierV,
+                                uint32_t  ulAcceptMaskV,
+                                uint8_t   ubControlV,
+                                uint8_t   ubDirectionV);
 
 CpStatus_tv CpCoreBufferEnable( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
                                 uint8_t ubEnableV);
+
 /*!
 ** \brief   Get data from message buffer
 ** \param   ptsPortV       Pointer to CAN port structure
 ** \param   ubBufferIdxV   Buffer number
 ** \param   pubDataV       Buffer for data
 **
-** \return  Error code taken from the #CpErr enumeration. If no error
-**          occurred, the function will return \c CpErr_OK.
+** \return  Error code taken from the #CpErr_e enumeration. If no error
+**          occurred, the function will return \c eCP_ERR_NONE.
 **
 ** This function is the fastest method to get data from a FullCAN message
 ** buffer. The buffer has to be configured by a call to CpCoreBufferInit()
@@ -236,8 +242,8 @@ CpStatus_tv CpCoreBufferGetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 ** \param   ubBufferIdxV   Buffer number
 ** \param   pubDlcV        Data Length Code
 **
-** \return  Error code taken from the #CpErr enumeration. If no error
-**          occurred, the function will return \c CpErr_OK.
+** \return  Error code taken from the #CpErr_e enumeration. If no error
+**          occurred, the function will return \c eCP_ERR_NONE.
 **
 ** This function retrieves the Data Length Code (DLC) of the selected buffer
 ** \c ubBufferIdxV.
@@ -247,14 +253,13 @@ CpStatus_tv CpCoreBufferGetDlc(  CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 
 
 
-
 /*!
 ** \brief   Release message buffer of FullCAN controller
 ** \param   ptsPortV       Pointer to CAN port structure
 ** \param   ubBufferIdxV   Buffer number
 **
-** \return  Error code taken from the #CpErr enumeration. If no error
-**          occurred, the function will return \c CpErr_OK.
+** \return  Error code taken from the #CpErr_e enumeration. If no error
+**          occurred, the function will return \c eCP_ERR_NONE.
 **
 ** \see     CpCoreBufferInit()
 */
@@ -266,13 +271,13 @@ CpStatus_tv CpCoreBufferRelease( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV);
 ** \param   ptsPortV       Pointer to CAN port structure
 ** \param   ubBufferIdxV   Index of message buffer
 **
-** \return  Error code taken from the #CpErr enumeration. If no error
-**          occurred, the function will return \c CpErr_OK.
+** \return  Error code taken from the #CpErr_e enumeration. If no error
+**          occurred, the function will return \c eCP_ERR_NONE.
 **
 ** This function transmits a message from the specified message buffer
 ** \c ubBufferIdxV. The message buffer has to be configured by a call to
 ** CpCoreBufferInit() in advance. The first message buffer starts at
-** the index CP_BUFFER_1.
+** the index #eCP_BUFFER_1.
 **
 */
 CpStatus_tv CpCoreBufferSend(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV);
@@ -284,8 +289,8 @@ CpStatus_tv CpCoreBufferSend(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV);
 ** \param   ubBufferIdxV   Buffer number
 ** \param   pubDataV       Pointer to data buffer
 **
-** \return  Error code taken from the #CpErr enumeration. If no error
-**          occurred, the function will return \c CpErr_OK.
+** \return  Error code taken from the #CpErr_e enumeration. If no error
+**          occurred, the function will return \c eCP_ERR_NONE.
 **
 ** This function is the fastest method to set the data bytes of a CAN message.
 ** It can be used in combination with the function CpCoreBufferSend(). It
@@ -302,10 +307,10 @@ CpStatus_tv CpCoreBufferSend(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV);
 ** aubDataT[1] = 0x22;  // byte 1: set to 22hex
 
 ** //--- copy the stuff to message buffer 1 ---------------
-** CpCoreBufferSetData(CP_CHANNEL_1, CP_BUFFER_1, &aubDataT);
+** CpCoreBufferSetData(CP_CHANNEL_1, eCP_BUFFER_1, &aubDataT);
 **
 ** //--- send this message out ----------------------------
-** CpCoreBufferSend(CP_CHANNEL_1, CP_BUFFER_1);
+** CpCoreBufferSend(CP_CHANNEL_1, eCP_BUFFER_1);
 ** \endcode
 **
 */
@@ -321,8 +326,8 @@ CpStatus_tv CpCoreBufferSetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 ** \param   ubBufferIdxV   Buffer number
 ** \param   ubDlcV         Data Length Code
 **
-** \return  Error code taken from the #CpErr enumeration. If no error
-**          occurred, the function will return \c CpErr_OK.
+** \return  Error code taken from the #CpErr_e enumeration. If no error
+**          occurred, the function will return \c eCP_ERR_NONE.
 **
 ** This function sets the Data Length Code (DLC) of the selected buffer
 ** ubBufferIdxV. The DLC must be in the range from 0 to 8.
@@ -337,11 +342,11 @@ CpStatus_tv CpCoreBufferSetDlc(  CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 ** \param   ptsPortV       Pointer to CAN port structure
 ** \param   ubModeV        Mode selection
 **
-** \return  Error code taken from the #CpErr enumeration. If no error
-**          occurred, the function will return \c CpErr_OK.
+** \return  Error code taken from the #CpErr_e enumeration. If no error
+**          occurred, the function will return \c eCP_ERR_NONE.
 **
 ** This function changes the operating mode of the CAN controller.
-** Possible values for mode are defined in the #CP_MODE enumeration.
+** Possible values for mode are defined in the #CpMode_e enumeration.
 */
 CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV);
 
@@ -351,11 +356,11 @@ CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV);
 ** \param   ptsPortV       Pointer to CAN port structure
 ** \param   ptsStateV      Pointer to CAN state structure
 **
-** \return  Error code taken from the #CpErr enumeration. If no error
-**          occurred, the function will return \c CpErr_OK.
+** \return  Error code taken from the #CpErr_e enumeration. If no error
+**          occurred, the function will return \c eCP_ERR_NONE.
 **
 ** This function retrieved the present state of the CAN controller. Possible
-** values are defined in the #CP_STATE enumeration. The state of the CAN
+** values are defined in the #CpState_e enumeration. The state of the CAN
 ** controller is copied to the variable pointer 'ptsStateV'.
 */
 CpStatus_tv CpCoreCanState(CpPort_ts * ptsPortV, CpState_ts * ptsStateV);
@@ -376,8 +381,8 @@ CpStatus_tv CpCoreCanState(CpPort_ts * ptsPortV, CpState_ts * ptsStateV);
 ** \param   ubPhyIfV     CAN channel of the hardware
 ** \param   ptsPortV     Pointer to CAN port structure
 **
-** \return  Error code taken from the #CpErr enumeration. If no error
-**          occurred, the function will return \c CpErr_OK.
+** \return  Error code taken from the #CpErr_e enumeration. If no error
+**          occurred, the function will return \c eCP_ERR_NONE.
 **
 ** \see     CpCoreDriverRelease()
 **
@@ -385,16 +390,18 @@ CpStatus_tv CpCoreCanState(CpPort_ts * ptsPortV, CpState_ts * ptsStateV);
 ** parameter \c ubPhyIfV. The value for \c ubPhyIfV is taken from
 ** the enumeration CP_CHANNEL. The function sets up the field
 ** members of the CAN port handle \c ptsPortV. On success, the
-** function returns CpErr_OK. On failure, the function can return
+** function returns eCP_ERR_NONE. On failure, the function can return
 ** the following values:
 ** <ul>
 ** <li>#CpErr_HARDWARE
-** <li>#CpErr_INIT_FAIL
+** <li>#eCP_ERR_INIT_FAIL
 ** </ul>
 ** An opened handle to a CAN port must be closed via the CpCoreDriverRelease()
 ** function.
 */
-CpStatus_tv CpCoreDriverInit(uint8_t ubPhyIfV, CpPort_ts * ptsPortV);
+CpStatus_tv CpCoreDriverInit(uint8_t ubPhyIfV, CpPort_ts * ptsPortV,
+                             uint8_t ubConfigV);
+
 //-------------------------------------------------------------------
 // Re-define the function for proper compilation.
 //
@@ -418,8 +425,8 @@ CpStatus_tv CpCoreDriverInit(uint8_t ubPhyIfV, CpPort_ts * ptsPortV);
 ** \brief   Release the CAN driver
 ** \param   ptsPortV       Pointer to CAN port structure
 **
-** \return  Error code taken from the #CpErr enumeration. If no error
-**          occurred, the function will return \c CpErr_OK.
+** \return  Error code taken from the #CpErr_e enumeration. If no error
+**          occurred, the function will return \c eCP_ERR_NONE.
 **
 ** \see     CpCoreDriverInit()
 **
@@ -448,8 +455,8 @@ CpStatus_tv CpCoreDriverRelease(CpPort_ts * ptsPortV);
 ** \param   ptsHdiV        Pointer to the Hardware Description Interface
 **                         structure (CpHdi_ts)
 **
-** \return  Error code taken from the #CpErr enumeration. If no error
-**          occurred, the function will return \c CpErr_OK.
+** \return  Error code taken from the #CpErr_e enumeration. If no error
+**          occurred, the function will return \c eCP_ERR_NONE.
 **
 ** This function retrieves information about the used hardware.
 **
@@ -464,8 +471,8 @@ CpStatus_tv CpCoreHDI(CpPort_ts * ptsPortV, CpHdi_ts * ptsHdiV);
 ** \param   pfnTrmHandler  Pointer to callback function for transmit interrupt
 ** \param   pfnErrHandler  Pointer to callback function for error interrupt
 **
-** \return  Error code taken from the #CpErr enumeration. If no error
-**          occurred, the function will return \c CpErr_OK.
+** \return  Error code taken from the #CpErr_e enumeration. If no error
+**          occurred, the function will return \c eCP_ERR_NONE.
 **
 ** This function will install three different callback routines in the
 ** interrupt handler. If you do not want to install a callback for a
@@ -495,8 +502,8 @@ CpStatus_tv CpCoreIntFunctions(  CpPort_ts * ptsPortV,
 ** \param   ptsBufferV     Pointer to a CAN message structure
 ** \param   pulBufferSizeV Pointer to size variable
 **
-** \return  Error code taken from the #CpErr enumeration. If no error
-**          occurred, the function will return \c CpErr_OK.
+** \return  Error code taken from the #CpErr_e enumeration. If no error
+**          occurred, the function will return \c eCP_ERR_NONE.
 **
 ** This function reads the receive queue from a CAN controller.
 */
@@ -511,8 +518,8 @@ CpStatus_tv CpCoreMsgRead( CpPort_ts * ptsPortV, CpCanMsg_ts * ptsBufferV,
 ** \param   ptsBufferV     Pointer to a CAN message structure
 ** \param   pulBufferSizeV Pointer to size variable
 **
-** \return  Error code taken from the #CpErr enumeration. If no error
-**          occurred, the function will return \c CpErr_OK.
+** \return  Error code taken from the #CpErr_e enumeration. If no error
+**          occurred, the function will return \c eCP_ERR_NONE.
 **
 ** This function writes to the transmit queue of a CAN controller.
 */
@@ -525,11 +532,11 @@ CpStatus_tv CpCoreMsgWrite(CpPort_ts * ptsPortV, CpCanMsg_ts * ptsBufferV,
 ** \param   ptsPortV       Pointer to CAN port structure
 ** \param   ptsStatsV      Pointer to statistic data structure
 **
-** \return  Error code taken from the CpErr enumeration. Possible
+** \return  Error code taken from the CpErr_e enumeration. Possible
 **          return values are:
 **          <ul>
-**          <li>CpErr_CHANNEL - Channel number is out of range
-**          <li>CpErr_OK - Function returned without error condition
+**          <li>eCP_ERR_CHANNEL - Channel number is out of range
+**          <li>eCP_ERR_NONE - Function returned without error condition
 **          </ul>
 **
 ** This function copies CAN statistic information to the structure
