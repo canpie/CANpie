@@ -1,4 +1,5 @@
-/Makefile
+/Makefile*
+/*.o
 /PCANBasic.h
 /PCBUSB.h
 /.qmake.stash
