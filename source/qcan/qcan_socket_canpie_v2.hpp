@@ -75,7 +75,7 @@ public:
    uint8_t     (* pfnTrmIntHandlerP) (CpCanMsg_ts *, uint8_t);
    uint8_t     (* pfnErrIntHandlerP) (CpState_ts *);
 
-public slots:
+private slots:
    void  onSocketReceive(void);
 
 private:
