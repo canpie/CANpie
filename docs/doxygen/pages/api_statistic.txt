@@ -1,0 +1,9 @@
+//-----------------------------------------------------------------------------
+/*!
+** \page page.api_statistic    Statistic information
+
+Statistic information about a physical CAN interface can be gathered
+via the function CpCoreStatistic(). All counters are set to 0 upon
+initialisation of the CAN interface (CpCoreDriverInit()).
+
+*/

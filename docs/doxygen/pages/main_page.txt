@@ -1,0 +1,67 @@
+//-----------------------------------------------------------------------------
+/*!
+** \mainpage    CANpie Documentation
+
+<table border=0>
+
+<tr class="infhead">
+<td width=300><b>Getting Started</b></td>
+<td width=300><b>CAN</b></td>
+<td width=300><b>Developer Resources</b></td>
+</tr>
+
+<tr class="inflist">
+<td>\ref Installation</td>
+<td>\ref page.intro_can</td>
+<td>\ref page.api_deprecated </td>
+</tr>
+
+<tr class="inflist">
+<td>\ref page.examples</td>
+<td>\ref page.api_phys_can</td>
+<td>&nbsp;</td>
+</tr>
+
+<tr class="inflist">
+<td>&nbsp;</td>
+<td>\ref page.api_bitiming</td>
+<td>&nbsp;</td>
+</tr>
+
+</table>
+
+<p>
+<br>
+
+<table border=0>
+
+<tr class="infhead">
+<td width=300><b>API Reference</b></td>
+<td width=300><b>Target Platforms</b></td>
+<td width=300><b>License</b></td>
+</tr>
+
+<tr class="inflist">
+<td><a href="files.html">Files</a></td>
+<td>Microcontroller </td>
+<td>\ref page.license</td>
+</tr>
+
+<tr class="inflist">
+<td><a href="annotated.html">Structures</a></td>
+<td>Linux</td>
+<td></td>
+</tr>
+
+<tr class="inflist">
+<td></td>
+<td>Windows</td>
+<td>&nbsp;</td>
+</tr>
+
+</table>
+
+<p>
+<br>
+
+*/

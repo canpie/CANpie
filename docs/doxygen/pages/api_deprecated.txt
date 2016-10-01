@@ -1,0 +1,27 @@
+//-----------------------------------------------------------------------------
+/*!
+** \page page.api_deprecated    Deprecated functions
+<p>
+- CpCore
+<p>
+
+/*!
+** \brief   Set buffer acceptance mask
+** \param   ptsPortV       Pointer to CAN port structure
+** \param   ubBufferIdxV   Buffer number
+** \param   ulAccMaskV     Acceptance mask
+**
+** \return  Error code taken from the #CpErr enumeration. If no error
+**          occurred, the function will return \c CpErr_OK.
+**
+** This function sets the acceptance mask \a ulAccMaskV for the message
+** buffer with index \a ubBufferIdxV. An acceptance mask value of
+** 0x000007FF configures the message buffer to receive all possible
+** CAN standard frames.
+**
+*/
+CpStatus_tv CpCoreBufferAccMask( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
+                                 uint32_t ulAccMaskV);
+                                 
+n is taken from the enumeration #CP_BAUD (canpie.h).
+*/
