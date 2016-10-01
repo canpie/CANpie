@@ -639,7 +639,6 @@ CpStatus_tv CpCoreBufferTransmit(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 //----------------------------------------------------------------------------//
 CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV)
 {
-   uint8_t           ubStatusT;
    QCanFrameApi      clFrameT;
    QCanSocketCp2 *   pclSockT;
 
@@ -711,7 +710,7 @@ CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV)
    }
 
 
-   return(ubStatusT);
+   return(CpErr_OK);
 }
 
 
