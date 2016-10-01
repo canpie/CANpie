@@ -45,6 +45,12 @@ public:
    */
    void disconnectNetwork(void);
 
+   /*!
+   ** Returns the type of error that last occurred.
+   */
+   QAbstractSocket::SocketError  error() const;
+
+
    int32_t  framesAvailable(void) const;
 
    bool isConnected(void);
@@ -72,16 +78,36 @@ public:
    */
    bool  writeFrame(const QCanFrame & clFrameR);
 
+   /*!
+   ** This is an overloaded function, using QCanFrameApi as parameter.
+   */
    bool  writeFrame(const QCanFrameApi & clFrameR);
 
 
 public slots:
-   void  onSocketConnect(void);
-   void  onSocketDisconnect(void);
-   void  onSocketError(QAbstractSocket::SocketError eSocketErrorV);
-   virtual void  onSocketReceive(void);
+
+
 
 signals:
+
+   /*!
+   ** This signal is emitted after connectNetwork() has been called and
+   ** a connection has been successfully established.
+   */
+   void  connected(void);
+
+   /*!
+   ** This signal is emitted when the socket has been disconnected.
+   */
+   void  disconnected(void);
+
+   /*!
+   ** This signal is emitted after an error occurred. The \c teSockErrorV
+   ** parameter describes the type of error that occurred.
+   */
+   void  error(QAbstractSocket::SocketError teSockErrorV);
+
+
    void  framesReceived(uint32_t ulFrameCntV);
 
 protected:
@@ -92,6 +118,13 @@ private:
    QHostAddress         clTcpHostAddrP;
    uint16_t             uwTcpPortP;
    bool                 btIsConnectedP;
+   int32_t              slSocketErrorP;
+
+private slots:
+   void  onSocketConnect(void);
+   void  onSocketDisconnect(void);
+   void  onSocketError(QAbstractSocket::SocketError teSocketErrorV);
+   virtual void  onSocketReceive(void);
 };
 
 #endif   // QCAN_SOCKET_HPP_

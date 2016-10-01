@@ -132,6 +132,21 @@ void QCanSocket::disconnectNetwork(void)
    pclTcpSockP->disconnectFromHost();
 }
 
+
+//----------------------------------------------------------------------------//
+// error()                                                                    //
+//                                                                            //
+//----------------------------------------------------------------------------//
+QAbstractSocket::SocketError QCanSocket::error() const
+{
+   return((QAbstractSocket::SocketError) slSocketErrorP);
+}
+
+
+//----------------------------------------------------------------------------//
+// framesAvailable()                                                          //
+//                                                                            //
+//----------------------------------------------------------------------------//
 int32_t QCanSocket::framesAvailable(void) const
 {
    uint32_t    ulFrameCountT;
@@ -141,10 +156,16 @@ int32_t QCanSocket::framesAvailable(void) const
    return(ulFrameCountT);
 }
 
+
+//----------------------------------------------------------------------------//
+// isConnected()                                                              //
+//                                                                            //
+//----------------------------------------------------------------------------//
 bool QCanSocket::isConnected(void)
 {
    return(btIsConnectedP);
 }
+
 
 //----------------------------------------------------------------------------//
 // onSocketConnect()                                                          //
@@ -152,8 +173,14 @@ bool QCanSocket::isConnected(void)
 //----------------------------------------------------------------------------//
 void QCanSocket::onSocketConnect(void)
 {
+   qDebug() << "QCanSocket::onSocketConnect() ";
+
+   //----------------------------------------------------------------
+   // send signal about connection state and keep it in local
+   // variable
+   //
    btIsConnectedP = true;
-   qDebug() << "QCanSocket::onSocketConnect() - " << btIsConnectedP;
+   emit connected();
 }
 
 
@@ -164,7 +191,13 @@ void QCanSocket::onSocketConnect(void)
 void QCanSocket::onSocketDisconnect(void)
 {
    qDebug() << "QCanSocket::onSocketDisconnect() ";
+
+   //----------------------------------------------------------------
+   // send signal about connection state and keep it in local
+   // variable
+   //
    btIsConnectedP = false;
+   emit disconnected();
 }
 
 
@@ -172,16 +205,20 @@ void QCanSocket::onSocketDisconnect(void)
 // onSocketError()                                                            //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void QCanSocket::onSocketError(QAbstractSocket::SocketError eSocketErrorV)
+void QCanSocket::onSocketError(QAbstractSocket::SocketError teSocketErrorV)
 {
    qDebug() << "QCanSocket::onSocketError() ";
 
-   switch(eSocketErrorV)
+   switch(teSocketErrorV)
    {
+      //-------------------------------------------------------------
+      // abort all operations and disconnect socket
+      //
       case QAbstractSocket::RemoteHostClosedError:
       case QAbstractSocket::NetworkError:
          pclTcpSockP->abort();
          btIsConnectedP = false;
+         emit disconnected();
          break;
 
       default:
@@ -189,6 +226,12 @@ void QCanSocket::onSocketError(QAbstractSocket::SocketError eSocketErrorV)
          break;
 
    }
+
+   //----------------------------------------------------------------
+   // store socket error and send signal
+   //
+   slSocketErrorP = teSocketErrorV;
+   emit error(teSocketErrorV);
 }
 
 
