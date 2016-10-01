@@ -39,10 +39,13 @@
 #define  CP_MSG_H_
 
 
-//-----------------------------------------------------------------------------
-// SVN  $Date: 2014-06-14 13:48:00 +0200 (Sa, 14 Jun 2014) $
-// SVN  $Rev: 5945 $ --- $Author: koppe $
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------//
+// take precautions if compiled with C++ compiler                    //
+#ifdef __cplusplus                                                   //
+extern "C" {                                                         //
+#endif                                                               //
+//-------------------------------------------------------------------//
+
 
 
 //-----------------------------------------------------------------------------
@@ -145,26 +148,6 @@ void  CpMsgClrRemote(CpCanMsg_ts * ptsCanMsgV);
 
 //------------------------------------------------------------------------------
 /*!
-** \brief   Disable Message
-** \param   ptsCanMsgV  Pointer to a CpCanMsg_ts message
-**
-** This function disables a CAN message.
-*/
-void  CpMsgDisable(CpCanMsg_ts * ptsCanMsgV);
-
-
-//------------------------------------------------------------------------------
-/*!
-** \brief   Enable Message
-** \param   ptsCanMsgV  Pointer to a CpCanMsg_ts message
-**
-** This function enables a CAN message.
-*/
-void  CpMsgEnable(CpCanMsg_ts * ptsCanMsgV);
-
-
-//------------------------------------------------------------------------------
-/*!
 ** \brief   Get Data
 ** \param   ptsCanMsgV  Pointer to a CpCanMsg_ts message
 ** \param   ubPosV      Zero based index of byte position
@@ -241,6 +224,7 @@ uint8_t   CpMsgIsEnabled(CpCanMsg_ts * ptsCanMsgV);
 */
 uint8_t  CpMsgIsExtended(CpCanMsg_ts * ptsCanMsgV);
 
+uint8_t  CpMsgIsFastData(CpCanMsg_ts * ptsCanMsgV);
 
 //------------------------------------------------------------------------------
 /*!
@@ -265,18 +249,6 @@ uint8_t  CpMsgIsOverrun(CpCanMsg_ts * ptsCanMsgV);
 ** 0.
 */
 uint8_t  CpMsgIsRemote(CpCanMsg_ts * ptsCanMsgV);
-
-
-//------------------------------------------------------------------------------
-/*!
-** \brief   Check for transmit request
-** \param   ptsCanMsgV  Pointer to a CpCanMsg_ts message
-**
-** This macro checks if Transmit Request bit (TXRQ) is
-** set. If the TXRQ bit is set, the function will return 1, otherwise
-** 0.
-*/
-uint8_t  CpMsgIsTxRqst(CpCanMsg_ts * ptsCanMsgV);
 
 
 //------------------------------------------------------------------------------
@@ -394,16 +366,6 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV);
          } while(0)
 
 
-#define  CpMsgDisable(MSG_PTR)                                    \
-         do {                                                     \
-            (MSG_PTR)->ubMsgCtrl &= ~CP_MASK_EN_BIT;              \
-         } while(0)
-
-#define  CpMsgEnable(MSG_PTR)                                     \
-         do {                                                     \
-            (MSG_PTR)->ubMsgCtrl |= CP_MASK_EN_BIT;               \
-         } while(0)
-
 #define  CpMsgGetData(MSG_PTR, POS)                               \
             (MSG_PTR)->tuMsgData.aubByte[POS]
 
@@ -416,19 +378,14 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV);
 #define  CpMsgGetStdId(MSG_PTR)                                   \
             ((MSG_PTR)->tuMsgId.uwStd)
 
-#define  CpMsgIsEnabled(MSG_PTR)                                  \
-            ((MSG_PTR)->ubMsgCtrl & CP_MASK_EN_BIT)
-
 #define  CpMsgIsExtended(MSG_PTR)                                 \
-            ( (MSG_PTR)->ubMsgCtrl & CP_MASK_EXT_BIT )
+            ( (MSG_PTR)->ubMsgCtrl & CP_MSG_CTRL_EXT_BIT )
 
 #define  CpMsgIsOverrun(MSG_PTR)                                  \
-            ( (MSG_PTR)->ubMsgCtrl & CP_MASK_OVR_BIT )
+            ( (MSG_PTR)->ubMsgCtrl & CP_MSG_CTRL_OVR_BIT )
+
 #define  CpMsgIsRemote(MSG_PTR)                                   \
             ( (MSG_PTR)->ubMsgCtrl & CP_MASK_RTR_BIT )
-
-#define  CpMsgIsTxRqst(MSG_PTR)                                   \
-            ( (MSG_PTR)->ubMsgCtrl & CP_MASK_TXRQ_BIT )
 
 #define  CpMsgSetData(MSG_PTR, POS, VAL)                          \
             ( (MSG_PTR)->tuMsgData.aubByte[POS] = VAL )
@@ -466,6 +423,13 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV);
 
 #endif
 
+
+//-------------------------------------------------------------------//
+#ifdef __cplusplus                                                   //
+}                                                                    //
+#endif                                                               //
+// end of C++ compiler wrapper                                       //
+//-------------------------------------------------------------------//
 
 #endif   /* CP_MSG_H_ */
 
