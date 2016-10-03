@@ -270,6 +270,14 @@ CpStatus_tv CpCoreBufferConfig( CpPort_ts * ptsPortV,
    QCanSocketCp3 *   pclSockT;
 
    //----------------------------------------------------------------
+   // debug information
+   //
+   qDebug() << "CpCoreBufferConfig()  :" 
+            << qPrintable(QString("BufIdx=%1,").arg(ubBufferIdxV, 2, 10))
+            << qPrintable(QString("ID=%1,").arg(ulIdentifierV, 4, 16))
+            << qPrintable(QString("Ac=%1").arg(ulAcceptMaskV, 4, 16));
+            
+   //----------------------------------------------------------------
    // get access to socket
    //
    if(ptsPortV == 0L)
@@ -299,7 +307,7 @@ CpStatus_tv CpCoreBufferConfig( CpPort_ts * ptsPortV,
    pclSockT->atsCanMsgM[ubBufferIdxV].tuMsgId.ulExt = ulIdentifierV;
    pclSockT->atsCanMsgM[ubBufferIdxV].ubMsgCtrl     = ubControlV;
 
-   qDebug() << "BufferConfig()" << ubBufferIdxV << ": ID =" << ulIdentifierV << "control = " << ubControlV;
+
    //----------------------------------------------------------------
    // mark Tx/Rx message
    //
@@ -330,6 +338,12 @@ CpStatus_tv CpCoreBufferRelease( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 {
    QCanSocketCp3 *   pclSockT;
 
+   //----------------------------------------------------------------
+   // debug information
+   //
+   qDebug() << "CpCoreBufferRelease() :" 
+            << qPrintable(QString("BufIdx=%1").arg(ubBufferIdxV, 2, 10));
+   
    //----------------------------------------------------------------
    // get access to socket
    //
