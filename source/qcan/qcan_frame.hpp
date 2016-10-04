@@ -115,7 +115,7 @@ public:
    QByteArray  data(void) const;
    
    /*!
-   ** \see  dlc()
+   ** \see  dataSize()
    ** 
    ** The function returns the number of bytes that are valid
    ** for the CAN frame. The possible value range is 0 to 8 for
@@ -131,7 +131,7 @@ public:
    
 
    /*!
-   ** \see  dataSize()
+   ** \see  dlc()
    ** 
    ** The function returns the DLC value (data length code)
    ** for the CAN frame. The possible value range is 0 to 8 for

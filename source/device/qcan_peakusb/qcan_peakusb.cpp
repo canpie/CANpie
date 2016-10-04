@@ -52,6 +52,7 @@ QCanPeakUsb::QCanPeakUsb()
    tsCanChnT.uwChannel = PCAN_USBBUS1;
    tsCanChnT.btAvailable = false;
    tsCanChnT.btConnected = false;
+   tsCanChnT.btFd = false;
    tsCanChnT.ubNumber = 0;
    tsCanChnT.clName.clear();
    atsCanChannelP.append(tsCanChnT);
@@ -453,11 +454,6 @@ QString QCanPeakUsb::name(uint8_t ubChannelV)
 QCanInterface::InterfaceError_e  QCanPeakUsb::read(QCanFrame &clFrameR,
                                                    uint8_t ubChannelV)
 {
-   TPCANStatus    ulStatusT;
-   uint8_t        ubByteCntrT;
-   TPCANMsg       tsCanMsgT;
-   TPCANTimestamp tsTimestampBufferT;
-
    //----------------------------------------------------------------
    // check lib have been loaded
    //
@@ -475,6 +471,31 @@ QCanInterface::InterfaceError_e  QCanPeakUsb::read(QCanFrame &clFrameR,
    }
 
    //----------------------------------------------------------------
+   // check channel have been connected
+   //
+   #if QCAN_SUPPORT_CAN_FD > 0
+   if (atsCanChannelP[ubChannelV].btFd == true)
+   {
+      return readFD(clFrameR, ubChannelV);
+   }
+   #endif
+
+   return readCAN(clFrameR, ubChannelV);
+}
+
+//----------------------------------------------------------------------------//
+// readCAN()                                                                  //
+//                                                                            //
+//----------------------------------------------------------------------------//
+QCanInterface::InterfaceError_e  QCanPeakUsb::readCAN(QCanFrame &clFrameR,
+                                                      uint8_t ubChannelV)
+{
+   TPCANStatus    ulStatusT;
+   uint8_t        ubByteCntrT;
+   TPCANMsg       tsCanMsgT;
+   TPCANTimestamp tsTimestampBufferT;
+
+   //----------------------------------------------------------------
    // get next message from FIFO
    //
    ulStatusT = pfnCAN_ReadP(atsCanChannelP[ubChannelV].uwChannel, &tsCanMsgT, &tsTimestampBufferT);
@@ -484,70 +505,48 @@ QCanInterface::InterfaceError_e  QCanPeakUsb::read(QCanFrame &clFrameR,
       //--------------------------------------------------------
       // handle data depending on type
       //
-      switch (tsCanMsgT.MSGTYPE)
+      if ((tsCanMsgT.MSGTYPE == PCAN_MESSAGE_STANDARD) ||
+          ((tsCanMsgT.MSGTYPE & (PCAN_MESSAGE_RTR | PCAN_MESSAGE_EXTENDED)) != 0))
       {
-         case PCAN_MESSAGE_STANDARD :
-
-            //---------------------------------------------
-            // copy all values to QCanFrame structure
-            //
+         //---------------------------------------------
+         // copy all values to QCanFrame structure
+         //
+         if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_EXTENDED)
+         {
+            clFrameR.setFrameType(QCanFrame::eTYPE_CAN_EXT);
+            clFrameR.setExtId((uint32_t)tsCanMsgT.ID);
+         } else
+         {
             clFrameR.setFrameType(QCanFrame::eTYPE_CAN_STD);
             clFrameR.setStdId((uint16_t)tsCanMsgT.ID);
+         }
 
-            clFrameR.setDlc(tsCanMsgT.LEN);
+         if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_RTR)
+         {
+            clFrameR.setRemote(true);
+         } else
+         {
+            clFrameR.setRemote(false);
+         }
 
-            for (ubByteCntrT = 0; ubByteCntrT < clFrameR.dlc(); ubByteCntrT++)
-            {
-               clFrameR.setData(ubByteCntrT, tsCanMsgT.DATA[ubByteCntrT]);
-            }
+         clFrameR.setDlc(tsCanMsgT.LEN);
 
-            clStatisticP.ulRcvCount++;
+         for (ubByteCntrT = 0; ubByteCntrT < clFrameR.dataSize(); ubByteCntrT++)
+         {
+            clFrameR.setData(ubByteCntrT, tsCanMsgT.DATA[ubByteCntrT]);
+         }
 
-            return eERROR_NONE;
+         clStatisticP.ulRcvCount++;
 
-            break;
-
-         case PCAN_MESSAGE_EXTENDED :
-
-            //---------------------------------------------
-            // copy all values to QCanFrame structure
-            //
-            clFrameR.setFrameType(QCanFrame::eTYPE_CAN_EXT);
-            clFrameR.setExtId(tsCanMsgT.ID);
-
-            clFrameR.setDlc(tsCanMsgT.LEN);
-
-            for (ubByteCntrT = 0; ubByteCntrT < clFrameR.dlc(); ubByteCntrT++)
-            {
-               clFrameR.setData(ubByteCntrT, tsCanMsgT.DATA[ubByteCntrT]);
-            }
-            return eERROR_NONE;
-            break;
-
-         case PCAN_MESSAGE_RTR :
-            qDebug() << "handle PCAN_MESSAGE_RTR";
-            break;
-         #if QCAN_SUPPORT_CAN_FD > 0
-         case PCAN_MESSAGE_FD :
-            qDebug() << "handle PCAN_MESSAGE_FD";
-            break;
-
-         case PCAN_MESSAGE_BRS :
-            qDebug() << "handle PCAN_MESSAGE_BRS";
-            break;
-
-         case PCAN_MESSAGE_ESI :
-            qDebug() << "handle PCAN_MESSAGE_ESI";
-            break;
-         #endif
-         case PCAN_MESSAGE_STATUS :
-            qDebug() << "handle PCAN_MESSAGE_STATUS";
-            break;
-
-         default :
-            qDebug() << "UNKNOWN Message Type";
-            break;
+      } else if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_STATUS)
+      {
+         qDebug() << "PCAN_MESSAGE_STATUS Message Type [hex]:" << QString::number(tsCanMsgT.MSGTYPE,16);
+      } else
+      {
+         qDebug() << "UNKNOWN Message Type [hex]:" << QString::number(tsCanMsgT.MSGTYPE,16);
       }
+
+      return eERROR_NONE;
    }
 
    else if (ulStatusT != (TPCANStatus)PCAN_ERROR_QRCVEMPTY)
@@ -556,10 +555,98 @@ QCanInterface::InterfaceError_e  QCanPeakUsb::read(QCanFrame &clFrameR,
       return eERROR_DEVICE;
    }
 
+   return eERROR_FIFO_RCV_EMPTY;
+}
+
+
+//----------------------------------------------------------------------------//
+// readFD()                                                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+#if QCAN_SUPPORT_CAN_FD > 0
+QCanInterface::InterfaceError_e  QCanPeakUsb::readFD(QCanFrame &clFrameR,
+                                                     uint8_t ubChannelV)
+{
+   TPCANStatus    ulStatusT;
+   uint8_t        ubByteCntrT;
+   TPCANMsgFD     tsCanMsgFdT;
+   TPCANTimestampFD tsTimestampBufferFdT;
+
+   //----------------------------------------------------------------
+   // get next message from FIFO
+   //
+   ulStatusT = pfnCAN_ReadFDP(atsCanChannelP[ubChannelV].uwChannel, &tsCanMsgFdT, &tsTimestampBufferFdT);
+
+   if (ulStatusT == PCAN_ERROR_OK)
+   {
+      //--------------------------------------------------------
+      // handle data depending on type
+      //
+      if (tsCanMsgFdT.MSGTYPE & PCAN_MESSAGE_FD)
+      {
+         //---------------------------------------------
+         // copy all values to QCanFrame structure
+         //
+         if (tsCanMsgFdT.MSGTYPE & PCAN_MESSAGE_EXTENDED)
+         {
+            clFrameR.setFrameType(QCanFrame::eTYPE_FD_EXT);
+            clFrameR.setExtId((uint32_t)tsCanMsgFdT.ID);
+         } else
+         {
+            clFrameR.setFrameType(QCanFrame::eTYPE_FD_STD);
+            clFrameR.setStdId((uint16_t)tsCanMsgFdT.ID);
+         }
+
+         if (tsCanMsgFdT.MSGTYPE & PCAN_MESSAGE_RTR)
+         {
+            clFrameR.setRemote(true);
+         } else
+         {
+            clFrameR.setRemote(false);
+         }
+
+         if (tsCanMsgFdT.MSGTYPE & PCAN_MESSAGE_BRS)
+         {
+            //! \todo Set BRS Flag of the QCanFrame
+         } else
+         {
+            //! \todo Clear BRS Flag of the QCanFrame
+         }
+
+         clFrameR.setDlc(tsCanMsgFdT.DLC);
+
+         for (ubByteCntrT = 0; ubByteCntrT < clFrameR.dataSize(); ubByteCntrT++)
+         {
+            clFrameR.setData(ubByteCntrT, tsCanMsgFdT.DATA[ubByteCntrT]);
+         }
+
+         clStatisticP.ulRcvCount++;
+
+      } else if (tsCanMsgFdT.MSGTYPE & PCAN_MESSAGE_ESI)
+      {
+         qDebug() << "PCAN_MESSAGE_ESI Message Type [hex]:" << QString::number(tsCanMsgFdT.MSGTYPE,16);
+
+      } else if (tsCanMsgFdT.MSGTYPE & PCAN_MESSAGE_STATUS)
+      {
+         qDebug() << "PCAN_MESSAGE_STATUS Message Type [hex]:" << QString::number(tsCanMsgFdT.MSGTYPE,16);
+      } else
+      {
+         qDebug() << "UNKNOWN Message Type [hex]:" << QString::number(tsCanMsgFdT.MSGTYPE,16);
+      }
+
+      return eERROR_NONE;
+   }
+
+   else if (ulStatusT != (TPCANStatus)PCAN_ERROR_QRCVEMPTY)
+   {
+      qWarning() << "Fail to call CAN_ReadFD():" << QString::number(ulStatusT,16);
+      return eERROR_DEVICE;
+   }
 
    return eERROR_FIFO_RCV_EMPTY;
 
 }
+#endif
 
 
 //----------------------------------------------------------------------------//
@@ -571,6 +658,8 @@ QCanInterface::InterfaceError_e QCanPeakUsb::setBitrate( int32_t slBitrateV,
                                                          uint8_t ubChannelV)
 {
    WORD uwBtr0Btr1T;
+   TPCANStatus ulStatusT;
+   TPCANBitrateFD clTxtBitrateT;
 
    //----------------------------------------------------------------
    // check if library has been loaded
@@ -599,11 +688,16 @@ QCanInterface::InterfaceError_e QCanPeakUsb::setBitrate( int32_t slBitrateV,
 
    //----------------------------------------------------------------
    // Check BRS clock value for CAN-FD
-   // todo : test with CAN-FD interface
    //
    if (slBrsClockV != QCan::eCAN_BITRATE_NONE)
    {
+      //! \todo Create bitrate depending string value
 
+      // FD Bitrate:
+      //      Arbitration: 1 Mbit/sec
+      //      Data: 2 Mbit/sec
+      //
+      clTxtBitrateT = "f_clock_mhz=20, nom_brp=5, nom_tseg1=2, nom_tseg2=1, nom_sjw=1, data_brp=2, data_tseg1=3, data_tseg2=1, data_sjw=1";
    }
 
    //----------------------------------------------------------------
@@ -678,7 +772,20 @@ QCanInterface::InterfaceError_e QCanPeakUsb::setBitrate( int32_t slBitrateV,
    // perform initalisation CAN Interface
    //
    pfnCAN_UninitializeP(atsCanChannelP[ubChannelV].uwChannel);
-   uint32_t ulStatusT = pfnCAN_InitializeP(atsCanChannelP[ubChannelV].uwChannel, uwBtr0Btr1T, 0, 0, 0);
+
+   if (slBrsClockV != QCan::eCAN_BITRATE_NONE)
+   {
+      #if QCAN_SUPPORT_CAN_FD > 0
+      ulStatusT = pfnCAN_InitializeFDP(atsCanChannelP[ubChannelV].uwChannel, clTxtBitrateT);
+      #endif
+      atsCanChannelP[ubChannelV].btFd = true;
+
+   } else
+   {
+      ulStatusT = pfnCAN_InitializeP(atsCanChannelP[ubChannelV].uwChannel, uwBtr0Btr1T, 0, 0, 0);
+      atsCanChannelP[ubChannelV].btFd = false;
+   }
+
    if (ulStatusT != PCAN_ERROR_OK)
    {
       // get default description string of error code
@@ -826,6 +933,7 @@ QCanInterface::InterfaceError_e	QCanPeakUsb::write(const QCanFrame &clFrameR,
 {
    TPCANStatus ulStatusT;
    TPCANMsg    tsCanMsgT;
+   TPCANMsgFD  tsCanMsgFdT;
    int32_t     slByteCntrT;
 
    //----------------------------------------------------------------
@@ -847,26 +955,52 @@ QCanInterface::InterfaceError_e	QCanPeakUsb::write(const QCanFrame &clFrameR,
    //----------------------------------------------------------------
    // prepare CAN message
    //
-
-   // copy all needed parameters to QCanFrame structure
-   if (clFrameR.isExtended())
+   if (clFrameR.frameType() < QCanFrame::eTYPE_FD_STD)
    {
-      tsCanMsgT.MSGTYPE = PCAN_MESSAGE_EXTENDED;
+      // copy all needed parameters to QCanFrame structure
+      if (clFrameR.isExtended())
+      {
+         tsCanMsgT.MSGTYPE = PCAN_MESSAGE_EXTENDED;
+      } else
+      {
+         tsCanMsgT.MSGTYPE = PCAN_MESSAGE_STANDARD;
+      }
+
+      tsCanMsgT.ID = clFrameR.identifier();
+
+      tsCanMsgT.LEN= clFrameR.dlc();
+
+      for (slByteCntrT = 0; slByteCntrT < clFrameR.dlc(); slByteCntrT++)
+      {
+         tsCanMsgT.DATA[slByteCntrT] = clFrameR.data(slByteCntrT);
+      }
+
+      ulStatusT = pfnCAN_WriteP(atsCanChannelP[ubChannelV].uwChannel, &tsCanMsgT);
+
    } else
    {
-      tsCanMsgT.MSGTYPE = PCAN_MESSAGE_STANDARD;
+      if (clFrameR.isExtended())
+      {
+         tsCanMsgFdT.MSGTYPE = PCAN_MESSAGE_EXTENDED;
+      } else
+      {
+         tsCanMsgFdT.MSGTYPE  = PCAN_MESSAGE_STANDARD;
+         tsCanMsgFdT.MSGTYPE |= PCAN_MESSAGE_FD;
+         tsCanMsgFdT.MSGTYPE |= PCAN_MESSAGE_BRS;
+      }
+
+      tsCanMsgFdT.ID = clFrameR.identifier();
+
+      tsCanMsgFdT.DLC= clFrameR.dlc();
+
+      for (slByteCntrT = 0; slByteCntrT < clFrameR.dataSize(); slByteCntrT++)
+      {
+         tsCanMsgFdT.DATA[slByteCntrT] = clFrameR.data(slByteCntrT);
+      }
+
+      ulStatusT = pfnCAN_WriteFDP(atsCanChannelP[ubChannelV].uwChannel, &tsCanMsgFdT);
    }
 
-   tsCanMsgT.ID = clFrameR.identifier();
-
-   tsCanMsgT.LEN= clFrameR.dlc();
-
-   for (slByteCntrT = 0; slByteCntrT < clFrameR.dlc(); slByteCntrT++)
-   {
-      tsCanMsgT.DATA[slByteCntrT] = clFrameR.data(slByteCntrT);
-   }
-
-   ulStatusT = pfnCAN_WriteP(atsCanChannelP[ubChannelV].uwChannel, &tsCanMsgT);
 
    if (ulStatusT == PCAN_ERROR_OK)
    {

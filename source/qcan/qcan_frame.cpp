@@ -49,6 +49,8 @@
 
 #define  QCAN_FRAME_FORMAT_FD       ((uint8_t) 0x02)
 
+#define  QCAN_FRAME_FORMAT_RTR      ((uint8_t) 0x04)
+
 /*----------------------------------------------------------------------------*\
 ** Class methods                                                              **
 **                                                                            **
@@ -635,9 +637,26 @@ void QCanFrame::setFrameType(const Type_e &ubTypeR)
    }
 }
 
+
 void QCanFrame::setMarker(const uint32_t & ulMarkerValueR)
 {
    ulMsgMarkerP = ulMarkerValueR;
+}
+
+
+//----------------------------------------------------------------------------//
+// setRemote()                                                                //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void QCanFrame::setRemote(const bool & btRtrR)
+{
+   if (btRtrR == true)
+   {
+      ubMsgCtrlP |=   QCAN_FRAME_FORMAT_RTR;
+   } else
+   {
+      ubMsgCtrlP &= (~QCAN_FRAME_FORMAT_RTR);
+   }
 }
 
 

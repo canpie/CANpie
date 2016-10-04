@@ -115,12 +115,17 @@ private:
     */
    QLibrary clCanLibP;
 
-
+   /*!
+    * \struct CanChannel_s
+    *
+    * This struct holds some flags/parameters of each channel
+    */
    typedef struct CanChannel_s {
       TPCANHandle uwChannel;
       bool        btAvailable;   // true if channel can be handled
       bool        btConnected;   // true if channel have been intialised
-      uint8_t     ubNumber;      // true if channel have been intialised
+      bool        btFd;          // true if channel have been initialised as FD
+      uint8_t     ubNumber;      // holds device Number of the channel
       QString     clName;
    } CanChannel_ts;
 
@@ -129,6 +134,10 @@ private:
     */
    QList<CanChannel_ts> atsCanChannelP;
 
+   /*!
+    * \brief btLibFuncLoadP
+    * This value is set to true, when all library functions are available!
+    */
    bool     btLibFuncLoadP;
 
    /*!
@@ -144,8 +153,31 @@ private:
     */
    QString formatedError(TPCANStatus tvErrorV);
 
-
+   /*!
+    * \brief ubChannelP
+    * This value holds total number of channels, that have been detected.
+    */
    uint8_t ubChannelP;
+
+   /*!
+    * \brief readCAN
+    * \param clFrameR
+    * \param ubChannelV
+    * \return
+    *
+    * Read CAN message from peak USB device
+    */
+   QCanInterface::InterfaceError_e  readCAN(QCanFrame &clFrameR,uint8_t ubChannelV);
+
+   /*!
+    * \brief readFD
+    * \param clFrameR
+    * \param ubChannelV
+    * \return
+    *
+    * Read CAN FD message from peak USB device
+    */
+   QCanInterface::InterfaceError_e  readFD(QCanFrame &clFrameR,uint8_t ubChannelV);
 
 public:
    QCanPeakUsb();

@@ -93,7 +93,7 @@ void QCanGui::triggerCmd()
    if (clCmdT.at(0) == "channel")
    {
       ulStatusT = (uint32_t) qCanInterface->channel();
-      qInfo() << QString("channel() => " + ulStatusT);
+      qInfo() << QString("channel() => " + QString::number(ulStatusT));
    }
 
    if (clCmdT.at(0) == "bitrate")
@@ -109,20 +109,67 @@ void QCanGui::triggerCmd()
 
    if (clCmdT.at(0) == "runtest")
    {
+      ubChnNrT = parmValue(clCmdT,2);
+
       switch (parmValue(clCmdT,1))
       {
          case 0 :
-         if (qCanInterface->connect(0) != QCanInterface::eERROR_NONE)
+         if (qCanInterface->connect(ubChnNrT) != QCanInterface::eERROR_NONE)
             qWarning() << "Warning: connect() fail!";
 
-         if (qCanInterface->setBitrate(QCan::eCAN_BITRATE_500K, 0,0) != QCanInterface::eERROR_NONE)
+         if (qCanInterface->setBitrate(QCan::eCAN_BITRATE_500K, 0,ubChnNrT) != QCanInterface::eERROR_NONE)
             qWarning() << "Warning: setBitrate() fail!";
 
-         if (qCanInterface->setMode(QCan::eCAN_MODE_START,0) != QCanInterface::eERROR_NONE)
+         if (qCanInterface->setMode(QCan::eCAN_MODE_START,ubChnNrT) != QCanInterface::eERROR_NONE)
             qWarning() << "Warning: setMode() fail!";
          break;
+
+         //------------------------------------------------------------
+         // Init interface 1 and transmit a FD message
+         //
+         case 1 :
+         if (qCanInterface->connect(ubChnNrT) != QCanInterface::eERROR_NONE)
+            qWarning() << "Warning: connect() fail!";
+
+         if (qCanInterface->setBitrate(QCan::eCAN_BITRATE_1M, 2000000, ubChnNrT) != QCanInterface::eERROR_NONE)
+            qWarning() << "Warning: setBitrate() fail!";
+
+         if (qCanInterface->setMode(QCan::eCAN_MODE_START,ubChnNrT) != QCanInterface::eERROR_NONE)
+            qWarning() << "Warning: setMode() fail!";
+
+         QCanFrame *pclFrameFdT = new QCanFrame(QCanFrame::eTYPE_FD_STD,0x175);
+         pclFrameFdT->setDataSize(11);
+
+         pclFrameFdT->setData(0,5);
+         pclFrameFdT->setData(1,4);
+         pclFrameFdT->setData(2,3);
+         pclFrameFdT->setData(3,2);
+         pclFrameFdT->setData(4,1);
+         pclFrameFdT->setData(5,0xAA);
+         pclFrameFdT->setData(6,0x55);
+         pclFrameFdT->setData(7,0xAA);
+         pclFrameFdT->setData(8,0xAA);
+         pclFrameFdT->setData(9,0x77);
+
+
+         qInfo() << "write a standard FD Message!";
+
+         int32_t slStatusT = qCanInterface->write(*pclFrameFdT, ubChnNrT);
+
+         if (slStatusT ==  QCanInterface::eERROR_NONE)
+         {
+
+         }
+         else if (slStatusT !=  QCanInterface::eERROR_FIFO_TRM_FULL)
+         {
+            qWarning() << "Warning: write() fail!";
+         }
+         break;
+
       }
    }
+
+
 
    if (clCmdT.at(0) == "write")
    {
@@ -148,10 +195,17 @@ void QCanGui::triggerCmd()
 
    if (clCmdT.at(0) == "read")
    {
-      int32_t slStatusT = qCanInterface->read(clFrameT,0);
+      ubChnNrT = parmValue(clCmdT,1);
+
+      int32_t slStatusT = qCanInterface->read(clFrameT,ubChnNrT);
+
+      qDebug() << "read status [hex]:" << QString::number(slStatusT,16);
 
       if (slStatusT == QCanInterface::eERROR_NONE)
       {
+
+
+
          if (clFrameT.isExtended())
          {
             qDebug() << "Receive Ext: " + QString::number((uint32_t)clFrameT.identifier(),16) + "h " +
