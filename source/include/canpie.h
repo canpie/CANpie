@@ -320,6 +320,17 @@
 
 /*-------------------------------------------------------------------*/
 /*!
+** \def     CP_MSG_CTRL_BRS_BIT
+** \ingroup CP_MSG_CTRL
+**
+** Bit mask for the BRS bit (ISO CAN FD, bit-rate switch) in the
+** \c ubMsgCtrl field of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
+*/
+#define  CP_MSG_CTRL_BRS_BIT     0x20
+
+
+/*-------------------------------------------------------------------*/
+/*!
 ** \def     CP_MSG_CTRL_EDL_BIT
 ** \ingroup CP_MSG_CTRL
 **
@@ -327,6 +338,7 @@
 ** \c ubMsgCtrl field of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
 */
 #define  CP_MSG_CTRL_EDL_BIT     0x40
+
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -459,7 +471,7 @@ enum CpErr_e {
    */
    eCP_ERR_REGISTER,
 
-   /*!   Bitrate out of range (42dec / 2Ahex)
+   /*!   bit-rate out of range (42dec / 2Ahex)
    */
    eCP_ERR_BITRATE,
 
@@ -530,59 +542,59 @@ enum CpCallback_e {
 /*----------------------------------------------------------------------------*/
 /*!
 ** \enum    CpBitrate_e
-** \brief   Fixed bitrates
+** \brief   Fixed bit-rates
 **
 ** The values of the enumeration CpBitrate_e are used as parameter for the
 ** function CpCoreBitrate().
 */
 enum CpBitrate_e {
    /*!
-   ** Bitrate 10 kBit/sec
+   ** bit-rate 10 kBit/sec
    */
    eCP_BITRATE_10K = 0,
 
    /*!
-   ** Bitrate 20 kBit/sec
+   ** bit-rate 20 kBit/sec
    */
    eCP_BITRATE_20K,
 
    /*!
-   ** Bitrate 50 kBit/sec
+   ** bit-rate 50 kBit/sec
    */
    eCP_BITRATE_50K,
 
    /*!
-   ** Bitrate 100 kBit/sec
+   ** bit-rate 100 kBit/sec
    */
    eCP_BITRATE_100K,
 
    /*!
-   ** Bitrate 125 kBit/sec
+   ** bit-rate 125 kBit/sec
    */
    eCP_BITRATE_125K,
 
    /*!
-   ** Bitrate 250 kBit/sec
+   ** bit-rate 250 kBit/sec
    */
    eCP_BITRATE_250K,
 
    /*!
-   ** Bitrate 500 kBit/sec
+   ** bit-rate 500 kBit/sec
    */
    eCP_BITRATE_500K,
 
    /*!
-   ** Bitrate 800 kBit/sec
+   ** bit-rate 800 kBit/sec
    */
    eCP_BITRATE_800K,
 
    /*!
-   ** Bitrate 1 MBit/sec
+   ** bit-rate 1 MBit/sec
    */
    eCP_BITRATE_1M,
 
    /*!
-   ** Use automatic Bitrate detection
+   ** Use automatic bit-rate detection
    */
    eCP_BITRATE_AUTO,
 
@@ -873,7 +885,7 @@ struct CpCanMsg_s {
    ** <li>Bit 2: Remote Frame
    ** <li>Bit 3: Overload Frame
    ** <li>Bit 4: reserved, always 0
-   ** <li>Bit 5: reserved, always 0
+   ** <li>Bit 5: ISO CAN FD: value of BRS bit
    ** <li>Bit 6: ISO CAN FD: value of EDL bit
    ** <li>Bit 7: ISO CAN FD: value of ESI bit
    ** </ul>
