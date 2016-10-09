@@ -32,8 +32,15 @@
 #define QCAN_FRAME_ERROR_HPP_
 
 
+/*----------------------------------------------------------------------------*\
+** Include files                                                              **
+**                                                                            **
+\*----------------------------------------------------------------------------*/
+#include "canpie_frame_error.hpp"
 #include "qcan_defs.hpp"
 #include "qcan_frame.hpp"
+
+using namespace CANpie;
 
 
 //-----------------------------------------------------------------------------
@@ -53,34 +60,10 @@
 ** about the last error type which caused the error condition
 ** (function errorType()).
 */
-class QCanFrameError : private QCanFrame
+class QCanFrameError : public CpFrameError, private QCanFrame
 {
 public:
    
-   enum ErrorType_e {
-
-      /*! no error                                          */
-      eERROR_TYPE_NONE   = 0,
-
-      /*! Bit 0 error occurred                              */
-      eERROR_TYPE_BIT0,
-
-      /*! Bit 1 error occurred                              */
-      eERROR_TYPE_BIT1,
-
-      /*! Stuff error occurred                              */
-      eERROR_TYPE_STUFF,
-
-      /*! Form  error occurred                              */
-      eERROR_TYPE_FORM,
-
-      /*! CRC error occurred                                */
-      eERROR_TYPE_CRC,
-
-      /*! Acknowledgement error occurred                    */
-      eERROR_TYPE_ACK
-   };
-
 
    /*!
    ** Constructs an empty CAN error frame with a CAN state of
@@ -91,79 +74,6 @@ public:
    
    ~QCanFrameError();
 
-   /*!
-   ** \see  setErrorCounterReceive()
-   **
-   ** This functions returns the current value of the receive error counter.
-   */
-   uint8_t  errorCounterReceive(void) const;
-
-
-   /*!
-   ** \see  setErrorCounterTransmit()
-   **
-   ** This functions returns the current value of the transmit error counter.
-   ** A value of 255 leads to a bus-off condition (QCan::eCAN_STATE_BUS_OFF).
-   */
-   uint8_t  errorCounterTransmit(void) const;
-
-
-   /*!
-   ** \see  setErrorState()
-   **
-   ** This functions returns the current error state, defined by the
-   ** enumeration QCan::CAN_State_e.
-   */
-   QCan::CAN_State_e             errorState(void) const;
-
-
-   /*!
-   ** \see  setErrorType()
-   **
-   ** This functions returns the error type which caused the last error
-   ** condition.
-   */
-   QCanFrameError::ErrorType_e   errorType(void) const;
-   
-
-   /*!
-   ** \see  errorCounterReceive()
-   **
-   ** This functions sets the transmit error counter. Passing a value
-   ** greater than 127 will set the error state to error passive
-   ** (QCan::eCAN_STATE_BUS_PASSIVE). A value of 255 will set the
-   ** error state to bus-off (QCan::eCAN_STATE_BUS_OFF).
-   */
-   void setErrorCounterReceive(const uint8_t & ubErrorCntR);
-
-
-   /*!
-   ** \see  errorCounterTransmit()
-   **
-   ** This functions sets the transmit error counter. Passing a value
-   ** greater than 127 will set the error state to error passive
-   ** (QCan::eCAN_STATE_BUS_PASSIVE). A value of 255 will set the
-   ** error state to bus-off (QCan::eCAN_STATE_BUS_OFF).
-   */
-   void setErrorCounterTransmit(const uint8_t & ubErrorCntR);
-
-
-   /*!
-   ** \see  errorState()
-   **
-   ** This functions sets the current error state, defined by the
-   ** enumeration QCan::CAN_State_e.
-   */
-   void setErrorState(const QCan::CAN_State_e & ubStateR);
-
-
-   /*!
-   ** \see  errorType()
-   **
-   ** This functions sets the error type which caused the last error
-   ** condition.
-   */
-   void setErrorType(const ErrorType_e & ubTypeR);
 
 
    virtual QString   toString(const bool & btShowTimeR = false);

@@ -55,11 +55,9 @@
 // QCanFrameError()                                                           //
 // constructor                                                                //
 //----------------------------------------------------------------------------//
-QCanFrameError::QCanFrameError()
+QCanFrameError::QCanFrameError() : CpFrameError()
 {
 
-   setFrameType(eTYPE_QCAN_ERR);
-   setDlc(4);
 }
 
 
@@ -72,85 +70,6 @@ QCanFrameError::~QCanFrameError()
    
 }
 
-
-//----------------------------------------------------------------------------//
-// errorCounterReceive()                                                      //
-// use data byte 2 for storage                                                //
-//----------------------------------------------------------------------------//
-uint8_t QCanFrameError::errorCounterReceive(void) const
-{
-   return(data(2));
-}
-
-
-//----------------------------------------------------------------------------//
-// errorCounterTransmit()                                                     //
-// use data byte 3 for storage                                                //
-//----------------------------------------------------------------------------//
-uint8_t QCanFrameError::errorCounterTransmit(void) const
-{
-   return(data(3));
-}
-
-
-//----------------------------------------------------------------------------//
-// errorState()                                                               //
-// use data byte 0 for storage                                                //
-//----------------------------------------------------------------------------//
-QCan::CAN_State_e QCanFrameError::errorState(void) const
-{
-   return((QCan::CAN_State_e) data(0));
-}
-
-
-//----------------------------------------------------------------------------//
-// errorType()                                                                //
-// use data byte 1 for storage                                                //
-//----------------------------------------------------------------------------//
-QCanFrameError::ErrorType_e QCanFrameError::errorType(void) const
-{
-   return((QCanFrameError::ErrorType_e) data(1));
-}
-
-
-//----------------------------------------------------------------------------//
-// setErrorCounterReceive()                                                   //
-// use data byte 2 for storage                                                //
-//----------------------------------------------------------------------------//
-void QCanFrameError::setErrorCounterReceive(const uint8_t & ubErrorCntR)
-{
-   setData(2, ubErrorCntR);
-}
-
-
-//----------------------------------------------------------------------------//
-// setErrorCounterTransmit()                                                  //
-// use data byte 3 for storage                                                //
-//----------------------------------------------------------------------------//
-void QCanFrameError::setErrorCounterTransmit(const uint8_t & ubErrorCntR)
-{
-   setData(3, ubErrorCntR);
-}
-
-
-//----------------------------------------------------------------------------//
-// setErrorStat()                                                             //
-// use data byte 0 for storage                                                //
-//----------------------------------------------------------------------------//
-void QCanFrameError::setErrorState(const QCan::CAN_State_e & ubStateR)
-{
-   setData(0, ubStateR);
-}
-
-
-//----------------------------------------------------------------------------//
-// setErrorType()                                                             //
-// use data byte 1 for storage                                                //
-//----------------------------------------------------------------------------//
-void QCanFrameError::setErrorType(const ErrorType_e & ubTypeR)
-{
-   setData(1, ubTypeR);
-}
 
 //----------------------------------------------------------------------------//
 // toString()                                                                 //
@@ -176,19 +95,19 @@ QString QCanFrameError::toString(const bool & btShowTimeR)
 
    switch(this->errorState())
    {
-      case QCan::eCAN_STATE_BUS_ACTIVE:
+      case eCAN_STATE_BUS_ACTIVE:
          clStringT += "Error active";
          break;
 
-      case QCan::eCAN_STATE_BUS_WARN:
+      case eCAN_STATE_BUS_WARN:
          clStringT += "Warning level reached";
          break;
 
-      case QCan::eCAN_STATE_BUS_PASSIVE:
+      case eCAN_STATE_BUS_PASSIVE:
          clStringT += "Error passive";
          break;
 
-      case QCan::eCAN_STATE_BUS_OFF:
+      case eCAN_STATE_BUS_OFF:
          clStringT += "Bus off";
          break;
 
