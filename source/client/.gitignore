@@ -1,5 +1,0 @@
-/qcanclient.app/
-/*.o
-/Makefile*
-/moc_*.cpp
-/ui_*.h
