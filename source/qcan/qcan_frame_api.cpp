@@ -55,12 +55,9 @@
 // QCanFrameApi()                                                             //
 // constructor                                                                //
 //----------------------------------------------------------------------------//
-QCanFrameApi::QCanFrameApi()
+QCanFrameApi::QCanFrameApi() : CpFrameApi()
 {
 
-   setFrameType(eTYPE_QCAN_API);
-   setDlc(16);
-   setData(0, QCanFrameApi::eAPI_FUNC_NONE);
 }
 
 
@@ -73,93 +70,6 @@ QCanFrameApi::~QCanFrameApi()
 
 }
 
-//----------------------------------------------------------------------------//
-// bitrate()                                                                  //
-// get bit-rate value (byte 2 .. 5)                                           //
-//----------------------------------------------------------------------------//
-int32_t QCanFrameApi::bitrate(void)
-{
-   int32_t  slBitrateT = -1;
-
-   if(data(0) == QCanFrameApi::eAPI_FUNC_BITRATE)
-   {
-      slBitrateT = dataUInt32(2);
-   }
-
-   return(slBitrateT);
-}
-
-
-//----------------------------------------------------------------------------//
-// brsClock()                                                                 //
-// get bit-rate switch clock value (byte 6 ..9)                               //
-//----------------------------------------------------------------------------//
-int32_t QCanFrameApi::brsClock(void)
-{
-   int32_t  slBrsClockT = -1;
-
-   if(data(0) == QCanFrameApi::eAPI_FUNC_BITRATE)
-   {
-      slBrsClockT = dataUInt32(6);
-   }
-
-   return(slBrsClockT);
-}
-
-//----------------------------------------------------------------------------//
-// function()                                                                 //
-// determine the function code                                                //
-//----------------------------------------------------------------------------//
-QCanFrameApi::ApiFunc_e QCanFrameApi::function(void)
-{
-   return((QCanFrameApi::ApiFunc_e) data(0));
-
-}
-
-
-//----------------------------------------------------------------------------//
-// mode()                                                                     //
-// get operation mode                                                         //
-//----------------------------------------------------------------------------//
-QCan::CAN_Mode_e QCanFrameApi::mode(void)
-{
-   return((QCan::CAN_Mode_e ) data(1));
-}
-
-
-//----------------------------------------------------------------------------//
-// setBitrate()                                                               //
-// Byte 2 .. 5: slBitrateV, Byte 6 .. 9: slBrsClockV                          //
-//----------------------------------------------------------------------------//
-void QCanFrameApi::setBitrate(int32_t slBitrateV, int32_t slBrsClockV)
-{
-   setData(0, QCanFrameApi::eAPI_FUNC_BITRATE);
-   setDataUInt32(2, slBitrateV);
-   setDataUInt32(6, slBrsClockV);
-}
-
-
-//----------------------------------------------------------------------------//
-// setMode()                                                                  //
-// set operation mode                                                         //
-//----------------------------------------------------------------------------//
-void QCanFrameApi::setMode(QCan::CAN_Mode_e teModeV)
-{
-   setData(0, QCanFrameApi::eAPI_FUNC_CAN_MODE);
-   setData(1, (uint8_t) teModeV);
-}
-
-
-void QCanFrameApi::setDriverInit()
-{
-   setData(0, QCanFrameApi::eAPI_FUNC_DRIVER_INIT);
-
-}
-void QCanFrameApi::setDriverRelease()
-{
-   setData(0, QCanFrameApi::eAPI_FUNC_DRIVER_RELEASE);
-
-}
 
 QByteArray QCanFrameApi::toByteArray() const
 {
@@ -187,7 +97,7 @@ QString QCanFrameApi::toString(const bool & btShowTimeR)
    //----------------------------------------------------------------
    // print frame format
    //
-   switch(frameType())
+   switch(QCanFrame::frameType())
    {
       case eTYPE_CAN_STD:
          clStringT += "CAN-STD ";

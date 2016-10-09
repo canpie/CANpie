@@ -3,7 +3,7 @@
 // Description:   QCAN classes - CAN API frame                                //
 //                                                                            //
 // Copyright (C) MicroControl GmbH & Co. KG                                   //
-// 53842 Troisdorf - Germany                                                  //
+// 53844 Troisdorf - Germany                                                  //
 // www.microcontrol.net                                                       //
 //                                                                            //
 //----------------------------------------------------------------------------//
@@ -31,8 +31,17 @@
 #ifndef QCAN_FRAME_API_HPP_
 #define QCAN_FRAME_API_HPP_
 
+
+/*----------------------------------------------------------------------------*\
+** Include files                                                              **
+**                                                                            **
+\*----------------------------------------------------------------------------*/
+#include "canpie_frame_api.hpp"
 #include "qcan_defs.hpp"
 #include "qcan_frame.hpp"
+
+using namespace CANpie;
+
 
 
 //-----------------------------------------------------------------------------
@@ -42,37 +51,14 @@
 ** 
 ** This class defines a CAN API frame.
 */
-class QCanFrameApi : private QCanFrame
+class QCanFrameApi : public CpFrameApi, private QCanFrame
 {
 public:
-   
-
-   enum ApiFunc_e {
-
-      eAPI_FUNC_NONE   = 0,
-      eAPI_FUNC_BITRATE,
-      eAPI_FUNC_CAN_MODE,
-      eAPI_FUNC_DRIVER_INIT,
-      eAPI_FUNC_DRIVER_RELEASE,
-      eAPI_FUNC_PROCESS_ID
-   };
+  
    QCanFrameApi();
    
    
    ~QCanFrameApi();
-
-   int32_t  bitrate(void);
-   int32_t  brsClock(void);
-
-   ApiFunc_e function(void);
-
-   QCan::CAN_Mode_e  mode(void);
-
-   void setBitrate(int32_t slBitrateV, int32_t slBrsClockV);
-
-   void setDriverInit();
-   void setDriverRelease();
-   void  setMode(QCan::CAN_Mode_e teModeV);
 
    QByteArray toByteArray() const;
    QString    toString(const bool & btShowTimeR = false);
