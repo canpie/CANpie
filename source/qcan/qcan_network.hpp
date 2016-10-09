@@ -45,6 +45,8 @@
 #include "qcan_frame_api.hpp"
 #include "qcan_frame_error.hpp"
 
+using namespace CANpie;
+
 /*----------------------------------------------------------------------------*\
 ** Referenced classes                                                         **
 **                                                                            **
@@ -170,7 +172,7 @@ public:
    ** the enumeration QCan::CAN_Bitrate_e.
    */
 	void setBitrate(int32_t slBitrateV,
-	                int32_t slBrsClockV = QCan::eCAN_BITRATE_NONE);
+	                int32_t slBrsClockV = eCAN_BITRATE_NONE);
 
 
    /*!

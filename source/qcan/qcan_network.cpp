@@ -3,7 +3,7 @@
 // Description:   QCAN classes - CAN network                                  //
 //                                                                            //
 // Copyright (C) MicroControl GmbH & Co. KG                                   //
-// 53842 Troisdorf - Germany                                                  //
+// 53844 Troisdorf - Germany                                                  //
 // www.microcontrol.net                                                       //
 //                                                                            //
 //----------------------------------------------------------------------------//
@@ -12,7 +12,7 @@
 // are met:                                                                   //
 // 1. Redistributions of source code must retain the above copyright          //
 //    notice, this list of conditions, the following disclaimer and           //
-//    the referenced file 'COPYING'.                                          //
+//    the referenced file 'LICENSE'.                                          //
 // 2. Redistributions in binary form must reproduce the above copyright       //
 //    notice, this list of conditions and the following disclaimer in the     //
 //    documentation and/or other materials provided with the distribution.    //
@@ -22,7 +22,7 @@
 //                                                                            //
 // Provided that this notice is retained in full, this software may be        //
 // distributed under the terms of the GNU Lesser General Public License       //
-// ("LGPL") version 3 as distributed in the 'COPYING' file.                   //
+// ("LGPL") version 3 as distributed in the 'LICENSE' file.                   //
 //                                                                            //
 //============================================================================//
 
@@ -120,7 +120,7 @@ QCanNetwork::QCanNetwork(QObject * pclParentV,
    //----------------------------------------------------------------
    // setup default bit-rate
    //
-   setBitrate(QCan::eCAN_BITRATE_500K, -1);
+   setBitrate(eCAN_BITRATE_500K, -1);
 }
 
 
@@ -160,7 +160,7 @@ bool QCanNetwork::addInterface(QCanInterface * pclCanIfV)
       {
          if (pclCanIfV->setBitrate(slBitrateP, slBrsClockP) == QCanInterface::eERROR_NONE)
          {
-            if (pclCanIfV->setMode(QCan::eCAN_MODE_START) == QCanInterface::eERROR_NONE)
+            if (pclCanIfV->setMode(eCAN_MODE_START) == QCanInterface::eERROR_NONE)
             {
                pclInterfaceP = pclCanIfV;
                btResultT = true;
@@ -202,43 +202,47 @@ bool  QCanNetwork::handleApiFrame(int32_t & slSockSrcR,
 {
    bool btResultT = false;
 
-   switch(clApiFrameR.function())
+   if(slSockSrcR != QCAN_SOCKET_CAN_IF)
    {
-      case QCanFrameApi::eAPI_FUNC_NONE:
+      switch(clApiFrameR.function())
+      {
+         case QCanFrameApi::eAPI_FUNC_NONE:
 
-         break;
+            break;
 
-      case QCanFrameApi::eAPI_FUNC_BITRATE:
-         if(!pclInterfaceP.isNull())
-         {
-            pclInterfaceP->setBitrate( clApiFrameR.bitrate(),
-                                       clApiFrameR.brsClock());
-         }
-         btResultT = true;
-         break;
+         case QCanFrameApi::eAPI_FUNC_BITRATE:
+            if(!pclInterfaceP.isNull())
+            {
+               pclInterfaceP->setBitrate( clApiFrameR.bitrate(),
+                                          clApiFrameR.brsClock());
+            }
+            btResultT = true;
+            break;
 
-      case QCanFrameApi::eAPI_FUNC_CAN_MODE:
+         case QCanFrameApi::eAPI_FUNC_CAN_MODE:
 
-         break;
+            break;
 
-      case QCanFrameApi::eAPI_FUNC_DRIVER_INIT:
+         case QCanFrameApi::eAPI_FUNC_DRIVER_INIT:
 
-         break;
+            break;
 
-      case QCanFrameApi::eAPI_FUNC_DRIVER_RELEASE:
+         case QCanFrameApi::eAPI_FUNC_DRIVER_RELEASE:
 
-         break;
+            break;
 
-      case QCanFrameApi::eAPI_FUNC_PROCESS_ID:
+         case QCanFrameApi::eAPI_FUNC_PROCESS_ID:
 
-         break;
+            break;
 
-      default:
+         default:
 
-         break;
+            break;
+      }
+
+      ulCntFrameApiP++;
+      
    }
-
-   ulCntFrameApiP++;
    return(btResultT);
 }
 
