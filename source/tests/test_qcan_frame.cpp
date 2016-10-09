@@ -3,7 +3,7 @@
 // Description:   QCAN classes - Test QCan frame                              //
 //                                                                            //
 // Copyright (C) MicroControl GmbH & Co. KG                                   //
-// 53842 Troisdorf - Germany                                                  //
+// 53844 Troisdorf - Germany                                                  //
 // www.microcontrol.net                                                       //
 //                                                                            //
 //----------------------------------------------------------------------------//
@@ -12,7 +12,7 @@
 // are met:                                                                   //
 // 1. Redistributions of source code must retain the above copyright          //
 //    notice, this list of conditions, the following disclaimer and           //
-//    the referenced file 'COPYING'.                                          //
+//    the referenced file 'LICENSE'.                                          //
 // 2. Redistributions in binary form must reproduce the above copyright       //
 //    notice, this list of conditions and the following disclaimer in the     //
 //    documentation and/or other materials provided with the distribution.    //
@@ -22,7 +22,7 @@
 //                                                                            //
 // Provided that this notice is retained in full, this software may be        //
 // distributed under the terms of the GNU Lesser General Public License       //
-// ("LGPL") version 3 as distributed in the 'COPYING' file.                   //
+// ("LGPL") version 3 as distributed in the 'LICENSE' file.                   //
 //                                                                            //
 //============================================================================//
 
