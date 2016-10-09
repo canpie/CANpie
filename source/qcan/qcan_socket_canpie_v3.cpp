@@ -6,7 +6,7 @@
 //                                                                            //
 // Copyright (C) MicroControl GmbH & Co. KG                                   //
 // Lindlaustr. 2c                                                             //
-// 53842 Troisdorf                                                            //
+// 53844 Troisdorf                                                            //
 // Germany                                                                    //
 // Tel: +49-2241-25659-0                                                      //
 // Fax: +49-2241-25659-11                                                     //
@@ -45,8 +45,6 @@
 #include "qcan_frame_api.hpp"
 #include "qcan_frame_error.hpp"
 #include "qcan_socket_canpie_v3.hpp"
-#include "../include/cp_core.h"
-#include "../include/cp_msg.h"
 
 
 /*----------------------------------------------------------------------------*\
