@@ -71,33 +71,39 @@ INCLUDEPATH  = .
 INCLUDEPATH += ../../
 INCLUDEPATH += ../../../canpie/version3/
 
+#---------------------------------------------------------------
+# search path for source files
+#
+VPATH  = .
+VPATH += ./../..
+VPATH += ./../../../canpie/version3
 
 #---------------------------------------------------------------
 # header files of project 
 #
-HEADERS =   ./qcan_server_dialog.hpp      \
-            ./qcan_interface_widget.hpp   \
-            ../../qcan_frame.hpp          \
-            ../../qcan_interface.hpp      \
-            ../../qcan_network.hpp        \
-            ../../qcan_server.hpp         \
+HEADERS =   qcan_server_dialog.hpp     \
+            qcan_interface_widget.hpp  \
+            qcan_frame.hpp             \
+            qcan_interface.hpp         \
+            qcan_network.hpp           \
+            qcan_server.hpp
                 
             
 #---------------------------------------------------------------
 # source files of project 
 #
-SOURCES =   ./qcan_server_dialog.cpp                        \
-            ./qcan_interface_widget.cpp                     \
-            ./server_main.cpp                               \
-            ../../../canpie/version3/canpie_frame_api.cpp   \
-            ../../../canpie/version3/canpie_frame_error.cpp \
-            ../../../canpie/version3/canpie_frame.cpp       \
-            ../../../canpie/version3/canpie_timestamp.cpp   \
-            ../../qcan_frame.cpp                            \
-            ../../qcan_frame_api.cpp                        \
-            ../../qcan_frame_error.cpp                      \
-            ../../qcan_network.cpp                          \
-            ../../qcan_server.cpp
+SOURCES =   qcan_server_dialog.cpp     \
+            qcan_interface_widget.cpp  \
+            server_main.cpp            \
+            canpie_frame_api.cpp       \
+            canpie_frame_error.cpp     \
+            canpie_frame.cpp           \
+            canpie_timestamp.cpp       \
+            qcan_frame.cpp             \
+            qcan_frame_api.cpp         \
+            qcan_frame_error.cpp       \
+            qcan_network.cpp           \
+            qcan_server.cpp
 
 
 #---------------------------------------------------------------
