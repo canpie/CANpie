@@ -35,7 +35,7 @@ public:
    **
    ** Connect the CAN stub to a CAN network.
    */
-   bool connectNetwork(QCan::CAN_Channel_e ubChannelV);
+   bool connectNetwork(CAN_Channel_e ubChannelV);
 
 
    /*!
@@ -64,9 +64,9 @@ public:
    ** Get error state
    **
    */
-   QCan::CAN_State_e state(void);
+   CAN_State_e state(void);
 
-   bool  setMode(QCan::CAN_Mode_e & ubModeR);
+   bool  setMode(CAN_Mode_e & ubModeR);
 
 
    bool  readFrame(QCanFrame & clFrameR);
