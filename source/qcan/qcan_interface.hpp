@@ -45,7 +45,7 @@
 #include "qcan_frame.hpp"
 
 
-
+using namespace CANpie;
 
 //-----------------------------------------------------------------------------
 /*!
@@ -152,7 +152,7 @@ public:
    **	is not evaluated.
    */
    virtual InterfaceError_e   setBitrate(int32_t slBitrateV,
-                                         int32_t slBrsClockV = QCan::eCAN_BITRATE_NONE,
+                                         int32_t slBrsClockV = eCAN_BITRATE_NONE,
                                          uint8_t ubChannelV = 0) = 0;
 
 
@@ -160,7 +160,7 @@ public:
    ** Set mode of the physical channel \c ubChannelV.
    ** The first CAN channel starts at index 0.
    */
-   virtual InterfaceError_e	setMode(const QCan::CAN_Mode_e teModeV,
+   virtual InterfaceError_e	setMode(const CAN_Mode_e teModeV,
                                       uint8_t ubChannelV = 0) = 0;
 
 
@@ -168,7 +168,7 @@ public:
    ** Get state of the physical channel \c ubChannelV.
    ** The first CAN channel starts at index 0.
    */
-   virtual QCan::CAN_State_e	state(uint8_t ubChannelV = 0) = 0;
+   virtual CAN_State_e	state(uint8_t ubChannelV = 0) = 0;
 
 
    virtual InterfaceError_e   statistic(QCanStatistic_ts &clStatisticR,
