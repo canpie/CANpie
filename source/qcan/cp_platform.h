@@ -1,8 +1,6 @@
 //============================================================================//
 // File:          cp_platform.h                                               //
-// Description:   General CAN driver definitions and structures               //
-// Author:        Uwe Koppe                                                   //
-// e-mail:        koppe@microcontrol.net                                      //
+// Description:   CANpie platform configuration                               //
 //                                                                            //
 // Copyright (C) MicroControl GmbH & Co. KG                                   //
 // 53844 Troisdorf - Germany                                                  //
@@ -14,7 +12,7 @@
 // are met:                                                                   //
 // 1. Redistributions of source code must retain the above copyright          //
 //    notice, this list of conditions, the following disclaimer and           //
-//    the referenced file 'COPYING'.                                          //
+//    the referenced file 'LICENSE'.                                          //
 // 2. Redistributions in binary form must reproduce the above copyright       //
 //    notice, this list of conditions and the following disclaimer in the     //
 //    documentation and/or other materials provided with the distribution.    //
@@ -24,17 +22,7 @@
 //                                                                            //
 // Provided that this notice is retained in full, this software may be        //
 // distributed under the terms of the GNU Lesser General Public License       //
-// ("LGPL") version 3 as distributed in the 'COPYING' file.                   //
-//                                                                            //
-//----------------------------------------------------------------------------//
-//                                                                            //
-// Date        History                                                        //
-// ----------  -------------------------------------------------------------- //
-// 04.12.1998  Initial version                                                //
-// 29.04.1999  Changed structures, new data type definitions                  //
-// 15.06.2000  moved definitions from cpmsg.h                                 //
-// 06.11.2000  added new error codes, added missing buffer number             //
-// 12.06.2007  update HDI and statistic structure                             //
+// ("LGPL") version 3 as distributed in the 'LICENSE' file.                   //
 //                                                                            //
 //============================================================================//
 
