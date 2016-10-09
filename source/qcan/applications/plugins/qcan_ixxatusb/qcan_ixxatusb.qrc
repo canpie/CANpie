@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qcan_ixxatusb.png</file>
+    </qresource>
+</RCC>
