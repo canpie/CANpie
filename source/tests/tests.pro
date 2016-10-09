@@ -12,13 +12,17 @@ TARGET = qcantest
 
 INCLUDEPATH += .
 INCLUDEPATH += ../qcan
-INCLUDEPATH += ../include
+INCLUDEPATH += ../canpie/version3
 
 
 
 DEFINES +=  
 
-SOURCES +=  ../qcan/qcan_frame.cpp        \
+SOURCES +=  ../canpie/version3/canpie_frame.cpp       \
+            ../canpie/version3/canpie_frame_api.cpp   \
+            ../canpie/version3/canpie_frame_error.cpp \
+            ../canpie/version3/canpie_timestamp.cpp   \
+            ../qcan/qcan_frame.cpp        \
             ../qcan/qcan_frame_api.cpp    \
             ../qcan/qcan_frame_error.cpp  \
             ../qcan/qcan_socket.cpp       \
