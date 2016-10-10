@@ -99,7 +99,7 @@ QCanPeakUsb::QCanPeakUsb()
    {
       if(connect(ubCntrT) == eERROR_NONE)
       {
-         if (setBitrate(QCan::eCAN_BITRATE_500K, 0,ubCntrT) == eERROR_NONE)
+         if (setBitrate(eCAN_BITRATE_500K, 0,ubCntrT) == eERROR_NONE)
          {
 
             TPCANStatus tsStatusT;
@@ -680,7 +680,7 @@ QCanInterface::InterfaceError_e QCanPeakUsb::setBitrate( int32_t slBitrateV,
    //----------------------------------------------------------------
    // Check bit-rate value
    //
-   if (slBitrateV >= QCan::eCAN_BITRATE_AUTO)
+   if (slBitrateV >= eCAN_BITRATE_AUTO)
    {
       // maybe we get a value in Hz, normalise it to kHz
       slBitrateV = slBitrateV / 1000;
@@ -689,7 +689,7 @@ QCanInterface::InterfaceError_e QCanPeakUsb::setBitrate( int32_t slBitrateV,
    //----------------------------------------------------------------
    // Check BRS clock value for CAN-FD
    //
-   if (slBrsClockV != QCan::eCAN_BITRATE_NONE)
+   if (slBrsClockV != eCAN_BITRATE_NONE)
    {
       //! \todo Create bitrate depending string value
 
@@ -706,31 +706,31 @@ QCanInterface::InterfaceError_e QCanPeakUsb::setBitrate( int32_t slBitrateV,
    switch(slBitrateV)
    {
       // value from CANpie enumeration
-      case QCan::eCAN_BITRATE_10K:
+      case eCAN_BITRATE_10K:
          uwBtr0Btr1T = PCAN_BAUD_10K;
          break;
-      case QCan::eCAN_BITRATE_20K:
+      case eCAN_BITRATE_20K:
          uwBtr0Btr1T = PCAN_BAUD_20K;
          break;
-      case QCan::eCAN_BITRATE_50K:
+      case eCAN_BITRATE_50K:
          uwBtr0Btr1T = PCAN_BAUD_50K;
          break;
-      case QCan::eCAN_BITRATE_100K:
+      case eCAN_BITRATE_100K:
          uwBtr0Btr1T = PCAN_BAUD_100K;
          break;
-      case QCan::eCAN_BITRATE_125K:
+      case eCAN_BITRATE_125K:
          uwBtr0Btr1T = PCAN_BAUD_125K;
          break;
-      case QCan::eCAN_BITRATE_250K:
+      case eCAN_BITRATE_250K:
          uwBtr0Btr1T = PCAN_BAUD_250K;
          break;
-      case QCan::eCAN_BITRATE_500K:
+      case eCAN_BITRATE_500K:
          uwBtr0Btr1T = PCAN_BAUD_500K;
          break;
-      case QCan::eCAN_BITRATE_800K:
+      case eCAN_BITRATE_800K:
          uwBtr0Btr1T = PCAN_BAUD_800K;
          break;
-      case QCan::eCAN_BITRATE_1M:
+      case eCAN_BITRATE_1M:
          uwBtr0Btr1T = PCAN_BAUD_1M;
          break;
 
@@ -773,7 +773,7 @@ QCanInterface::InterfaceError_e QCanPeakUsb::setBitrate( int32_t slBitrateV,
    //
    pfnCAN_UninitializeP(atsCanChannelP[ubChannelV].uwChannel);
 
-   if (slBrsClockV != QCan::eCAN_BITRATE_NONE)
+   if (slBrsClockV != eCAN_BITRATE_NONE)
    {
       #if QCAN_SUPPORT_CAN_FD > 0
       ulStatusT = pfnCAN_InitializeFDP(atsCanChannelP[ubChannelV].uwChannel, clTxtBitrateT);
@@ -802,7 +802,7 @@ QCanInterface::InterfaceError_e QCanPeakUsb::setBitrate( int32_t slBitrateV,
 // setMode()                                                                  //
 //                                                                            //
 //----------------------------------------------------------------------------//
-QCanInterface::InterfaceError_e	QCanPeakUsb::setMode(const QCan::CAN_Mode_e teModeV,
+QCanInterface::InterfaceError_e	QCanPeakUsb::setMode(const CAN_Mode_e teModeV,
                                                       uint8_t ubChannelV)
 {
    // TPCANStatus ulStatusT;
@@ -829,7 +829,7 @@ QCanInterface::InterfaceError_e	QCanPeakUsb::setMode(const QCan::CAN_Mode_e teMo
    //
    switch (teModeV)
    {
-      case QCan::eCAN_MODE_START :
+      case eCAN_MODE_START :
 
          //---------------------------------------------------
          // reset statistic values
@@ -845,7 +845,7 @@ QCanInterface::InterfaceError_e	QCanPeakUsb::setMode(const QCan::CAN_Mode_e teMo
          }
          break;
 
-      case QCan::eCAN_MODE_STOP :
+      case eCAN_MODE_STOP :
 
          break;
 
@@ -861,18 +861,18 @@ QCanInterface::InterfaceError_e	QCanPeakUsb::setMode(const QCan::CAN_Mode_e teMo
 // state()                                                                    //
 //                                                                            //
 //----------------------------------------------------------------------------//
-QCan::CAN_State_e	QCanPeakUsb::state(uint8_t ubChannelV)
+CAN_State_e	QCanPeakUsb::state(uint8_t ubChannelV)
 {
    //----------------------------------------------------------------
    // check channel have been connected
    //
    if (ubChannelV >= atsCanChannelP.length())
    {
-      return QCan::eCAN_STATE_STOPPED;
+      return eCAN_STATE_STOPPED;
    }
 
 
-   return QCan::eCAN_STATE_BUS_ACTIVE;
+   return eCAN_STATE_BUS_ACTIVE;
 }
 
 //----------------------------------------------------------------------------//

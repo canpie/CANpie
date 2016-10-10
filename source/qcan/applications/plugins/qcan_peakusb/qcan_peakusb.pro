@@ -26,7 +26,7 @@ TARGET          = $$qtLibraryTarget(QCanPeakUsb)
 #---------------------------------------------------------------
 # directory for target file
 #
-DESTDIR = ../../../../bin/plugins
+DESTDIR = ../../../../../bin/plugins
 
 #--------------------------------------------------------------------
 # Objects directory
@@ -67,9 +67,9 @@ RESOURCES = qcan_peakusb.qrc
 # include directory search path
 #
 INCLUDEPATH  = .
+INCLUDEPATH += ./include
 INCLUDEPATH += ./../../..
 INCLUDEPATH += ./../../../../canpie/version3
-
 
 #---------------------------------------------------------------
 # search path for source files
@@ -115,13 +115,14 @@ macx {
 }
 
 win32 {
-   message("Building for Windows ...")
+   message("Building 'qcan_peakusb' for Windows ...")
    CONFIG(debug, debug|release) {
-      QMAKE_POST_LINK += cp ../../qcan/plugins/*.dll ../../../source/build-qcan_server-Desktop_Qt_5_6_0_MinGW_32bit-Debug/plugins
+
+
    } else {
       DEFINES += QT_NO_WARNING_OUTPUT
       DEFINES += QT_NO_DEBUG_OUTPUT
-      QMAKE_POST_LINK += cp ../../qcan/plugins/*.dll ../../../source/build-qcan_server-Desktop_Qt_5_6_0_MinGW_32bit-Release/plugins
+
    }
 }
 

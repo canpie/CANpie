@@ -17,6 +17,8 @@ TEMPLATE = subdirs
 # list of sub directories
 #
 SUBDIRS  = ./qcan/applications/server                 \
-           ./qcan/applications/plugins/qcan_ixxatusb  \
            ./qcan/applications/plugins/qcan_peakusb   \
            ./tests
+
+
+#           ./qcan/applications/plugins/qcan_ixxatusb  \

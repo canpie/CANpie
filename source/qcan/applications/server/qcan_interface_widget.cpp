@@ -178,7 +178,7 @@ bool QCanInterfaceWidget::loadPlugin()
             pclQCanIfT = qobject_cast<QCanInterface *>(pclPluginT);
             if (pclQCanIfT)
             {
-               qInfo() << "loadPlugin(): found" << clPluginPathP.absoluteFilePath(clFileNameT) << "plugin.";
+               qInfo() << "loadPlugin(): found" << clPluginPathP.absoluteFilePath(clFileNameT) << "plugin, which contains" << QString::number(pclQCanIfT->channel()) << "channels.";
 
                //-------------------------------------
                // collect all information of valid plugin
@@ -190,6 +190,11 @@ bool QCanInterfaceWidget::loadPlugin()
                   tsChannelParmT.clName = pclQCanIfT->name(ubChnT);
                   tsChannelParmT.clIcon = pclQCanIfT->icon(ubChnT);
                   tsChannelParmT.ubChannel = ubChnT;
+
+                  qInfo() << "loadPlugin(): add plugin: " << tsChannelParmT.clPlugin;
+                  qInfo() << "loadPlugin(): add name: " << tsChannelParmT.clName;
+                  qInfo() << "loadPlugin(): add icon: " << tsChannelParmT.clIcon;
+                  qInfo() << "loadPlugin(): add channel: " << QString::number(tsChannelParmT.ubChannel,10);
 
 //                  aclPluginNameListP.append(pclQCanIfT->name(ubChnT));
 //                  aclIconListP.append(pclQCanIfT->icon(ubChnT));

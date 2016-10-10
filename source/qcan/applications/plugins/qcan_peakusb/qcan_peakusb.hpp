@@ -199,10 +199,10 @@ public:
                                  int32_t slBrsClockV,
                                  uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
 
-   InterfaceError_e  setMode( const QCan::CAN_Mode_e teModeV,
+   InterfaceError_e  setMode( const CAN_Mode_e teModeV,
                               uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
 
-   QCan::CAN_State_e state(uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
+   CAN_State_e state(uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;
 
    InterfaceError_e  statistic(QCanStatistic_ts &clStatisticR,
                                uint8_t ubChannelV = 0) Q_DECL_OVERRIDE;

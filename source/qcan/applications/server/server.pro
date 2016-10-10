@@ -68,20 +68,23 @@ RESOURCES = server.qrc
 # include directory search path
 #
 INCLUDEPATH  = .
-INCLUDEPATH += ../../
-INCLUDEPATH += ../../../canpie/version3/
+INCLUDEPATH += ./../../
+INCLUDEPATH += ./../../../qcan
+INCLUDEPATH += ./../../../canpie/version3/
 
 #---------------------------------------------------------------
 # search path for source files
 #
 VPATH  = .
 VPATH += ./../..
+VPATH += ./../../../qcan
 VPATH += ./../../../canpie/version3
 
 #---------------------------------------------------------------
 # header files of project 
 #
-HEADERS =   qcan_server_dialog.hpp     \
+HEADERS =   qcan_defs.hpp              \
+            qcan_server_dialog.hpp     \
             qcan_interface_widget.hpp  \
             qcan_frame.hpp             \
             qcan_interface.hpp         \
@@ -110,7 +113,7 @@ SOURCES =   qcan_server_dialog.cpp     \
 # OS specific settings 
 #
 macx {
-   message("Building for Mac OS X ...")
+   message("Building 'CANpieServer' for Mac OS X ...")
    QMAKE_MAC_SDK = macosx10.12
    QMAKE_INFO_PLIST = Info.plist
    # Minimum OS X version for submission is 10.9
@@ -121,6 +124,6 @@ macx {
 }
 
 win32 {
-   message("Building for WIN 32 ...")
+   message("Building 'CANpieServer' for Windows ...")
    RC_FILE += server.rc
 }
