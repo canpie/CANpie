@@ -9,6 +9,11 @@
 #=============================================================================#
 
 #---------------------------------------------------------------
+# Name of QMake project
+#
+QMAKE_PROJECT_NAME = "CANpie"
+
+#---------------------------------------------------------------
 # template type: run qmake projects in sub-directories
 #
 TEMPLATE = subdirs
@@ -16,9 +21,6 @@ TEMPLATE = subdirs
 #---------------------------------------------------------------
 # list of sub directories
 #
-SUBDIRS  = ./qcan/applications/server                 \
-           ./qcan/applications/plugins/qcan_peakusb   \
+SUBDIRS  = ./qcan/applications \
+           ./qcan/examples     \
            ./tests
-
-
-#           ./qcan/applications/plugins/qcan_ixxatusb  \
