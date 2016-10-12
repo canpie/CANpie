@@ -11,7 +11,7 @@
 #---------------------------------------------------------------
 # Name of QMake project
 #
-QMAKE_PROJECT_NAME = "plugins"
+QMAKE_PROJECT_NAME = "CANpie plugins"
 
 #---------------------------------------------------------------
 # template type: run qmake projects in sub-directories
@@ -21,8 +21,9 @@ TEMPLATE = subdirs
 #---------------------------------------------------------------
 # list of sub directories
 #
-SUBDIRS  = ./qcan_peakusb
+SUBDIRS  = ./qcan_peak
 
 
+#           ./qcan_peakusb
 
 #           ./qcan_ixxatusb  \
