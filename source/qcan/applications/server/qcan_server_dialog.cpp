@@ -34,11 +34,8 @@
 
 #include "qcan_server_dialog.hpp"
 
-
 #include <QDebug>
-
 #include <QDir>
-
 
 
 /*----------------------------------------------------------------------------*\
@@ -78,13 +75,14 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    //----------------------------------------------------------------
    // create toolbox for can interfaces
    //
-   pclTbxNetworkM = new QToolBox(ui.pclTabConfigNetworkM);
-   pclTbxNetworkM->setGeometry(QRect(0, 0, 101, 361));
+   pclTbxNetworkP = new QToolBox(ui.pclTabConfigNetworkM);
+   pclTbxNetworkP->setGeometry(QRect(0, 0, 101, 361));
    for(ubNetworkIdxT = 0; ubNetworkIdxT < QCAN_NETWORK_MAX; ubNetworkIdxT++)
    {
-      apclTbxQCanInterfaceWidgetM[ubNetworkIdxT]  = new QCanInterfaceWidget(ubNetworkIdxT);
-      apclTbxQCanInterfaceWidgetM[ubNetworkIdxT]->setGeometry(QRect(0, 0, 101, 145));
-      pclTbxNetworkM->addItem(apclTbxQCanInterfaceWidgetM[ubNetworkIdxT], ("CAN " + QString::number(ubNetworkIdxT+1,10)));
+      apclCanIfWidgetP[ubNetworkIdxT]  = new QCanInterfaceWidget(ubNetworkIdxT);
+      apclCanIfWidgetP[ubNetworkIdxT]->setGeometry(QRect(0, 0, 101, 145));
+      pclTbxNetworkP->addItem(apclCanIfWidgetP[ubNetworkIdxT], 
+                              ("CAN " + QString::number(ubNetworkIdxT+1,10)));
    }
 
    //----------------------------------------------------------------
@@ -93,7 +91,16 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    connect(ui.pclCkbNetEnableM, SIGNAL(clicked(bool)),
            this, SLOT(onNetworkConfEnable(bool)));
 
-   connect(pclTbxNetworkM, SIGNAL(currentChanged(int)),
+   connect(ui.pclCkbNetErrorFramesM, SIGNAL(clicked(bool)),
+           this, SLOT(onNetworkConfErrorFrames(bool)));
+
+   connect(ui.pclCkbNetCanFdM, SIGNAL(clicked(bool)),
+           this, SLOT(onNetworkConfCanFd(bool)));
+
+   connect(ui.pclCkbNetListenOnlyM, SIGNAL(clicked(bool)),
+           this, SLOT(onNetworkConfListenOnly(bool)));
+   
+   connect(pclTbxNetworkP, SIGNAL(currentChanged(int)),
            this, SLOT(onNetworkChange(int)));
 
    connect(ui.pclCbbNetBitrateM, SIGNAL(currentIndexChanged(int)),
@@ -131,9 +138,11 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
 
    for(ubNetworkIdxT = 0; ubNetworkIdxT < QCAN_NETWORK_MAX; ubNetworkIdxT++)
    {
-//      apclTbxQCanInterfaceWidgetM[ubNetworkIdxT]->setPluginPath(pluginsDir);
-      connect(apclTbxQCanInterfaceWidgetM[ubNetworkIdxT], &QCanInterfaceWidget::interfaceChanged,
-              this,                                       &QCanServerDialog::onInterfaceChange  );
+//      apclCanIfWidgetP[ubNetworkIdxT]->setPluginPath(pluginsDir);
+      connect( apclCanIfWidgetP[ubNetworkIdxT], 
+               &QCanInterfaceWidget::interfaceChanged,
+               this,                                       
+               &QCanServerDialog::onInterfaceChange  );
    }
 
 
@@ -150,7 +159,7 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
       pclNetworkT = pclCanServerP->network(ubNetworkIdxT);
       clNetNameT  = "CAN " + QString("%1").arg(ubNetworkIdxT+1);
       pclSettingsP->beginGroup(clNetNameT);
-      //pclSettingsP->setValue("interface",  win->isFullScreen());
+
       pclNetworkT->setBitrate(pclSettingsP->value("bitrate",
                                  eCAN_BITRATE_500K).toInt(), 0);
 
@@ -166,24 +175,30 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
       pclNetworkT->setListenOnlyEnabled(pclSettingsP->value("listenOnly",
                                  0).toBool());
 
-      apclTbxQCanInterfaceWidgetM[ubNetworkIdxT]->setInterface(pclSettingsP->value("interface"+QString::number(ubNetworkIdxT),"").toString());
+      apclCanIfWidgetP[ubNetworkIdxT]->setInterface(pclSettingsP->value("interface"+QString::number(ubNetworkIdxT),"").toString());
 
       pclSettingsP->endGroup();
    }
 
+   //----------------------------------------------------------------
+   // create actions and tray icon in system tray
+   //
    createActions();
    createTrayIcon();
-
-   //->
    setIcon();
    pclIconTrayP->show();
 
+   //----------------------------------------------------------------
+   // set title of dialog window
+   //
+   setWindowTitle("CANpie Server");
+   
    //----------------------------------------------------------------
    // show CAN channel 1 as default and update user interface
    //
    slLastNetworkIndexP = 0;
    ui.pclTabConfigM->setCurrentIndex(0);
-   pclTbxNetworkM->setCurrentIndex(0);
+   pclTbxNetworkP->setCurrentIndex(0);
    this->updateUI(0);
 }
 
@@ -206,14 +221,14 @@ QCanServerDialog::~QCanServerDialog()
       pclNetworkT = pclCanServerP->network(ubNetworkIdxT);
       clNetNameT  = "CAN " + QString("%1").arg(ubNetworkIdxT+1);
       pclSettingsP->beginGroup(clNetNameT);
-      //pclSettingsP->setValue("interface",  win->isFullScreen());
       pclSettingsP->setValue("bitrate",    pclNetworkT->bitrate());
       pclSettingsP->setValue("enable",     pclNetworkT->isNetworkEnabled());
       pclSettingsP->setValue("errorFrame", pclNetworkT->isErrorFramesEnabled());
       pclSettingsP->setValue("canFD",      pclNetworkT->isFastDataEnabled());
       pclSettingsP->setValue("listenOnly", pclNetworkT->isListenOnlyEnabled());
 
-      pclSettingsP->setValue("interface"+QString::number(ubNetworkIdxT), apclTbxQCanInterfaceWidgetM[ubNetworkIdxT]->name());
+      pclSettingsP->setValue("interface"+QString::number(ubNetworkIdxT), 
+                              apclCanIfWidgetP[ubNetworkIdxT]->name());
 
       pclSettingsP->endGroup();
    }
@@ -257,7 +272,8 @@ void QCanServerDialog::createTrayIcon(void)
 // onInterfaceChange()                                                        //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void QCanServerDialog::onInterfaceChange(uint8_t ubIdxV, QCanInterface *pclCanIfV)
+void QCanServerDialog::onInterfaceChange( uint8_t ubIdxV, 
+                                          QCanInterface *pclCanIfV)
 {
    QCanNetwork *  pclNetworkT;
 
@@ -275,7 +291,7 @@ void QCanServerDialog::onInterfaceChange(uint8_t ubIdxV, QCanInterface *pclCanIf
    if (pclCanIfV == Q_NULLPTR)
    {
       pclNetworkT->removeInterface();
-      apclTbxQCanInterfaceWidgetM[ubIdxV]->setIcon(QIcon(QCAN_IF_VCAN_ICON));
+      apclCanIfWidgetP[ubIdxV]->setIcon(QIcon(QCAN_IF_VCAN_ICON));
       qDebug() << " set vCAN icon";
    }
    else
@@ -283,7 +299,7 @@ void QCanServerDialog::onInterfaceChange(uint8_t ubIdxV, QCanInterface *pclCanIf
       qDebug() << " set interface icon";
       if(pclNetworkT->addInterface(pclCanIfV) == true)
       {
-         apclTbxQCanInterfaceWidgetM[ubIdxV]->setIcon(pclCanIfV->icon());
+         apclCanIfWidgetP[ubIdxV]->setIcon(pclCanIfV->icon());
       } else
       {
          qWarning() << "Fail to add interface!";
@@ -347,10 +363,26 @@ void QCanServerDialog::onNetworkConfBitrate(int slBitrateV)
    QCanNetwork * pclNetworkT;
 
    qDebug() << "Change bit-rate" << slBitrateV;
-   pclNetworkT = pclCanServerP->network(pclTbxNetworkM->currentIndex());
+   pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
    if(pclNetworkT != Q_NULLPTR)
    {
       pclNetworkT->setBitrate(slBitrateV, -1);
+   }
+}
+
+
+//----------------------------------------------------------------------------//
+// onNetworkConfCanFd()                                                       //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void QCanServerDialog::onNetworkConfCanFd(bool btEnableV)
+{
+   QCanNetwork * pclNetworkT;
+
+   pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
+   if(pclNetworkT != Q_NULLPTR)
+   {
+      pclNetworkT->setFastDataEnabled(btEnableV);
    }
 }
 
@@ -363,19 +395,29 @@ void QCanServerDialog::onNetworkConfEnable(bool btEnableV)
 {
    QCanNetwork * pclNetworkT;
 
-   pclNetworkT = pclCanServerP->network(pclTbxNetworkM->currentIndex());
+   pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
    if(pclNetworkT != Q_NULLPTR)
    {
       pclNetworkT->setNetworkEnabled(btEnableV);
    }
-
 }
 
 
-//void QCanServerDialog::onNetworkConfInterface(QMouseEvent * event)
-//{
-//   qDebug() << "Event!";
-//}
+//----------------------------------------------------------------------------//
+// onNetworkConfErrorFrames()                                                 //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void QCanServerDialog::onNetworkConfErrorFrames(bool btEnableV)
+{
+   QCanNetwork * pclNetworkT;
+
+   pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
+   if(pclNetworkT != Q_NULLPTR)
+   {
+      pclNetworkT->setErrorFramesEnabled(btEnableV);
+   }
+}
+
 
 //----------------------------------------------------------------------------//
 // onNetworkConfListenOnly()                                                  //
@@ -385,7 +427,7 @@ void QCanServerDialog::onNetworkConfListenOnly(bool btEnableV)
 {
    QCanNetwork * pclNetworkT;
 
-   pclNetworkT = pclCanServerP->network(pclTbxNetworkM->currentIndex());
+   pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
    if(pclNetworkT != Q_NULLPTR)
    {
       pclNetworkT->setListenOnlyEnabled(btEnableV);
@@ -461,13 +503,57 @@ void QCanServerDialog::updateUI(uint8_t ubNetworkIdxV)
    if(pclNetworkT != Q_NULLPTR)
    {
       //--------------------------------------------------------
-      // is network enabled?
+      // Is network enabled?
       //
       ui.pclCkbNetEnableM->setChecked(pclNetworkT->isNetworkEnabled());
+
+      //--------------------------------------------------------
+      // Does it support error frames?
+      //
+      if(pclNetworkT->hasErrorFramesSupport())
+      {
+         ui.pclCkbNetErrorFramesM->setEnabled(true);
+         ui.pclCkbNetErrorFramesM->setChecked(pclNetworkT->isErrorFramesEnabled());
+      }
+      else
+      {
+         ui.pclCkbNetErrorFramesM->setChecked(false);
+         ui.pclCkbNetErrorFramesM->setEnabled(false);
+      }
+      
+      //--------------------------------------------------------
+      // Does it support CAN-FD frames?
+      //
+      if(pclNetworkT->hasFastDataSupport())
+      {
+         ui.pclCkbNetCanFdM->setEnabled(true);
+         ui.pclCkbNetCanFdM->setChecked(pclNetworkT->isFastDataEnabled());
+      }
+      else
+      {
+         ui.pclCkbNetCanFdM->setChecked(false);
+         ui.pclCkbNetCanFdM->setEnabled(false);
+      }
+
+      //--------------------------------------------------------
+      // Does it support Listen-Only mode?
+      //
+      if(pclNetworkT->hasListenOnlySupport())
+      {
+         ui.pclCkbNetListenOnlyM->setEnabled(true);
+         ui.pclCkbNetListenOnlyM->setChecked(pclNetworkT->isListenOnlyEnabled());
+      }
+      else
+      {
+         ui.pclCkbNetListenOnlyM->setChecked(false);
+         ui.pclCkbNetListenOnlyM->setEnabled(false);
+      }
+      
 
       //--------------------------------------------------------
       // show current bitrate
       //
       ui.pclCbbNetBitrateM->setCurrentIndex(pclNetworkT->bitrate());
+      
    }
 }
