@@ -11,7 +11,7 @@
 #include <QPluginLoader>
 #include <QPoint>
 
-
+#include <QCoreApplication>
 /*----------------------------------------------------------------------------*\
 ** Class methods                                                              **
 **                                                                            **
@@ -27,6 +27,16 @@ QCanInterfaceWidget::QCanInterfaceWidget(uint8_t ubIdxV)
    ubInterfaceIdxP = ubIdxV;
    clIconP = QIcon(QCAN_IF_VCAN_ICON);
    pclQCanInterfaceP = NULL;
+
+   //----------------------------------------------------------------
+   // check there are any plugins available
+   //
+   QDir pluginsDir(qApp->applicationDirPath()+"/plugins");
+
+   clPluginPathP = pluginsDir;
+   qDebug() << QString("QCanInterfaceWidget::QCanInterfaceWidget("+QString::number(ubIdxV) +","+ clPluginPathP.absolutePath()+")");
+
+   loadPlugin();
 }
 
 
@@ -39,29 +49,48 @@ void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
    QAction * pclActionT;
    QPoint pos(this->mapFromParent(QCursor::pos()));
    QMenu clContextMenuT(tr("CAN interface selection"), this);
+   QMenu *clPluginMenuT;
+   QCanInterface *pclInterfaceT;
+   QString clInterfaceNameT;
 
-   //----------------------------------------------------------------
-   // check there are any plugins available
-   //
+
    if (!loadPlugin())
    {
-       QMessageBox::information(this, "ERROR", "Could not load any plugins!");
+//       QMessageBox::information(this, "ERROR", "Could not load any plugins!");
+      qCritical() << "QCanInterfaceWidget::QCanInterfaceWidget() ERROR: Could not load any plugins!";
    }
 
    //----------------------------------------------------------------
    // create context menu with all available plugins
    //
-//   pclActionT = new QAction(QCAN_IF_VCAN_NAME, this);
-//   pclActionT->setIcon(QIcon(QCAN_IF_VCAN_ICON));
-//   clContextMenuT.addAction(pclActionT);
+   pclActionT = new QAction(QCAN_IF_VCAN_NAME, this);
+   pclActionT->setIcon(QIcon(QCAN_IF_VCAN_ICON));
+   clContextMenuT.addAction(pclActionT);
 
-   qint32 slCntrT = 0;
-   while (slCntrT < atsChannelListP.count())
+   //----------------------------------------------------------------
+   // create menues for each plugin with corresponding interfaces
+   //
+   foreach (QCanPlugin *pclPluginT, apclQCanPluginP)
    {
-      pclActionT = new QAction(atsChannelListP[slCntrT].clName, this);
-      pclActionT->setIcon(atsChannelListP[slCntrT].clIcon);
-      clContextMenuT.addAction(pclActionT);
-      slCntrT++;
+      clPluginMenuT = clContextMenuT.addMenu(pclPluginT->name());
+      clPluginMenuT->setIcon(pclPluginT->icon());
+
+      for (uint8_t ubIfCntT = 0; ubIfCntT < pclPluginT->interfaceCount(); ubIfCntT++)
+      {
+         pclInterfaceT = pclPluginT->getInterface(ubIfCntT);
+
+         // at this point interface could be used by an other client
+         // don't put it in to the list as available
+         if (pclInterfaceT->connect() == QCanInterface::eERROR_NONE)
+         {
+            clInterfaceNameT = pclInterfaceT->name();
+            pclActionT = new QAction(clInterfaceNameT, this);
+            pclActionT->setIcon(QIcon(pclInterfaceT->icon()));
+            pclInterfaceT->disconnect();
+
+            clPluginMenuT->addAction(pclActionT);
+         }
+      }
    }
 
    //----------------------------------------------------------------
@@ -71,7 +100,6 @@ void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
    {
       case Qt::LeftButton:
 
-         qDebug() << "Left button pressed";
          //-----------------------------------------------------
          // show context menu
          //
@@ -82,35 +110,9 @@ void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
          //
          if (pclActionT != 0)
          {
-            QList<QString> aclNameT;
-            aclNameT.clear();
-            for (uint8_t ubCntrT = 0; ubCntrT < atsChannelListP.length(); ubCntrT++)
-            {
-               aclNameT.append(atsChannelListP[ubCntrT].clName);
-            }
+            qDebug() << "left mousePressEvent(), process action:" << pclActionT->text();
 
-            qint32 slIdxT = aclNameT.indexOf(pclActionT->text());
-
-//            qint32 slIdxT = aclPluginNameListP.indexOf(pclActionT->text());
-            qDebug() << "mousePressEvent(): select index" << slIdxT << "for" << pclActionT->text();
-
-            pclQCanInterfaceP = NULL;
-            if (slIdxT >= 0)
-            {
-               ubPluginChannelP = slIdxT;
-               QPluginLoader clPluginLoaderT(atsChannelListP[slIdxT].clPlugin);
-               qDebug() << "Use plugin:" << atsChannelListP[slIdxT].clPlugin;
-               QObject *pclPluginT = clPluginLoaderT.instance();
-               if (pclPluginT)
-               {
-                   pclQCanInterfaceP = qobject_cast<QCanInterface *>(pclPluginT);
-               }
-            }
-
-            emit interfaceChanged(ubInterfaceIdxP,pclQCanInterfaceP,atsChannelListP[slIdxT].ubChannel);
-         } else
-         {
-            qDebug() << "mousePressEvent(): no index selected";
+            setInterface(pclActionT->text());
          }
          break;
 
@@ -123,7 +125,9 @@ void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
 
          break;
    }
-   clicked(0);
+
+
+   //  clicked(0);
 }
 
 //----------------------------------------------------------------------------//
@@ -132,41 +136,25 @@ void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
 //----------------------------------------------------------------------------//
 bool QCanInterfaceWidget::loadPlugin()
 {
-   QCanInterface *pclQCanIfT;
-   Channel_ts     tsChannelParmT;
-   qInfo() << "loadPlugin(): used plugin path" << clPluginPathP.absolutePath();
+   QCanPlugin    *pclQCanPluginT;
+
+   //----------------------------------------------------------------
+   // reset list of plugins
+   //
+   apclQCanPluginP.clear();
 
    //----------------------------------------------------------------
    // check plugin path
    //
    if (!clPluginPathP.exists())
    {
-      qWarning() << "loadPlugin(): plugin path does not exist!";
+      qWarning() << "QCanInterfaceWidget::loadPlugin() WARNING: plugin path does not exist!";
       return false;
    }
 
    //----------------------------------------------------------------
-   // check plugins and create a list with valid plugins
+   // creat a list of plugins
    //
-//   aclPluginNameListP.clear();
-//   aclPluginListP.clear();
-//   aclIconListP.clear();
-
-   atsChannelListP.clear();
-
-   // add virtual plugin
-   tsChannelParmT.clPlugin = QCAN_IF_VCAN_NAME;
-   tsChannelParmT.clName = QCAN_IF_VCAN_NAME;
-   tsChannelParmT.clIcon = QIcon(QCAN_IF_VCAN_ICON);
-   tsChannelParmT.ubChannel = 0;
-
-   atsChannelListP.clear();
-   atsChannelListP.append(tsChannelParmT);
-//   aclPluginNameListP.append(QCAN_IF_VCAN_NAME);
-//   aclIconListP.append(QIcon(QCAN_IF_VCAN_ICON));
-//   aclPluginListP.append("Dummy");
-
-   // add real connected plugins
    foreach (QString clFileNameT, clPluginPathP.entryList(QDir::Files))
    {
       if (QLibrary::isLibrary(clPluginPathP.absoluteFilePath(clFileNameT)))
@@ -175,33 +163,12 @@ bool QCanInterfaceWidget::loadPlugin()
          QObject *pclPluginT = clPluginLoaderT.instance();
          if (pclPluginT)
          {
-            pclQCanIfT = qobject_cast<QCanInterface *>(pclPluginT);
-            if (pclQCanIfT)
+            pclQCanPluginT = qobject_cast<QCanPlugin *>(pclPluginT);
+            if (pclQCanPluginT)
             {
-               qInfo() << "loadPlugin(): found" << clPluginPathP.absoluteFilePath(clFileNameT) << "plugin, which contains" << QString::number(pclQCanIfT->channel()) << "channels.";
+               qInfo() << "loadPlugin(): found" << clPluginPathP.absoluteFilePath(clFileNameT) << "plugin, which contains" << QString::number(pclQCanPluginT->interfaceCount()) << " interfaces.";
 
-               //-------------------------------------
-               // collect all information of valid plugin
-               // \todo Get the PluginName and Icon
-               //
-               for (uint8_t ubChnT = 0; ubChnT < pclQCanIfT->channel(); ubChnT++)
-               {
-                  tsChannelParmT.clPlugin = clPluginPathP.absoluteFilePath(clFileNameT);
-                  tsChannelParmT.clName = pclQCanIfT->name(ubChnT);
-                  tsChannelParmT.clIcon = pclQCanIfT->icon(ubChnT);
-                  tsChannelParmT.ubChannel = ubChnT;
-
-                  qInfo() << "loadPlugin(): add plugin: " << tsChannelParmT.clPlugin;
-                  qInfo() << "loadPlugin(): add name: " << tsChannelParmT.clName;
-                  qInfo() << "loadPlugin(): add icon: " << tsChannelParmT.clIcon;
-                  qInfo() << "loadPlugin(): add channel: " << QString::number(tsChannelParmT.ubChannel,10);
-
-//                  aclPluginNameListP.append(pclQCanIfT->name(ubChnT));
-//                  aclIconListP.append(pclQCanIfT->icon(ubChnT));
-//                  aclPluginListP.append(clPluginPathP.absoluteFilePath(clFileNameT));
-
-                  atsChannelListP.append(tsChannelParmT);
-               }
+               apclQCanPluginP.append(pclQCanPluginT);
             }
          } else
          {
@@ -213,13 +180,16 @@ bool QCanInterfaceWidget::loadPlugin()
       }
    }
 
-   if (atsChannelListP.isEmpty())
+   //----------------------------------------------------------------
+   // check list of plugins
+   //
+   if (apclQCanPluginP.isEmpty())
    {
-      qWarning() << "loadPlugin(): NONE plugins have been found!";
+      qWarning() << "QCanInterfaceWidget::loadPlugin() WARNING: No plugins have been found!";
       return false;
    }
 
-   qInfo() << "loadPlugin(): found" << QString::number(atsChannelListP.count(),10) << "available plugins.";
+   qInfo() << "loadPlugin(): found" << QString::number(apclQCanPluginP.length(),10) << "available plugins.";
 
    return true;
 }
@@ -250,29 +220,37 @@ void QCanInterfaceWidget::paintEvent(QPaintEvent * pclEventV)
 // pluginName()                                                               //
 //                                                                            //
 //----------------------------------------------------------------------------//
-QString QCanInterfaceWidget::pluginName()
+QString QCanInterfaceWidget::name()
 {
    if (pclQCanInterfaceP != NULL)
    {
-      return pclQCanInterfaceP->name(atsChannelListP[ubPluginChannelP].ubChannel);
+      pclQCanInterfaceP->connect();
+      QString clNameT = pclQCanInterfaceP->name();
+      pclQCanInterfaceP->disconnect();
+
+      return clNameT;
    }
 
-   return "Virtual CAN bus";
+   return QString(QCAN_IF_VCAN_NAME);
 }
 
 //----------------------------------------------------------------------------//
 // pluginName()                                                               //
 //                                                                            //
 //----------------------------------------------------------------------------//
-uint8_t QCanInterfaceWidget::pluginChannel()
-{
-   if (pclQCanInterfaceP != NULL)
-   {
-      return ubPluginChannelP;
-   }
+//uint8_t QCanInterfaceWidget::pluginChannel()
+//{
+//   if (pclQCanInterfaceP != NULL)
+//   {
+//      pclQCanInterfaceP->connect()
+//      QString clNameT = pclQCanInterfaceP->name();
+//      pclQCanInterfaceP->disconnect()
 
-   return 0;
-}
+//      return ubPluginChannelP;
+//   }
+
+//   return 0;
+//}
 
 
 //----------------------------------------------------------------------------//
@@ -287,62 +265,64 @@ void QCanInterfaceWidget::setIcon(QIcon clIconR)
 
 
 //----------------------------------------------------------------------------//
-// setPlugin()                                                                //
+// setInterface()                                                             //
 //                                                                            //
 //----------------------------------------------------------------------------//
-bool QCanInterfaceWidget::setPlugin(QString clNameV, quint8 ubChannelV)
+bool QCanInterfaceWidget::setInterface(QString clNameV)
 {
-   QList<QString> aclNameT;
+   QString clInterfaceNameT = NULL;
+   QCanInterface *pclInterfaceT;
 
-   qInfo() << "Set plugin "  << clNameV << QString::number(ubChannelV,10);
+   qInfo() << QString("QCanInterfaceWidget::setInterface(" + clNameV +")");
 
-   //----------------------------------------------------------------
-   // check there are any plugins available
-   //
-   if (loadPlugin())
+   pclQCanInterfaceP = NULL;
+
+   if (clNameV != QString(QCAN_IF_VCAN_NAME))
    {
-      aclNameT.clear();
-      qInfo() << "Number of Plugins: "  << QString::number(atsChannelListP.length(),10);
-
-      for (uint8_t ubCntrT = 0; ubCntrT < atsChannelListP.length(); ubCntrT++)
+      foreach (QCanPlugin *pclPluginT, apclQCanPluginP)
       {
-         aclNameT.append(atsChannelListP[ubCntrT].clName);
-      }
-
-      qint32 slIdxT = aclNameT.indexOf(clNameV);
-      qDebug() << "setPlugin(): select index" << slIdxT << "for" << clNameV;
-
-      if (slIdxT >= 0)
-      {
-         ubPluginChannelP = slIdxT;
-
-         pclQCanInterfaceP = NULL;
-         QPluginLoader clPluginLoaderT(atsChannelListP[slIdxT].clPlugin);
-         qDebug() << "Use plugin:" << atsChannelListP[slIdxT].clPlugin;
-         QObject *pclPluginT = clPluginLoaderT.instance();
-         if (pclPluginT)
+         // if an interface habe been found quit here
+         if (pclQCanInterfaceP != NULL)
          {
-             pclQCanInterfaceP = qobject_cast<QCanInterface *>(pclPluginT);
+            break;
          }
 
-         emit interfaceChanged(ubInterfaceIdxP,pclQCanInterfaceP, atsChannelListP[slIdxT].ubChannel);
+         // check all interces of selected plugin
+         for (uint8_t ubIfCntT = 0; ubIfCntT < pclPluginT->interfaceCount(); ubIfCntT++)
+         {
+            pclInterfaceT = pclPluginT->getInterface(ubIfCntT);
+            pclInterfaceT->connect();
+            clInterfaceNameT = pclInterfaceT->name();
+            pclInterfaceT->disconnect();
 
-         return true;
+            if (clNameV == clInterfaceNameT)
+            {
+               pclQCanInterfaceP = pclInterfaceT;
+               break;
+            }
+         }
       }
+   }
+
+   emit interfaceChanged(ubInterfaceIdxP, pclQCanInterfaceP);
+
+   if (clInterfaceNameT != NULL)
+   {
+      return true;
    }
 
    return false;
 }
 
 
-//----------------------------------------------------------------------------//
-// setPluginPath()                                                            //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void QCanInterfaceWidget::setPluginPath(QDir clPluginPathV)
-{
-   clPluginPathP = clPluginPathV;
-   qInfo() << "Plugin Path is set to" << clPluginPathP.absolutePath();
-}
+////----------------------------------------------------------------------------//
+//// setPluginPath()                                                            //
+////                                                                            //
+////----------------------------------------------------------------------------//
+//void QCanInterfaceWidget::setPluginPath(QDir clPluginPathV)
+//{
+//   clPluginPathP = clPluginPathV;
+//   qDebug() << QString("QCanInterfaceWidget::setPluginPath("+clPluginPathP.absolutePath()+")");
+//}
 
 

@@ -11,7 +11,7 @@
 #---------------------------------------------------------------
 # Name of QMake project
 #
-QMAKE_PROJECT_NAME = "server"
+QMAKE_PROJECT_NAME = "CANpie Server"
 
 #---------------------------------------------------------------
 # template type
@@ -117,7 +117,7 @@ SOURCES =   qcan_server_dialog.cpp     \
 # OS specific settings 
 #
 macx {
-   message("Building 'CANpieServer' for Mac OS X ...")
+   message("Building '$$QMAKE_PROJECT_NAME' for Mac OS X ...")
    QMAKE_MAC_SDK = macosx10.12
    QMAKE_INFO_PLIST = Info.plist
    # Minimum OS X version for submission is 10.9
@@ -128,6 +128,6 @@ macx {
 }
 
 win32 {
-   message("Building 'CANpieServer' for Windows ...")
+   message("Building '$$QMAKE_PROJECT_NAME' for Windows ...")
    RC_FILE += server.rc
 }

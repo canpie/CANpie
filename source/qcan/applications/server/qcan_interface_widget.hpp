@@ -4,6 +4,8 @@
 #include <QWidget>
 #include <QDir>
 #include <QCanInterface>
+#include <QCanPlugin>
+#include <QMenu>
 
 //-----------------------------------------------------------------------------
 /*!
@@ -31,53 +33,40 @@ public:
    void setPluginPath(QDir);
 
    /*!
-    * \brief setPlugin
+    * \brief setInterface
     * \param clNameV - Name of a plugin
     * \param ubChannelV - Channel number
     * \return Returns true if given plugin could be set
     */
-   bool setPlugin(QString clNameV, uint8_t ubChannelV = 0);
+   bool setInterface(QString clNameV);
 
    /*!
     * \brief pluginName
     * \return Name of acutaly used plugin
     */
-   QString pluginName(void);
+   QString name(void);
 
-   /*!
-    * \brief pluginChannel
-    * \return Selected channel number of plugin
-    */
-   uint8_t pluginChannel(void);
+//   /*!
+//    * \brief pluginChannel
+//    * \return Selected channel number of plugin
+//    */
+//   uint8_t pluginChannel(void);
 
 private:
 
-   uint8_t  ubInterfaceIdxP;
-
+   uint8_t ubInterfaceIdxP;
    QIcon    clIconP;
    QDir     clPluginPathP;
 
    /*!
     * \brief qCanInterfaceP
     * This pointer points to the actual selected interface.
-    * Otherwise this value is set to 0.
+    * Otherwise this value is set to NULL.
     */
    QCanInterface *pclQCanInterfaceP;
 
-   typedef struct Channel_s {
-      QString clPlugin;
-      uint8_t ubChannel;
-      QString clName;
-      QIcon   clIcon;
-   } Channel_ts;
 
-//   QList<QString> aclPluginNameListP;
-//   QList<QString> aclPluginListP;
-//   QList<QIcon>   aclIconListP;
-
-   QList<Channel_ts> atsChannelListP;
-
-   uint8_t        ubPluginChannelP = 0;
+   QList<QCanPlugin *> apclQCanPluginP;
 
 protected:
    void mousePressEvent(QMouseEvent *event);
@@ -88,13 +77,12 @@ protected:
 
 private slots:
 
-
 public slots:
 
 
 
 signals:
    void clicked(bool checked = false );
-   void interfaceChanged(uint8_t ubIdxV, QCanInterface *pclIfV, uint8_t ubChannelV);
+   void interfaceChanged(uint8_t ubIdxV, QCanInterface *pclIfV);
 
 };

@@ -34,7 +34,7 @@
 
 #include "qcan_server_dialog.hpp"
 
-#include <QCoreApplication>
+
 #include <QDebug>
 
 #include <QDir>
@@ -115,25 +115,25 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    //----------------------------------------------------------------
    // Intialise interface widgets for CAN interface selection
    //
-   QDir pluginsDir(qApp->applicationDirPath());
-#if defined(Q_OS_WIN)
-   if (pluginsDir.dirName().toLower() == "debug" || pluginsDir.dirName().toLower() == "release")
-       pluginsDir.cdUp();
-       pluginsDir.setPath(pluginsDir.path() + "/plugins");
-#elif defined(Q_OS_MAC)
-   if (pluginsDir.dirName() == "MacOS") {
-       pluginsDir.cdUp();
-       pluginsDir.cdUp();
-       pluginsDir.cdUp();
-       pluginsDir.setPath(pluginsDir.path() + "/plugins");
-   }
-#endif
+//   QDir pluginsDir(qApp->applicationDirPath()+"/plugins");
+//#if defined(Q_OS_WIN)
+//   if (pluginsDir.dirName().toLower() == "debug" || pluginsDir.dirName().toLower() == "release")
+//       pluginsDir.cdUp();
+//       pluginsDir.setPath(pluginsDir.path() + "/plugins");
+//#elif defined(Q_OS_MAC)
+//   if (pluginsDir.dirName() == "MacOS") {
+//       pluginsDir.cdUp();
+//       pluginsDir.cdUp();
+//       pluginsDir.cdUp();
+//       pluginsDir.setPath(pluginsDir.path() + "/plugins");
+//   }
+//#endif
 
    for(ubNetworkIdxT = 0; ubNetworkIdxT < QCAN_NETWORK_MAX; ubNetworkIdxT++)
    {
-      apclTbxQCanInterfaceWidgetM[ubNetworkIdxT]->setPluginPath(pluginsDir);
-      connect(apclTbxQCanInterfaceWidgetM[ubNetworkIdxT], SIGNAL(interfaceChanged(uint8_t, QCanInterface*, uint8_t)),
-            this, SLOT(onInterfaceChange(uint8_t, QCanInterface*, uint8_t)) );
+//      apclTbxQCanInterfaceWidgetM[ubNetworkIdxT]->setPluginPath(pluginsDir);
+      connect(apclTbxQCanInterfaceWidgetM[ubNetworkIdxT], &QCanInterfaceWidget::interfaceChanged,
+              this,                                       &QCanServerDialog::onInterfaceChange  );
    }
 
 
@@ -166,8 +166,7 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
       pclNetworkT->setListenOnlyEnabled(pclSettingsP->value("listenOnly",
                                  0).toBool());
 
-      apclTbxQCanInterfaceWidgetM[ubNetworkIdxT]->setPlugin(pclSettingsP->value("plugin"+QString::number(ubNetworkIdxT),"").toString(),
-                                                pclSettingsP->value("plugin"+QString::number(ubNetworkIdxT)+"_chn",0).toUInt());
+      apclTbxQCanInterfaceWidgetM[ubNetworkIdxT]->setInterface(pclSettingsP->value("interface"+QString::number(ubNetworkIdxT),"").toString());
 
       pclSettingsP->endGroup();
    }
@@ -214,8 +213,7 @@ QCanServerDialog::~QCanServerDialog()
       pclSettingsP->setValue("canFD",      pclNetworkT->isFastDataEnabled());
       pclSettingsP->setValue("listenOnly", pclNetworkT->isListenOnlyEnabled());
 
-      pclSettingsP->setValue("plugin"+QString::number(ubNetworkIdxT), apclTbxQCanInterfaceWidgetM[ubNetworkIdxT]->pluginName());
-      pclSettingsP->setValue("plugin"+QString::number(ubNetworkIdxT)+"_chn", apclTbxQCanInterfaceWidgetM[ubNetworkIdxT]->pluginChannel());
+      pclSettingsP->setValue("interface"+QString::number(ubNetworkIdxT), apclTbxQCanInterfaceWidgetM[ubNetworkIdxT]->name());
 
       pclSettingsP->endGroup();
    }
@@ -259,11 +257,11 @@ void QCanServerDialog::createTrayIcon(void)
 // onInterfaceChange()                                                        //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void QCanServerDialog::onInterfaceChange(uint8_t ubIdxV, QCanInterface *pclCanIfV, uint8_t ubChannelV)
+void QCanServerDialog::onInterfaceChange(uint8_t ubIdxV, QCanInterface *pclCanIfV)
 {
    QCanNetwork *  pclNetworkT;
 
-   qDebug() << "QCanServerDialog:onInterfaceChange() ToolBox Index " << QString::number(ubIdxV) << " for Channel" << QString::number(ubChannelV);
+   qDebug() << "QCanServerDialog:onInterfaceChange() ToolBox Index " << QString::number(ubIdxV);
 
 
    //----------------------------------------------------------------
@@ -282,10 +280,10 @@ void QCanServerDialog::onInterfaceChange(uint8_t ubIdxV, QCanInterface *pclCanIf
    }
    else
    {
-      qDebug() << " set plugin icon";
+      qDebug() << " set interface icon";
       if(pclNetworkT->addInterface(pclCanIfV) == true)
       {
-         apclTbxQCanInterfaceWidgetM[ubIdxV]->setIcon(pclCanIfV->icon(ubChannelV));
+         apclTbxQCanInterfaceWidgetM[ubIdxV]->setIcon(pclCanIfV->icon());
       } else
       {
          qWarning() << "Fail to add interface!";
@@ -370,6 +368,7 @@ void QCanServerDialog::onNetworkConfEnable(bool btEnableV)
    {
       pclNetworkT->setNetworkEnabled(btEnableV);
    }
+
 }
 
 
