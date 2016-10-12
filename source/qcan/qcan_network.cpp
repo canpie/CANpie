@@ -180,42 +180,100 @@ bool QCanNetwork::addInterface(QCanInterface * pclCanIfV)
 }
 
 
-
+//----------------------------------------------------------------------------//
+// hasErrorFramesSupport()                                                    //
+// Check if the CAN interface has error frame support                         //
+//----------------------------------------------------------------------------//
 bool QCanNetwork::hasErrorFramesSupport(void)
 {
+   bool btResultT;
+   
+   //----------------------------------------------------------------
+   // If no physical CAN interface is connected, the virtual CAN 
+   // network can support error frames. Hence the default is TRUE.
+   //
+   btResultT = true;  
+   
+   //----------------------------------------------------------------
+   // Check supported features of physical CAN interface.
+   //
    if (!pclInterfaceP.isNull())
    {
       if (pclInterfaceP->supportedFeatures() & QCAN_IF_SUPPORT_ERROR_FRAMES)
       {
-         return(true);
+         btResultT = true;
+      }
+      else
+      {
+         btResultT = false;
       }
    }
 
-   return(false);
+   return(btResultT);
 }
 
+
+//----------------------------------------------------------------------------//
+// hasFastDataSupport()                                                       //
+// Check if the CAN interface has CAN FD support                              //
+//----------------------------------------------------------------------------//
 bool QCanNetwork::hasFastDataSupport(void)
 {
+   bool btResultT;
+   
+   //----------------------------------------------------------------
+   // If no physical CAN interface is connected, the virtual CAN 
+   // network can support FD frames. Hence the default is TRUE.
+   //
+   btResultT = true;  
+   
+   //----------------------------------------------------------------
+   // Check supported features of physical CAN interface.
+   //
    if (!pclInterfaceP.isNull())
    {
       if (pclInterfaceP->supportedFeatures() & QCAN_IF_SUPPORT_CAN_FD)
       {
-         return(true);
+         btResultT = true;
+      }
+      else
+      {
+         btResultT = false;
       }
    }
-   return(false);
+   
+   return(btResultT);
 }
 
+
+//----------------------------------------------------------------------------//
+// hasListenOnlySupport()                                                     //
+// Check if the CAN interface has Listen-Only support                         //
+//----------------------------------------------------------------------------//
 bool QCanNetwork::hasListenOnlySupport(void)
 {
+   bool btResultT;
+   
+   //----------------------------------------------------------------
+   // If no physical CAN interface is connected, the virtual CAN 
+   // network can not support Listen-Only. Hence the default is FALSE.
+   //
+   btResultT = false;  
+   
+   
    if (!pclInterfaceP.isNull())
    {
       if (pclInterfaceP->supportedFeatures() & QCAN_IF_SUPPORT_LISTEN_ONLY)
       {
-         return(true);
+         btResultT = true;
+      }
+      else
+      {
+         btResultT = false;
       }
    }
-   return(false);
+   
+   return(btResultT);
 }
 
 
