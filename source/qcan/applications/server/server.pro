@@ -118,12 +118,32 @@ SOURCES =   qcan_server_dialog.cpp     \
 #
 macx {
    message("Building '$$QMAKE_PROJECT_NAME' for Mac OS X ...")
-   QMAKE_MAC_SDK = macosx10.12
+
+   #--------------------------------------------------
+   # Use the supplied .plist file settings
+   #
    QMAKE_INFO_PLIST = Info.plist
+   
+   #--------------------------------------------------
+   # The correct version of the MAC SDK might be 
+   # necessary depending on the combination of
+   # Qt version and Mac OS X (i.e. Xcode) version.
+   # For macOS Sierra (Xcode 8) in combination with
+   # Qt 5.6.0 the following definition is required.
+   # The active SDK version can be looked up by checking 
+   # the symbolic link in this directory:
+   # /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
+   #
+   QMAKE_MAC_SDK = macosx10.12
+   
+   #--------------------------------------------------
    # Minimum OS X version for submission is 10.9
+   #
    QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
    
+   #--------------------------------------------------
    # Icon for application
+   #
    ICON = ./images/server.icns
 }
 
