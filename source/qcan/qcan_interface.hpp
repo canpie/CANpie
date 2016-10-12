@@ -90,6 +90,10 @@ public:
 
       eERROR_MODE,
 
+      /*! Interface is already used, and can't
+       *  be occupied                                 */
+      eERROR_USED,
+
       /*! No message in receive FIFO available        */
       eERROR_FIFO_RCV_EMPTY,
 
@@ -99,40 +103,36 @@ public:
 
 
    /*!
-   ** \see channel()
-   **
-   ** Gives nbumber of available channels.
-   */
-   virtual uint8_t channel(void) = 0;
-
-   /*!
    ** \see disconnect()
    **
-   ** Connect to the physical channel \c ubChannelV of the CAN interface.
-   ** The first CAN channel starts at index 0.
+   ** Connect to the physical CAN interface.
    */
-   virtual InterfaceError_e connect(uint8_t ubChannelV = 0) = 0;
+   virtual InterfaceError_e connect(void) = 0;
+
+   /*!
+   ** \see connected()
+   **
+   ** Returns true if interface is connected.
+   */
+   virtual bool connected(void) = 0;
 
    /*!
    ** \see connect()
    **
-   ** Disconnect from the physical channel \c ubChannelV of the CAN interface.
-   ** The first CAN channel starts at index 0.
+   ** Disconnect from the physical CAN interface.
    */
-   virtual InterfaceError_e disconnect(uint8_t ubChannelV = 0) = 0;
+   virtual InterfaceError_e disconnect(void) = 0;
 
 
    /*!
-   ** Get icon from the physical channel \c ubChannelV of the CAN interface.
-   ** The first CAN channel starts at index 0.
+   ** Get icon from the physical CAN interface.
    */
-   virtual QIcon icon(uint8_t ubChannelV = 0) = 0;
+   virtual QIcon icon(void) = 0;
 
    /*!
-   ** Get name from the physical channel \c ubChannelV of the CAN interface.
-   ** The first CAN channel starts at index 0.
+   ** Get name from the physical CAN interface.
    */
-   virtual QString name(uint8_t ubChannelV = 0) = 0;
+   virtual QString name(void) = 0;
 
    /*!
    ** \see  write()
@@ -144,7 +144,7 @@ public:
    ** eERROR_FIFO_RCV_EMPTY. On success the function returns eERROR_NONE.
    **
    */
-   virtual InterfaceError_e   read( QCanFrame &clFrameR, uint8_t ubChannelV = 0) = 0;
+   virtual InterfaceError_e   read( QCanFrame &clFrameR) = 0;
 
    /*!
    **	This function sets the bit-rate of the CAN interface. If the physical
@@ -152,27 +152,22 @@ public:
    **	is not evaluated.
    */
    virtual InterfaceError_e   setBitrate(int32_t slBitrateV,
-                                         int32_t slBrsClockV = eCAN_BITRATE_NONE,
-                                         uint8_t ubChannelV = 0) = 0;
+                                         int32_t slBrsClockV = eCAN_BITRATE_NONE) = 0;
 
 
    /*!
-   ** Set mode of the physical channel \c ubChannelV.
-   ** The first CAN channel starts at index 0.
+   ** Set mode of the physical interface.
    */
-   virtual InterfaceError_e	setMode(const CAN_Mode_e teModeV,
-                                      uint8_t ubChannelV = 0) = 0;
+   virtual InterfaceError_e	setMode(const CAN_Mode_e teModeV) = 0;
 
 
    /*!
-   ** Get state of the physical channel \c ubChannelV.
-   ** The first CAN channel starts at index 0.
+   ** Get state of the physical CAN interface.
    */
-   virtual CAN_State_e	state(uint8_t ubChannelV = 0) = 0;
+   virtual CAN_State_e	state(void) = 0;
 
 
-   virtual InterfaceError_e   statistic(QCanStatistic_ts &clStatisticR,
-                                        uint8_t ubChannelV = 0) = 0;
+   virtual InterfaceError_e   statistic(QCanStatistic_ts &clStatisticR) = 0;
 
    /*!
    ** The function returns the supported features of the physical
@@ -181,27 +176,26 @@ public:
    ** file qcan_defs.hpp.
    **
    */
-   virtual uint32_t           supportedFeatures(uint8_t ubChannelV = 0) = 0;
+   virtual uint32_t           supportedFeatures(void) = 0;
 	
 
    /*!
    ** \see  read()
    **
-   ** The functions writes a CAN message to the physical channel
+   ** The functions writes a CAN message to the physical CAN interface
    ** \c ubChannelV of the CAN interface. The first CAN channel starts at
    ** index 0. On success the function returns eERROR_NONE.
    **
    */
-   virtual InterfaceError_e	write(const QCanFrame &clFrameR,
-                                    uint8_t ubChannelV = 0) = 0;
+   virtual InterfaceError_e	write(const QCanFrame &clFrameR) = 0;
 
 
 
 Q_SIGNALS:
-    void errorOccurred(int32_t slCanBusErrorV, uint8_t ubChannelV = 0);     //  QCanBusDevice::CanBusError
-    void framesReceived(uint32_t ulFramesCountV, uint8_t ubChannelV = 0);
-    void framesWritten(uint32_t ulFramesCountV, uint8_t ubChannelV = 0);
-    void stateChanged(int32_t slCanBusDevStatusV, uint8_t ubChannelV = 0);
+    void errorOccurred(int32_t slCanBusErrorV);     //  QCanBusDevice::CanBusError
+    void framesReceived(uint32_t ulFramesCountV);
+    void framesWritten(uint32_t ulFramesCountV);
+    void stateChanged(int32_t slCanBusDevStatusV);
 
 private:
 

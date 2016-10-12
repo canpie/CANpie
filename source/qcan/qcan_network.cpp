@@ -158,6 +158,13 @@ bool QCanNetwork::addInterface(QCanInterface * pclCanIfV)
       //
       if(pclCanIfV->connect() == QCanInterface::eERROR_NONE)
       {
+         // demo initialisation
+         if (pclCanIfV->supportedFeatures() & QCAN_IF_SUPPORT_CAN_FD)
+         {
+            slBitrateP  = eCAN_BITRATE_1M;
+            slBrsClockP = 2000000;
+         }
+
          if (pclCanIfV->setBitrate(slBitrateP, slBrsClockP) == QCanInterface::eERROR_NONE)
          {
             if (pclCanIfV->setMode(eCAN_MODE_START) == QCanInterface::eERROR_NONE)
@@ -176,21 +183,40 @@ bool QCanNetwork::addInterface(QCanInterface * pclCanIfV)
 
 bool QCanNetwork::hasErrorFramesSupport(void)
 {
+   if (!pclInterfaceP.isNull())
+   {
+      if (pclInterfaceP->supportedFeatures() & QCAN_IF_SUPPORT_ERROR_FRAMES)
+      {
+         return(true);
+      }
+   }
+
    return(false);
 }
 
 bool QCanNetwork::hasFastDataSupport(void)
 {
+   if (!pclInterfaceP.isNull())
+   {
+      if (pclInterfaceP->supportedFeatures() & QCAN_IF_SUPPORT_CAN_FD)
+      {
+         return(true);
+      }
+   }
    return(false);
-
 }
 
 bool QCanNetwork::hasListenOnlySupport(void)
 {
+   if (!pclInterfaceP.isNull())
+   {
+      if (pclInterfaceP->supportedFeatures() & QCAN_IF_SUPPORT_LISTEN_ONLY)
+      {
+         return(true);
+      }
+   }
    return(false);
-
 }
-
 
 
 //----------------------------------------------------------------------------//
@@ -683,7 +709,10 @@ void QCanNetwork::removeInterface(void)
 {
    if(pclInterfaceP.isNull() == false)
    {
-      pclInterfaceP->disconnect();
+      if (pclInterfaceP->connected())
+      {
+         pclInterfaceP->disconnect();
+      }
    }
    pclInterfaceP.clear();
 }
