@@ -22,15 +22,9 @@ public:
     QCanServerDialog(QWidget *parent = 0);
     ~QCanServerDialog();
 
-    QToolBox *pclTbxNetworkM;
-    QCanInterfaceWidget *apclTbxQCanInterfaceWidgetM[QCAN_NETWORK_MAX];
 
 public slots:
 
-   void onNetworkChange(int slIndexV);
-   void onNetworkConfBitrate(int slBitrateV);
-   void onNetworkConfEnable(bool btEnableV);
-   void onNetworkConfListenOnly(bool btEnableV);
    //void onNetworkConfInterface(QMouseEvent *);
 
    /*!
@@ -44,6 +38,14 @@ public slots:
    void onNetworkShowErrFrames(uint32_t ulFrameCntV);
    void onNetworkShowLoad(uint8_t ubLoadV, uint32_t ulMsgPerSecV);
 
+private slots:
+   void onNetworkChange(int slIndexV);
+   void onNetworkConfBitrate(int slBitrateV);
+   void onNetworkConfCanFd(bool btEnableV);
+   void onNetworkConfEnable(bool btEnableV);
+   void onNetworkConfErrorFrames(bool btEnableV);
+   void onNetworkConfListenOnly(bool btEnableV);
+   
 private:
    void     createActions(void);
    void     createTrayIcon(void);
@@ -52,17 +54,20 @@ private:
    void     setIcon(void);
    void     updateUI(uint8_t ubNetworkIdxV);
 
-   Ui_ServerConfig   ui;
-   QAction *         pclActionCnfgP;
-   QAction *         pclActionQuitP;
+   Ui_ServerConfig         ui;
+   QAction *               pclActionCnfgP;
+   QAction *               pclActionQuitP;
 
-   QSystemTrayIcon * pclIconTrayP;
-   QMenu *           pclMenuTrayP;
+   QSystemTrayIcon *       pclIconTrayP;
+   QMenu *                 pclMenuTrayP;
 
-   QCanServer *      pclCanServerP;
-   QSettings *       pclSettingsP;
+   QCanServer *            pclCanServerP;
+   QSettings *             pclSettingsP;
 
-   int32_t           slLastNetworkIndexP;
+   int32_t                 slLastNetworkIndexP;
+
+   QToolBox *              pclTbxNetworkP;
+   QCanInterfaceWidget *   apclCanIfWidgetP[QCAN_NETWORK_MAX];
 
 };
 
