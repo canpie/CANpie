@@ -34,7 +34,7 @@ ClientDemo::~ClientDemo()
 
 void  ClientDemo::onClientConnect(void)
 {
-   pclCanSocketP->connectNetwork(QCan::eCAN_CHANNEL_1);
+   pclCanSocketP->connectNetwork(eCAN_CHANNEL_1);
 }
 
 void  ClientDemo::onClientDisconnect(void)
