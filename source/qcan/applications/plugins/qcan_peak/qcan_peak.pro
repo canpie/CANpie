@@ -1,5 +1,5 @@
 #=============================================================================#
-# File:          qcan_peakusb.pro                                             #
+# File:          qcan_peak.pro                                                #
 # Description:   qmake project file for Peak-USB plugin                       #
 #                                                                             #
 # Copyright (C) MicroControl GmbH & Co. KG                                    #
@@ -121,6 +121,8 @@ macx {
    message("Building '$$QMAKE_PROJECT_NAME' for Mac OS X ...")
    QMAKE_MAC_SDK = macosx10.12
    QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
+   //QMAKE_POST_LINK += mkdir '$$DESTDIR'/../CANpieServer.app/Contents/Plugins
+   //QMAKE_POST_LINK += cp '$$DESTDIR'/*.dylib '$$DESTDIR'/../CANpieServer.app/Contents/Plugins/
 }
 
 win32 {

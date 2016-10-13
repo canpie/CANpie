@@ -131,14 +131,22 @@ public:
 
    // PCAN Basic access functions
    TPCANStatus initialize     (TPCANHandle uwChannelV, TPCANBaudrate uwBtr0Btr1V, TPCANType ubHwTypeV, DWORD ulIOPortV, WORD uwInterruptV);
+   #if QCAN_SUPPORT_CAN_FD > 0
    TPCANStatus initializeFD   (TPCANHandle uwChannelV, TPCANBitrateFD pszBitrateFDV);
+   #endif
    TPCANStatus unInitialize   (TPCANHandle uwChannelV);
    TPCANStatus reset          (TPCANHandle uwChannelV);
    TPCANStatus getStatus      (TPCANHandle uwChannelV);
    TPCANStatus read           (TPCANHandle uwChannelV, TPCANMsg *ptsMessageBufferV, TPCANTimestamp *tsTimestampBufferV);
+
+   #if QCAN_SUPPORT_CAN_FD > 0
    TPCANStatus readFD         (TPCANHandle uwChannelV, TPCANMsgFD *ptsMessageBufferV, TPCANTimestampFD *puqTimestampBufferV);
+   #endif
    TPCANStatus write          (TPCANHandle uwChannelV, TPCANMsg *ptsMessageBufferV);
+
+   #if QCAN_SUPPORT_CAN_FD > 0
    TPCANStatus writeFD        (TPCANHandle uwChannelV, TPCANMsgFD *ptsMessageBufferV);
+   #endif
    TPCANStatus filterMessages (TPCANHandle uwChannelV, DWORD ulFromIDV, DWORD ulToIDV, TPCANMode ubModeV);
    TPCANStatus getValue       (TPCANHandle uwChannelV, TPCANParameter ubParameterV, void *pvdBufferV, DWORD ulBufferLengthV);
    TPCANStatus setValue       (TPCANHandle uwChannelV, TPCANParameter ubParameterV, void *pvdBufferV, DWORD ulBufferLengthV);
