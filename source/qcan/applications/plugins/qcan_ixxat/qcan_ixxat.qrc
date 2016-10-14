@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/ixxat.ico</file>
+        <file>images/usb-to-can-2-automotive.png</file>
+        <file>images/usb-to-can-2-compact-rj45.png</file>
+        <file>images/usb-to-can-2-compact-subd.png</file>
+        <file>images/usb-to-can-2-professional.png</file>
+        <file>images/usb-to-can-compact.png</file>
+    </qresource>
+</RCC>
