@@ -34,6 +34,7 @@
 #include <QLibrary>
 #include <QCanInterface>
 #include <QIcon>
+#include "qcan_frame_error.hpp"
 #include "qcan_pcan_basic.hpp"
 
 
@@ -89,6 +90,8 @@ private:
    bool btConnectedP;
 
    bool btFdUsedP;
+
+   void setupErroFrame(TPCANStatus ulStatusV, QCanFrame &clFrameR);
 
 public:
 

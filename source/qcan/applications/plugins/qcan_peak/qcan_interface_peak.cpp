@@ -268,6 +268,15 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readCAN(QCanFrame &clFrameR)
       return eERROR_NONE;
    }
 
+
+   else if ((ulStatusT & (TPCANStatus)PCAN_ERROR_ANYBUSERR) != 0)
+   {
+      setupErroFrame(ulStatusT, clFrameR);
+
+      return eERROR_NONE;
+   }
+
+
    else if (ulStatusT != (TPCANStatus)PCAN_ERROR_QRCVEMPTY)
    {
       qWarning() << "Fail to call CAN_Read():" + QString::number(ulStatusT,16);
@@ -276,7 +285,6 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readCAN(QCanFrame &clFrameR)
 
    return eERROR_FIFO_RCV_EMPTY;
 }
-
 
 //----------------------------------------------------------------------------//
 // readFD()                                                                   //
@@ -354,7 +362,14 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFD(QCanFrame &clFrameR)
 
       return eERROR_NONE;
    }
+   
+   else if ((ulStatusT & (TPCANStatus)PCAN_ERROR_ANYBUSERR) != 0)
+   {
+      setupErroFrame(ulStatusT, clFrameR);
 
+      return eERROR_NONE;
+   }
+   
    else if (ulStatusT != (TPCANStatus)PCAN_ERROR_QRCVEMPTY)
    {
       qWarning() << "Fail to call CAN_ReadFD():" << QString::number(ulStatusT,16);
@@ -560,6 +575,44 @@ QCanInterface::InterfaceError_e	QCanInterfacePeak::setMode(const CAN_Mode_e teMo
 
    return eERROR_NONE;
 }
+
+//----------------------------------------------------------------------------//
+// setupErroFrame()                                                           //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void QCanInterfacePeak::setupErroFrame(TPCANStatus ulStatusV, QCanFrame &clFrameR)
+{
+   QCanFrameError clFrameErrorT;
+
+   //---------------------------------------------------------
+   // set frame type and the bus status
+   //
+   clFrameErrorT.setErrorType(QCanFrameError::eERROR_TYPE_NONE);
+
+   switch (ulStatusV)
+   {
+      case PCAN_ERROR_BUSLIGHT :
+         clFrameErrorT.setErrorState(eCAN_STATE_BUS_WARN);
+         break;
+      case PCAN_ERROR_BUSWARNING :
+         clFrameErrorT.setErrorState(eCAN_STATE_BUS_WARN);
+         break;
+      case PCAN_ERROR_BUSPASSIVE :
+         clFrameErrorT.setErrorState(eCAN_STATE_BUS_PASSIVE);
+         break;
+      case PCAN_ERROR_BUSOFF :
+         clFrameErrorT.setErrorState(eCAN_STATE_BUS_OFF);
+         break;
+
+      default :
+         clFrameErrorT.setErrorState(eCAN_STATE_BUS_ACTIVE);
+         break;
+   }
+
+   clFrameR = clFrameErrorT.base();
+   clFrameR.setFrameType(CpFrame::eTYPE_QCAN_ERR);
+}
+
 
 //----------------------------------------------------------------------------//
 // state()                                                                    //

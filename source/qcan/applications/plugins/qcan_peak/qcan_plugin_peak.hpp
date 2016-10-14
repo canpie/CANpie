@@ -1,6 +1,6 @@
 //============================================================================//
-// File:          qcan_peakusb.hpp                                            //
-// Description:   CAN plugin for PEAK USB device                              //
+// File:          qcan_plugin_peak.hpp                                        //
+// Description:   CAN plugin for PEAK devices                                 //
 //                                                                            //
 // Copyright (C) MicroControl GmbH & Co. KG                                   //
 // 53842 Troisdorf - Germany                                                  //
