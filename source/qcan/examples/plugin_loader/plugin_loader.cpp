@@ -126,22 +126,28 @@ void PluginLoader::triggerCmd()
 //      qInfo() << QString("channel() => " + QString::number(ulStatusT));
 //   }
 
-   if (clCmdT.at(0) == "interfaces")
+   if (clCmdT.at(0) == "interfaceCount")
    {
       ulStatusT = (uint32_t) qCanPluginP->interfaceCount();
       qInfo() << QString("canInterfaces() => " + QString::number(ulStatusT));
-
-      qCanInterfaceP = qCanPluginP->getInterface(1);
-      if (qCanInterfaceP != NULL)
-      {
-
-         qInfo() << QString("canInterface(1).name() => " + qCanInterfaceP->name());
-      } else
-      {
-         qWarning() << QString("Fail to get interface 1");
-      }
-
    }
+
+//   if (clCmdT.at(0) == "interfaces")
+//   {
+//      ulStatusT = (uint32_t) qCanPluginP->interfaceCount();
+//      qInfo() << QString("canInterfaces() => " + QString::number(ulStatusT));
+
+//      qCanInterfaceP = qCanPluginP->getInterface(1);
+//      if (qCanInterfaceP != NULL)
+//      {
+
+//         qInfo() << QString("canInterface(1).name() => " + qCanInterfaceP->name());
+//      } else
+//      {
+//         qWarning() << QString("Fail to get interface 1");
+//      }
+
+//   }
 
    if (clCmdT.at(0) == "support")
    {
