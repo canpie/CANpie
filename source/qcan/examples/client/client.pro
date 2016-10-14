@@ -142,3 +142,13 @@ macx {
    #
    #ICON = ./images/server.icns
 }
+
+win32 {
+   CONFIG(debug, debug|release) {
+      message("Building '$$QMAKE_PROJECT_NAME' DEBUG version for Windows ...")
+   } else {
+      message("Building '$$QMAKE_PROJECT_NAME' RELEASE version for Windows ...")
+      DEFINES += QT_NO_WARNING_OUTPUT
+      DEFINES += QT_NO_DEBUG_OUTPUT
+   }
+}

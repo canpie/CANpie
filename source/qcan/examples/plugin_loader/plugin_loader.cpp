@@ -111,7 +111,7 @@ void PluginLoader::triggerCmd()
 
    if (clCmdT.at(0) == "name")
    {
-      clStringT = "FAIN to get Interface of plugin!";
+      clStringT = "FAIL to get Interface of plugin!";
       qCanInterfaceP = qCanPluginP->getInterface(parmValue(clCmdT,1));
       if (qCanInterfaceP != NULL)
       {
@@ -420,6 +420,14 @@ bool PluginLoader::loadPlugin()
       }
       QPluginLoader pluginLoader( pluginsDir.absoluteFilePath(fileName));
       QObject *plugin = pluginLoader.instance();
+
+      qDebug() << "Plugin metaData name:" << pluginLoader.metaData().value("name").toString();
+      qDebug() << "Plugin metaData version:" << pluginLoader.metaData().value("version").toString();
+      qDebug() << "Plugin metaData Key:" << pluginLoader.metaData().value("Key").toString();
+      qDebug() << "->" << pluginLoader.metaData().value("MetaData").toObject().value("name").toString();
+      qDebug() << "->" << QString::number(pluginLoader.metaData().count());
+//      qDebug() << "->" << pluginLoader.metaData().find("Key").key();
+
       if (plugin)
       {
          qCanPluginP = qobject_cast<QCanPlugin *>(plugin);
