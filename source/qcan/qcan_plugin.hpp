@@ -57,6 +57,11 @@ class QCanPlugin : public QObject
 
 public:
    virtual QIcon           icon(void) = 0;
+   /*!
+    * \brief interfaceCount should return number
+    *        interfaces that are actually available.
+    * \return Total count of interfaces
+    */
    virtual uint8_t         interfaceCount(void) = 0;
    virtual QCanInterface * getInterface(uint8_t ubInterfaceV = 0) = 0;
    virtual QString         name(void) = 0;

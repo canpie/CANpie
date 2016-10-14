@@ -50,16 +50,31 @@ class QCanPluginPeak : public QCanPlugin
 
 private:
 
+   /*!
+    * \brief auwPCanChannelP
+    * Contains all PCAN Channels that should be handled
+    * by this plugin.
+    */
    QList<uint16_t> auwPCanChannelP;
 
-   //----------------------------------------------------------------
-   // List of available QCAN Interfaces
-   //
-   QList<QCanInterfacePeak *> apclQCanInterfacePeakP;
+   /*!
+    * \brief Paramter to indentify an interface
+    */
+   typedef struct {
+      uint16_t uwPCanChannel;
+      QCanInterfacePeak * pclQCanInterfacePeak;
+   } QCanIf_ts;
 
-   //----------------------------------------------------------------
-   // Reference to the static PCAN Basic lib
-   //
+   /*!
+    * \brief atsQCanIfPeakP
+    * Contains list of available QCAN Interfaces
+    */
+   QList<QCanIf_ts> atsQCanIfPeakP;
+
+   /*!
+    * \brief pclPcanBasicP
+    * Reference to the static PCAN Basic lib
+    */
    QCanPcanBasic &pclPcanBasicP = QCanPcanBasic::getInstance();
 
 public:
@@ -73,3 +88,4 @@ public:
 };
 
 #endif /*QCAN_PLUGIN_PEAK_H_*/
+

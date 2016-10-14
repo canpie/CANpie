@@ -37,7 +37,8 @@ QCanPluginPeak::QCanPluginPeak()
    qDebug() << "QCanPluginPeak::QCanPluginPeak()";
 
    // reset number of interfaces
-   apclQCanInterfacePeakP.clear();
+//   apclQCanInterfacePeakP.clear();
+   atsQCanIfPeakP.clear();
 
    //----------------------------------------------------------------
    // check PCAN Basic lib is available
@@ -84,7 +85,21 @@ QCanPluginPeak::QCanPluginPeak()
 QCanPluginPeak::~QCanPluginPeak()
 {
    qDebug() << "QCanPluginPeak::~QCanPluginPeak()";
-   apclQCanInterfacePeakP.clear();
+
+   //----------------------------------------------------------------
+   // disconnect all connected interfaces and delete objects
+   //
+   foreach (QCanIf_ts tsCanIfEntryT, atsQCanIfPeakP)
+   {
+      if (tsCanIfEntryT.pclQCanInterfacePeak->connected())
+      {
+         tsCanIfEntryT.pclQCanInterfacePeak->disconnect();
+      }
+      tsCanIfEntryT.pclQCanInterfacePeak->deleteLater();
+      tsCanIfEntryT.pclQCanInterfacePeak = NULL;
+   }
+
+   atsQCanIfPeakP.clear();
 }
 
 //----------------------------------------------------------------------------//
@@ -96,32 +111,84 @@ uint8_t QCanPluginPeak::interfaceCount()
    //----------------------------------------------------------------
    // check conditions of each channel
    //
-   TPCANStatus tsStatusT;
-   uint32_t    ulParmBufferT;
-   apclQCanInterfacePeakP.clear();
-   for (uint8_t ubCntrT = 0; ubCntrT < auwPCanChannelP.length(); ubCntrT++)
+   TPCANStatus    tsStatusT;
+   uint32_t       ulParmBufferT;
+   QCanIf_ts      tsCanIfEntryT;
+   bool           btIfIsInListT;
+
+   //----------------------------------------------------------------
+   // remove all not connected devices and add new
+   //
+   for (uint8_t ubPCanChnT = 0; ubPCanChnT < (uint8_t)auwPCanChannelP.length(); ubPCanChnT++)
    {
-      tsStatusT = pclPcanBasicP.getValue(auwPCanChannelP[ubCntrT], PCAN_CHANNEL_CONDITION,
+      tsStatusT = pclPcanBasicP.getValue(auwPCanChannelP[ubPCanChnT], PCAN_CHANNEL_CONDITION,
                                          (void*)&ulParmBufferT, sizeof(ulParmBufferT));
       if (tsStatusT != PCAN_ERROR_OK)
       {
          qDebug() << "QCanPluginPeak::QCanPluginPeak()" << pclPcanBasicP.formatedError(tsStatusT);
       } else if ((ulParmBufferT & PCAN_CHANNEL_AVAILABLE) == PCAN_CHANNEL_AVAILABLE)
       {
-         apclQCanInterfacePeakP.append(new QCanInterfacePeak(auwPCanChannelP[ubCntrT]));
+         // -----------------------------------------------
+         // check this channel is already in the atsQCanIfPeakP list
+         // if so, than do nothing
+         // if not, than append this channel and interface to atsQCanIfPeakP
+         //
+         btIfIsInListT = false;
+         foreach (tsCanIfEntryT, atsQCanIfPeakP)
+         {
+            if (tsCanIfEntryT.uwPCanChannel == auwPCanChannelP[ubPCanChnT])
+            {
+               btIfIsInListT = true;
+               break;
+            }
+         }
 
-         qInfo() << "QCanPluginPeak::QCanPluginPeak() SUCCESS: Interface" <<
-                    QString::number(apclQCanInterfacePeakP.length()) <<
-                    "with channel value" <<
-                    QString::number(auwPCanChannelP[ubCntrT],16) <<
-                    "[hex] is available!";
+         //------------------------------------------------
+         // if new interface is not in the list,
+         // than append new entry
+         if (btIfIsInListT == false)
+         {
+            tsCanIfEntryT.uwPCanChannel = auwPCanChannelP[ubPCanChnT];
+            tsCanIfEntryT.pclQCanInterfacePeak = new QCanInterfacePeak(auwPCanChannelP[ubPCanChnT]);
+            atsQCanIfPeakP.append(tsCanIfEntryT);
+
+            qInfo() << "QCanPluginPeak::QCanPluginPeak() INFO: Add Interface" <<
+                       QString::number(atsQCanIfPeakP.length()) <<
+                       "with channel value" <<
+                       QString::number(auwPCanChannelP[ubPCanChnT],16) <<
+                       "[hex].";
+         }
+
       } else
       {
          // Device with given PCAN Channel value is not available
+
+         //------------------------------------------------
+         // if this channel is in atsQCanIfPeakP
+         //
+         for (uint8_t ubCntrT = 0; ubCntrT < (uint8_t)atsQCanIfPeakP.length(); ubCntrT++)
+         {
+            if (atsQCanIfPeakP.at(ubCntrT).uwPCanChannel == auwPCanChannelP[ubPCanChnT])
+            {
+
+               qInfo() << "QCanPluginPeak::QCanPluginPeak() INFO: Remove Interface" <<
+                          QString::number(ubCntrT) <<
+                          "with channel value" <<
+                          QString::number(atsQCanIfPeakP.at(ubCntrT).uwPCanChannel,16) <<
+                          "[hex].";
+
+               atsQCanIfPeakP.removeAt(ubCntrT);
+               break;
+            }
+         }
       }
    }
 
-   return (uint8_t)apclQCanInterfacePeakP.length();
+   //----------------------------------------------------------------
+   // Length of apclQCanInterfacePeakP corresponds always to
+   // the actual available interface number
+   //
+   return (uint8_t)atsQCanIfPeakP.length();
 }
 
 //----------------------------------------------------------------------------//
@@ -130,11 +197,11 @@ uint8_t QCanPluginPeak::interfaceCount()
 //----------------------------------------------------------------------------//
 QCanInterface * QCanPluginPeak::getInterface(uint8_t ubInterfaceV)
 {
-   if (ubInterfaceV < apclQCanInterfacePeakP.length())
+   if (ubInterfaceV < atsQCanIfPeakP.length())
    {
       qInfo() << "QCanPluginPeak::getInterface() INFO: return pointer to interface" << QString::number(ubInterfaceV);
 
-      return (apclQCanInterfacePeakP.at(ubInterfaceV));
+      return (atsQCanIfPeakP.at(ubInterfaceV).pclQCanInterfacePeak);
    }
 
    qCritical() << "QCanPluginPeak::getInterface() CRITICAL: interface" << QString::number(ubInterfaceV) << "is not available!";
