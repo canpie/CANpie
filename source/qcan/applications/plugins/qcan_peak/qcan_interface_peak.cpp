@@ -394,7 +394,7 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slBitrate
       return eERROR_LIBRARY;
    }
 
-   WORD uwBtr0Btr1T;
+   WORD uwBtr0Btr1T = 0;
    TPCANStatus ulStatusT;
    #if QCAN_SUPPORT_CAN_FD > 0
    QString clTxtBitrateNomT;
