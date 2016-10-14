@@ -202,8 +202,4 @@ private:
 
 };
 
-#define QCanInterface_iid "net.microcontrol.Qt.qcan.QCanInterface"
-
-Q_DECLARE_INTERFACE(QCanInterface, QCanInterface_iid)
-
 #endif /*QCAN_INTERFACE_HPP_*/
