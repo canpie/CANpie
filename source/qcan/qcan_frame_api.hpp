@@ -60,6 +60,8 @@ public:
    
    ~QCanFrameApi();
 
+   QCanFrame& base(void)   { return static_cast<QCanFrame&>(*this); };
+
    QByteArray toByteArray() const;
    QString    toString(const bool & btShowTimeR = false);
    

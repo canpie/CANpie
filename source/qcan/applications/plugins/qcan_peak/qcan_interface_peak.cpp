@@ -381,8 +381,9 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slBitrate
 
    WORD uwBtr0Btr1T;
    TPCANStatus ulStatusT;
+   #if QCAN_SUPPORT_CAN_FD > 0
    TPCANBitrateFD clTxtBitrateT;
-
+   #endif
    //----------------------------------------------------------------
    // Check bit-rate value
    //
@@ -403,8 +404,13 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slBitrate
       //      Arbitration: 1 Mbit/sec
       //      Data: 2 Mbit/sec
       //
+      #if QCAN_SUPPORT_CAN_FD > 0
       clTxtBitrateT = "f_clock_mhz=20, nom_brp=5, nom_tseg1=2, nom_tseg2=1, nom_sjw=1, data_brp=2, data_tseg1=3, data_tseg2=1, data_sjw=1";
-   } else
+      #else
+      ulStatusT = 0;
+      #endif
+   }
+   else
    {
 
       //----------------------------------------------------------------
@@ -574,6 +580,8 @@ QCanInterface::InterfaceError_e	QCanInterfacePeak::statistic(QCanStatistic_ts &c
 {
    //! \todo
 
+   clStatisticR.ulErrCount = 0;
+
    return(eERROR_NONE);
 }
 
@@ -585,10 +593,15 @@ QCanInterface::InterfaceError_e	QCanInterfacePeak::statistic(QCanStatistic_ts &c
 uint32_t QCanInterfacePeak::supportedFeatures()
 {
    uint32_t ulFeaturesT = 0;
+   #if QCAN_SUPPORT_CAN_FD > 0
    uint32_t ulBufferT = 0;
-
-   if (pclPcanBasicP.isAvailable())
+   #endif
+   if(pclPcanBasicP.isAvailable())
    {
+
+      ulFeaturesT = QCAN_IF_SUPPORT_LISTEN_ONLY;
+
+      #if QCAN_SUPPORT_CAN_FD > 0
       TPCANStatus tsStatusT = pclPcanBasicP.getValue(uwPCanChannelP, PCAN_CHANNEL_FEATURES, (void*)&ulBufferT, sizeof(ulBufferT));
       if (tsStatusT != PCAN_ERROR_OK)
       {
@@ -596,10 +609,6 @@ uint32_t QCanInterfacePeak::supportedFeatures()
       }
       qWarning() << QString("QCanInterfacePeak::supportedFeatures(0x" +QString::number(uwPCanChannelP,16)+")") << "PCAN_CHANNEL_FEATURES:" << QString::number(ulBufferT,16) << "[hex]";
 
-      ulFeaturesT  = QCAN_IF_SUPPORT_ERROR_FRAMES;
-      ulFeaturesT += QCAN_IF_SUPPORT_LISTEN_ONLY;
-
-      #if QCAN_SUPPORT_CAN_FD > 0
       if (ulBufferT & FEATURE_FD_CAPABLE)
       {
          ulFeaturesT += QCAN_IF_SUPPORT_CAN_FD;
@@ -619,7 +628,9 @@ QCanInterface::InterfaceError_e	QCanInterfacePeak::write(const QCanFrame &clFram
 {
    TPCANStatus ulStatusT;
    TPCANMsg    tsCanMsgT;
+   #if QCAN_SUPPORT_CAN_FD > 0
    TPCANMsgFD  tsCanMsgFdT;
+   #endif
    int32_t     slByteCntrT;
 
    if (!pclPcanBasicP.isAvailable())
@@ -636,7 +647,8 @@ QCanInterface::InterfaceError_e	QCanInterfacePeak::write(const QCanFrame &clFram
       if (clFrameR.isExtended())
       {
          tsCanMsgT.MSGTYPE = PCAN_MESSAGE_EXTENDED;
-      } else
+      }
+      else
       {
          tsCanMsgT.MSGTYPE = PCAN_MESSAGE_STANDARD;
       }
@@ -652,8 +664,11 @@ QCanInterface::InterfaceError_e	QCanInterfacePeak::write(const QCanFrame &clFram
 
       ulStatusT = pclPcanBasicP.write(uwPCanChannelP, &tsCanMsgT);
 
-   } else
+   }
+   else
    {
+      #if QCAN_SUPPORT_CAN_FD > 0
+
       if (clFrameR.isExtended())
       {
          tsCanMsgFdT.MSGTYPE = PCAN_MESSAGE_EXTENDED;
@@ -674,6 +689,9 @@ QCanInterface::InterfaceError_e	QCanInterfacePeak::write(const QCanFrame &clFram
       }
 
       ulStatusT = pclPcanBasicP.writeFD(uwPCanChannelP, &tsCanMsgFdT);
+      #else
+      ulStatusT = 0;
+      #endif
    }
 
 

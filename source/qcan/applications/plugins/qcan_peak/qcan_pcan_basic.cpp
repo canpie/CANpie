@@ -178,10 +178,15 @@ TPCANStatus QCanPcanBasic::initialize     (TPCANHandle uwChannelV, TPCANBaudrate
    return pfnCAN_InitializeP(uwChannelV, uwBtr0Btr1V, ubHwTypeV, ulIOPortV, uwInterruptV);
 }
 
-TPCANStatus QCanPcanBasic::initializeFD   (TPCANHandle uwChannelV, TPCANBitrateFD pszBitrateFDV)
+
+#if QCAN_SUPPORT_CAN_FD > 0
+TPCANStatus QCanPcanBasic::initializeFD(TPCANHandle uwChannelV,
+                                        TPCANBitrateFD pszBitrateFDV)
 {
    return pfnCAN_InitializeFDP(uwChannelV, pszBitrateFDV);
 }
+#endif
+
 
 TPCANStatus QCanPcanBasic::unInitialize   (TPCANHandle uwChannelV)
 {
@@ -203,20 +208,28 @@ TPCANStatus QCanPcanBasic::read           (TPCANHandle uwChannelV, TPCANMsg *pts
    return pfnCAN_ReadP(uwChannelV,ptsMessageBufferV,tsTimestampBufferV);
 }
 
-TPCANStatus QCanPcanBasic::readFD         (TPCANHandle uwChannelV, TPCANMsgFD *ptsMessageBufferV, TPCANTimestampFD *puqTimestampBufferV)
+#if QCAN_SUPPORT_CAN_FD > 0
+TPCANStatus QCanPcanBasic::readFD(TPCANHandle uwChannelV,
+                                  TPCANMsgFD *ptsMessageBufferV,
+                                  TPCANTimestampFD *puqTimestampBufferV)
 {
    return pfnCAN_ReadFDP(uwChannelV,ptsMessageBufferV,puqTimestampBufferV);
 }
+#endif
+
 
 TPCANStatus QCanPcanBasic::write          (TPCANHandle uwChannelV, TPCANMsg *ptsMessageBufferV)
 {
    return pfnCAN_WriteP(uwChannelV,ptsMessageBufferV);
 }
 
-TPCANStatus QCanPcanBasic::writeFD        (TPCANHandle uwChannelV, TPCANMsgFD *ptsMessageBufferV)
+#if QCAN_SUPPORT_CAN_FD > 0
+TPCANStatus QCanPcanBasic::writeFD( TPCANHandle uwChannelV,
+                                    TPCANMsgFD *ptsMessageBufferV)
 {
    return pfnCAN_WriteFDP(uwChannelV,ptsMessageBufferV);
 }
+#endif
 
 TPCANStatus QCanPcanBasic::filterMessages (TPCANHandle uwChannelV, DWORD ulFromIDV, DWORD ulToIDV, TPCANMode ubModeV)
 {

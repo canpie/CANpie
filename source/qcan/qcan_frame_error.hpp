@@ -42,7 +42,6 @@
 
 using namespace CANpie;
 
-
 //-----------------------------------------------------------------------------
 /*!
 ** \class   QCanFrameError
@@ -71,10 +70,9 @@ public:
    */
    QCanFrameError();
    
-   
    ~QCanFrameError();
 
-
+   QCanFrame& base(void)   { return static_cast<QCanFrame&>(*this); };
 
    virtual QString   toString(const bool & btShowTimeR = false);
    
