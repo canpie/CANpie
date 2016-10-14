@@ -99,7 +99,7 @@ QCanNetwork::QCanNetwork(QObject * pclParentV,
    //
    pclTcpSrvP = new QTcpServer();
 
-   clTcpHostAddrP = QHostAddress(QHostAddress::LocalHost);
+   clTcpHostAddrP = QHostAddress(QHostAddress::Any);
    uwTcpPortP = uwPortV;
 
    //----------------------------------------------------------------
@@ -161,7 +161,7 @@ bool QCanNetwork::addInterface(QCanInterface * pclCanIfV)
          // demo initialisation
          if (pclCanIfV->supportedFeatures() & QCAN_IF_SUPPORT_CAN_FD)
          {
-            slBitrateP  = eCAN_BITRATE_1M;
+            slBitrateP  = eCAN_BITRATE_500K;
             slBrsClockP = 2000000;
          }
 
@@ -377,7 +377,6 @@ bool  QCanNetwork::handleErrFrame(int32_t & slSockSrcR,
    bool           btResultT = false;
    QTcpSocket *   pclSockS;
 
-
    //----------------------------------------------------------------
    // check all open sockets and write CAN frame
    //
@@ -391,7 +390,6 @@ bool  QCanNetwork::handleErrFrame(int32_t & slSockSrcR,
          btResultT = true;
       }
    }
-
 
    if(btResultT == true)
    {
