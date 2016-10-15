@@ -31,9 +31,17 @@ QCanInterfaceWidget::QCanInterfaceWidget(uint8_t ubIdxV)
    //----------------------------------------------------------------
    // check there are any plugins available
    //
-   QDir pluginsDir(qApp->applicationDirPath()+"/plugins");
-
-   clPluginPathP = pluginsDir;
+   QDir clPluginsDirT(qApp->applicationDirPath());
+   #if defined(Q_OS_WIN)
+   clPluginsDirT.setPath(pluginsDir.path() + "/plugins");
+   #elif defined(Q_OS_MAC)
+   if(clPluginsDirT.dirName() == "MacOS")
+   {
+      clPluginsDirT.cdUp();
+      clPluginsDirT.setPath(clPluginsDirT.path() + "/Plugins");
+   }
+   #endif
+   clPluginPathP = clPluginsDirT;
    qDebug() << QString("QCanInterfaceWidget::QCanInterfaceWidget("+QString::number(ubIdxV) +","+ clPluginPathP.absolutePath()+")");
 
    loadPlugin();
