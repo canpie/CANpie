@@ -122,23 +122,8 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    //----------------------------------------------------------------
    // Intialise interface widgets for CAN interface selection
    //
-//   QDir pluginsDir(qApp->applicationDirPath()+"/plugins");
-//#if defined(Q_OS_WIN)
-//   if (pluginsDir.dirName().toLower() == "debug" || pluginsDir.dirName().toLower() == "release")
-//       pluginsDir.cdUp();
-//       pluginsDir.setPath(pluginsDir.path() + "/plugins");
-//#elif defined(Q_OS_MAC)
-//   if (pluginsDir.dirName() == "MacOS") {
-//       pluginsDir.cdUp();
-//       pluginsDir.cdUp();
-//       pluginsDir.cdUp();
-//       pluginsDir.setPath(pluginsDir.path() + "/plugins");
-//   }
-//#endif
-
    for(ubNetworkIdxT = 0; ubNetworkIdxT < QCAN_NETWORK_MAX; ubNetworkIdxT++)
    {
-//      apclCanIfWidgetP[ubNetworkIdxT]->setPluginPath(pluginsDir);
       connect( apclCanIfWidgetP[ubNetworkIdxT], 
                &QCanInterfaceWidget::interfaceChanged,
                this,                                       
