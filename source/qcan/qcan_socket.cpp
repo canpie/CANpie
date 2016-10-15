@@ -266,6 +266,13 @@ bool QCanSocket::readFrame(QCanFrame & clFrameR)
    return(btResultT);
 }
 
+void QCanSocket::setHostAddress(QHostAddress clHostAddressV)
+{
+   if(btIsConnectedP == false)
+   {
+      clTcpHostAddrP = clHostAddressV;
+   }
+}
 
 //----------------------------------------------------------------------------//
 // writeFrame()                                                               //

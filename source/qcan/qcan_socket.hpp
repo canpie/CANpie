@@ -60,6 +60,8 @@ public:
    */
    QString  uuidString(void);
 
+   void  setHostAddress(QHostAddress clHostAddressV);
+
    /*!
    ** Get error state
    **
