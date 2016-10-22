@@ -43,6 +43,8 @@
 //
 #if CP_CAN_MSG_MACRO == 0
 
+#error Functions are not yet adopted to CAN FD, set CP_CAN_MSG_MACRO=1
+
 
 /*----------------------------------------------------------------------------*\
 ** Functions                                                                  **
