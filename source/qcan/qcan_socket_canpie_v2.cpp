@@ -194,7 +194,7 @@ CpStatus_tv CpCoreBaudrate(CpPort_ts * ptsPortV, uint8_t ubBaudSelV)
    // as defined in QCan::CAN_Bitrate_e, so it can be copied.
    //
    slBitrateT = ubBaudSelV;
-   clFrameT.setBitrate(slBitrateT, QCan::eCAN_BITRATE_NONE);
+   clFrameT.setBitrate(slBitrateT, eCAN_BITRATE_NONE);
 
    if(pclSockT->writeFrame(clFrameT) == false)
    {
@@ -682,21 +682,21 @@ CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV)
       // Stop the CAN controller (passive on the bus)
       //
       case CP_MODE_STOP:
-         clFrameT.setMode(QCan::eCAN_MODE_STOP);
+         clFrameT.setMode(eCAN_MODE_STOP);
          break;
 
       //--------------------------------------------------------
       // Start the CAN controller (active on the bus)
       //
       case CP_MODE_START:
-         clFrameT.setMode(QCan::eCAN_MODE_START);
+         clFrameT.setMode(eCAN_MODE_START);
          break;
 
       //--------------------------------------------------------
       // Start the CAN controller (Listen-Only)
       //
       case CP_MODE_LISTEN_ONLY:
-         clFrameT.setMode(QCan::eCAN_MODE_LISTEN_ONLY);
+         clFrameT.setMode(eCAN_MODE_LISTEN_ONLY);
          break;
 
       //--------------------------------------------------------
@@ -762,13 +762,13 @@ CpStatus_tv CpCoreDriverInit(uint8_t ubPhyIfV, CpPort_ts * ptsPortV)
    }
 
 
-   aclCanSockListS[ubPhyIfV].connectNetwork((QCan::CAN_Channel_e) ubPhyIfV);
+   aclCanSockListS[ubPhyIfV].connectNetwork((CAN_Channel_e) ubPhyIfV);
 
    //----------------------------------------------------------------
    // get access to socket
    //
    pclSockT = &(aclCanSockListS[ubPhyIfV]);
-   pclSockT->connectNetwork((QCan::CAN_Channel_e) ubPhyIfV);
+   pclSockT->connectNetwork((CAN_Channel_e) ubPhyIfV);
 
 
    //----------------------------------------------------------------
@@ -1009,10 +1009,6 @@ void QCanSocketCp2::onSocketReceive()
       }
 
    }
-
-   qDebug() << "Bingo baby .. :-)";
-
-
 }
 
 
