@@ -568,21 +568,21 @@ CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV)
       // Stop the CAN controller (passive on the bus)
       //
       case eCP_MODE_STOP:
-         clFrameT.setMode(QCan::eCAN_MODE_STOP);
+         clFrameT.setMode(eCAN_MODE_STOP);
          break;
 
       //--------------------------------------------------------
       // Start the CAN controller (active on the bus)
       //
       case eCP_MODE_START:
-         clFrameT.setMode(QCan::eCAN_MODE_START);
+         clFrameT.setMode(eCAN_MODE_START);
          break;
 
       //--------------------------------------------------------
       // Start the CAN controller (Listen-Only)
       //
       case eCP_MODE_LISTEN_ONLY:
-         clFrameT.setMode(QCan::eCAN_MODE_LISTEN_ONLY);
+         clFrameT.setMode(eCAN_MODE_LISTEN_ONLY);
          break;
 
       //--------------------------------------------------------
@@ -649,13 +649,13 @@ CpStatus_tv CpCoreDriverInit(uint8_t ubPhyIfV, CpPort_ts * ptsPortV,
    }
 
 
-   aclCanSockListS[ubPhyIfV].connectNetwork((QCan::CAN_Channel_e) ubPhyIfV);
+   aclCanSockListS[ubPhyIfV].connectNetwork((CAN_Channel_e) ubPhyIfV);
 
    //----------------------------------------------------------------
    // get access to socket
    //
    pclSockT = &(aclCanSockListS[ubPhyIfV]);
-   pclSockT->connectNetwork((QCan::CAN_Channel_e) ubPhyIfV);
+   pclSockT->connectNetwork((CAN_Channel_e) ubPhyIfV);
 
 
    //----------------------------------------------------------------
@@ -788,7 +788,6 @@ QCanFrame QCanSocketCp3::fromCpMsg(uint8_t ubMsgBufferV)
 
    if(CpMsgIsFastData(ptsCanMsgT))
    {
-      qDebug() << "FD frame";
       if(CpMsgIsExtended(ptsCanMsgT))
       {
          clCanFrameT.setFrameType(QCanFrame::eTYPE_FD_EXT);
@@ -802,7 +801,6 @@ QCanFrame QCanSocketCp3::fromCpMsg(uint8_t ubMsgBufferV)
    }
    else
    {
-      qDebug() << "Classic frame";
       if(CpMsgIsExtended(ptsCanMsgT))
       {
          clCanFrameT.setFrameType(QCanFrame::eTYPE_CAN_EXT);
@@ -816,7 +814,8 @@ QCanFrame QCanSocketCp3::fromCpMsg(uint8_t ubMsgBufferV)
    }
 
    clCanFrameT.setDlc(CpMsgGetDlc(ptsCanMsgT));
-   for(ubDataCntT = 0; ubDataCntT < CpMsgGetDlc(ptsCanMsgT); ubDataCntT++)
+
+   for(ubDataCntT = 0; ubDataCntT < clCanFrameT.dataSize(); ubDataCntT++)
    {
       clCanFrameT.setData(ubDataCntT, CpMsgGetData(ptsCanMsgT, ubDataCntT));
    }
@@ -920,10 +919,6 @@ void QCanSocketCp3::onSocketReceive()
       }
 
    }
-
-   qDebug() << "Bingo baby .. :-)";
-
-
 }
 
 
@@ -950,7 +945,7 @@ CpCanMsg_ts QCanSocketCp3::fromCanFrame(QCanFrame & clCanFrameR)
 
    CpMsgSetDlc(&tsCanMsgT, clCanFrameR.dlc());
 
-   for(ubDataCntT = 0; ubDataCntT < 8; ubDataCntT++)
+   for(ubDataCntT = 0; ubDataCntT < 64; ubDataCntT++)
    {
       CpMsgSetData(&tsCanMsgT, ubDataCntT, clCanFrameR.data(ubDataCntT));
    }
