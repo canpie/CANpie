@@ -23,7 +23,7 @@ public slots:
    void  onClientNmtStop(void);
    void  onClientSync(void);
    void  onClientReceive(uint32_t ulFramesReceivedV);
-
+   void  onSocketError(QAbstractSocket::SocketError teSockErrorV);
 
 private:
     Ui::CpClientDlg  ui;

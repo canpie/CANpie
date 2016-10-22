@@ -24,6 +24,11 @@ ClientDemo::ClientDemo(QWidget *parent)
 
 	connect( pclCanSocketP, SIGNAL(framesReceived(uint32_t)),
 	         this, SLOT(onClientReceive(uint32_t)));
+
+	connect( pclCanSocketP, SIGNAL(error(QAbstractSocket::SocketError)),
+            this, SLOT(onSocketError(QAbstractSocket::SocketError)));
+
+
 }
 
 
@@ -34,6 +39,8 @@ ClientDemo::~ClientDemo()
 
 void  ClientDemo::onClientConnect(void)
 {
+   //QHostAddress clHostT("172.16.120.154");
+   //pclCanSocketP->setHostAddress(clHostT);
    pclCanSocketP->connectNetwork(eCAN_CHANNEL_1);
 }
 
@@ -96,4 +103,9 @@ void  ClientDemo::onClientSync(void)
    clCanFrameT.setDlc(0);
 
    pclCanSocketP->writeFrame(clCanFrameT);
+}
+
+void ClientDemo::onSocketError(QAbstractSocket::SocketError teSockErrorV)
+{
+   qDebug() << "onSocketError()" << teSockErrorV;
 }
