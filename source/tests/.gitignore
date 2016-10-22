@@ -1,4 +1,8 @@
+/objs/
+/.DS_Store
+/.qmake.stash
+/Makefile*
 /moc_*.cpp
-/*.o
+/ui_*.h
+/qrc_*.cpp
 /qcantest.app
-/Makefile
