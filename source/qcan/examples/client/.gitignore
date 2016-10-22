@@ -1,5 +1,7 @@
-/qcanclient.app/
-/*.o
+/objs/
+/.DS_Store
+/.qmake.stash
 /Makefile*
 /moc_*.cpp
 /ui_*.h
+/qrc_*.cpp
