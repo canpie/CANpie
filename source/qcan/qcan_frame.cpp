@@ -374,8 +374,15 @@ QString QCanFrame::toString(const bool & btShowTimeR)
    //
    for(uint8_t ubCntT = 0; ubCntT < dataSize(); ubCntT++)
    {
-      clStringT += QString("%1 ").arg( aubByteP[ubCntT], 
-                                       2,          // 2 digits 
+      //---------------------------------------------------
+      // print a newline and 22 spaces after 16 data bytes
+      //
+      if((ubCntT > 0) && ((ubCntT % 16) == 0))
+      {
+         clStringT +="\n                      ";
+      }
+      clStringT += QString("%1 ").arg( aubByteP[ubCntT],
+                                       2,          // 2 digits
                                       16,          // hex value
                                       QLatin1Char('0')).toUpper();
    }
