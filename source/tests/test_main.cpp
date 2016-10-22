@@ -8,7 +8,8 @@ using namespace std;
 #include <QTest>
 
 
-#include "test_qcan_client.hpp"
+
+#include "test_canpie_timestamp.hpp"
 #include "test_qcan_frame.hpp"
 #include "test_qcan_socket.hpp"
 
@@ -24,6 +25,12 @@ int main(int argc, char *argv[])
    cout << "#===========================================================\n";
    cout << "\n";
 
+
+   //----------------------------------------------------------------
+   // test CpTimestamp
+   //
+   TestCpTimestamp  clTestCpTimestampT;
+   slResultT = QTest::qExec(&clTestCpTimestampT, argc, &argv[0]);
 
    //----------------------------------------------------------------
    // test QCanFrame
