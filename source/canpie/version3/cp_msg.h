@@ -373,6 +373,9 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV);
 #define  CpMsgIsExtended(MSG_PTR)                                 \
             ( (MSG_PTR)->ubMsgCtrl & CP_MSG_CTRL_EXT_BIT )
 
+#define  CpMsgIsFastData(MSG_PTR)                                 \
+            ( (MSG_PTR)->ubMsgCtrl & CP_MSG_CTRL_FD_BIT  )
+
 #define  CpMsgIsOverrun(MSG_PTR)                                  \
             ( (MSG_PTR)->ubMsgCtrl & CP_MSG_CTRL_OVR_BIT )
 
@@ -388,7 +391,7 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV);
 #define  CpMsgSetExtId(MSG_PTR, VAL)                              \
          do {                                                     \
             (MSG_PTR)->tuMsgId.ulExt = VAL & CP_MASK_EXT_FRAME;   \
-            (MSG_PTR)->ubMsgCtrl |= CP_MASK_EXT_BIT;              \
+            (MSG_PTR)->ubMsgCtrl |= CP_MSG_CTRL_EXT_BIT;          \
          } while(0)
 
 #define  CpMsgSetOverrun(MSG_PTR)                                 \
@@ -404,7 +407,7 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV);
 #define  CpMsgSetStdId(MSG_PTR, VAL)                              \
          do {                                                     \
             (MSG_PTR)->tuMsgId.uwStd = VAL & CP_MASK_STD_FRAME;   \
-            (MSG_PTR)->ubMsgCtrl &= ~CP_MASK_EXT_BIT;             \
+            (MSG_PTR)->ubMsgCtrl &= ~CP_MSG_CTRL_EXT_BIT;         \
          } while(0)
 
 #define  CpMsgSetTime(MSG_PTR, VAL)                               \
