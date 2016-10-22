@@ -44,7 +44,9 @@
 //-----------------------------------------------------------------------------
 /*!
 ** \class   CpTimeStamp
-** \brief   CAN frame timestamp
+** \brief   CAN frame time-stamp
+**
+** The timestamp ..
 ** 
 */
 class CpTimeStamp
@@ -55,15 +57,34 @@ public:
 
    CpTimeStamp();
    
-
    void  clear(void);
+
+   void  fromMicroSeconds(uint64_t uqMicroSecondsV);
+
+   void  fromMilliSeconds(uint64_t uqMicroSecondsV);
+
+   inline uint32_t nanoSeconds(void) const   { return(ulNanoSecondsP);  };
    
    inline uint32_t seconds(void) const       { return(ulSecondsP);      };
-   inline uint32_t nanoSeconds(void) const   { return(ulNanoSecondsP);  };
 
+   void  setNanoSeconds(uint32_t ulNanoSecondsV);
    
+   inline void setSeconds(const uint32_t ulSecondsV)  { ulSecondsP = ulSecondsV; };
+
+   bool operator==(const CpTimeStamp & clTimestampR);
+
+   bool operator!=(const CpTimeStamp & clTimestampR);
+
+   bool operator<(const CpTimeStamp & clTimestampR);
+
+   bool operator>(const CpTimeStamp & clTimestampR);
+
+   CpTimeStamp operator+(const CpTimeStamp & clTimestampR);
+
 private:
+
    uint32_t ulSecondsP;
+
    uint32_t ulNanoSecondsP;
    
 };
