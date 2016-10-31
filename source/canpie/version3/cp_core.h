@@ -149,7 +149,8 @@ extern "C" {                                                         //
 /*!
 ** \brief   Set bitrate of CAN controller
 ** \param   ptsPortV       Pointer to CAN port structure
-** \param   ulBitrateV     Bitrate selection
+** \param   slBitrateV     Bitrate selection
+** \param   slBrsClockV    Bitrate in data phase
 **
 ** \return  Error code taken from the #CpErr_e enumeration. If no error
 **          occurred, the function will return \c eCP_ERR_NONE.
@@ -182,7 +183,7 @@ CpStatus_tv CpCoreBitrate( CpPort_ts * ptsPortV, int32_t slBitrateV,
 **
 ** The parameter \c ubControlV can have the following values:
 ** \li #CP_MSG_CTRL_EXT_BIT : Extended frame
-** \li #CP_MSG_CTRL_FD_BIT  : FD frame
+** \li #CP_MSG_CTRL_FDF_BIT : FD frame
 ** \li #CP_MSG_CTRL_RTR_BIT : RTR frame
 **
 ** The following example shows the setup of a transmit buffer
@@ -207,14 +208,16 @@ CpStatus_tv CpCoreBufferEnable( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 ** \brief   Get data from message buffer
 ** \param   ptsPortV       Pointer to CAN port structure
 ** \param   ubBufferIdxV   Buffer number
-** \param   pubDataV       Buffer for data
+** \param   pubDestDataV   Buffer for data
+** \param   ubStartPosV    Array start position
+** \param   ubSizeV        Number of bytes to read
 **
 ** \return  Error code taken from the #CpErr_e enumeration. If no error
 **          occurred, the function will return \c eCP_ERR_NONE.
 **
-** This function is the fastest method to get data from a FullCAN message
-** buffer. The buffer has to be configured by a call to CpCoreBufferInit()
-** before.
+** The function reads \a ubSizeV byte from a CAN message buffer, starting
+** at position \a ubStartPosV. The first CAN data byte is located at postion
+** 0. The data is copied into the buffer \a pubDestDataV.
 **
 */
 CpStatus_tv CpCoreBufferGetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
@@ -274,7 +277,9 @@ CpStatus_tv CpCoreBufferSend(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV);
 ** \brief   Set data of message buffer
 ** \param   ptsPortV       Pointer to CAN port structure
 ** \param   ubBufferIdxV   Buffer number
-** \param   pubDataV       Pointer to data buffer
+** \param   pubSrcDataV    Pointer to data buffer
+** \param   ubStartPosV    Array start position
+** \param   ubSizeV        Number of bytes to write
 **
 ** \return  Error code taken from the #CpErr_e enumeration. If no error
 **          occurred, the function will return \c eCP_ERR_NONE.
@@ -283,7 +288,7 @@ CpStatus_tv CpCoreBufferSend(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV);
 ** It can be used in combination with the function CpCoreBufferSend(). It
 ** will write 8 data bytes into the buffer defined by \e ubBufferIdxV. The
 ** buffer has to be configured by CpCoreBufferInit() in advance. The size
-** of the data buffer \e pubDataV must have a size of 8 bytes.
+** of the data buffer \e pubSrcDataV must have a size of 8 bytes.
 **
 ** The following example demonstrates the access to the data bytes of a CAN
 ** message:
@@ -294,10 +299,10 @@ CpStatus_tv CpCoreBufferSend(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV);
 ** aubDataT[1] = 0x22;  // byte 1: set to 22hex
 
 ** //--- copy the stuff to message buffer 1 ---------------
-** CpCoreBufferSetData(CP_CHANNEL_1, eCP_BUFFER_1, &aubDataT);
+** CpCoreBufferSetData(ptsCanPortS, eCP_BUFFER_1, &aubDataT);
 **
 ** //--- send this message out ----------------------------
-** CpCoreBufferSend(CP_CHANNEL_1, eCP_BUFFER_1);
+** CpCoreBufferSend(ptsCanPortS, eCP_BUFFER_1);
 ** \endcode
 **
 */
@@ -380,7 +385,7 @@ CpStatus_tv CpCoreCanState(CpPort_ts * ptsPortV, CpState_ts * ptsStateV);
 ** function returns eCP_ERR_NONE. On failure, the function can return
 ** the following values:
 ** <ul>
-** <li>#CpErr_HARDWARE
+** <li>#eCP_ERR_HARDWARE
 ** <li>#eCP_ERR_INIT_FAIL
 ** </ul>
 ** An opened handle to a CAN port must be closed via the CpCoreDriverRelease()
