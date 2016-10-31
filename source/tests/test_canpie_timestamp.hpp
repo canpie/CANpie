@@ -53,13 +53,19 @@ public:
 
 private:
    
+   CpTimeStamp *  pclTimestampA;
+   CpTimeStamp *  pclTimestampB;
+   
 
 private slots:
 
    void initTestCase();
    
    void checkValueRange();
-
+   void checkConversion();
+   void checkOperatorCompare();
+   void checkOperatorPlus();
+   void checkOperatorMinus();
    void cleanupTestCase();
 };
 
