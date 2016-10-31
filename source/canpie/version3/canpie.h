@@ -34,15 +34,15 @@
 //-----------------------------------------------------------------------------
 /*!
 ** \file    canpie.h
-** \brief   CANpie constants, structures and enumerations
+** \brief   %CANpie constants, structures and enumerations
 **
-** This file holds constants and structures used within CANpie.
-** All functions, structures, defines and constants in CANpie have
-** the prefix "Cp". The following table shows the used nomenclature:
+** This file holds constants and structures used within %CANpie<sup>FD</sup>.
+** All functions, structures, defines and constants in %CANpie<sup>FD</sup> 
+** have the prefix "Cp". The following table shows the used nomenclature:
 **
 ** <table border=0>
 ** <tr class="memlist">
-** <td width=200 class="memItemLeft"> <b>CANpie code</b></td>
+** <td width=200 class="memItemLeft"> <b>%CANpie code</b></td>
 ** <td width=200 class="memItemRight"><b>Prefix</b></td>
 ** </tr>
 ** <tr>
@@ -63,7 +63,7 @@
 ** </tr>
 ** <tr>
 ** <td width=200 class="memItemLeft">Error Codes</td>
-** <td width=200 class="memItemRight">CpErr</td>
+** <td width=200 class="memItemRight">eCP_ERR</td>
 ** </tr>
 ** </table>
 */
@@ -88,10 +88,9 @@
 /*!
 ** \defgroup CP_CONF  CANpie configuration options
 **
-** The CANpie driver can be configured during compile time via
-** several configuration options. They are typically defined in
-** the \c cp_arch.h architecture file. The symbol #CP_TARGET is used
-** to select an existing definition scheme from this file.
+** The %CANpie<sup>FD</sup> driver can be configured during compile time
+** via several configuration options. They are typically defined in the
+** \c cp_platform.h configuration file.
 ** <p>
 ** If symbols are not defined, they get a default value which is
 ** assigned in the \c canpie.h header file.
@@ -102,10 +101,11 @@
 ** \def  CP_AUTOBAUD
 ** \ingroup CP_CONF
 **
-** This symbol enables or disables the autobaud feature of the
-** CAN driver (CpCoreAutobaud()).
-** - 0 = disable autobaud feature (not supported by hardware)
-** - 1 = enable autobaud feature
+** This symbol enables or disables the automatic bit-rate detection
+** feature of the CAN driver. The default value is 0 (disabled).
+**
+** - 0 = disable bit-rate detection (not supported by hardware)
+** - 1 = enable bit-rate detection
 */
 #ifndef  CP_AUTOBAUD
 #define  CP_AUTOBAUD                0
@@ -248,7 +248,7 @@
 ** \ingroup CP_MASK
 **
 ** Mask for standard frame (11 bits), used in combination with
-** the CpCanMsg_s::ulExt.
+** the CpCanMsg_s::uwStd.
 */
 #define  CP_MASK_STD_FRAME 0x000007FF
 
@@ -263,7 +263,13 @@
 */
 #define  CP_MASK_EXT_FRAME 0x1FFFFFFF
 
-
+//-----------------------------------------------------------------------------
+/*!
+** \defgroup CP_MSG_CTRL Bit mask for message control
+**
+** The following definitions are used in combination with the
+** structure CpCanMsg_s::ubMsgCtrl.
+*/
 /*-------------------------------------------------------------------*/
 /*!
 ** \def     CP_MSG_CTRL_EXT_BIT
@@ -277,13 +283,14 @@
 
 /*-------------------------------------------------------------------*/
 /*!
-** \def     CP_MSG_CTRL_FD_BIT
+** \def     CP_MSG_CTRL_FDF_BIT
 ** \ingroup CP_MSG_CTRL
 **
-** Bit mask for the FD bit (FD frame) in the \c ubMsgCtrl
-** field of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
+** Bit mask for the FDF bit (ISO CAN FD, Fast Data format) in 
+** the \c ubMsgCtrl field of the CpCanMsg_ts structure 
+** (CpCanMsg_s::ubMsgCtrl).
 */
-#define  CP_MSG_CTRL_FD_BIT      0x02
+#define  CP_MSG_CTRL_FDF_BIT      0x02
 
 
 /*-------------------------------------------------------------------*/
@@ -316,18 +323,7 @@
 ** Bit mask for the BRS bit (ISO CAN FD, bit-rate switch) in the
 ** \c ubMsgCtrl field of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
 */
-#define  CP_MSG_CTRL_BRS_BIT     0x20
-
-
-/*-------------------------------------------------------------------*/
-/*!
-** \def     CP_MSG_CTRL_EDL_BIT
-** \ingroup CP_MSG_CTRL
-**
-** Bit mask for the EDL bit (ISO CAN FD, extended data length) in the 
-** \c ubMsgCtrl field of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
-*/
-#define  CP_MSG_CTRL_EDL_BIT     0x40
+#define  CP_MSG_CTRL_BRS_BIT     0x40
 
 
 /*-------------------------------------------------------------------*/
@@ -800,18 +796,10 @@ enum CpBufferDir_e {
 ** \brief   CAN time structure
 **
 */
-struct CpTime_s {
+typedef struct CpTime_s {
    uint32_t  ulSec1970;
    uint32_t  ulNanoSec;
-};
-
-//-------------------------------------------------------------------
-/*!
-** \typedef    CpTime_ts
-** \brief      CAN time
-**
-*/
-typedef struct CpTime_s  CpTime_ts;
+} CpTime_ts;
 
 
 
@@ -824,7 +812,7 @@ typedef struct CpTime_s  CpTime_ts;
 ** all necessary informations is used. The structure has the following
 ** data fields:
 */
-struct CpCanMsg_s {
+typedef struct CpCanMsg_s {
 
    /*!
    ** The identifier field may have 11 bits for standard frames
@@ -871,15 +859,15 @@ struct CpCanMsg_s {
    ** different data frames (2.0A / 2.0B) and the RTR frames.
    ** <ul>
    ** <li>Bit 0: Std. / Ext. Frame
-   ** <li>Bit 1: Classic CAN / CAN FD
+   ** <li>Bit 1: ISO CAN FD: value of FDF bit
    ** <li>Bit 2: Remote Frame
    ** <li>Bit 3: Overload Frame
    ** <li>Bit 4: reserved, always 0
-   ** <li>Bit 5: ISO CAN FD: value of BRS bit
-   ** <li>Bit 6: ISO CAN FD: value of EDL bit
+   ** <li>Bit 5: reserved, always 0
+   ** <li>Bit 6: ISO CAN FD: value of BRS bit
    ** <li>Bit 7: ISO CAN FD: value of ESI bit
    ** </ul>
-   ** \see CP_MASK
+   ** \see CP_MSG_CTRL
    */
    uint8_t  ubMsgCtrl;
 
@@ -901,19 +889,8 @@ struct CpCanMsg_s {
    uint32_t  ulMsgUser;
 #endif
 
-};
+} CpCanMsg_ts;
 
-
-
-/*----------------------------------------------------------------------------*/
-/*!
-** \typedef CpCanMsg_ts
-** \brief   CAN message structure
-**
-** For transmission and reception of CAN messages the structure CpCanMsg_s
-** is used.
-*/
-typedef struct CpCanMsg_s  CpCanMsg_ts;
 
 
 /*----------------------------------------------------------------------------*/
