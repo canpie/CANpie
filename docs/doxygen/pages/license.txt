@@ -1,0 +1,24 @@
+//-----------------------------------------------------------------------------
+/*!
+** \page page.license    %CANpie<sup>FD</sup> License
+
+%CANpie<sup>FD</sup> is free software; you can redistribute it and/or modify 
+it under the terms of the GNU Lesser General Public License as published by 
+the Free Software Foundation; either version 3 of the License, or (at your 
+option) any later version.
+
+This code / library is distributed in the hope that it will be useful, 
+but WITHOUT ANY WARRANTY; without even the implied warranty of 
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the verbatim
+copy of the LGPL version 3 below.
+
+<p>
+<br>
+
+\verbinclude LICENSE
+
+
+<p>
+<br>
+
+*/

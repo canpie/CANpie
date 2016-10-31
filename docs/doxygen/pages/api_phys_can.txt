@@ -1,18 +1,16 @@
 //-----------------------------------------------------------------------------
 /*!
 ** \page page.api_phys_can    Physical CAN interface
-<hr>
-<p>
+
 A target system may have more than one physical CAN interface. The
 physical CAN interfaces are numbered from 0 .. N-1 (N: total number of
 physical CAN interfaces on the target system). The header file canpie.h
 provides an enumeration for the physical CAN interface (the first CAN
-interface is #CP_CHANNEL_1). A physical CAN interface is opened via
+interface is #eCP_CHANNEL_1). A physical CAN interface is opened via
 the function CpCoreDriverInit(). The function will setup a pointer
-to the structure _TsCpPort for further operations. The elements of the
-structure _TsCpPort depend on the used target system and are defined
-in the header file cp_arch.h (which defines data types and structures
-for different architectures).
+to the structure CpPort_ts for further operations. The elements of the
+structure CpPort_ts depend on the used target system and are defined
+in the header file cp_platform.h.
 
 <p>
 

@@ -1,65 +1,33 @@
 //-----------------------------------------------------------------------------
 /*!
-** \mainpage    CANpie Documentation
+** \mainpage    %CANpie<sup>FD</sup> Documentation
 
-<table border=0>
+The goal of this project is to define a standard Application Programming 
+Interface (API) for access to the CAN bus. The \ref page.api provides 
+functionality for ISO/OSI Layer-2 (Data Link Layer). It is not the intention 
+of %CANpie<sup>FD</sup> to incorporate higher layer functionality (e.g. 
+CANopen, J1939). The \ref page.api covers support for classic CAN frames as 
+well as for ISO CAN FD frames. 
 
-<tr class="infhead">
-<td width=300><b>Getting Started</b></td>
-<td width=300><b>CAN</b></td>
-<td width=300><b>Developer Resources</b></td>
-</tr>
+Where ever it is possible %CANpie<sup>FD</sup> is independent from the used 
+hardware and operating system. The function calls are unique for different 
+kinds of hardware. 
+Also %CANpie<sup>FD</sup> provides a method to gather information about the 
+features of the CAN hardware. This is especially important for an application 
+designer, who wants to write the code only once.
 
-<tr class="inflist">
-<td>\ref Installation</td>
-<td>\ref page.intro_can</td>
-<td>\ref page.api_deprecated </td>
-</tr>
+The API is designed for embedded control applications as well as for PC 
+interface boards.
 
-<tr class="inflist">
-<td>\ref page.examples</td>
-<td>\ref page.api_phys_can</td>
-<td>&nbsp;</td>
-</tr>
+<h2>Compatibilty</h2>
+The C language API of %CANpie<sup>FD</sup> is compatible to 
+<a href="http://canpie.sourceforge.net">CANpie Version 2</a>,
 
-<tr class="inflist">
-<td>&nbsp;</td>
-<td>\ref page.api_bitiming</td>
-<td>&nbsp;</td>
-</tr>
+<h2>%CANpie File structure</h2>
 
-</table>
 
-<p>
-<br>
+<h2>%CANpie configuration options</h2>
 
-<table border=0>
-
-<tr class="infhead">
-<td width=300><b>API Reference</b></td>
-<td width=300><b>Target Platforms</b></td>
-<td width=300><b>License</b></td>
-</tr>
-
-<tr class="inflist">
-<td><a href="files.html">Files</a></td>
-<td>Microcontroller </td>
-<td>\ref page.license</td>
-</tr>
-
-<tr class="inflist">
-<td><a href="annotated.html">Structures</a></td>
-<td>Linux</td>
-<td></td>
-</tr>
-
-<tr class="inflist">
-<td></td>
-<td>Windows</td>
-<td>&nbsp;</td>
-</tr>
-
-</table>
 
 <p>
 <br>
