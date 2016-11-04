@@ -1,9 +1,9 @@
 //============================================================================//
 // File:          qcan_interface_ixxat.hpp                                    //
-// Description:   CAN plugin for IXXAT VCI devices                             //
+// Description:   CAN plugin for IXXAT VCI devices                            //
 //                                                                            //
 // Copyright (C) MicroControl GmbH & Co. KG                                   //
-// 53844 Troisdorf - Germany                                                  //
+// 53842 Troisdorf - Germany                                                  //
 // www.microcontrol.net                                                       //
 //                                                                            //
 //----------------------------------------------------------------------------//

@@ -12,7 +12,7 @@
 // are met:                                                                   //
 // 1. Redistributions of source code must retain the above copyright          //
 //    notice, this list of conditions, the following disclaimer and           //
-//    the referenced file 'COPYING'.                                          //
+//    the referenced file 'LICENSE'.                                          //
 // 2. Redistributions in binary form must reproduce the above copyright       //
 //    notice, this list of conditions and the following disclaimer in the     //
 //    documentation and/or other materials provided with the distribution.    //
@@ -33,7 +33,15 @@
 
 #ifdef Q_OS_WIN32
 #include <windows.h>
+#if !(__has_include("vcinpl.h"))
+#error   "IXXAT VCI 3.5 API is not available!"
+#warning "Make sure the '../qcan_ixxat/include' contains VCI 3.5 API,"
+#warning "copy or link content of 'IXXAT/VCI 3.5/sdk/Microsoft_VisualC/inc' to the given folder above."
+#warning "IXXAT VCI 3.5 API can be downloaded from https://www.ixxat.com/"
+#else
 #include "vcinpl.h"
+#endif
+
 #define QCAN_IXXATLIB "vcinpl.dll"
 #ifndef DRV_CALLBACK_TYPE
 #define DRV_CALLBACK_TYPE VCIAPI

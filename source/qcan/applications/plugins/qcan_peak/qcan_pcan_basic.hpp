@@ -3,7 +3,7 @@
 // Description:   PCAN Basic library API                                      //
 //                                                                            //
 // Copyright (C) MicroControl GmbH & Co. KG                                   //
-// 53842 Troisdorf - Germany                                                  //
+// 53844 Troisdorf - Germany                                                  //
 // www.microcontrol.net                                                       //
 //                                                                            //
 //----------------------------------------------------------------------------//
@@ -12,7 +12,7 @@
 // are met:                                                                   //
 // 1. Redistributions of source code must retain the above copyright          //
 //    notice, this list of conditions, the following disclaimer and           //
-//    the referenced file 'COPYING'.                                          //
+//    the referenced file 'LICENSE'.                                          //
 // 2. Redistributions in binary form must reproduce the above copyright       //
 //    notice, this list of conditions and the following disclaimer in the     //
 //    documentation and/or other materials provided with the distribution.    //
@@ -41,7 +41,6 @@
 #else
 #include "PCANBasic.h"
 #endif
-
 #define  DRV_CALLBACK_TYPE       WINAPI
 #define  QCAN_SUPPORT_CAN_FD     1
 #define  QCAN_PEAKLIB            "PCANBasic.dll"

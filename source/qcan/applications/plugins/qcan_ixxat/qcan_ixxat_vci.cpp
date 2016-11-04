@@ -41,8 +41,7 @@ QCanIxxatVci::QCanIxxatVci()
    btLibFuncLoadP = false;
 
    if (!clCanLibP.load()) {
-       qCritical() << "Failed to load the library";
-
+       qCritical() << "QCanIxxatVci::QCanIxxatVci() Failed to load the library";
    }
 
    //----------------------------------------------------------------

@@ -33,7 +33,7 @@ QCanInterfaceWidget::QCanInterfaceWidget(uint8_t ubIdxV)
    //
    QDir clPluginsDirT(qApp->applicationDirPath());
    #if defined(Q_OS_WIN)
-   clPluginsDirT.setPath(pluginsDir.path() + "/plugins");
+   clPluginsDirT.setPath(clPluginsDirT.path() + "/plugins");
    #elif defined(Q_OS_MAC)
    if(clPluginsDirT.dirName() == "MacOS")
    {

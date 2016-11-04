@@ -29,7 +29,7 @@
 #include "qcan_plugin_peak.hpp"
 
 //----------------------------------------------------------------------------//
-// QCanPeakUsb()                                                              //
+// QCanPluginPeak()                                                           //
 //                                                                            //
 //----------------------------------------------------------------------------//
 QCanPluginPeak::QCanPluginPeak()
@@ -39,6 +39,7 @@ QCanPluginPeak::QCanPluginPeak()
    // reset number of interfaces
 //   apclQCanInterfacePeakP.clear();
    atsQCanIfPeakP.clear();
+   auwPCanChannelP.clear();
 
    //----------------------------------------------------------------
    // check PCAN Basic lib is available
@@ -47,35 +48,34 @@ QCanPluginPeak::QCanPluginPeak()
    {
       qCritical() << "QCanPluginPeak::QCanPluginPeak() CRITICAL: PEAKBasic library is not available or not all functions could be loaded!";
    }
+   else
+   {
+      //----------------------------------------------------------------
+      // add in actual version only USB channels
+      //
+      auwPCanChannelP.append(PCAN_USBBUS1);
+      auwPCanChannelP.append(PCAN_USBBUS2);
+      auwPCanChannelP.append(PCAN_USBBUS3);
+      auwPCanChannelP.append(PCAN_USBBUS4);
+      auwPCanChannelP.append(PCAN_USBBUS5);
+      auwPCanChannelP.append(PCAN_USBBUS6);
+      auwPCanChannelP.append(PCAN_USBBUS7);
+      auwPCanChannelP.append(PCAN_USBBUS8);
 
-   //----------------------------------------------------------------
-   // add in actual version only USB channels
-   //
-   auwPCanChannelP.clear();
-   auwPCanChannelP.append(PCAN_USBBUS1);
-   auwPCanChannelP.append(PCAN_USBBUS2);
-   auwPCanChannelP.append(PCAN_USBBUS3);
-   auwPCanChannelP.append(PCAN_USBBUS4);
-   auwPCanChannelP.append(PCAN_USBBUS5);
-   auwPCanChannelP.append(PCAN_USBBUS6);
-   auwPCanChannelP.append(PCAN_USBBUS7);
-   auwPCanChannelP.append(PCAN_USBBUS8);
-
-   //----------------------------------------------------------------
-   // more than 8 USB channels only suppoted by Windows DLL
-   //
-   #ifdef   Q_OS_WIN32
-   auwPCanChannelP.append(PCAN_USBBUS9);
-   auwPCanChannelP.append(PCAN_USBBUS10);
-   auwPCanChannelP.append(PCAN_USBBUS11);
-   auwPCanChannelP.append(PCAN_USBBUS12);
-   auwPCanChannelP.append(PCAN_USBBUS13);
-   auwPCanChannelP.append(PCAN_USBBUS14);
-   auwPCanChannelP.append(PCAN_USBBUS15);
-   auwPCanChannelP.append(PCAN_USBBUS16);
-   #endif
-
-
+      //----------------------------------------------------------------
+      // more than 8 USB channels only suppoted by Windows DLL
+      //
+      #ifdef   Q_OS_WIN32
+      auwPCanChannelP.append(PCAN_USBBUS9);
+      auwPCanChannelP.append(PCAN_USBBUS10);
+      auwPCanChannelP.append(PCAN_USBBUS11);
+      auwPCanChannelP.append(PCAN_USBBUS12);
+      auwPCanChannelP.append(PCAN_USBBUS13);
+      auwPCanChannelP.append(PCAN_USBBUS14);
+      auwPCanChannelP.append(PCAN_USBBUS15);
+      auwPCanChannelP.append(PCAN_USBBUS16);
+      #endif
+   }
 }
 
 //----------------------------------------------------------------------------//
