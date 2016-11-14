@@ -146,9 +146,10 @@ void  CpMsgClrRemote(CpCanMsg_ts * ptsCanMsgV);
 ** \return  Value of data at position ubPosV
 **
 ** This functions retrieves the data of a CAN message. The parameter
-** \c ubPosV must be within the range 0 .. 7. Please note that the
+** \a ubPosV must be within the range 0 .. 7 for classic CAN frames. For
+** ISO CAN FD frames the valid range is 0 .. 63. Please note that the
 ** macro implementation does not check the value range of the parameter 
-** \c ubPosV.
+** \a ubPosV.
 */
 uint8_t  CpMsgGetData(CpCanMsg_ts * ptsCanMsgV, uint8_t ubPosV);
 
@@ -195,28 +196,40 @@ uint16_t  CpMsgGetStdId(CpCanMsg_ts * ptsCanMsgV);
 
 //------------------------------------------------------------------------------
 /*!
-** \brief   Check message enable state
+** \brief   Check for bit-rate
 ** \param   ptsCanMsgV  Pointer to a CpCanMsg_ts message
-** \return  0 for disabled, 1 for enabled
+** \return  \c true if bit-rate switch is set
 **
-** This function checks the message enable state.
+** This function checks the frame type. If the frame is a CAN FD
+** frame and the bit-rate switch (BRS) bit is set, the value \c true
+** is returned.
 */
-uint8_t   CpMsgIsEnabled(CpCanMsg_ts * ptsCanMsgV);
+bool_t    CpMsgIsBitrateSwitch(CpCanMsg_ts * ptsCanMsgV);
 
 
 //------------------------------------------------------------------------------
 /*!
-** \brief   Check the frame type
+** \brief   Check for Extended CAN frame
 ** \param   ptsCanMsgV  Pointer to a CpCanMsg_ts message
-** \return  0 for CAN 2.0A, 1 for CAN 2.0B
+** \return  \c true for Extended CAN frame
 **
 ** This function checks the frame type. If the frame is CAN 2.0A
-** (Standard Frame), the value 0 is returned. If the frame is
-** CAN 2.0B (Extended Frame), the value 1 is returned.
+** (Standard Frame), the value \c false is returned. If the frame is
+** CAN 2.0B (Extended Frame), the value \c true is returned.
 */
-uint8_t  CpMsgIsExtended(CpCanMsg_ts * ptsCanMsgV);
+bool_t   CpMsgIsExtended(CpCanMsg_ts * ptsCanMsgV);
 
-uint8_t  CpMsgIsFastData(CpCanMsg_ts * ptsCanMsgV);
+
+//------------------------------------------------------------------------------
+/*!
+** \brief   Check for CAN FD frame
+** \param   ptsCanMsgV  Pointer to a CpCanMsg_ts message
+** \return  \c true for CAN FD frame
+**
+** This function checks the frame type. If the frame is a CAN FD frame
+** CAN 2.0B (Extended Frame), the value \c true is returned.
+*/
+bool_t   CpMsgIsFastData(CpCanMsg_ts * ptsCanMsgV);
 
 //------------------------------------------------------------------------------
 /*!
@@ -227,7 +240,7 @@ uint8_t  CpMsgIsFastData(CpCanMsg_ts * ptsCanMsgV);
 ** This function checks if a data overrun has occurred for the message.
 */
 
-uint8_t  CpMsgIsOverrun(CpCanMsg_ts * ptsCanMsgV);
+bool_t   CpMsgIsOverrun(CpCanMsg_ts * ptsCanMsgV);
 
 
 //------------------------------------------------------------------------------
@@ -240,8 +253,9 @@ uint8_t  CpMsgIsOverrun(CpCanMsg_ts * ptsCanMsgV);
 ** set. If the RTR bit is set, the function will return 1, otherwise
 ** 0.
 */
-uint8_t  CpMsgIsRemote(CpCanMsg_ts * ptsCanMsgV);
+bool_t   CpMsgIsRemote(CpCanMsg_ts * ptsCanMsgV);
 
+void     CpMsgSetBitrateSwitch(CpCanMsg_ts * ptsCanMsgV);
 
 //------------------------------------------------------------------------------
 /*!
@@ -286,6 +300,7 @@ void  CpMsgSetDlc(CpCanMsg_ts * ptsCanMsgV, uint8_t ubDlcV);
 */
 void  CpMsgSetExtId(CpCanMsg_ts * ptsCanMsgV, uint32_t ulExtIdV);
 
+void  CpMsgSetFastData(CpCanMsg_ts * ptsCanMsgV);
 
 //------------------------------------------------------------------------------
 /*!
@@ -324,11 +339,11 @@ void  CpMsgSetStdId(CpCanMsg_ts * ptsCanMsgV, uint16_t uwStdIdV);
 
 //------------------------------------------------------------------------------
 /*!
-** \brief   Set timestamp value
+** \brief   Set time-stamp value
 ** \param   ptsCanMsgV  Pointer to a CpCanMsg_ts message
-** \param   ptsTimeV    Pointer to timestamp structure
+** \param   ptsTimeV    Pointer to time-stamp structure
 **
-** This function sets the timestamp value for a CAN frame.
+** This function sets the time-stamp value for a CAN frame.
 */
 void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV);
 
@@ -374,7 +389,7 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV);
             ( (MSG_PTR)->ubMsgCtrl & CP_MSG_CTRL_EXT_BIT )
 
 #define  CpMsgIsFastData(MSG_PTR)                                 \
-            ( (MSG_PTR)->ubMsgCtrl & CP_MSG_CTRL_FD_BIT  )
+            ( (MSG_PTR)->ubMsgCtrl & CP_MSG_CTRL_FDF_BIT  )
 
 #define  CpMsgIsOverrun(MSG_PTR)                                  \
             ( (MSG_PTR)->ubMsgCtrl & CP_MSG_CTRL_OVR_BIT )
@@ -383,14 +398,17 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV);
             ( (MSG_PTR)->ubMsgCtrl & CP_MASK_RTR_BIT )
 
 #define  CpMsgSetData(MSG_PTR, POS, VAL)                          \
-            ( (MSG_PTR)->tuMsgData.aubByte[POS] = VAL )
+            ( (MSG_PTR)->tuMsgData.aubByte[POS] = (VAL) )
 
 #define  CpMsgSetDlc(MSG_PTR, DLC)                                \
-            ( (MSG_PTR)->ubMsgDLC = DLC )
+         do {                                                     \
+            (MSG_PTR)->ubMsgDLC = (DLC);                          \
+         } while(0)
+
 
 #define  CpMsgSetExtId(MSG_PTR, VAL)                              \
          do {                                                     \
-            (MSG_PTR)->tuMsgId.ulExt = VAL & CP_MASK_EXT_FRAME;   \
+            (MSG_PTR)->tuMsgId.ulExt = (VAL) & CP_MASK_EXT_FRAME; \
             (MSG_PTR)->ubMsgCtrl |= CP_MSG_CTRL_EXT_BIT;          \
          } while(0)
 
@@ -406,7 +424,7 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV);
 
 #define  CpMsgSetStdId(MSG_PTR, VAL)                              \
          do {                                                     \
-            (MSG_PTR)->tuMsgId.uwStd = VAL & CP_MASK_STD_FRAME;   \
+            (MSG_PTR)->tuMsgId.uwStd = (VAL) & CP_MASK_STD_FRAME; \
             (MSG_PTR)->ubMsgCtrl &= ~CP_MSG_CTRL_EXT_BIT;         \
          } while(0)
 
