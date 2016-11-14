@@ -147,11 +147,10 @@
 /*----------------------------------------------------------------------------*/
 /* File specific splint configuration:                                        */
 /* Do not report ISO reserved names (deprecated data types)                   */
-/*@ -isoreserved                                                             @*/
 /*----------------------------------------------------------------------------*/
 
 #if defined(__LCLINT__)
-//#define  CPP_PARM_UNUSED(x)         (/*@unused@*/x)
+#define  CPP_PARM_UNUSED(x)         (/*@unused@*/x)
 #endif
 
 
@@ -206,6 +205,7 @@ typedef  long                 _S32;
 #ifdef __GNUC__
 #ifdef __APPLE__
 
+#include <stdbool.h>          // boolean definitions
 #include <stdint.h>           // data types uint8_t ... uint64_t
 
 #define  CPP_CONST            const
@@ -218,20 +218,7 @@ typedef  long                 _S32;
 
 typedef  int32_t              Status_tv;
 
-typedef  uint8_t              bool_t;
-
-//--------------------------------------------------------------
-// Deprecated data type definitions
-//
-typedef  uint8_t              _BIT;
-typedef  uint8_t              _U08;
-typedef  int8_t               _S08;
-typedef  uint16_t             _U16;
-typedef  int16_t              _S16;
-typedef  uint32_t             _U32;
-typedef  int32_t              _S32;
-typedef  uint64_t             _U64;
-typedef  int64_t              _S64;
+typedef  bool                 bool_t;
 
 #endif
 #endif
