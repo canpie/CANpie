@@ -43,8 +43,6 @@
 //
 #if CP_CAN_MSG_MACRO == 0
 
-#error Functions are not yet adopted to CAN FD, set CP_CAN_MSG_MACRO=1
-
 
 /*----------------------------------------------------------------------------*\
 ** Functions                                                                  **
@@ -58,31 +56,37 @@
 //----------------------------------------------------------------------------//
 void  CpMsgClear(CpCanMsg_ts * ptsCanMsgV)
 {
+   uint8_t  ubDataCntT = 0;
+
    //----------------------------------------------------------------
    // check for valid pointer
    //
-   if(ptsCanMsgV == 0L) return;
+   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      //--------------------------------------------------------
+      // clear all fields of the structure
+      //
+      ptsCanMsgV->tuMsgId.ulExt        = 0;
 
-   //----------------------------------------------------------------
-   // clear all fields of the structure
-   //
-   ptsCanMsgV->tuMsgId.ulExt        = 0;
+      for(ubDataCntT = 0; ubDataCntT < (CP_DATA_SIZE / 4); ubDataCntT++)
+      {
+         ptsCanMsgV->tuMsgData.aulLong[ubDataCntT] = 0;
+      }
 
-   ptsCanMsgV->tuMsgData.aulLong[0] = 0;
-   ptsCanMsgV->tuMsgData.aulLong[1] = 0;
+      ptsCanMsgV->ubMsgDLC             = 0;
 
-   ptsCanMsgV->ubMsgDLC             = 0;
+      ptsCanMsgV->ubMsgCtrl            = 0;
 
-   ptsCanMsgV->ubMsgCtrl            = 0;
+      #if CP_CAN_MSG_TIME == 1
+      ptsCanMsgV->tsMsgTime.ulSec1970  = 0;
+      ptsCanMsgV->tsMsgTime.ulNanoSec  = 0;
+      #endif
 
-   #if CP_CAN_MSG_TIME == 1
-   ptsCanMsgV->tsMsgTime.ulSec1970  = 0;
-   ptsCanMsgV->tsMsgTime.ulNanoSec  = 0;
-   #endif
+      #if CP_CAN_MSG_USER == 1
+      ptsCanMsgV->ulMsgUser            = 0;
+      #endif
+   }
 
-   #if CP_CAN_MSG_USER == 1
-   ptsCanMsgV->ulMsgUser            = 0;
-   #endif
 }
 
 
@@ -95,12 +99,13 @@ void CpMsgClrOverrun(CpCanMsg_ts * ptsCanMsgV)
    //----------------------------------------------------------------
    // check for valid pointer
    //
-   if(ptsCanMsgV == 0L) return;
-
-   //----------------------------------------------------------------
-   // clear overrun bit
-   //
-   ptsCanMsgV->ubMsgCtrl &= ~CP_MSG_CTRL_OVR_BIT;
+   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      //--------------------------------------------------------
+      // clear overrun bit
+      //
+      ptsCanMsgV->ubMsgCtrl &= ~CP_MSG_CTRL_OVR_BIT;
+   }
 }
 
 
@@ -113,54 +118,16 @@ void CpMsgClrRemote(CpCanMsg_ts * ptsCanMsgV)
    //----------------------------------------------------------------
    // check for valid pointer
    //
-   if(ptsCanMsgV == 0L) return;
+   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      //--------------------------------------------------------
+      // clear remote bit
+      //
+      ptsCanMsgV->ubMsgCtrl &= ~CP_MSG_CTRL_RTR_BIT;
 
-   //----------------------------------------------------------------
-   // clear remote bit
-   //
-   ptsCanMsgV->ubMsgCtrl &= ~CP_MSG_CTRL_RTR_BIT;
+   }
 }
 
-
-//----------------------------------------------------------------------------//
-// CpMsgDisable()                                                             //
-//                                                                            //
-//----------------------------------------------------------------------------//
-/*
-void  CpMsgDisable(CpCanMsg_ts * ptsCanMsgV)
-{
-   //----------------------------------------------------------------
-   // check for valid pointer
-   //
-   if(ptsCanMsgV == 0L) return;
-
-
-   //----------------------------------------------------------------
-   // mark as disabled frame
-   //
-   ptsCanMsgV->ubMsgCtrl &= ~CP_MASK_EN_BIT;
-}
-*/
-
-//----------------------------------------------------------------------------//
-// CpMsgEnable()                                                              //
-//                                                                            //
-//----------------------------------------------------------------------------//
-/*
-void  CpMsgEnable(CpCanMsg_ts * ptsCanMsgV)
-{
-   //----------------------------------------------------------------
-   // check for valid pointer
-   //
-   if(ptsCanMsgV == 0L) return;
-
-
-   //----------------------------------------------------------------
-   // mark as extended frame
-   //
-   ptsCanMsgV->ubMsgCtrl |= CP_MASK_EN_BIT;
-}
-*/
 
 //----------------------------------------------------------------------------//
 // CpMsgGetData()                                                             //
@@ -168,20 +135,37 @@ void  CpMsgEnable(CpCanMsg_ts * ptsCanMsgV)
 //----------------------------------------------------------------------------//
 uint8_t  CpMsgGetData(CpCanMsg_ts * ptsCanMsgV, uint8_t ubPosV)
 {
+   uint8_t  ubDataT = 0;
+
    //----------------------------------------------------------------
    // check for valid pointer
    //
-   if(ptsCanMsgV == 0L) return(0);
+   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      //--------------------------------------------------------
+      // test ubPosV parameter
+      //
+      if((ptsCanMsgV->ubMsgCtrl & CP_MSG_CTRL_FDF_BIT) > 0)
+      {
+         if(ubPosV < 64)
+         {
+            ubDataT = ptsCanMsgV->tuMsgData.aubByte[ubPosV];
+         }
+      }
+      else
+      {
+         if(ubPosV <  8)
+         {
+            ubDataT = ptsCanMsgV->tuMsgData.aubByte[ubPosV];
+         }
+      }
+   }
 
-   //----------------------------------------------------------------
-   // test ubPosV, range from 0 to 7
-   //
-   if(ubPosV > 7) return (0);
 
    //----------------------------------------------------------------
    // return data
    //
-   return (ptsCanMsgV->tuMsgData.aubByte[ubPosV]);
+   return(ubDataT);
 }
 
 
@@ -191,12 +175,17 @@ uint8_t  CpMsgGetData(CpCanMsg_ts * ptsCanMsgV, uint8_t ubPosV)
 //----------------------------------------------------------------------------//
 uint8_t  CpMsgGetDlc(CpCanMsg_ts * ptsCanMsgV)
 {
+   uint8_t  ubDlcT = 0;
+
    //----------------------------------------------------------------
    // check for valid pointer
    //
-   if(ptsCanMsgV == 0L) return(0);
+   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      ubDlcT = ptsCanMsgV->ubMsgDLC;
+   }
 
-   return(ptsCanMsgV->ubMsgDLC);
+   return(ubDlcT);
 }
 
 
@@ -206,17 +195,18 @@ uint8_t  CpMsgGetDlc(CpCanMsg_ts * ptsCanMsgV)
 //----------------------------------------------------------------------------//
 uint32_t  CpMsgGetExtId(CpCanMsg_ts * ptsCanMsgV)
 {
-   uint32_t  ulExtIdT;
+   uint32_t  ulExtIdT = 0UL;
 
    //----------------------------------------------------------------
    // check for valid pointer
    //
-   if(ptsCanMsgV == 0L) return(0);
-
-   //----------------------------------------------------------------
-   // mask the lower 29 bits
-   //
-   ulExtIdT = ptsCanMsgV->tuMsgId.ulExt & CP_MASK_EXT_FRAME;
+   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      //--------------------------------------------------------
+      // mask the lower 29 bits
+      //
+      ulExtIdT = ptsCanMsgV->tuMsgId.ulExt & CP_MASK_EXT_FRAME;
+   }
 
    return(ulExtIdT);
 }
@@ -228,135 +218,155 @@ uint32_t  CpMsgGetExtId(CpCanMsg_ts * ptsCanMsgV)
 //----------------------------------------------------------------------------//
 uint16_t  CpMsgGetStdId(CpCanMsg_ts * ptsCanMsgV)
 {
-   uint16_t  uwStdIdT;
+   uint16_t  uwStdIdT = 0;
 
    //----------------------------------------------------------------
    // check for valid pointer
    //
-   if(ptsCanMsgV == 0L) return(0);
-
-   //----------------------------------------------------------------
-   // mask the lower 11 bits
-   //
-   uwStdIdT = ptsCanMsgV->tuMsgId.uwStd & CP_MASK_STD_FRAME;
+   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      //--------------------------------------------------------
+      // mask the lower 11 bits
+      //
+      uwStdIdT = ptsCanMsgV->tuMsgId.uwStd & CP_MASK_STD_FRAME;
+   }
 
    return(uwStdIdT);
 }
 
+
 //----------------------------------------------------------------------------//
-// CpMsgIsEnabled()                                                           //
+// CpMsgIsBitrateSwitch()                                                     //
 //                                                                            //
 //----------------------------------------------------------------------------//
-/*
-uint8_t  CpMsgIsEnabled(CpCanMsg_ts * ptsCanMsgV)
+bool_t  CpMsgIsBitrateSwitch(CpCanMsg_ts * ptsCanMsgV)
 {
+   bool_t btResultT = false;
+
    //----------------------------------------------------------------
    // check for valid pointer
    //
-   if(ptsCanMsgV == 0L) return(0);
-
-   if(ptsCanMsgV->ubMsgCtrl & CP_MASK_EN_BIT)
+   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
    {
-      return(1);
+      if((ptsCanMsgV->ubMsgCtrl & CP_MSG_CTRL_FDF_BIT) > 0)
+      {
+         if((ptsCanMsgV->ubMsgCtrl & CP_MSG_CTRL_BRS_BIT) > 0)
+         {
+            btResultT = true;
+         }
+      }
    }
 
-   return(0);
+   return(btResultT);
 }
-*/
 
 
 //----------------------------------------------------------------------------//
 // CpMsgIsExtended()                                                          //
 //                                                                            //
 //----------------------------------------------------------------------------//
-uint8_t  CpMsgIsExtended(CpCanMsg_ts * ptsCanMsgV)
+bool_t  CpMsgIsExtended(CpCanMsg_ts * ptsCanMsgV)
 {
+   bool_t btResultT = false;
+
    //----------------------------------------------------------------
    // check for valid pointer
    //
-   if(ptsCanMsgV == 0L) return(0);
-
-   if(ptsCanMsgV->ubMsgCtrl & CP_MSG_CTRL_EXT_BIT)
+   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
    {
-      return(1);
+      if((ptsCanMsgV->ubMsgCtrl & CP_MSG_CTRL_EXT_BIT) > 0)
+      {
+         btResultT = true;
+      }
    }
 
-   return(0);
+   return(btResultT);
 }
 
-uint8_t  CpMsgIsFastData(CpCanMsg_ts * ptsCanMsgV)
-{
-   //----------------------------------------------------------------
-   // check for valid pointer
-   //
-   if(ptsCanMsgV == 0L) return(0);
-
-   if(ptsCanMsgV->ubMsgCtrl & CP_MSG_CTRL_FD_BIT)
-   {
-      return(1);
-   }
-
-   return(0);
-}
 
 //----------------------------------------------------------------------------//
-// CpMsgIsRemote()                                                            //
+// CpMsgIsFastData()                                                          //
 //                                                                            //
 //----------------------------------------------------------------------------//
-uint8_t  CpMsgIsRemote(CpCanMsg_ts * ptsCanMsgV)
+bool_t  CpMsgIsFastData(CpCanMsg_ts * ptsCanMsgV)
 {
+   bool_t btResultT = false;
+
    //----------------------------------------------------------------
    // check for valid pointer
    //
-   if(ptsCanMsgV == 0L) return(0);
-
-   if(ptsCanMsgV->ubMsgCtrl & CP_MSG_CTRL_RTR_BIT)
+   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
    {
-      return(1);
+      if((ptsCanMsgV->ubMsgCtrl & CP_MSG_CTRL_FDF_BIT) > 0)
+      {
+         btResultT = true;
+      }
    }
 
-   return(0);
+   return(btResultT);
 }
+
 
 //----------------------------------------------------------------------------//
 // CpMsgIsOverrun()                                                           //
 //                                                                            //
 //----------------------------------------------------------------------------//
-uint8_t  CpMsgIsOverrun(CpCanMsg_ts * ptsCanMsgV)
+bool_t  CpMsgIsOverrun(CpCanMsg_ts * ptsCanMsgV)
 {
+   bool_t btResultT = false;
+
    //----------------------------------------------------------------
    // check for valid pointer
    //
-   if(ptsCanMsgV == 0L) return(0);
-
-   if(ptsCanMsgV->ubMsgCtrl & CP_MSG_CTRL_OVR_BIT)
+   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
    {
-      return(1);
+      if((ptsCanMsgV->ubMsgCtrl & CP_MSG_CTRL_OVR_BIT) > 0)
+      {
+         btResultT = true;
+      }
    }
 
-   return(0);
+   return(btResultT);
 }
 
+
 //----------------------------------------------------------------------------//
-// CpMsgIsTxRqst()                                                            //
+// CpMsgIsRemote()                                                            //
 //                                                                            //
 //----------------------------------------------------------------------------//
-/*
-uint8_t  CpMsgIsTxRqst(CpCanMsg_ts * ptsCanMsgV)
+bool_t  CpMsgIsRemote(CpCanMsg_ts * ptsCanMsgV)
+{
+   bool_t btResultT = false;
+
+   //----------------------------------------------------------------
+   // check for valid pointer
+   //
+   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      if((ptsCanMsgV->ubMsgCtrl & CP_MSG_CTRL_RTR_BIT) > 0)
+      {
+         btResultT = true;
+      }
+   }
+
+   return(btResultT);
+}
+
+
+//----------------------------------------------------------------------------//
+// CpMsgSetBitrateSwitch()                                                    //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void  CpMsgSetBitrateSwitch(CpCanMsg_ts * ptsCanMsgV)
 {
    //----------------------------------------------------------------
    // check for valid pointer
    //
-   if(ptsCanMsgV == 0L) return(0);
-
-   if(ptsCanMsgV->ubMsgCtrl & CP_MASK_TXRQ_BIT)
+   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
    {
-      return(1);
+      ptsCanMsgV->ubMsgCtrl |= CP_MSG_CTRL_BRS_BIT;
    }
-
-   return(0);
 }
-*/
 
 
 //----------------------------------------------------------------------------//
@@ -368,14 +378,26 @@ void  CpMsgSetData(CpCanMsg_ts * ptsCanMsgV, uint8_t ubPosV, uint8_t ubValueV)
    //----------------------------------------------------------------
    // check for valid pointer
    //
-   if(ptsCanMsgV == 0L) return;
-
-   //----------------------------------------------------------------
-   // test ubPosV, range from 0 to 7
-   //
-   if(ubPosV > 7) return;
-
-   ptsCanMsgV->tuMsgData.aubByte[ubPosV] = ubValueV;
+   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      //--------------------------------------------------------
+      // test frame type
+      //
+      if((ptsCanMsgV->ubMsgCtrl & CP_MSG_CTRL_FDF_BIT) > 0)
+      {
+         if(ubPosV < 64)
+         {
+            ptsCanMsgV->tuMsgData.aubByte[ubPosV] = ubValueV;
+         }
+      }
+      else
+      {
+         if(ubPosV <  8)
+         {
+            ptsCanMsgV->tuMsgData.aubByte[ubPosV] = ubValueV;
+         }
+      }
+   }
 }
 
 
@@ -388,15 +410,28 @@ void  CpMsgSetDlc(CpCanMsg_ts * ptsCanMsgV, uint8_t ubDlcV)
    //----------------------------------------------------------------
    // check for valid pointer
    //
-   if(ptsCanMsgV == 0L) return;
-
-   //----------------------------------------------------------------
-   // make sure the Data Length Code is in range
-   //
-   if(ubDlcV > 8) return;
-
-   ptsCanMsgV->ubMsgDLC = ubDlcV;
+   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      //--------------------------------------------------------
+      // make sure the Data Length Code is in range
+      //
+      if((ptsCanMsgV->ubMsgCtrl & CP_MSG_CTRL_FDF_BIT) > 0)
+      {
+         if(ubDlcV < 16)
+         {
+            ptsCanMsgV->ubMsgDLC = ubDlcV;
+         }
+      }
+      else
+      {
+         if(ubDlcV <  9)
+         {
+            ptsCanMsgV->ubMsgDLC = ubDlcV;
+         }
+      }
+   }
 }
+
 
 //----------------------------------------------------------------------------//
 // CpMsgSetExtId()                                                            //
@@ -407,25 +442,41 @@ void  CpMsgSetExtId(CpCanMsg_ts * ptsCanMsgV, uint32_t ulExtIdV)
    //----------------------------------------------------------------
    // check for valid pointer
    //
-   if(ptsCanMsgV == 0L) return;
+   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      //----------------------------------------------------------------
+      // use only lower 29 bits
+      //
+      ulExtIdV = ulExtIdV & CP_MASK_EXT_FRAME;
 
+      //----------------------------------------------------------------
+      // mark as extended frame
+      //
+      ptsCanMsgV->ubMsgCtrl |= CP_MSG_CTRL_EXT_BIT;
 
-   //----------------------------------------------------------------
-   // use only lower 29 bits
-   //
-   ulExtIdV = ulExtIdV & CP_MASK_EXT_FRAME;
-
-   //----------------------------------------------------------------
-   // mark as extended frame
-   //
-   ptsCanMsgV->ubMsgCtrl |= CP_MSG_CTRL_EXT_BIT;
-
-   ptsCanMsgV->tuMsgId.ulExt = ulExtIdV;
+      ptsCanMsgV->tuMsgId.ulExt = ulExtIdV;
+   }
 }
 
 
 //----------------------------------------------------------------------------//
-// CpMsgIsOverrun()                                                           //
+// CpMsgSetFastData()                                                         //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void  CpMsgSetFastData(CpCanMsg_ts * ptsCanMsgV)
+{
+   //----------------------------------------------------------------
+   // check for valid pointer
+   //
+   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      ptsCanMsgV->ubMsgCtrl |= CP_MSG_CTRL_FDF_BIT;
+   }
+}
+
+
+//----------------------------------------------------------------------------//
+// CpMsgSetOverrun()                                                          //
 //                                                                            //
 //----------------------------------------------------------------------------//
 void CpMsgSetOverrun(CpCanMsg_ts * ptsCanMsgV)
@@ -433,14 +484,15 @@ void CpMsgSetOverrun(CpCanMsg_ts * ptsCanMsgV)
    //----------------------------------------------------------------
    // check for valid pointer
    //
-   if(ptsCanMsgV == 0L) return;
-
-   ptsCanMsgV->ubMsgCtrl |= CP_MSG_CTRL_OVR_BIT;
+   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      ptsCanMsgV->ubMsgCtrl |= CP_MSG_CTRL_OVR_BIT;
+   }
 }
 
 
 //----------------------------------------------------------------------------//
-// CpMsgIsRemote()                                                            //
+// CpMsgSetRemote()                                                           //
 //                                                                            //
 //----------------------------------------------------------------------------//
 void  CpMsgSetRemote(CpCanMsg_ts * ptsCanMsgV)
@@ -448,8 +500,10 @@ void  CpMsgSetRemote(CpCanMsg_ts * ptsCanMsgV)
    //----------------------------------------------------------------
    // check for valid pointer
    //
-   if(ptsCanMsgV == 0L) return;
-   ptsCanMsgV->ubMsgCtrl |= CP_MSG_CTRL_RTR_BIT;
+   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      ptsCanMsgV->ubMsgCtrl |= CP_MSG_CTRL_RTR_BIT;
+   }
 }
 
 
@@ -462,22 +516,40 @@ void  CpMsgSetStdId(CpCanMsg_ts * ptsCanMsgV, uint16_t uwStdIdV)
    //----------------------------------------------------------------
    // check for valid pointer
    //
-   if(ptsCanMsgV == 0L) return;
+   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      //----------------------------------------------------------------
+      // use only lower 11 bits
+      //
+      uwStdIdV = uwStdIdV & CP_MASK_STD_FRAME;
 
+      //----------------------------------------------------------------
+      // mark as standard frame
+      //
+      ptsCanMsgV->ubMsgCtrl &= ~CP_MSG_CTRL_EXT_BIT;
 
-   //----------------------------------------------------------------
-   // use only lower 11 bits
-   //
-   uwStdIdV = uwStdIdV & CP_MASK_STD_FRAME;
+      ptsCanMsgV->tuMsgId.uwStd = uwStdIdV;
+   }
 
-   //----------------------------------------------------------------
-   // mark as standard frame
-   //
-   ptsCanMsgV->ubMsgCtrl &= ~CP_MSG_CTRL_EXT_BIT;
-
-   ptsCanMsgV->tuMsgId.uwStd = uwStdIdV;
 }
 
 
+//----------------------------------------------------------------------------//
+// CpMsgSetTime()                                                             //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV)
+{
+   //----------------------------------------------------------------
+   // check for valid pointer
+   //
+   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      #if CP_CAN_MSG_TIME > 0
+      ptsCanMsgV->tsMsgTime.ulSec1970 = ptsTimeV->ulSec1970;
+      ptsCanMsgV->tsMsgTime.ulNanoSec = ptsTimeV->ulNanoSec;
+      #endif
+   }
+}
 
 #endif   // #if CP_CAN_MSG_MACRO == 0
