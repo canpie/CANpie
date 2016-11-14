@@ -35,7 +35,8 @@
 ** \file    qcan_defs.hpp
 ** \brief   Global QCan definitions
 **
-** This file ...
+** This file holds global definitions for the QCanServer and QCanInterface
+** classes.
 **
 */
 
@@ -89,7 +90,8 @@
 /*!
 ** \defgroup QCAN_IF QCan interface definitions
 **
-**
+** The QCan interface definitions are used by the method
+** QCanInterface::supportedFeatures().
 */
 
 //-------------------------------------------------------------------
