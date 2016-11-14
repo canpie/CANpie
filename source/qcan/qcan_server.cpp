@@ -96,6 +96,7 @@ uint8_t QCanServer::maximumNetwork(void) const
    return(pclListNetsP->count());
 }
 
+
 //----------------------------------------------------------------------------//
 // network()                                                                  //
 //                                                                            //
@@ -106,3 +107,40 @@ QCanNetwork * QCanServer::network(uint8_t ubNetworkIdxV)
 }
 
 
+//----------------------------------------------------------------------------//
+// setHostAddress()                                                           //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void QCanServer::setHostAddress(QHostAddress clHostAddressV)
+{
+   QCanNetwork *  pclNetworkT;
+   bool           btNetworkStateT;
+
+   for(uint8_t ubNetCntT = 0; ubNetCntT < maximumNetwork(); ubNetCntT++)
+   {
+      pclNetworkT = network(ubNetCntT);
+
+      //-------------------------------------------------------------
+      // check current state of network and disable it here
+      //
+      if(pclNetworkT->isNetworkEnabled() == true)
+      {
+         pclNetworkT->setNetworkEnabled(false);
+         btNetworkStateT = true;
+      }
+      else
+      {
+         btNetworkStateT = true;
+      }
+
+      //-------------------------------------------------------------
+      // assign new host address
+      //
+      pclNetworkT->setHostAddress(clHostAddressV);
+
+      //-------------------------------------------------------------
+      // set network to old state
+      //
+      pclNetworkT->setNetworkEnabled(btNetworkStateT);
+   }
+}
