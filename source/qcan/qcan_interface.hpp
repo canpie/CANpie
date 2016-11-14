@@ -52,6 +52,10 @@ using namespace CANpie;
 ** \class   QCanInterface
 ** \brief   CAN interface
 ** 
+** The QCanInterface class describes one physical CAN interface. The CAN
+** interface is typically implemented inside a CAN plug-in (see QCanPlugin).
+** After connection to the CAN interface (see connect()) the use can read and
+** write CAN frames via this hardware.
 */
 class QCanInterface : public QObject
 {
@@ -69,7 +73,7 @@ public:
    /*!
    ** \enum    InterfaceError_e
    **
-   ** This enum describes possible error conditions.
+   ** This enumeration describes possible error conditions.
    */
    enum InterfaceError_e {
       /*! An unknown error occurred.                  */
@@ -103,7 +107,8 @@ public:
 
 
    /*!
-   ** \see disconnect()
+   ** \return     Status code defined by InterfaceError_e
+   ** \see        disconnect()
    **
    ** Connect to the physical CAN interface.
    */
@@ -117,7 +122,8 @@ public:
    virtual bool connected(void) = 0;
 
    /*!
-   ** \see connect()
+   ** \return     Status code defined by InterfaceError_e
+   ** \see        connect()
    **
    ** Disconnect from the physical CAN interface.
    */
@@ -125,17 +131,23 @@ public:
 
 
    /*!
-   ** Get icon from the physical CAN interface.
+   ** \return     Icon
+   **
+   ** The function returns an icon for the physical CAN interface.
    */
    virtual QIcon icon(void) = 0;
 
+
    /*!
-   ** Get name from the physical CAN interface.
+   ** \return     Name
+   **
+   ** The function returns a name for the physical CAN interface.
    */
    virtual QString name(void) = 0;
 
    /*!
-   ** \see  write()
+   ** \return     Status code defined by InterfaceError_e
+   ** \see        write()
    **
    ** The functions reads a CAN message from the physical channel
    ** \c ubChannelV of the CAN interface. The first CAN channel starts at
@@ -147,15 +159,21 @@ public:
    virtual InterfaceError_e   read( QCanFrame &clFrameR) = 0;
 
    /*!
+   ** \param[in]  slNomBitRateV  Nominal Bit-rate value
+   ** \param[in]  slDatBitRateV  Data Bit-rate value
+   ** \return     Status code defined by InterfaceError_e
+   **
    **	This function sets the bit-rate of the CAN interface. If the physical
-   **	CAN interface does not support CAN FD, the parameter \c slBrsClockV
+   **	CAN interface does not support CAN FD, the parameter \c slDatBitRateV
    **	is not evaluated.
    */
-   virtual InterfaceError_e   setBitrate(int32_t slBitrateV,
-                                         int32_t slBrsClockV = eCAN_BITRATE_NONE) = 0;
+   virtual InterfaceError_e   setBitrate(int32_t slNomBitRateV,
+                                         int32_t slDatBitRateV = eCAN_BITRATE_NONE) = 0;
 
 
    /*!
+   ** \return     Status code defined by InterfaceError_e
+   **
    ** Set mode of the physical interface.
    */
    virtual InterfaceError_e	setMode(const CAN_Mode_e teModeV) = 0;
@@ -170,8 +188,8 @@ public:
    virtual InterfaceError_e   statistic(QCanStatistic_ts &clStatisticR) = 0;
 
    /*!
-   ** The function returns the supported features of the physical
-   ** channel \c ubChannelV. The first CAN channel starts at index 0.
+   ** \return     Bit-mask defined by \ref QCAN_IF
+   **
    ** The return value is a bit-mask using values defined in the header
    ** file qcan_defs.hpp.
    **
@@ -180,7 +198,8 @@ public:
 	
 
    /*!
-   ** \see  read()
+   ** \return     Status code defined by InterfaceError_e
+   ** \see        read()
    **
    ** The functions writes a CAN message to the physical CAN interface
    ** \c ubChannelV of the CAN interface. The first CAN channel starts at
