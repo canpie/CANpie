@@ -54,14 +54,6 @@ using namespace CANpie;
 class QCanInterface;
 
 
-//-----------------------------------------------------------------------------
-/*!
-** \file    qcan_network.hpp
-** \brief   CAN network
-**
-** This file ...
-**
-*/
 
 
 //-----------------------------------------------------------------------------
@@ -69,9 +61,9 @@ class QCanInterface;
 ** \class QCanNetwork
 ** \brief CAN network representation
 ** 
-** This class represents a CAN network with a unique bitrate.
-** It supports one physical CAN interface, which can be assigned
-** during run-time to the CAN network and a limited number of
+** This class represents a CAN network with a unique bit-rate.
+** It supports one physical CAN interface (QCanInterface), which can be
+** assigned during run-time to the CAN network and a limited number of
 ** virtual CAN interfaces (sockets). Clients can connect to a QCanNetwork
 ** via the QCanSocket class.
 **
@@ -82,6 +74,9 @@ class QCanNetwork : public QObject
 public:
    
    /*!
+   ** \param[in]  pclParentV     Pointer to QObject parent class
+   ** \param[in]  uwPortV        Port number
+   **
    ** Create new CAN network with unique channel number.
    */
    QCanNetwork(QObject * pclParentV = Q_NULLPTR,
@@ -91,7 +86,9 @@ public:
 	~QCanNetwork();
 
 	/*!
-	** \see     removeInterface()
+   ** \param[in]  pclCanIfV     Pointer to CAN interface class
+   ** \return     \c true if CAN interface added successfully
+	** \see        removeInterface()
 	**
 	** The function adds a physical CAN interface to the CAN network.
 	** Each CAN network supports only one physical CAN interface.
@@ -105,7 +102,8 @@ public:
 	bool addInterface(QCanInterface * pclCanIfV);
 
    /*!
-   ** \see     setBitrate()
+   ** \return     Bit-rate value for Nominal Bit Timing
+   ** \see        setBitrate()
    **
    ** This function returns the current bit-rate of the CAN network.
    ** For <b>classic CAN</b>, the return value defines the bit-rate for the
@@ -114,15 +112,16 @@ public:
    ** the arbitration phase.
    ** <p>
    ** If no bit-rate is configured, the function will return
-   ** QCan::eCAN_BITRATE_NONE.
+   ** CANpie::eCAN_BITRATE_NONE.
    */
-	int32_t  bitrate(void)           {return (slBitrateP);      };
+	int32_t  bitrate(void)           {return (slNomBitRateP);      };
 
    /*!
-   ** \see     setDispatcherTime()
+   ** \return     Current dispatcher time
+   ** \see        setDispatcherTime()
    **
    ** This function returns the current dispatcher time for the
-   ** internal CAN frame handler in milli-seconds.
+   ** internal CAN frame handler in milliseconds.
    */
 	uint32_t dispatcherTime(void)    {return (ulDispatchTimeP); };
 
@@ -139,7 +138,8 @@ public:
    bool isListenOnlyEnabled(void)   {return (btListenOnlyEnabledP);  };
 
    /*!
-   ** \see     setNetworkEnabled()
+   ** \return     \c true if CAN is enabled
+   ** \see        setNetworkEnabled()
    **
    ** This function returns \c true if the network is enabled,
    ** otherwise it returns \c false.
@@ -158,8 +158,11 @@ public:
    */
 	void removeInterface(void);
 
+
    /*!
-   ** \see     bitrate()
+   ** \param[in]  slNomBitRateV  Nominal Bit-rate value
+   ** \param[in]  slDatBitRateV  Data Bit-rate value
+   ** \see        bitrate()
    **
    ** This function sets the bit-rate for the CAN network. For <b>classic CAN</b>,
    ** the parameter \c slBitrateV defines the bit-rate for the complete frame,
@@ -168,37 +171,84 @@ public:
    ** the arbitration phase, the parameter \c slBrsClockV defines the
    ** bit-rate for the data phase.
    ** <p>
-   ** For selection of pre-defined bit-rates the value can be taken from
-   ** the enumeration QCan::CAN_Bitrate_e.
+   ** For selection of predefined bit-rates the value can be taken from
+   ** the enumeration CANpie::CAN_Bitrate_e.
    */
-	void setBitrate(int32_t slBitrateV,
-	                int32_t slBrsClockV = eCAN_BITRATE_NONE);
+	void setBitrate(int32_t slNomBitRateV,
+	                int32_t slDatBitRateV = eCAN_BITRATE_NONE);
 
 
    /*!
-   ** \see     dispatcherTime()
+   ** \param[in]  ulTimeV        Dispatcher time
+   ** \see        dispatcherTime()
    **
    ** This function sets the dispatcher time for the internal CAN frame
-   ** handler in milli-seconds.
+   ** handler in milliseconds.
    */
 	void setDispatcherTime(uint32_t ulTimeV);
 
+
+   /*!
+   ** \param[in]  btEnableV      Enable / disable error frames
+   ** \see        isErrorFramesEnabled()
+   **
+   ** This function enables the dispatching of CAN error frames if \a btEnable
+   ** is \c true, it is disabled on \c false.
+   */
    void setErrorFramesEnabled(bool btEnableV = true);
 
+
    void setFastDataEnabled(bool btEnableV = true);
+
+   bool setHostAddress(QHostAddress clHostAddressV);
 
    void setListenOnlyEnabled(bool btEnableV = true);
 
    /*!
-   ** \see     isNetworkEnabled()
+   ** \param[in]  btEnableV      Enable / disable network
+   ** \see        isNetworkEnabled()
    **
-   ** This function enables the dispatching of CAN frames if \c btEnable is
-   ** \c true. It is disabled for <c>btEnable = false</c>.
+   ** This function enables the dispatching of CAN frames if \a btEnable is
+   ** \c true, it is disabled on \c false.
    */
    void setNetworkEnabled(bool btEnableV = true);
 
+signals:
+   /*!
+   ** \param[in]  ulFrameTotalV  Total number of frames
+   **
+   ** This signal is emitted every second. The parameter \a ulFrameTotalV
+   ** denotes the total number of API frames.
+   */
+   void  showApiFrames(uint32_t ulFrameTotalV);
 
-public slots:
+   /*!
+   ** \param[in]  ulFrameTotalV  Total number of frames
+   **
+   ** This signal is emitted every second. The parameter \a ulFrameTotalV
+   ** denotes the total number of CAN frames.
+   */
+   void  showCanFrames(uint32_t ulFrameTotalV);
+
+   /*!
+   ** \param[in]  ulFrameTotalV  Total number of frames
+   **
+   ** This signal is emitted every second. The parameter \a ulFrameTotalV
+   ** denotes the total number of CAN error frames.
+   */
+   void  showErrFrames(uint32_t ulFrameTotalV);
+
+   /*!
+   ** \param[in]  ubLoadV        Bus load in percent
+   ** \param[in]  ulMsgPerSecV   Messages per second
+   **
+   **
+   ** This signal is emitted every second. The parameter \a ubLoadV
+   ** denotes the bus load in percent (value range 0 .. 100).
+   */
+   void  showLoad(uint8_t ubLoadV, uint32_t ulMsgPerSecV);
+
+private slots:
    /*!
    ** This function is called upon socket connection.
    */
@@ -211,14 +261,7 @@ public slots:
 
    void onTimerEvent(void);
 
-signals:
-   /*!
-   ** This signal is emitted ..
-   */
-   void  showApiFrames(uint32_t ulFrameTotalV);
-   void  showCanFrames(uint32_t ulFrameTotalV);
-   void  showErrFrames(uint32_t ulFrameTotalV);
-   void  showLoad(uint8_t ubLoadV, uint32_t ulMsgPerSecV);
+
 
 protected:
 
@@ -229,18 +272,34 @@ private:
    bool  handleErrFrame(int32_t & slSockSrcR, QByteArray & clSockDataR);
 
 
+   //----------------------------------------------------------------
+   // unique network ID
+   //
+   static uint8_t          ubNetIdP;
+
+   //----------------------------------------------------------------
+   // unique network name
+   //
+   QString                 clNetNameP;
+
    QPointer<QCanInterface> pclInterfaceP;
    QPointer<QTcpServer>    pclTcpSrvP;
    QVector<QTcpSocket *> * pclTcpSockListP;
    QHostAddress            clTcpHostAddrP;
    uint16_t                uwTcpPortP;
-   static uint8_t          ubNetIdP;
-   QString                 clNetNameP;
    QMutex                  clTcpSockMutexP;
+
+   //----------------------------------------------------------------
+   // Frame dispatcher time
+   //
    QTimer                  clDispatchTmrP;
    uint32_t                ulDispatchTimeP;
-   int32_t                 slBitrateP;
-   int32_t                 slBrsClockP;
+
+   //----------------------------------------------------------------
+   // bit-rate settings
+   //
+   int32_t                 slNomBitRateP;
+   int32_t                 slDatBitRateP;
 
    //----------------------------------------------------------------
    // statistic frame counter
