@@ -43,7 +43,7 @@ using namespace CANpie;
 
 //-----------------------------------------------------------------------------
 /*!
-** \class   QCanFrameError
+** \class   CpFrameError
 ** \brief   CAN error frame
 ** 
 ** This class defines a (virtual) <i>CAN error frame</i>. The class is
@@ -51,7 +51,7 @@ using namespace CANpie;
 ** a CAN network (QCanNetwork) and second for retrieval of the error state
 ** from a physical CAN interface.
 ** <p>
-** The QCanFrameError class can be used to inform about the actual
+** The CpFrameError class can be used to inform about the actual
 ** <b>error state</b> (function errorState()) and the current values
 ** of the error counters (functions errorCounterReceive() and
 ** errorCounterTransmit()). In addition, it is possible to inform
@@ -89,7 +89,7 @@ public:
 
    /*!
    ** Constructs an empty CAN error frame with a CAN state of
-   ** QCan::eCAN_STATE_STOPPED and error counter values of 0.
+   ** CANpie::eCAN_STATE_STOPPED and error counter values of 0.
    */
    CpFrameError();
    
@@ -97,7 +97,8 @@ public:
    ~CpFrameError();
 
    /*!
-   ** \see  setErrorCounterReceive()
+   ** \return     Value of receive error counter
+   ** \see        setErrorCounterReceive()
    **
    ** This functions returns the current value of the receive error counter.
    */
@@ -105,25 +106,28 @@ public:
 
 
    /*!
-   ** \see  setErrorCounterTransmit()
+   ** \return     Value of transmit error counter
+   ** \see        setErrorCounterTransmit()
    **
    ** This functions returns the current value of the transmit error counter.
-   ** A value of 255 leads to a bus-off condition (QCan::eCAN_STATE_BUS_OFF).
+   ** A value of 255 leads to a bus-off condition (CANpie::eCAN_STATE_BUS_OFF).
    */
    uint8_t  errorCounterTransmit(void) const;
 
 
    /*!
-   ** \see  setErrorState()
+   ** \return     Current error state
+   ** \see        setErrorState()
    **
    ** This functions returns the current error state, defined by the
-   ** enumeration QCan::CAN_State_e.
+   ** enumeration CANpie::CAN_State_e.
    */
    CAN_State_e             errorState(void) const;
 
 
    /*!
-   ** \see  setErrorType()
+   ** \return     Error type
+   ** \see        setErrorType()
    **
    ** This functions returns the error type which caused the last error
    ** condition.
@@ -132,38 +136,41 @@ public:
    
 
    /*!
-   ** \see  errorCounterReceive()
+   ** \param[in]  ubErrorCntR    Receive error counter value
+   ** \see        errorCounterReceive()
    **
-   ** This functions sets the transmit error counter. Passing a value
+   ** This functions sets the receive error counter. Passing a value
    ** greater than 127 will set the error state to error passive
-   ** (QCan::eCAN_STATE_BUS_PASSIVE). A value of 255 will set the
-   ** error state to bus-off (QCan::eCAN_STATE_BUS_OFF).
+   ** (CANpie::eCAN_STATE_BUS_PASSIVE).
    */
    void setErrorCounterReceive(const uint8_t & ubErrorCntR);
 
 
    /*!
-   ** \see  errorCounterTransmit()
+   ** \param[in]  ubErrorCntR    Transmit error counter value
+   ** \see        errorCounterTransmit()
    **
    ** This functions sets the transmit error counter. Passing a value
    ** greater than 127 will set the error state to error passive
-   ** (QCan::eCAN_STATE_BUS_PASSIVE). A value of 255 will set the
-   ** error state to bus-off (QCan::eCAN_STATE_BUS_OFF).
+   ** (CANpie::eCAN_STATE_BUS_PASSIVE). A value of 255 will set the
+   ** error state to bus-off (CANpie::eCAN_STATE_BUS_OFF).
    */
    void setErrorCounterTransmit(const uint8_t & ubErrorCntR);
 
 
    /*!
-   ** \see  errorState()
+   ** \param[in]  ubStateV       Error state value
+   ** \see                       errorState()
    **
    ** This functions sets the current error state, defined by the
-   ** enumeration QCan::CAN_State_e.
+   ** enumeration CANpie::CAN_State_e.
    */
    void setErrorState(CAN_State_e ubStateV);
 
 
    /*!
-   ** \see  errorType()
+   ** \param[in]  ubTypeV        Error type value
+   ** \see        errorType()
    **
    ** This functions sets the error type which caused the last error
    ** condition.
