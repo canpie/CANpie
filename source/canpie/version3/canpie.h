@@ -250,7 +250,7 @@
 ** Mask for standard frame (11 bits), used in combination with
 ** the CpCanMsg_s::uwStd.
 */
-#define  CP_MASK_STD_FRAME 0x000007FF
+#define  CP_MASK_STD_FRAME       ((uint32_t) 0x000007FF)
 
 
 /*-------------------------------------------------------------------*/
@@ -261,7 +261,7 @@
 ** Mask for extended frame (29 bits), used in combination with
 ** the CpCanMsg_s::ulExt.
 */
-#define  CP_MASK_EXT_FRAME 0x1FFFFFFF
+#define  CP_MASK_EXT_FRAME       ((uint32_t) 0x1FFFFFFF)
 
 //-----------------------------------------------------------------------------
 /*!
@@ -278,7 +278,7 @@
 ** Bit mask for the EXT bit (extended frame) in the \c ubMsgCtrl 
 ** field of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
 */
-#define  CP_MSG_CTRL_EXT_BIT     0x01
+#define  CP_MSG_CTRL_EXT_BIT     ((uint8_t) 0x01)
 
 
 /*-------------------------------------------------------------------*/
@@ -290,7 +290,7 @@
 ** the \c ubMsgCtrl field of the CpCanMsg_ts structure 
 ** (CpCanMsg_s::ubMsgCtrl).
 */
-#define  CP_MSG_CTRL_FDF_BIT      0x02
+#define  CP_MSG_CTRL_FDF_BIT      ((uint8_t) 0x02)
 
 
 /*-------------------------------------------------------------------*/
@@ -301,7 +301,7 @@
 ** Bit mask for the RTR bit (remote frame) in the \c ubMsgCtrl 
 ** field of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
 */
-#define  CP_MSG_CTRL_RTR_BIT     0x04
+#define  CP_MSG_CTRL_RTR_BIT     ((uint8_t) 0x04)
 
 
 /*-------------------------------------------------------------------*/
@@ -312,7 +312,7 @@
 ** Bit mask for the OVR bit (overrun) in the \c ubMsgCtrl 
 ** field of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
 */
-#define  CP_MSG_CTRL_OVR_BIT     0x08
+#define  CP_MSG_CTRL_OVR_BIT     ((uint8_t) 0x08)
 
 
 /*-------------------------------------------------------------------*/
@@ -323,7 +323,7 @@
 ** Bit mask for the BRS bit (ISO CAN FD, bit-rate switch) in the
 ** \c ubMsgCtrl field of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
 */
-#define  CP_MSG_CTRL_BRS_BIT     0x40
+#define  CP_MSG_CTRL_BRS_BIT     ((uint8_t) 0x40)
 
 
 /*-------------------------------------------------------------------*/
@@ -334,7 +334,7 @@
 ** Bit mask for the ESI bit (ISO CAN FD, error state indicator) in the 
 ** \c ubMsgCtrl field of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
 */
-#define  CP_MSG_CTRL_ESI_BIT     0x80
+#define  CP_MSG_CTRL_ESI_BIT     ((uint8_t) 0x80)
 
 
 
@@ -349,9 +349,9 @@
 ** CAN FD frames the maximum number of bytes is 64.
 */
 #if CP_CAN_FD == 0
-#define  CP_DATA_SIZE      8
+#define  CP_DATA_SIZE            ((uint8_t)  8)
 #else
-#define  CP_DATA_SIZE      64
+#define  CP_DATA_SIZE            ((uint8_t) 64)
 #endif
 
 
@@ -805,7 +805,7 @@ typedef struct CpTime_s {
 
 /*----------------------------------------------------------------------------*/
 /*!
-** \struct  CpCanMsg_s   canpie.h
+** \struct  CpCanMsg_s
 ** \brief   CAN message structure
 **
 ** For transmission and reception of CAN messages a structure which holds
