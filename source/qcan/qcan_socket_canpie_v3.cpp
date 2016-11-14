@@ -791,12 +791,12 @@ QCanFrame QCanSocketCp3::fromCpMsg(uint8_t ubMsgBufferV)
       if(CpMsgIsExtended(ptsCanMsgT))
       {
          clCanFrameT.setFrameType(QCanFrame::eTYPE_FD_EXT);
-         clCanFrameT.setExtId(CpMsgGetExtId(ptsCanMsgT));
+         clCanFrameT.setIdentifier(CpMsgGetExtId(ptsCanMsgT));
       }
       else
       {
          clCanFrameT.setFrameType(QCanFrame::eTYPE_FD_STD);
-         clCanFrameT.setStdId(CpMsgGetStdId(ptsCanMsgT));
+         clCanFrameT.setIdentifier(CpMsgGetStdId(ptsCanMsgT));
       }
    }
    else
@@ -804,12 +804,12 @@ QCanFrame QCanSocketCp3::fromCpMsg(uint8_t ubMsgBufferV)
       if(CpMsgIsExtended(ptsCanMsgT))
       {
          clCanFrameT.setFrameType(QCanFrame::eTYPE_CAN_EXT);
-         clCanFrameT.setExtId(CpMsgGetExtId(ptsCanMsgT));
+         clCanFrameT.setIdentifier(CpMsgGetExtId(ptsCanMsgT));
       }
       else
       {
          clCanFrameT.setFrameType(QCanFrame::eTYPE_CAN_STD);
-         clCanFrameT.setStdId(CpMsgGetStdId(ptsCanMsgT));
+         clCanFrameT.setIdentifier(CpMsgGetStdId(ptsCanMsgT));
       }
    }
 
