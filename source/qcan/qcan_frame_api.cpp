@@ -97,36 +97,6 @@ QString QCanFrameApi::toString(const bool & btShowTimeR)
    //----------------------------------------------------------------
    // print frame format
    //
-   switch(QCanFrame::frameType())
-   {
-      case eTYPE_CAN_STD:
-         clStringT += "CAN-STD ";
-         break;
-         
-      case eTYPE_CAN_EXT:
-         clStringT += "CAN-EXT ";
-         break;
-         
-      case eTYPE_FD_STD:
-         clStringT += " FD-STD ";
-         break;
-         
-      case eTYPE_FD_EXT:
-         clStringT += " FD-EXT ";
-         break;
-         
-      case eTYPE_QCAN_ERR:
-         clStringT += "QCan-ERR";
-         break;
-         
-      case eTYPE_QCAN_API:
-         clStringT += "QCan-API";
-         break;
-
-      default:
-         clStringT += " N/A    ";
-         break;
-   }
 
    
    return(clStringT);
