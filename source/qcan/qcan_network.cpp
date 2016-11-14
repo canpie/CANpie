@@ -113,7 +113,7 @@ QCanNetwork::QCanNetwork(QObject * pclParentV,
    // setup timing values
    //
    ulDispatchTimeP  = 20;
-   ulStatisticTimeP = 250;
+   ulStatisticTimeP = 1000;
    ulStatisticTickP = ulStatisticTimeP / ulDispatchTimeP;
 
 
@@ -161,11 +161,11 @@ bool QCanNetwork::addInterface(QCanInterface * pclCanIfV)
          // demo initialisation
          if (pclCanIfV->supportedFeatures() & QCAN_IF_SUPPORT_CAN_FD)
          {
-            slBitrateP  = eCAN_BITRATE_500K;
-            slBrsClockP = 2000000;
+            slNomBitRateP  = eCAN_BITRATE_500K;
+            slDatBitRateP = 2000000;
          }
 
-         if (pclCanIfV->setBitrate(slBitrateP, slBrsClockP) == QCanInterface::eERROR_NONE)
+         if(pclCanIfV->setBitrate(slNomBitRateP, slDatBitRateP) == QCanInterface::eERROR_NONE)
          {
             if (pclCanIfV->setMode(eCAN_MODE_START) == QCanInterface::eERROR_NONE)
             {
@@ -400,7 +400,7 @@ bool  QCanNetwork::handleErrFrame(int32_t & slSockSrcR,
 
 
 //----------------------------------------------------------------------------//
-// onTcpSrvNewConnection()                                                    //
+// onSocketConnect()                                                          //
 // slot that manages a new local server connection                            //
 //----------------------------------------------------------------------------//
 void QCanNetwork::onSocketConnect(void)
@@ -431,13 +431,214 @@ void QCanNetwork::onSocketConnect(void)
 
 
 //----------------------------------------------------------------------------//
+// onSocketDisconnect()                                                       //
+// remove local socket from list                                              //
+//----------------------------------------------------------------------------//
+void QCanNetwork::onSocketDisconnect(void)
+{
+   int32_t      slSockIdxT;
+   QTcpSocket * pclSockT;
+   QTcpSocket * pclSenderT;
+
+
+   //----------------------------------------------------------------
+   // get sender of signal
+   //
+   pclSenderT = (QTcpSocket* ) QObject::sender();
+
+   clTcpSockMutexP.lock();
+   for(slSockIdxT = 0; slSockIdxT < pclTcpSockListP->size(); slSockIdxT++)
+   {
+      pclSockT = pclTcpSockListP->at(slSockIdxT);
+      if(pclSockT == pclSenderT)
+      {
+         pclTcpSockListP->remove(slSockIdxT);
+         break;
+      }
+   }
+   clTcpSockMutexP.unlock();
+
+   qDebug() << "QCanNetwork::onSocketDisconnect()" << pclTcpSockListP->size() << "open sockets";
+
+}
+
+
+//----------------------------------------------------------------------------//
+// onTimerEvent()                                                             //
+// remove local socket from list                                              //
+//----------------------------------------------------------------------------//
+void QCanNetwork::onTimerEvent(void)
+{
+   int32_t        slSockIdxT;
+   int32_t        slListSizeT;
+   uint32_t       ulFrameCntT;
+   uint32_t       ulFrameMaxT;
+   uint32_t       ulMsgPerSecT;
+   QTcpSocket *   pclSockT;
+   QCanFrame      clCanFrameT;
+   QByteArray     clSockDataT;
+
+
+   //----------------------------------------------------------------
+   // lock socket list
+   //
+   clTcpSockMutexP.lock();
+
+   //----------------------------------------------------------------
+   // read messages from active CAN interface
+   //
+   if(pclInterfaceP.isNull() == false)
+   {
+      slSockIdxT = QCAN_SOCKET_CAN_IF;
+      while(pclInterfaceP->read(clCanFrameT) == QCanInterface::eERROR_NONE)
+      {
+         clSockDataT = clCanFrameT.toByteArray();
+
+         //-----------------------------------------------------
+         // handle API frames
+         //
+         if(clCanFrameT.isFrameApi())
+         {
+            handleApiFrame(slSockIdxT, (QCanFrameApi &) clCanFrameT);
+         }
+         //-----------------------------------------------------
+         // handle error frames
+         //
+         else if(clCanFrameT.isFrameError())
+         {
+            handleErrFrame(slSockIdxT, clSockDataT);
+         }
+         //-------------------------------------
+         // write CAN frame to other sockets
+         //
+         else
+         {
+            handleCanFrame(slSockIdxT, clSockDataT);
+         }
+      }
+   }
+
+   //----------------------------------------------------------------
+   // check all open sockets and read messages
+   //
+   slListSizeT = pclTcpSockListP->size();
+   for(slSockIdxT = 0; slSockIdxT < slListSizeT; slSockIdxT++)
+   {
+      pclSockT = pclTcpSockListP->at(slSockIdxT);
+      ulFrameMaxT = (pclSockT->bytesAvailable()) / QCAN_FRAME_ARRAY_SIZE;
+      for(ulFrameCntT = 0; ulFrameCntT < ulFrameMaxT; ulFrameCntT++)
+      {
+         clSockDataT = pclSockT->read(QCAN_FRAME_ARRAY_SIZE);
+         clCanFrameT.fromByteArray(clSockDataT);
+
+         //-----------------------------------------------------
+         // handle API frames
+         //
+         if(clCanFrameT.isFrameApi())
+         {
+            handleApiFrame(slSockIdxT, (QCanFrameApi &) clCanFrameT);
+         }
+         //-----------------------------------------------------
+         // handle error frames
+         //
+         else if(clCanFrameT.isFrameError())
+         {
+            handleErrFrame(slSockIdxT, clSockDataT);
+         }
+         //-----------------------------------------------------
+         // handle CAN frames
+         //
+         else
+         {
+            //---------------------------------------------
+            // check for active CAN interface
+            //
+            if(pclInterfaceP.isNull() == false)
+            {
+               pclInterfaceP->write(clCanFrameT);
+            }
+
+            //---------------------------------------------
+            // write to other sockets
+            //
+            handleCanFrame(slSockIdxT, clSockDataT);
+         }
+      }
+   }
+   clTcpSockMutexP.unlock();
+
+   //----------------------------------------------------------------
+   // signal current statistic values
+   //
+   if(ulStatisticTickP > 0)
+   {
+      ulStatisticTickP--;
+   }
+   else
+   {
+      //--------------------------------------------------------
+      // reload tick value
+      //
+      ulStatisticTickP = ulStatisticTimeP / ulDispatchTimeP;
+
+      //--------------------------------------------------------
+      // signal current counter values
+      //
+      showApiFrames(ulCntFrameApiP);
+      showCanFrames(ulCntFrameCanP);
+      showErrFrames(ulCntFrameErrP);
+
+      //--------------------------------------------------------
+      // calculate messages per second
+      //
+      ulMsgPerSecT = ulCntFrameCanP - ulFrameCntSaveP;
+      ulMsgPerSecT = ulMsgPerSecT * 4;
+
+      //--------------------------------------------------------
+      // todo: calculate bus load
+      //
+
+      //--------------------------------------------------------
+      // signal bus load and msg/sec
+      //
+      showLoad(0, ulMsgPerSecT);
+
+
+      //--------------------------------------------------------
+      // store actual frame counter value
+      //
+      ulFrameCntSaveP = ulCntFrameCanP;
+   }
+
+   clDispatchTmrP.singleShot(ulDispatchTimeP, this, SLOT(onTimerEvent()));
+}
+
+
+//----------------------------------------------------------------------------//
+// removeInterface()                                                          //
+// remove physical CAN interface (plugin)                                     //
+//----------------------------------------------------------------------------//
+void QCanNetwork::removeInterface(void)
+{
+   if(pclInterfaceP.isNull() == false)
+   {
+      if (pclInterfaceP->connected())
+      {
+         pclInterfaceP->disconnect();
+      }
+   }
+   pclInterfaceP.clear();
+}
+
+
+//----------------------------------------------------------------------------//
 // setBitrate()                                                               //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void QCanNetwork::setBitrate(int32_t slBitrateV, int32_t slBrsClockV)
+void QCanNetwork::setBitrate(int32_t slNomBitRateV, int32_t slDatBitRateV)
 {
-   slBitrateP  = slBitrateV;
-   slBrsClockP = slBrsClockV;
+   slNomBitRateP  = slNomBitRateV;
+   slDatBitRateP  = slDatBitRateV;
 }
 
 
@@ -486,13 +687,40 @@ void QCanNetwork::setFastDataEnabled(bool btEnableV)
 
 
 //----------------------------------------------------------------------------//
+// setHostAddress()                                                           //
+//                                                                            //
+//----------------------------------------------------------------------------//
+bool QCanNetwork::setHostAddress(QHostAddress clHostAddressV)
+{
+   bool  btResultT = false;
+
+   //----------------------------------------------------------------
+   // host address can only be changed when network is disabled
+   //
+   if(btNetworkEnabledP == false)
+   {
+      clTcpHostAddrP = clHostAddressV;
+      btResultT = true;
+   }
+
+   return(btResultT);
+}
+
+
+//----------------------------------------------------------------------------//
 // setListenOnlyEnabled()                                                     //
 //                                                                            //
 //----------------------------------------------------------------------------//
 void QCanNetwork::setListenOnlyEnabled(bool btEnableV)
 {
-   {btListenOnlyEnabledP = btEnableV;};
-
+   if(hasListenOnlySupport() == true)
+   {
+      btListenOnlyEnabledP = btEnableV;
+   }
+   else
+   {
+      btListenOnlyEnabledP = false;
+   }
 }
 
 
@@ -563,213 +791,3 @@ void QCanNetwork::setNetworkEnabled(bool btEnableV)
    }
 
 }
-
-
-//----------------------------------------------------------------------------//
-// onSocketDisconnect()                                                       //
-// remove local socket from list                                              //
-//----------------------------------------------------------------------------//
-void QCanNetwork::onSocketDisconnect(void)
-{
-   int32_t      slSockIdxT;
-   QTcpSocket * pclSockT;
-   QTcpSocket * pclSenderT;
-
-
-   //----------------------------------------------------------------
-   // get sender of signal
-   //
-   pclSenderT = (QTcpSocket* ) QObject::sender();
-
-   clTcpSockMutexP.lock();
-   for(slSockIdxT = 0; slSockIdxT < pclTcpSockListP->size(); slSockIdxT++)
-   {
-      pclSockT = pclTcpSockListP->at(slSockIdxT);
-      if(pclSockT == pclSenderT)
-      {
-         pclTcpSockListP->remove(slSockIdxT);
-         break;
-      }
-   }
-   clTcpSockMutexP.unlock();
-
-   qDebug() << "QCanNetwork::onSocketDisconnect()" << pclTcpSockListP->size() << "open sockets";
-
-}
-
-
-//----------------------------------------------------------------------------//
-// onTimerEvent()                                                             //
-// remove local socket from list                                              //
-//----------------------------------------------------------------------------//
-void QCanNetwork::onTimerEvent(void)
-{
-   int32_t        slSockIdxT;
-   int32_t        slListSizeT;
-   uint32_t       ulFrameCntT;
-   uint32_t       ulFrameMaxT;
-   uint32_t       ulMsgPerSecT;
-   QTcpSocket *   pclSockT;
-   QCanFrame      clCanFrameT;
-   QByteArray     clSockDataT;
-
-
-   //----------------------------------------------------------------
-   // lock socket list
-   //
-   clTcpSockMutexP.lock();
-
-   //----------------------------------------------------------------
-   // read messages from active CAN interface
-   //
-   if(pclInterfaceP.isNull() == false)
-   {
-      slSockIdxT = QCAN_SOCKET_CAN_IF;
-      while(pclInterfaceP->read(clCanFrameT) == QCanInterface::eERROR_NONE)
-      {
-         clSockDataT = clCanFrameT.toByteArray();
-
-         switch(clCanFrameT.frameType())
-         {
-            //---------------------------------------------
-            // handle API frames
-            //---------------------------------------------
-            case QCanFrame::eTYPE_QCAN_API:
-               handleApiFrame(slSockIdxT, (QCanFrameApi &) clCanFrameT);
-               break;
-
-            //---------------------------------------------
-            // handle error frames
-            //---------------------------------------------
-            case QCanFrame::eTYPE_QCAN_ERR:
-               handleErrFrame(slSockIdxT, clSockDataT);
-               break;
-
-            //---------------------------------------------
-            // handle CAN frames
-            //---------------------------------------------
-            default:
-
-               //-------------------------------------
-               // write to other sockets
-               //
-               handleCanFrame(slSockIdxT, clSockDataT);
-               break;
-         }
-
-      }
-   }
-   //----------------------------------------------------------------
-   // check all open sockets and read messages
-   //
-   slListSizeT = pclTcpSockListP->size();
-   for(slSockIdxT = 0; slSockIdxT < slListSizeT; slSockIdxT++)
-   {
-      pclSockT = pclTcpSockListP->at(slSockIdxT);
-      ulFrameMaxT = (pclSockT->bytesAvailable()) / QCAN_FRAME_ARRAY_SIZE;
-      for(ulFrameCntT = 0; ulFrameCntT < ulFrameMaxT; ulFrameCntT++)
-      {
-         clSockDataT = pclSockT->read(QCAN_FRAME_ARRAY_SIZE);
-         clCanFrameT.fromByteArray(clSockDataT);
-
-         switch(clCanFrameT.frameType())
-         {
-            //---------------------------------------------
-            // handle API frames
-            //---------------------------------------------
-            case QCanFrame::eTYPE_QCAN_API:
-               handleApiFrame(slSockIdxT, (QCanFrameApi &) clCanFrameT);
-               break;
-
-            //---------------------------------------------
-            // handle error frames
-            //---------------------------------------------
-            case QCanFrame::eTYPE_QCAN_ERR:
-               handleErrFrame(slSockIdxT, clSockDataT);
-               break;
-
-            //---------------------------------------------
-            // handle CAN frames
-            //---------------------------------------------
-            default:
-               //-------------------------------------
-               // check for active CAN interface
-               //
-               if(pclInterfaceP.isNull() == false)
-               {
-                  pclInterfaceP->write(clCanFrameT);
-               }
-
-               //-------------------------------------
-               // write to other sockets
-               //
-               handleCanFrame(slSockIdxT, clSockDataT);
-               break;
-         }
-      }
-   }
-   clTcpSockMutexP.unlock();
-
-   //----------------------------------------------------------------
-   // signal current statistic values
-   //
-   if(ulStatisticTickP > 0)
-   {
-      ulStatisticTickP--;
-   }
-   else
-   {
-      //--------------------------------------------------------
-      // reload tick value
-      //
-      ulStatisticTickP = ulStatisticTimeP / ulDispatchTimeP;
-
-      //--------------------------------------------------------
-      // signal current counter values
-      //
-      showApiFrames(ulCntFrameApiP);
-      showCanFrames(ulCntFrameCanP);
-      showErrFrames(ulCntFrameErrP);
-
-      //--------------------------------------------------------
-      // calculate messages per second
-      //
-      ulMsgPerSecT = ulCntFrameCanP - ulFrameCntSaveP;
-      ulMsgPerSecT = ulMsgPerSecT * 4;
-
-      //--------------------------------------------------------
-      // todo: calculate bus load
-      //
-
-      //--------------------------------------------------------
-      // signal bus load and msg/sec
-      //
-      showLoad(0, ulMsgPerSecT);
-
-
-      //--------------------------------------------------------
-      // store actual frame counter value
-      //
-      ulFrameCntSaveP = ulCntFrameCanP;
-   }
-
-   clDispatchTmrP.singleShot(ulDispatchTimeP, this, SLOT(onTimerEvent()));
-}
-
-
-//----------------------------------------------------------------------------//
-// removeInterface()                                                          //
-// remove physical CAN interface (plugin)                                     //
-//----------------------------------------------------------------------------//
-void QCanNetwork::removeInterface(void)
-{
-   if(pclInterfaceP.isNull() == false)
-   {
-      if (pclInterfaceP->connected())
-      {
-         pclInterfaceP->disconnect();
-      }
-   }
-   pclInterfaceP.clear();
-}
-
