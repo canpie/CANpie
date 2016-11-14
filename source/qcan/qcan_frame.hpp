@@ -72,15 +72,21 @@ public:
    
    virtual ~QCanFrame();
    
-   
-   QByteArray  data(void) const;
    uint8_t     data(const uint8_t & ubPosR) const;
-
    
+   /*!
+   ** \return     Data of CAN frame
+   **
+   ** The function returns the data stored in the CAN frame as QByteArray.
+   */
+   QByteArray  data(void) const;
+
    bool        fromByteArray(const QByteArray & clByteArrayR);
 
-   void        setData(const QByteArray &clDataR);
    void        setData(const uint8_t & ubPosR, const uint8_t & ubValueR);
+
+   void        setData(const QByteArray &clDataR);
+
    
    virtual QByteArray toByteArray() const;
    
