@@ -49,20 +49,20 @@
 
 
 //----------------------------------------------------------------------------//
-// CpFrameApi()                                                             //
+// CpFrameApi()                                                               //
 // constructor                                                                //
 //----------------------------------------------------------------------------//
 CpFrameApi::CpFrameApi()
 {
-
-   setFrameType(eTYPE_QCAN_API);
-   setDlc(16);
+   this->ulIdentifierP = CAN_FRAME_TYPE_API;
+   setFrameType(eTYPE_FD_EXT);
+   setDlc(15);
    setData(0, CpFrameApi::eAPI_FUNC_NONE);
 }
 
 
 //----------------------------------------------------------------------------//
-// CpFrameApi()                                                             //
+// CpFrameApi()                                                               //
 // destructor                                                                 //
 //----------------------------------------------------------------------------//
 CpFrameApi::~CpFrameApi()
