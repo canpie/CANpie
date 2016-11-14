@@ -49,13 +49,13 @@
 
 
 //----------------------------------------------------------------------------//
-// CpFrameError()                                                           //
+// CpFrameError()                                                             //
 // constructor                                                                //
 //----------------------------------------------------------------------------//
 CpFrameError::CpFrameError()
 {
-
-   setFrameType(eTYPE_QCAN_ERR);
+   this->ulIdentifierP = CAN_FRAME_TYPE_ERR;
+   setFrameType(eTYPE_FD_EXT);
    setDlc(4);
 }
 
