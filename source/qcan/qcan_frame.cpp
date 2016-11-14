@@ -41,15 +41,6 @@
 \*----------------------------------------------------------------------------*/
 
 
-#define  QCAN_FRAME_ID_MASK_STD     ((uint32_t) 0x000007FF)
-
-#define  QCAN_FRAME_ID_MASK_EXT     ((uint32_t) 0x1FFFFFFF)
-
-#define  QCAN_FRAME_FORMAT_EXT      ((uint8_t) 0x01)
-
-#define  QCAN_FRAME_FORMAT_FD       ((uint8_t) 0x02)
-
-#define  QCAN_FRAME_FORMAT_RTR      ((uint8_t) 0x04)
 
 /*----------------------------------------------------------------------------*\
 ** Class methods                                                              **
@@ -103,7 +94,6 @@ uint8_t QCanFrame::data(const uint8_t & ubPosR) const
 {
    return(CpFrame::data(ubPosR));
 }
-
 //----------------------------------------------------------------------------//
 // fromByteArray()                                                            //
 // test for Extended Frame format                                             //
@@ -172,23 +162,26 @@ bool QCanFrame::fromByteArray(const QByteArray & clByteArrayR)
    //----------------------------------------------------------------
    // set message timestamp field from byte 70 .. 77, MSB first
    //
-   /*
-   tsMsgTimeP.ulSeconds  = clByteArrayR[70];
-   tsMsgTimeP.ulSeconds  = tsMsgTimeP.ulSeconds << 8;
-   tsMsgTimeP.ulSeconds += (uint8_t) clByteArrayR[71];
-   tsMsgTimeP.ulSeconds  = tsMsgTimeP.ulSeconds << 8;
-   tsMsgTimeP.ulSeconds += (uint8_t) clByteArrayR[72];
-   tsMsgTimeP.ulSeconds  = tsMsgTimeP.ulSeconds << 8;
-   tsMsgTimeP.ulSeconds += (uint8_t) clByteArrayR[73];
+   uint32_t  ulTimeValT = 0;
+
+   ulTimeValT  = clByteArrayR[70];
+   ulTimeValT  = ulTimeValT << 8;
+   ulTimeValT += (uint8_t) clByteArrayR[71];
+   ulTimeValT  = ulTimeValT << 8;
+   ulTimeValT += (uint8_t) clByteArrayR[72];
+   ulTimeValT  = ulTimeValT << 8;
+   ulTimeValT += (uint8_t) clByteArrayR[73];
+   clMsgTimeP.setSeconds(ulTimeValT);
    
-   tsMsgTimeP.ulNanoSeconds  = clByteArrayR[74];
-   tsMsgTimeP.ulNanoSeconds  = tsMsgTimeP.ulNanoSeconds << 8;
-   tsMsgTimeP.ulNanoSeconds += (uint8_t) clByteArrayR[75];
-   tsMsgTimeP.ulNanoSeconds  = tsMsgTimeP.ulNanoSeconds << 8;
-   tsMsgTimeP.ulNanoSeconds += (uint8_t) clByteArrayR[76];
-   tsMsgTimeP.ulNanoSeconds  = tsMsgTimeP.ulNanoSeconds << 8;
-   tsMsgTimeP.ulNanoSeconds += (uint8_t) clByteArrayR[77];
-   */
+   ulTimeValT  = 0;
+   ulTimeValT  = clByteArrayR[74];
+   ulTimeValT  = ulTimeValT << 8;
+   ulTimeValT += (uint8_t) clByteArrayR[75];
+   ulTimeValT  = ulTimeValT << 8;
+   ulTimeValT += (uint8_t) clByteArrayR[76];
+   ulTimeValT  = ulTimeValT << 8;
+   ulTimeValT += (uint8_t) clByteArrayR[77];
+   clMsgTimeP.setNanoSeconds(ulTimeValT);
    
    //----------------------------------------------------------------
    // set message user field from byte 78 .. 81, MSB first
@@ -263,16 +256,19 @@ QByteArray QCanFrame::toByteArray() const
    //----------------------------------------------------------------
    // place message timestamp field in byte 70 .. 77, MSB first
    //
-   /*
-   clByteArrayT[70] = (uint8_t) (tsMsgTimeP.ulSeconds >> 24);
-   clByteArrayT[71] = (uint8_t) (tsMsgTimeP.ulSeconds >> 16);
-   clByteArrayT[72] = (uint8_t) (tsMsgTimeP.ulSeconds >>  8);
-   clByteArrayT[73] = (uint8_t) (tsMsgTimeP.ulSeconds >>  0);
-   clByteArrayT[74] = (uint8_t) (tsMsgTimeP.ulNanoSeconds >>  24);
-   clByteArrayT[75] = (uint8_t) (tsMsgTimeP.ulNanoSeconds >>  16);
-   clByteArrayT[76] = (uint8_t) (tsMsgTimeP.ulNanoSeconds >>   8);
-   clByteArrayT[77] = (uint8_t) (tsMsgTimeP.ulNanoSeconds >>   0);
-   */
+   uint32_t  ulTimeValT = 0;
+
+   ulTimeValT = clMsgTimeP.seconds();
+   clByteArrayT[70] = (uint8_t) (ulTimeValT >> 24);
+   clByteArrayT[71] = (uint8_t) (ulTimeValT >> 16);
+   clByteArrayT[72] = (uint8_t) (ulTimeValT >>  8);
+   clByteArrayT[73] = (uint8_t) (ulTimeValT >>  0);
+
+   ulTimeValT = clMsgTimeP.nanoSeconds();
+   clByteArrayT[74] = (uint8_t) (ulTimeValT >>  24);
+   clByteArrayT[75] = (uint8_t) (ulTimeValT >>  16);
+   clByteArrayT[76] = (uint8_t) (ulTimeValT >>   8);
+   clByteArrayT[77] = (uint8_t) (ulTimeValT >>   0);
    
    //----------------------------------------------------------------
    // place message user field in byte 78 .. 81, MSB first
@@ -350,14 +346,6 @@ QString QCanFrame::toString(const bool & btShowTimeR)
          clStringT += " FD-EXT ";
          break;
          
-      case eTYPE_QCAN_ERR:
-         clStringT += "QCan-ERR";
-         break;
-         
-      case eTYPE_QCAN_API:
-         clStringT += "QCan-API";
-         break;
-
       default:
          clStringT += " N/A    ";
          break;
