@@ -68,7 +68,7 @@ void  ClientDemo::onClientNmtStart(void)
 {
    QCanFrame   clCanFrameT;
 
-   clCanFrameT.setStdId(0x00);
+   clCanFrameT.setIdentifier(0x00);
    clCanFrameT.setDlc(2);
    clCanFrameT.setData(0, 1);
    clCanFrameT.setData(1, 0);
@@ -81,7 +81,7 @@ void  ClientDemo::onClientNmtStop(void)
    QCanFrame   clCanFrameT;
 
    clCanFrameT.setFrameType(QCanFrame::eTYPE_FD_STD);
-   clCanFrameT.setStdId(0x60A);
+   clCanFrameT.setIdentifier(0x60A);
    clCanFrameT.setDlc(12);
    clCanFrameT.setData(0, 0x22);
    clCanFrameT.setData(1, 0x17);
@@ -99,7 +99,7 @@ void  ClientDemo::onClientSync(void)
 {
    QCanFrame   clCanFrameT;
 
-   clCanFrameT.setStdId(0x80);
+   clCanFrameT.setIdentifier(0x80);
    clCanFrameT.setDlc(0);
 
    pclCanSocketP->writeFrame(clCanFrameT);
