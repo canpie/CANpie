@@ -108,6 +108,7 @@ QCanNetwork::QCanNetwork(QObject * pclParentV,
    ulCntFrameApiP = 0;
    ulCntFrameCanP = 0;
    ulCntFrameErrP = 0;
+   ulCntBitCurP   = 0;
 
    //----------------------------------------------------------------
    // setup timing values
@@ -358,7 +359,11 @@ bool  QCanNetwork::handleCanFrame(int32_t & slSockSrcR,
    }
 
 
-   if(btResultT == true)
+   //----------------------------------------------------------------
+   // count frame if source is a CAN interface or if the message
+   // could be dispatched
+   //
+   if((slSockSrcR == QCAN_SOCKET_CAN_IF) || (btResultT == true))
    {
       ulCntFrameCanP++;
    }
@@ -391,11 +396,22 @@ bool  QCanNetwork::handleErrFrame(int32_t & slSockSrcR,
       }
    }
 
-   if(btResultT == true)
+
+   //----------------------------------------------------------------
+   // count frame if source is a CAN interface or if the message
+   // could be dispatched
+   //
+   if((slSockSrcR == QCAN_SOCKET_CAN_IF) || (btResultT == true))
    {
       ulCntFrameErrP++;
    }
    return(btResultT);
+}
+
+
+QHostAddress QCanNetwork::serverAddress(void)
+{
+   return (pclTcpSrvP->serverAddress());
 }
 
 
@@ -474,6 +490,7 @@ void QCanNetwork::onTimerEvent(void)
    uint32_t       ulFrameCntT;
    uint32_t       ulFrameMaxT;
    uint32_t       ulMsgPerSecT;
+   uint32_t       ulMsgBitCntT;
    QTcpSocket *   pclSockT;
    QCanFrame      clCanFrameT;
    QByteArray     clSockDataT;
@@ -513,6 +530,21 @@ void QCanNetwork::onTimerEvent(void)
          //
          else
          {
+            switch(clCanFrameT.frameType())
+            {
+               case CpFrame::eTYPE_CAN_STD:
+                  ulMsgBitCntT = 66 + (8 * clCanFrameT.dataSize());
+                  break;
+
+               case CpFrame::eTYPE_CAN_EXT:
+                  ulMsgBitCntT = 92 + (8 * clCanFrameT.dataSize());
+                  break;
+
+               default:
+                  ulMsgBitCntT = 0;
+                  break;
+            }
+            ulCntBitCurP += ulMsgBitCntT;
             handleCanFrame(slSockIdxT, clSockDataT);
          }
       }
@@ -592,17 +624,21 @@ void QCanNetwork::onTimerEvent(void)
       // calculate messages per second
       //
       ulMsgPerSecT = ulCntFrameCanP - ulFrameCntSaveP;
-      ulMsgPerSecT = ulMsgPerSecT * 4;
 
       //--------------------------------------------------------
-      // todo: calculate bus load
+      // calculate bus load
       //
-
+      ulCntBitCurP = ulCntBitCurP * 100;
+      ulCntBitCurP = ulCntBitCurP / ulCntBitMaxP;
+      if(ulCntBitCurP > 100)
+      {
+         ulCntBitCurP = 100;
+      }
       //--------------------------------------------------------
       // signal bus load and msg/sec
       //
-      showLoad(0, ulMsgPerSecT);
-
+      showLoad((uint8_t) ulCntBitCurP, ulMsgPerSecT);
+      ulCntBitCurP = 0;
 
       //--------------------------------------------------------
       // store actual frame counter value
@@ -639,6 +675,17 @@ void QCanNetwork::setBitrate(int32_t slNomBitRateV, int32_t slDatBitRateV)
 {
    slNomBitRateP  = slNomBitRateV;
    slDatBitRateP  = slDatBitRateV;
+
+   switch(slNomBitRateV)
+   {
+      case eCAN_BITRATE_250K:
+         ulCntBitMaxP = 250000;
+         break;
+
+      case eCAN_BITRATE_500K:
+         ulCntBitMaxP = 500000;
+         break;
+   }
 }
 
 
@@ -686,25 +733,6 @@ void QCanNetwork::setFastDataEnabled(bool btEnableV)
 }
 
 
-//----------------------------------------------------------------------------//
-// setHostAddress()                                                           //
-//                                                                            //
-//----------------------------------------------------------------------------//
-bool QCanNetwork::setHostAddress(QHostAddress clHostAddressV)
-{
-   bool  btResultT = false;
-
-   //----------------------------------------------------------------
-   // host address can only be changed when network is disabled
-   //
-   if(btNetworkEnabledP == false)
-   {
-      clTcpHostAddrP = clHostAddressV;
-      btResultT = true;
-   }
-
-   return(btResultT);
-}
 
 
 //----------------------------------------------------------------------------//
@@ -790,4 +818,25 @@ void QCanNetwork::setNetworkEnabled(bool btEnableV)
 
    }
 
+}
+
+
+//----------------------------------------------------------------------------//
+// setServerAddress()                                                         //
+//                                                                            //
+//----------------------------------------------------------------------------//
+bool QCanNetwork::setServerAddress(QHostAddress clHostAddressV)
+{
+   bool  btResultT = false;
+
+   //----------------------------------------------------------------
+   // host address can only be changed when network is disabled
+   //
+   if(btNetworkEnabledP == false)
+   {
+      clTcpHostAddrP = clHostAddressV;
+      btResultT = true;
+   }
+
+   return(btResultT);
 }

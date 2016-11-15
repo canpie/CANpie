@@ -114,7 +114,11 @@ public:
    ** If no bit-rate is configured, the function will return
    ** CANpie::eCAN_BITRATE_NONE.
    */
-	int32_t  bitrate(void)           {return (slNomBitRateP);      };
+	inline int32_t  bitrate(void)          {  return (slNomBitRateP);    };
+
+	inline int32_t  nominalBitrate(void)   {  return (slNomBitRateP);    };
+
+	inline int32_t  dataBitrate(void)      {  return (slDatBitRateP);    };
 
    /*!
    ** \return     Current dispatcher time
@@ -158,6 +162,7 @@ public:
    */
 	void removeInterface(void);
 
+   QHostAddress serverAddress(void);
 
    /*!
    ** \param[in]  slNomBitRateV  Nominal Bit-rate value
@@ -200,8 +205,6 @@ public:
 
    void setFastDataEnabled(bool btEnableV = true);
 
-   bool setHostAddress(QHostAddress clHostAddressV);
-
    void setListenOnlyEnabled(bool btEnableV = true);
 
    /*!
@@ -212,6 +215,8 @@ public:
    ** \c true, it is disabled on \c false.
    */
    void setNetworkEnabled(bool btEnableV = true);
+
+   bool setServerAddress(QHostAddress clHostAddressV);
 
 signals:
    /*!
@@ -307,6 +312,12 @@ private:
    uint32_t                ulCntFrameApiP;
    uint32_t                ulCntFrameCanP;
    uint32_t                ulCntFrameErrP;
+
+   //----------------------------------------------------------------
+   // statistic bit counter
+   //
+   uint32_t                ulCntBitMaxP;
+   uint32_t                ulCntBitCurP;
 
    //----------------------------------------------------------------
    // statistic timing
