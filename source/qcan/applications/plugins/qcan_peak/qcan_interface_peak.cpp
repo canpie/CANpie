@@ -233,17 +233,18 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readCAN(QCanFrame &clFrameR)
          if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_EXTENDED)
          {
             clFrameR.setFrameType(QCanFrame::eTYPE_CAN_EXT);
-            clFrameR.setExtId((uint32_t)tsCanMsgT.ID);
-         } else
+         }
+         else
          {
             clFrameR.setFrameType(QCanFrame::eTYPE_CAN_STD);
-            clFrameR.setStdId((uint16_t)tsCanMsgT.ID);
          }
+         clFrameR.setIdentifier(tsCanMsgT.ID);
 
          if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_RTR)
          {
             clFrameR.setRemote(true);
-         } else
+         }
+         else
          {
             clFrameR.setRemote(false);
          }
@@ -655,7 +656,6 @@ void QCanInterfacePeak::setupErroFrame(TPCANStatus ulStatusV, QCanFrame &clFrame
    }
 
    clFrameR = clFrameErrorT.base();
-   clFrameR.setFrameType(CpFrame::eTYPE_QCAN_ERR);
 }
 
 
