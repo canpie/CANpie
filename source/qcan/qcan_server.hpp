@@ -61,18 +61,23 @@ public:
     ~QCanServer();
 
 
+    uint32_t      dispatcherTime(void)    { return (ulDispatchTimeP);   };
 
     QCanNetwork * network(uint8_t ubNetworkIdxV);
 
     uint8_t       maximumNetwork(void) const;
 
-    void          setHostAddress(QHostAddress clHostAddressV);
+    void          setDispatcherTime(uint32_t ulTimeV);
 
+    QHostAddress  serverAddress(void)     { return (clServerAddressP);  };
+
+    void          setServerAddress(QHostAddress clHostAddressV);
 
 private:
 
     QVector<QCanNetwork *> *  pclListNetsP;
-
+    QHostAddress              clServerAddressP;
+    uint32_t                  ulDispatchTimeP;
 };
 
 #endif // QCAN_SERVER_HPP_

@@ -111,10 +111,12 @@ QCanNetwork * QCanServer::network(uint8_t ubNetworkIdxV)
 // setHostAddress()                                                           //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void QCanServer::setHostAddress(QHostAddress clHostAddressV)
+void QCanServer::setServerAddress(QHostAddress clHostAddressV)
 {
    QCanNetwork *  pclNetworkT;
    bool           btNetworkStateT;
+
+   clServerAddressP = clHostAddressV;
 
    for(uint8_t ubNetCntT = 0; ubNetCntT < maximumNetwork(); ubNetCntT++)
    {
@@ -136,11 +138,34 @@ void QCanServer::setHostAddress(QHostAddress clHostAddressV)
       //-------------------------------------------------------------
       // assign new host address
       //
-      pclNetworkT->setHostAddress(clHostAddressV);
+      pclNetworkT->setServerAddress(clHostAddressV);
 
       //-------------------------------------------------------------
       // set network to old state
       //
       pclNetworkT->setNetworkEnabled(btNetworkStateT);
+   }
+}
+
+
+//----------------------------------------------------------------------------//
+// setDispatcherTime()                                                        //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void QCanServer::setDispatcherTime(uint32_t ulTimeV)
+{
+   QCanNetwork *  pclNetworkT;
+
+   ulDispatchTimeP = ulTimeV;
+
+   for(uint8_t ubNetCntT = 0; ubNetCntT < maximumNetwork(); ubNetCntT++)
+   {
+      pclNetworkT = network(ubNetCntT);
+
+      //-------------------------------------------------------------
+      // assign new time value
+      //
+      pclNetworkT->setDispatcherTime(ulTimeV);
+
    }
 }
