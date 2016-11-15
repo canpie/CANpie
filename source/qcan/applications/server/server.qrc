@@ -1,6 +1,7 @@
-<!DOCTYPE RCC><RCC version="1.0">
-<qresource prefix="/">
-   <file>images/network-icon.png</file>
-   <file>images/network-vcan.png</file>
-</qresource>
+<RCC>
+  <qresource prefix="/">
+    <file>images/canpie_fd_logo.png</file>
+    <file>images/network-icon.png</file>
+    <file>images/network-vcan.png</file>
+  </qresource>
 </RCC>
