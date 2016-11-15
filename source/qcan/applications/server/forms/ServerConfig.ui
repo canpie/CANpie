@@ -32,7 +32,7 @@
    <string>Dialog</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../qcanserver.qrc">
+   <iconset resource="../server.qrc">
     <normaloff>:/images/network-icon.png</normaloff>:/images/network-icon.png</iconset>
   </property>
   <widget class="QPushButton" name="pclBtnCloseM">
@@ -76,11 +76,11 @@
      <property name="title">
       <string>CAN network configuration</string>
      </property>
-     <widget class="QComboBox" name="pclCbbNetBitrateM">
+     <widget class="QComboBox" name="pclCbbNetNomBitrateM">
       <property name="geometry">
        <rect>
-        <x>300</x>
-        <y>35</y>
+        <x>310</x>
+        <y>28</y>
         <width>131</width>
         <height>26</height>
        </rect>
@@ -131,24 +131,27 @@
        </property>
       </item>
      </widget>
-     <widget class="QLabel" name="pclLblNetBitrateM">
+     <widget class="QLabel" name="pclLblNetNomBitrateM">
       <property name="geometry">
        <rect>
-        <x>220</x>
-        <y>40</y>
-        <width>59</width>
-        <height>16</height>
+        <x>190</x>
+        <y>30</y>
+        <width>111</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="text">
-       <string>Bit-rate</string>
+       <string>Nominal Bit-rate</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
      <widget class="QCheckBox" name="pclCkbNetEnableM">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>20</y>
+        <y>30</y>
         <width>171</width>
         <height>20</height>
        </rect>
@@ -164,7 +167,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>40</y>
+        <y>60</y>
         <width>171</width>
         <height>20</height>
        </rect>
@@ -180,7 +183,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>60</y>
+        <y>90</y>
         <width>171</width>
         <height>20</height>
        </rect>
@@ -196,7 +199,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>80</y>
+        <y>120</y>
         <width>171</width>
         <height>20</height>
        </rect>
@@ -204,6 +207,63 @@
       <property name="text">
        <string>Listen-only</string>
       </property>
+     </widget>
+     <widget class="QLabel" name="pclLblNetDatBitrateM">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>190</x>
+        <y>60</y>
+        <width>111</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Data Bit-rate</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="pclCbbNetDatBitrateM">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>310</x>
+        <y>58</y>
+        <width>131</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>N/A</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>1 MBit/s</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>2 MBit/s</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>4 MBit/s</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>5 MBit/s</string>
+       </property>
+      </item>
      </widget>
     </widget>
     <widget class="QGroupBox" name="pclGrpNetworkStatM">
@@ -220,14 +280,14 @@
      </property>
      <widget class="QProgressBar" name="pclPgbStatLoadM">
       <property name="enabled">
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
       <property name="geometry">
        <rect>
-        <x>330</x>
+        <x>250</x>
         <y>30</y>
-        <width>81</width>
-        <height>23</height>
+        <width>181</width>
+        <height>21</height>
        </rect>
       </property>
       <property name="value">
@@ -350,10 +410,13 @@
      <string>Server configuration</string>
     </attribute>
     <widget class="QLabel" name="pclLblSrvPortM">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>30</x>
-       <y>20</y>
+       <y>50</y>
        <width>141</width>
        <height>20</height>
       </rect>
@@ -369,7 +432,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>50</y>
+       <y>100</y>
        <width>161</width>
        <height>20</height>
       </rect>
@@ -385,7 +448,7 @@
      <property name="geometry">
       <rect>
        <x>200</x>
-       <y>50</y>
+       <y>100</y>
        <width>91</width>
        <height>24</height>
       </rect>
@@ -401,10 +464,13 @@
      </property>
     </widget>
     <widget class="QLineEdit" name="pclEdtSrvPortM">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>200</x>
-       <y>20</y>
+       <y>50</y>
        <width>113</width>
        <height>21</height>
       </rect>
@@ -412,6 +478,42 @@
      <property name="maxLength">
       <number>6</number>
      </property>
+    </widget>
+    <widget class="QLabel" name="pclLblSrvHostM">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>20</y>
+       <width>141</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>CAN server host</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="pclCbbServHostM">
+     <property name="geometry">
+      <rect>
+       <x>200</x>
+       <y>20</y>
+       <width>131</width>
+       <height>26</height>
+      </rect>
+     </property>
+     <item>
+      <property name="text">
+       <string>Local only</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Network</string>
+      </property>
+     </item>
     </widget>
    </widget>
    <widget class="QWidget" name="pclTabConfigInfoM">
@@ -423,7 +525,7 @@
       <rect>
        <x>20</x>
        <y>20</y>
-       <width>100</width>
+       <width>271</width>
        <height>100</height>
       </rect>
      </property>
@@ -431,23 +533,23 @@
       <string/>
      </property>
      <property name="pixmap">
-      <pixmap resource="../qcanserver.qrc">:/images/network-icon.png</pixmap>
+      <pixmap resource="../server.qrc">:/images/canpie_fd_logo.png</pixmap>
      </property>
      <property name="scaledContents">
-      <bool>true</bool>
+      <bool>false</bool>
      </property>
     </widget>
     <widget class="QLabel" name="pclLblInfoVersionM">
      <property name="geometry">
       <rect>
-       <x>160</x>
+       <x>310</x>
        <y>40</y>
-       <width>421</width>
+       <width>241</width>
        <height>31</height>
       </rect>
      </property>
      <property name="text">
-      <string>QCanServer Version 0.81</string>
+      <string>CANpie Server Version 0.82</string>
      </property>
     </widget>
    </widget>
@@ -467,7 +569,7 @@
   </widget>
  </widget>
  <resources>
-  <include location="../qcanserver.qrc"/>
+  <include location="../server.qrc"/>
  </resources>
  <connections>
   <connection>
