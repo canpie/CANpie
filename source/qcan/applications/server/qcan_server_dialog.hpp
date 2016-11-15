@@ -40,12 +40,16 @@ public slots:
 
 private slots:
    void onNetworkChange(int slIndexV);
-   void onNetworkConfBitrate(int slBitrateV);
+   void onNetworkConfBitrateDat(int slBitrateV);
+   void onNetworkConfBitrateNom(int slBitrateV);
    void onNetworkConfCanFd(bool btEnableV);
    void onNetworkConfEnable(bool btEnableV);
    void onNetworkConfErrorFrames(bool btEnableV);
    void onNetworkConfListenOnly(bool btEnableV);
    
+   void onServerConfAddress(int slIndexV);
+   void onServerConfTime(int slValueV);
+
 private:
    void     createActions(void);
    void     createTrayIcon(void);

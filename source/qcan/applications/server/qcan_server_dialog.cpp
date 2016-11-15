@@ -67,10 +67,18 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    //
    setupNetworks();
 
+
    //----------------------------------------------------------------
    // setup the user interface
    //
    ui.setupUi(this);
+
+   //----------------------------------------------------------------
+   // hide CAN server port
+   //
+   ui.pclLblSrvPortM->hide();
+   ui.pclEdtSrvPortM->hide();
+
 
    //----------------------------------------------------------------
    // create toolbox for can interfaces
@@ -103,8 +111,17 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    connect(pclTbxNetworkP, SIGNAL(currentChanged(int)),
            this, SLOT(onNetworkChange(int)));
 
-   connect(ui.pclCbbNetBitrateM, SIGNAL(currentIndexChanged(int)),
-           this, SLOT(onNetworkConfBitrate(int)));
+   connect(ui.pclCbbNetNomBitrateM, SIGNAL(currentIndexChanged(int)),
+           this, SLOT(onNetworkConfBitrateNom(int)));
+
+   connect(ui.pclCbbNetDatBitrateM, SIGNAL(currentIndexChanged(int)),
+           this, SLOT(onNetworkConfBitrateDat(int)));
+
+   connect(ui.pclCbbServHostM, SIGNAL(currentIndexChanged(int)),
+           this, SLOT(onServerConfAddress(int)));
+
+   connect(ui.pclSpnSrvTimeM, SIGNAL(valueChanged(int)),
+           this, SLOT(onServerConfTime(int)));
 
    //----------------------------------------------------------------
    // connect default signals / slots for statistic
@@ -139,14 +156,19 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
                                  "microcontrol.net",
                                  "QCANserver");
 
+   //-----------------------------------------------------------
+   // settings for network
+   //
    for(ubNetworkIdxT = 0; ubNetworkIdxT < QCAN_NETWORK_MAX; ubNetworkIdxT++)
    {
       pclNetworkT = pclCanServerP->network(ubNetworkIdxT);
       clNetNameT  = "CAN " + QString("%1").arg(ubNetworkIdxT+1);
       pclSettingsP->beginGroup(clNetNameT);
 
-      pclNetworkT->setBitrate(pclSettingsP->value("bitrate",
-                                 eCAN_BITRATE_500K).toInt(), 0);
+      pclNetworkT->setBitrate(pclSettingsP->value("bitrateNom",
+                                 eCAN_BITRATE_500K).toInt(),
+                              pclSettingsP->value("bitrateDat",
+                                    eCAN_BITRATE_NONE).toInt());
 
       pclNetworkT->setNetworkEnabled(pclSettingsP->value("enable",
                                  0).toBool());
@@ -164,6 +186,17 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
 
       pclSettingsP->endGroup();
    }
+
+   //-----------------------------------------------------------
+   // settings for server
+   //
+   pclSettingsP->beginGroup("Server");
+   QHostAddress clHostAddrT = QHostAddress(pclSettingsP->value("hostAddress",
+                                             "127.0.0.1").toString());
+   pclCanServerP->setServerAddress(clHostAddrT);
+   pclCanServerP->setDispatcherTime(pclSettingsP->value("dispatchTime",
+                                                         20).toInt());
+   pclSettingsP->endGroup();
 
    //----------------------------------------------------------------
    // create actions and tray icon in system tray
@@ -201,12 +234,18 @@ QCanServerDialog::~QCanServerDialog()
    //----------------------------------------------------------------
    // store settings
    //
+   //----------------------------------------------------------------
+
    for(ubNetworkIdxT = 0; ubNetworkIdxT < QCAN_NETWORK_MAX; ubNetworkIdxT++)
    {
+      //--------------------------------------------------------
+      // settings for network
+      //
       pclNetworkT = pclCanServerP->network(ubNetworkIdxT);
       clNetNameT  = "CAN " + QString("%1").arg(ubNetworkIdxT+1);
       pclSettingsP->beginGroup(clNetNameT);
-      pclSettingsP->setValue("bitrate",    pclNetworkT->bitrate());
+      pclSettingsP->setValue("bitrateNom", pclNetworkT->nominalBitrate());
+      pclSettingsP->setValue("bitrateDat", pclNetworkT->dataBitrate());
       pclSettingsP->setValue("enable",     pclNetworkT->isNetworkEnabled());
       pclSettingsP->setValue("errorFrame", pclNetworkT->isErrorFramesEnabled());
       pclSettingsP->setValue("canFD",      pclNetworkT->isFastDataEnabled());
@@ -217,6 +256,16 @@ QCanServerDialog::~QCanServerDialog()
 
       pclSettingsP->endGroup();
    }
+   //-----------------------------------------------------------
+   // settings for server
+   //
+   pclSettingsP->beginGroup("Server");
+   pclSettingsP->setValue("hostAddress",
+                           pclCanServerP->serverAddress().toString());
+
+   pclSettingsP->setValue("dispatchTime",
+                           pclCanServerP->dispatcherTime());
+   pclSettingsP->endGroup();
 
    delete(pclSettingsP);
 }
@@ -339,19 +388,61 @@ void QCanServerDialog::onNetworkChange(int slIndexV)
    slLastNetworkIndexP = slIndexV;
 }
 
+
 //----------------------------------------------------------------------------//
 // onNetworkConfBitrate()                                                     //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void QCanServerDialog::onNetworkConfBitrate(int slBitrateV)
+void QCanServerDialog::onNetworkConfBitrateDat(int slBitrateSelV)
 {
-   QCanNetwork * pclNetworkT;
+   QCanNetwork *  pclNetworkT;
+   int32_t        slBitrateT;
 
-   qDebug() << "Change bit-rate" << slBitrateV;
+   qDebug() << "Change data bit-rate" << slBitrateSelV;
+   switch(slBitrateSelV)
+   {
+      case 0:
+         slBitrateT = eCAN_BITRATE_NONE;
+         break;
+
+      case 1:
+         slBitrateT = 1000000;
+         break;
+
+      case 2:
+         slBitrateT = 2000000;
+         break;
+
+      case 3:
+         slBitrateT = 4000000;
+         break;
+
+      case 4:
+         slBitrateT = 5000000;
+         break;
+
+   }
    pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
    if(pclNetworkT != Q_NULLPTR)
    {
-      pclNetworkT->setBitrate(slBitrateV, -1);
+      pclNetworkT->setBitrate(pclNetworkT->nominalBitrate(), slBitrateT);
+   }
+}
+
+
+//----------------------------------------------------------------------------//
+// onNetworkConfBitrate()                                                     //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void QCanServerDialog::onNetworkConfBitrateNom(int slBitrateSelV)
+{
+   QCanNetwork * pclNetworkT;
+
+   qDebug() << "Change nominal bit-rate" << slBitrateSelV;
+   pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
+   if(pclNetworkT != Q_NULLPTR)
+   {
+      pclNetworkT->setBitrate(slBitrateSelV, pclNetworkT->dataBitrate());
    }
 }
 
@@ -368,6 +459,20 @@ void QCanServerDialog::onNetworkConfCanFd(bool btEnableV)
    if(pclNetworkT != Q_NULLPTR)
    {
       pclNetworkT->setFastDataEnabled(btEnableV);
+   }
+
+   //----------------------------------------------------------------
+   // update user interface
+   //
+   if(btEnableV == true)
+   {
+      ui.pclLblNetDatBitrateM->setEnabled(true);
+      ui.pclCbbNetDatBitrateM->setEnabled(true);
+   }
+   else
+   {
+      ui.pclLblNetDatBitrateM->setEnabled(false);
+      ui.pclCbbNetDatBitrateM->setEnabled(false);
    }
 }
 
@@ -451,6 +556,37 @@ void QCanServerDialog::onNetworkShowLoad(uint8_t ubLoadV, uint32_t ulMsgPerSecV)
 
 
 //----------------------------------------------------------------------------//
+// onServerConfAddress()                                                      //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void QCanServerDialog::onServerConfAddress(int slIndexV)
+{
+   QHostAddress clHostAddressT;
+
+   qDebug() << "onServerConfAddress" << slIndexV;
+   if(slIndexV == 0)
+   {
+      clHostAddressT = QHostAddress(QHostAddress::LocalHost);
+   }
+   else
+   {
+      clHostAddressT = QHostAddress(QHostAddress::Any);
+   }
+   pclCanServerP->setServerAddress(clHostAddressT);
+}
+
+//----------------------------------------------------------------------------//
+// onServerConfTime()                                                         //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void QCanServerDialog::onServerConfTime(int slValueV)
+{
+   qDebug() << "onServerConfTime" << slValueV;
+   pclCanServerP->setDispatcherTime(slValueV);
+}
+
+
+//----------------------------------------------------------------------------//
 // setupNetworks()                                                            //
 //                                                                            //
 //----------------------------------------------------------------------------//
@@ -484,6 +620,9 @@ void QCanServerDialog::updateUI(uint8_t ubNetworkIdxV)
    QCanNetwork * pclNetworkT;
 
 
+   //----------------------------------------------------------------
+   // update network tab
+   //
    pclNetworkT = pclCanServerP->network(ubNetworkIdxV);
    if(pclNetworkT != Q_NULLPTR)
    {
@@ -521,6 +660,20 @@ void QCanServerDialog::updateUI(uint8_t ubNetworkIdxV)
       }
 
       //--------------------------------------------------------
+      // Is CAN-FD activated?
+      //
+      if(ui.pclCkbNetCanFdM->isChecked())
+      {
+         ui.pclLblNetDatBitrateM->setEnabled(true);
+         ui.pclCbbNetDatBitrateM->setEnabled(true);
+      }
+      else
+      {
+         ui.pclLblNetDatBitrateM->setEnabled(false);
+         ui.pclCbbNetDatBitrateM->setEnabled(false);
+      }
+
+      //--------------------------------------------------------
       // Does it support Listen-Only mode?
       //
       if(pclNetworkT->hasListenOnlySupport())
@@ -536,9 +689,54 @@ void QCanServerDialog::updateUI(uint8_t ubNetworkIdxV)
       
 
       //--------------------------------------------------------
-      // show current bitrate
+      // show current nominal bit-rate
       //
-      ui.pclCbbNetBitrateM->setCurrentIndex(pclNetworkT->bitrate());
+      ui.pclCbbNetNomBitrateM->setCurrentIndex(pclNetworkT->nominalBitrate());
+      int32_t slDatBitRateSelT = 0;
+      switch(pclNetworkT->dataBitrate())
+      {
+         case eCAN_BITRATE_NONE:
+            slDatBitRateSelT = 0;
+            break;
+
+         case 1000000:
+            slDatBitRateSelT = 1;
+            break;
+
+         case 2000000:
+            slDatBitRateSelT = 2;
+            break;
+
+         case 4000000:
+            slDatBitRateSelT = 3;
+            break;
+
+         case 5000000:
+            slDatBitRateSelT = 4;
+            break;
+
+         default:
+            slDatBitRateSelT = 0;
+            break;
+      }
+      ui.pclCbbNetDatBitrateM->setCurrentIndex(slDatBitRateSelT);
       
+   }
+
+   //----------------------------------------------------------------
+   // update server tab
+   //
+   if(pclNetworkT != Q_NULLPTR)
+   {
+      QHostAddress clHostAddrT = pclNetworkT->serverAddress();
+      if(clHostAddrT == QHostAddress(QHostAddress::LocalHost))
+      {
+         ui.pclCbbServHostM->setCurrentIndex(0);
+      }
+      else
+      {
+         ui.pclCbbServHostM->setCurrentIndex(1);
+      }
+      ui.pclSpnSrvTimeM->setValue(pclNetworkT->dispatcherTime());
    }
 }
