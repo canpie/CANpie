@@ -42,7 +42,7 @@ OBJECTS_DIR = ./objs/
 #---------------------------------------------------------------
 # project configuration and compiler options
 #
-CONFIG += debug
+CONFIG += debug release
 CONFIG += plugin
 CONFIG += warn_on
 CONFIG += C++11
