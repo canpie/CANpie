@@ -159,13 +159,7 @@ bool QCanNetwork::addInterface(QCanInterface * pclCanIfV)
       //
       if(pclCanIfV->connect() == QCanInterface::eERROR_NONE)
       {
-         // demo initialisation
-         if (pclCanIfV->supportedFeatures() & QCAN_IF_SUPPORT_CAN_FD)
-         {
-            slNomBitRateP  = eCAN_BITRATE_500K;
-            slDatBitRateP = 2000000;
-         }
-
+         qDebug() << "addInterface() using bit-rate" << slNomBitRateP << slDatBitRateP;
          if(pclCanIfV->setBitrate(slNomBitRateP, slDatBitRateP) == QCanInterface::eERROR_NONE)
          {
             if (pclCanIfV->setMode(eCAN_MODE_START) == QCanInterface::eERROR_NONE)
@@ -673,9 +667,34 @@ void QCanNetwork::removeInterface(void)
 //----------------------------------------------------------------------------//
 void QCanNetwork::setBitrate(int32_t slNomBitRateV, int32_t slDatBitRateV)
 {
+   //----------------------------------------------------------------
+   // Store new bit-rates:
+   // If there is no CAN FD support, the data bit rate will be set
+   // to eCAN_BITRATE_NONE
+   //
    slNomBitRateP  = slNomBitRateV;
-   slDatBitRateP  = slDatBitRateV;
+   if(btFastDataEnabledP)
+   {
+      slDatBitRateP  = slDatBitRateV;
+   }
+   else
+   {
+      slDatBitRateP  = eCAN_BITRATE_NONE;
+   }
 
+   //----------------------------------------------------------------
+   // If there is an active CAN interface, configure the
+   // new bit-rate
+   //
+   if(!pclInterfaceP.isNull())
+   {
+      pclInterfaceP->setMode(eCAN_MODE_STOP);
+      pclInterfaceP->setBitrate(slNomBitRateP, slDatBitRateP);
+      pclInterfaceP->setMode(eCAN_MODE_START);
+   }
+   //----------------------------------------------------------------
+   // configure bit-counter for bus-load calculation
+   //
    switch(slNomBitRateV)
    {
       case eCAN_BITRATE_250K:
