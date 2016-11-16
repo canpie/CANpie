@@ -41,7 +41,7 @@ OBJECTS_DIR = ./objs/
 #---------------------------------------------------------------
 # project configuration and compiler options
 #
-CONFIG += debug
+CONFIG += debug release
 CONFIG += warn_on
 CONFIG += C++11
 CONFIG += silent
@@ -112,12 +112,18 @@ SOURCES =   qcan_server_dialog.cpp     \
             qcan_network.cpp           \
             qcan_server.cpp
 
-
 #---------------------------------------------------------------
 # OS specific settings 
 #
 macx {
-   message("Building '$$QMAKE_PROJECT_NAME' for Mac OS X ...")
+
+   CONFIG(debug, debug|release) {
+      message("Building '$$QMAKE_PROJECT_NAME' DEBUG version for Mac OS X ...")
+   } else {
+      message("Building '$$QMAKE_PROJECT_NAME' RELEASE version for Mac OS X ...")
+      DEFINES += QT_NO_WARNING_OUTPUT
+      DEFINES += QT_NO_DEBUG_OUTPUT
+   }
 
    #--------------------------------------------------
    # Use the supplied .plist file settings
@@ -155,5 +161,6 @@ win32 {
       DEFINES += QT_NO_WARNING_OUTPUT
       DEFINES += QT_NO_DEBUG_OUTPUT
    }
+
    RC_FILE += server.rc
 }
