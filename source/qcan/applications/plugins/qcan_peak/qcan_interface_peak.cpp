@@ -387,8 +387,8 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFD(QCanFrame &clFrameR)
 // setBitrate()                                                               //
 //                                                                            //
 //----------------------------------------------------------------------------//
-QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slBitrateV,
-                                                               int32_t slBrsClockV)
+QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slNomBitRateV,
+                                                               int32_t slDatBitRateV)
 {
    if (!pclPcanBasicP.isAvailable())
    {
@@ -405,40 +405,42 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slBitrate
    //----------------------------------------------------------------
    // Check bit-rate value
    //
-   if (slBitrateV >= eCAN_BITRATE_AUTO)
+   if (slNomBitRateV >= eCAN_BITRATE_AUTO)
    {
       // maybe we get a value in Hz, normalise it to kHz
-      slBitrateV = slBitrateV / 1000;
+      slNomBitRateV = slNomBitRateV / 1000;
    }
 
    #if QCAN_SUPPORT_CAN_FD > 0
    //----------------------------------------------------------------
-   // Check BRS clock value for CAN-FD
+   // Check data bit rate  value for CAN-FD
    //
-   if (slBrsClockV != eCAN_BITRATE_NONE)
+   if (slDatBitRateV != eCAN_BITRATE_NONE)
    {
-      // FD Bitrate:
-      //      Arbitration: 1 Mbit/sec
-      //      Data: 2 Mbit/sec
+      //--------------------------------------------------------
+      // FD Bit-rate: all settings for 80 MHz clock
       //
-      //      clTxtBitrateT = "f_clock_mhz=20, nom_brp=5, nom_tseg1=2, nom_tseg2=1, nom_sjw=1, data_brp=2, data_tseg1=3, data_tseg2=1, data_sjw=1";
 
-      // normalize clock to MBit/s
-      slBrsClockV = slBrsClockV / 1000000;
-
-      //----------------------------------------------------------------
-      // select corresponding PEAK baud rate value
+      //--------------------------------------------------------
+      // select corresponding PEAK configuration for
+      // nominal bit rate
       //
-      switch(slBitrateV)
+      switch(slNomBitRateV)
       {
+         case eCAN_BITRATE_125K:
+            clTxtBitrateNomT = "f_clock_mhz=80, nom_brp=2, nom_tseg1=255, nom_tseg2=64, nom_sjw=64";
+            break;
+
          case eCAN_BITRATE_250K:
-            clTxtBitrateNomT = "f_clock_mhz=20, nom_brp=5, nom_tseg1=12, nom_tseg2=3, nom_sjw=1";
+            clTxtBitrateNomT = "f_clock_mhz=80, nom_brp=2, nom_tseg1=127, nom_tseg2=32, nom_sjw=32";
             break;
+
          case eCAN_BITRATE_500K:
-            clTxtBitrateNomT = "f_clock_mhz=20, nom_brp=5, nom_tseg1=5, nom_tseg2=2, nom_sjw=1";
+            clTxtBitrateNomT = "f_clock_mhz=80, nom_brp=2, nom_tseg1=63, nom_tseg2=16, nom_sjw=16";
             break;
+
          case eCAN_BITRATE_1M:
-            clTxtBitrateNomT = "f_clock_mhz=20, nom_brp=5, nom_tseg1=2, nom_tseg2=1, nom_sjw=1";
+            clTxtBitrateNomT = "f_clock_mhz=80, nom_brp=2, nom_tseg1=31, nom_tseg2=8, nom_sjw=8";
             break;
 
          default:
@@ -446,13 +448,23 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slBitrate
             break;
       }
 
-      switch(slBrsClockV)
+      //--------------------------------------------------------
+      // select corresponding PEAK configuration for
+      // data bit rate
+      //
+      slDatBitRateV = slDatBitRateV / 1000000;
+      switch(slDatBitRateV)
       {
-         case 2: // 2 MBit/s
-            clTxtBitrateDataT = ", data_brp=2, data_tseg1=3, data_tseg2=1, data_sjw=1";
+         case 1:     // 1 MBit/s
+            clTxtBitrateDataT = ", data_brp=2, data_tseg1=31, data_tseg2=8, data_sjw=8";
             break;
-         case 4: // 4 MBit/s
-            clTxtBitrateDataT = ", data_brp=1, data_tseg1=2, data_tseg2=2, data_sjw=1";
+
+         case 2:     // 2 MBit/s
+            clTxtBitrateDataT = ", data_brp=2, data_tseg1=15, data_tseg2=4, data_sjw=4";
+            break;
+
+         case 4:     // 4 MBit/s
+            clTxtBitrateDataT = ", data_brp=2, data_tseg1=7, data_tseg2=2, data_sjw=2";
             break;
 
          default:
@@ -470,7 +482,7 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slBitrate
       //----------------------------------------------------------------
       // select corresponding PEAK baud rate value
       //
-      switch(slBitrateV)
+      switch(slNomBitRateV)
       {
          // value from CANpie enumeration
          case eCAN_BITRATE_10K:
@@ -541,7 +553,7 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slBitrate
    //
    pclPcanBasicP.unInitialize(uwPCanChannelP);
 
-   if (slBrsClockV != eCAN_BITRATE_NONE)
+   if (slDatBitRateV != eCAN_BITRATE_NONE)
    {
 
       qDebug() << QString("QCanInterfacePeak::setBitrate(0x" +QString::number(uwPCanChannelP,16)+")") << " : FD Mode with bitrate adapting";
@@ -557,7 +569,8 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slBitrate
       btFdUsedP = true;
 
       #endif
-   } else
+   }
+   else
    {
       qDebug() << QString("QCanInterfacePeak::setBitrate(0x" +QString::number(uwPCanChannelP,16)+")") << " : Standard Mode";
       ulStatusT = pclPcanBasicP.initialize(uwPCanChannelP, uwBtr0Btr1T, 0, 0, 0);
