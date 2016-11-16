@@ -259,11 +259,6 @@
         <string>4 MBit/s</string>
        </property>
       </item>
-      <item>
-       <property name="text">
-        <string>5 MBit/s</string>
-       </property>
-      </item>
      </widget>
     </widget>
     <widget class="QGroupBox" name="pclGrpNetworkStatM">
