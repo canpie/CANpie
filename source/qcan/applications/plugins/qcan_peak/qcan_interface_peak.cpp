@@ -317,12 +317,12 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFD(QCanFrame &clFrameR)
          if (tsCanMsgFdT.MSGTYPE & PCAN_MESSAGE_EXTENDED)
          {
             clFrameR.setFrameType(QCanFrame::eTYPE_FD_EXT);
-            clFrameR.setExtId((uint32_t)tsCanMsgFdT.ID);
-         } else
+         }
+         else
          {
             clFrameR.setFrameType(QCanFrame::eTYPE_FD_STD);
-            clFrameR.setStdId((uint16_t)tsCanMsgFdT.ID);
          }
+         clFrameR.setIdentifier(tsCanMsgFdT.ID);
 
          if (tsCanMsgFdT.MSGTYPE & PCAN_MESSAGE_RTR)
          {
