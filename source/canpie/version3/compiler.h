@@ -511,7 +511,7 @@ typedef  signed   long long   _S64;
 //
 #ifdef __GNUC__
 #ifdef _WIN32
-
+#include <stdbool.h>          // boolean definitions
 #include <stdint.h>
 
 #define  CPP_CONST            const
@@ -524,17 +524,11 @@ typedef  signed   long long   _S64;
 
 typedef  int32_t              Status_tv;
 
-typedef  _Bool                 bool_t;
-
-typedef  uint8_t              _BIT;
-typedef  uint8_t              _U08;
-typedef  int8_t               _S08;
-typedef  uint16_t             _U16;
-typedef  int16_t              _S16;
-typedef  uint32_t             _U32;
-typedef  int32_t              _S32;
-typedef  uint64_t             _U64;
-typedef  int64_t              _S64;
+#ifndef __cplusplus
+typedef  _Bool                bool_t;
+#else
+typedef  bool                 bool_t;
+#endif
 
 #endif
 #endif
