@@ -58,7 +58,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="pclTabConfigNetworkM">
     <attribute name="title">
@@ -452,10 +452,10 @@
       <string> ms</string>
      </property>
      <property name="minimum">
-      <number>10</number>
+      <number>1</number>
      </property>
      <property name="maximum">
-      <number>200</number>
+      <number>50</number>
      </property>
     </widget>
     <widget class="QLineEdit" name="pclEdtSrvPortM">
