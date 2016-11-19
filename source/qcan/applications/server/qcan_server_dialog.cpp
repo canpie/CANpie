@@ -417,8 +417,8 @@ void QCanServerDialog::onNetworkConfBitrateDat(int slBitrateSelV)
          slBitrateT = 4000000;
          break;
 
-      case 4:
-         slBitrateT = 5000000;
+      default:
+         slBitrateT = eCAN_BITRATE_NONE;
          break;
 
    }
