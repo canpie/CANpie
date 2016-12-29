@@ -21,6 +21,8 @@ TEMPLATE = subdirs
 #---------------------------------------------------------------
 # list of sub directories
 #
-SUBDIRS  = ./plugin_loader
+SUBDIRS  = ./can-dump
+SUBDIRS += ./can-send
+SUBDIRS += ./plugin_loader
 
-#           ./client
+
