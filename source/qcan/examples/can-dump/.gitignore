@@ -1,0 +1,5 @@
+/candump.c
+/Makefile
+/objs/
+/moc_qcan_dump.cpp
+/moc_qcan_socket.cpp
