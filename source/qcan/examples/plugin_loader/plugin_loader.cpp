@@ -252,7 +252,8 @@ void PluginLoader::triggerCmd()
 
    if (clCmdT.at(0) == "write")
    {
-      clFrameT.setStdId(175);
+      clFrameT.setFrameType(CpFrame::eTYPE_CAN_STD);
+      clFrameT.setIdentifier(175);
       clFrameT.setDlc(5);
       clFrameT.setData(0,5);
       clFrameT.setData(1,4);
@@ -321,7 +322,8 @@ void PluginLoader::triggerCmd()
 
    if (clCmdT.at(0) == "write_ext")
    {
-      clFrameT.setExtId(175234);
+      clFrameT.setFrameType(CpFrame::eTYPE_CAN_EXT);
+      clFrameT.setIdentifier(175234);
       clFrameT.setDlc(8);
       clFrameT.setData(0,0x55);
       clFrameT.setData(1,0x44);
