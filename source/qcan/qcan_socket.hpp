@@ -33,6 +33,7 @@
 
 #include <QHostAddress>
 #include <QPointer>
+#include <QString>
 #include <QTcpSocket>
 #include <QVector>
 
@@ -97,6 +98,7 @@ public:
    */
    void disconnectNetwork(void);
 
+   
    /*!
    ** \return     SocketError value
    **
@@ -104,7 +106,15 @@ public:
    */
    QAbstractSocket::SocketError  error() const;
 
-
+   
+   /*!
+   ** \return     Error string
+   **
+   ** Returns a description of error that last occurred.
+   */
+   QString  errorString() const;
+   
+   
    /*!
    ** \return     Number of CAN frames available
    **
