@@ -146,7 +146,6 @@
 
 /*----------------------------------------------------------------------------*/
 /* File specific splint configuration:                                        */
-/* Do not report ISO reserved names (deprecated data types)                   */
 /*----------------------------------------------------------------------------*/
 
 #if defined(__LCLINT__)
@@ -181,17 +180,6 @@ typedef  unsigned short       uint16_t;
 typedef  short                int16_t;
 typedef  unsigned long        uint32_t;
 typedef  long                 int32_t;
-
-//--------------------------------------------------------------
-// Deprecated data type definitions
-//
-typedef  unsigned char        _BIT;
-typedef  unsigned char        _U08;
-typedef  signed char          _S08;
-typedef  unsigned short       _U16;
-typedef  short                _S16;
-typedef  unsigned long        _U32;
-typedef  long                 _S32;
 
 #endif
 // End of definition: __COMPILER_FCC907S__
@@ -255,41 +243,6 @@ typedef  _Bool                bool_t;
 typedef  bool                 bool_t;
 #endif
 
-//--------------------------------------------------------------
-// Deprecated data type definitions
-//
-#ifndef __cplusplus
-typedef  _Bool                _BIT;
-#else
-typedef  bool                 _BIT;
-#endif
-typedef  uint8_t              _U08;
-typedef  int8_t               _S08;
-typedef  uint16_t             _U16;
-typedef  int16_t              _S16;
-typedef  uint32_t             _U32;
-typedef  int32_t              _S32;
-typedef  uint64_t             _U64;
-typedef  int64_t              _S64;
-
-/*!
-** \union Float_u
-** \brief Needed to access a float value like an 32bit unsigned value
-**        and otherwise
-*/
-union Float_u {
-   /*!
-   ** \var     ftValue
-   ** \brief   Floating-point value
-   */
-   float       ftValue;
-
-   /*!
-   ** \var     ulValue
-   ** \brief   32bit unsigned value
-   */
-   uint32_t    ulValue;
-};
 
 #endif
 #endif
@@ -317,17 +270,6 @@ typedef  int8_t               Status_tv;
 
 typedef  uint8_t              bool_t;
 
-//--------------------------------------------------------------
-// deprecated list of data types
-//
-typedef  uint8_t              _BIT;
-typedef  uint8_t              _U08;
-typedef  int8_t               _S08;
-typedef  uint16_t             _U16;
-typedef  int16_t              _S16;
-typedef  uint32_t             _U32;
-typedef  int32_t              _S32;
-
 #endif
 #endif
 // End of definition: __GNUC__ && __AVR__
@@ -352,17 +294,6 @@ typedef  int8_t               Status_tv;
 
 typedef  uint8_t              bool_t;
 
-//--------------------------------------------------------------
-// deprecated list of data types
-//
-typedef  uint8_t              _BIT;
-typedef  uint8_t              _U08;
-typedef  int8_t               _S08;
-typedef  uint16_t             _U16;
-typedef  int16_t              _S16;
-typedef  uint32_t             _U32;
-typedef  int32_t              _S32;
-
 #endif
 #endif
 // End of definition: __GNUC__ && __AVR32__
@@ -386,19 +317,6 @@ typedef  int32_t              _S32;
 typedef  int8_t               Status_tv;
 
 typedef  uint8_t              bool_t;
-
-//--------------------------------------------------------------
-// deprecated list of data types
-//
-typedef  uint8_t              _BIT;
-typedef  uint8_t              _U08;
-typedef  int8_t               _S08;
-typedef  uint16_t             _U16;
-typedef  int16_t              _S16;
-typedef  uint32_t             _U32;
-typedef  int32_t              _S32;
-typedef  uint64_t             _U64;
-typedef  int64_t              _S64;
 
 #endif
 #endif
@@ -432,25 +350,13 @@ typedef  int64_t              _S64;
 
 typedef  int32_t              Status_tv;
 
-#ifndef __cplusplus
+#ifndef  __cplusplus
 typedef  _Bool                bool_t;
 #else
 typedef  bool                 bool_t;
 #endif
 
 
-//--------------------------------------------------------------
-// deprecated list of data types
-//
-typedef  uint8_t              _BIT;
-typedef  uint8_t              _U08;
-typedef  int8_t               _S08;
-typedef  uint16_t             _U16;
-typedef  int16_t              _S16;
-typedef  uint32_t             _U32;
-typedef  int32_t              _S32;
-typedef  uint64_t             _U64;
-typedef  int64_t              _S64;
 #endif
 #endif
 // End of definition: __GNUC__ && __linux__
@@ -485,18 +391,6 @@ typedef  signed long          int32_t;
 typedef  unsigned long long   uint64_t;
 typedef  signed   long long   int64_t;
 
-//--------------------------------------------------------------
-// deprecated list of data types
-//
-typedef  _Bool                _BIT;
-typedef  unsigned char        _U08;
-typedef  signed   char        _S08;
-typedef  unsigned short       _U16;
-typedef  signed   short       _S16;
-typedef  unsigned long        _U32;
-typedef  signed   long        _S32;
-typedef  unsigned long long   _U64;
-typedef  signed   long long   _S64;
 
 #endif
 #endif
@@ -555,16 +449,6 @@ typedef  int32_t              Status_tv;
 
 typedef  uint8_t              bool_t;
 
-//--------------------------------------------------------------
-// deprecated list of data types
-//
-typedef  uint8_t              _BIT;
-typedef  uint8_t              _U08;
-typedef  int8_t               _S08;
-typedef  uint16_t             _U16;
-typedef  int16_t              _S16;
-typedef  uint32_t             _U32;
-typedef  int32_t              _S32;
 
 #endif
 #endif
@@ -593,15 +477,6 @@ typedef  short                int16_t;
 typedef  unsigned long        uint32_t;
 typedef  long                 int32_t;
 
-//--------------------------------------------------------------
-// deprecated list of data types
-//
-typedef  unsigned char        _U08;
-typedef  signed char          _S08;
-typedef  unsigned short       _U16;
-typedef  short                _S16;
-typedef  unsigned long        _U32;
-typedef  long                 _S32;
 
 #endif
 // End of definition: HI_TECH_C
@@ -625,16 +500,6 @@ typedef  int32_t              Status_tv;
 
 typedef  uint8_t              bool_t;
 
-//--------------------------------------------------------------
-// deprecated list of data types
-//
-typedef  uint8_t              _BIT;
-typedef  uint8_t              _U08;
-typedef  int8_t               _S08;
-typedef  uint16_t             _U16;
-typedef  int16_t              _S16;
-typedef  uint32_t             _U32;
-typedef  int32_t              _S32;
 
 #endif
 // End of definition: __ICCARM__
@@ -658,17 +523,6 @@ typedef  int32_t              Status_tv;
 
 typedef  uint8_t              bool_t;
 
-//--------------------------------------------------------------
-// deprecated list of data types
-//
-typedef  uint8_t              _BIT;
-typedef  uint8_t              _U08;
-typedef  int8_t               _S08;
-typedef  uint16_t             _U16;
-typedef  int16_t              _S16;
-typedef  uint32_t             _U32;
-typedef  int32_t              _S32;
-
 #endif
 // End of definition: __ICCRX__
 //--------------------------------------------------------------------
@@ -689,16 +543,6 @@ typedef  int32_t              Status_tv;
 
 typedef  uint8_t              bool_t;
 
-//--------------------------------------------------------------
-// deprecated list of data types
-//
-typedef  unsigned char        _BIT;
-typedef  unsigned char        _U08;
-typedef  signed char          _S08;
-typedef  unsigned short       _U16;
-typedef  short                _S16;
-typedef  unsigned long        _U32;
-typedef  long                 _S32;
 
 #endif
 // End of definition: _AVR
@@ -727,16 +571,6 @@ typedef  short                int16_t;
 typedef  unsigned long        uint32_t;
 typedef  long                 int32_t;
 
-//--------------------------------------------------------------
-// deprecated list of data types
-//
-typedef  unsigned char        _BIT;
-typedef  unsigned char        _U08;
-typedef  signed char          _S08;
-typedef  unsigned short       _U16;
-typedef  short                _S16;
-typedef  unsigned long        _U32;
-typedef  long                 _S32;
 
 #endif
 // End of definition: __C51__
@@ -765,17 +599,6 @@ typedef  short                int16_t;
 typedef  unsigned long        uint32_t;
 typedef  long                 int32_t;
 
-//--------------------------------------------------------------
-// deprecated list of data types
-//
-typedef  unsigned char        _BIT;
-typedef  unsigned char        _U08;
-typedef  signed char          _S08;
-typedef  unsigned short       _U16;
-typedef  short                _S16;
-typedef  unsigned long        _U32;
-typedef  long                 _S32;
-
 #endif
 // End of definition: __C166__
 //--------------------------------------------------------------------
@@ -803,16 +626,6 @@ typedef  int32_t              Status_tv;
 //
 typedef  uint8_t              bool_t;
 
-//--------------------------------------------------------------
-// deprecated list of data types
-//
-typedef  unsigned char        _BIT;
-typedef  unsigned char        _U08;
-typedef  signed char          _S08;
-typedef  unsigned short       _U16;
-typedef  short                _S16;
-typedef  unsigned long        _U32;
-typedef  long                 _S32;
 
 #endif
 // End of definition: __arm
@@ -844,16 +657,6 @@ typedef  int32_t              Status_tv;
 
 typedef  uint8_t              bool_t;
 
-//--------------------------------------------------------------
-// deprecated list of data types
-//
-typedef  unsigned char        _BIT;
-typedef  unsigned char        _U08;
-typedef  signed char          _S08;
-typedef  unsigned short       _U16;
-typedef  short                _S16;
-typedef  unsigned long        _U32;
-typedef  long                 _S32;
 
 #endif
 // End of definition: __MWERKS__
@@ -885,18 +688,6 @@ typedef  long                 int32_t;
 typedef  unsigned long long   uint64_t;
 typedef  long long            int64_t;
 
-//--------------------------------------------------------------
-// deprecated list of data types
-//
-typedef  unsigned char        _BIT;
-typedef  unsigned char        _U08;
-typedef  signed char          _S08;
-typedef  unsigned short       _U16;
-typedef  short                _S16;
-typedef  unsigned long        _U32;
-typedef  long                 _S32;
-typedef  unsigned long long   _U64;
-typedef  long long            _S64;
 
 #endif
 #endif
