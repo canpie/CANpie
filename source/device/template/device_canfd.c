@@ -122,7 +122,7 @@ CpStatus_tv CpCoreBufferConfig( CpPort_ts * ptsPortV,
                                 uint8_t   ubBufferIdxV,
                                 uint32_t  ulIdentifierV,
                                 uint32_t  ulAcceptMaskV,
-                                uint8_t   ubControlV,
+                                uint8_t   ubFormatV,
                                 uint8_t   ubDirectionV)
 {
    //----------------------------------------------------------------
@@ -143,6 +143,34 @@ CpStatus_tv CpCoreBufferConfig( CpPort_ts * ptsPortV,
       return(eCP_ERR_BUFFER);
    }
 
+   //----------------------------------------------------------------
+   // test message format and mask identifier
+   //
+   switch(ubFormatV & CP_MSG_FORMAT_MASK)
+   {
+      case CP_MSG_FORMAT_CBFF:
+         ulIdentifierV = ulIdentifierV & CP_MASK_STD_FRAME;
+         ulAcceptMaskV = ulAcceptMaskV & CP_MASK_STD_FRAME;
+         break;
+
+      case CP_MSG_FORMAT_CEFF:
+         ulIdentifierV = ulIdentifierV & CP_MASK_EXT_FRAME;
+         ulAcceptMaskV = ulAcceptMaskV & CP_MASK_EXT_FRAME;
+         break;
+
+
+   }
+
+   switch(ubDirectionV)
+   {
+      case eCP_BUFFER_DIR_RCV:
+
+         break;
+
+      case eCP_BUFFER_DIR_TRM:
+
+         break;
+   }
    return (eCP_ERR_NONE);
 }
 
@@ -176,11 +204,21 @@ CpStatus_tv CpCoreBufferGetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
       return(eCP_ERR_BUFFER);
    }
 
+   //----------------------------------------------------------------
+   // test start position and size
+   //
+   #if CP_CAN_FD > 0
+   #else
+   if(ubStartPosV > CP_DATA_SIZE)              return(eCP_ERR_PARAM);
+   if(ubSizeV > 8)                  return(eCP_ERR_PARAM);
+   if((ubStartPosV + ubSizeV) > 8)  return(eCP_ERR_PARAM);
+
+   #endif
 
    //----------------------------------------------------------------
    // copy data from simulated CAN buffer
    //
-   for(ubCntT = 0; ubCntT < 8; ubCntT++)
+   for(ubCntT = ubStartPosV; ubCntT < ubSizeV; ubCntT++)
    {
       *pubDestDataV = CpMsgGetData(&atsCanMsgS[ubBufferIdxV - 1], ubCntT);
       pubDestDataV++;
@@ -318,7 +356,7 @@ CpStatus_tv CpCoreBufferSetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
    //----------------------------------------------------------------
    // copy data to simulated CAN buffer
    //
-   for(ubCntT = 0; ubCntT < 8; ubCntT++)
+   for(ubCntT = ubStartPosV; ubCntT < ubSizeV; ubCntT++)
    {
       CpMsgSetData(&atsCanMsgS[ubBufferIdxV - 1], ubCntT, *pubSrcDataV);
       pubSrcDataV++;
@@ -463,6 +501,10 @@ CpStatus_tv CpCoreDriverInit(uint8_t ubPhyIfV, CpPort_ts * ptsPortV,
       return(eCP_ERR_CHANNEL);
    }
 
+   if(ptsPortV != (CpPort_ts *) 0L)
+   {
+
+   }
 
    return(eCP_ERR_NONE);
 }
@@ -508,6 +550,10 @@ CpStatus_tv CpCoreFifoConfig(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
       return(eCP_ERR_BUFFER);
    }
 
+   if(ptsFifoV != 0)
+   {
+
+   }
    return(eCP_ERR_NONE);
 }
 
@@ -537,6 +583,14 @@ CpStatus_tv CpCoreFifoRead(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
    if((ubBufferIdxV < eCP_BUFFER_1  ) || (ubBufferIdxV > CP_BUFFER_MAX) )
    {
       return(eCP_ERR_BUFFER);
+   }
+
+   if(pulBufferSizeV != (uint32_t *) 0L)
+   {
+      if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
+      {
+
+      }
    }
 
    return(eCP_ERR_NONE);
@@ -595,6 +649,15 @@ CpStatus_tv CpCoreFifoWrite(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
    if((ubBufferIdxV < eCP_BUFFER_1  ) || (ubBufferIdxV > CP_BUFFER_MAX) )
    {
       return(eCP_ERR_BUFFER);
+   }
+
+   if(pulBufferSizeV != (uint32_t *) 0L)
+   {
+      if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
+      {
+
+      }
+
    }
 
    return(eCP_ERR_NONE);
