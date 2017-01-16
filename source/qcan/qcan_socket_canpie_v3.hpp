@@ -34,9 +34,9 @@
 
 
 
+#include "../canpie/canpie-fd/cp_core.h"
+#include "../canpie/canpie-fd/cp_msg.h"
 #include "qcan_socket.hpp"
-#include "../canpie/version3/cp_core.h"
-#include "../canpie/version3/cp_msg.h"
 
 
 /*----------------------------------------------------------------------------*\
