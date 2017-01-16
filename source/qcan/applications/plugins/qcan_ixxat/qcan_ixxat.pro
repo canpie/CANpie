@@ -74,14 +74,14 @@ RESOURCES = qcan_ixxat.qrc
 INCLUDEPATH  = .
 INCLUDEPATH += ./include
 INCLUDEPATH += ./../../..
-INCLUDEPATH += ./../../../../canpie/version3
+INCLUDEPATH += ./../../../../canpie-fd
 
 #---------------------------------------------------------------
 # search path for source files
 #
 VPATH  = .
 VPATH += ./../../..
-VPATH += ./../../../../canpie/version3
+VPATH += ./../../../../canpie-fd
 
 #---------------------------------------------------------------
 # header files of project

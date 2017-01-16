@@ -76,7 +76,7 @@ RESOURCES =
 INCLUDEPATH  = .
 INCLUDEPATH += ./../../
 INCLUDEPATH += ./../../../qcan
-INCLUDEPATH += ./../../../canpie/version3/
+INCLUDEPATH += ./../../../canpie-fd
 
 #---------------------------------------------------------------
 # search path for source files
@@ -84,7 +84,7 @@ INCLUDEPATH += ./../../../canpie/version3/
 VPATH  = .
 VPATH += ./../..
 VPATH += ./../../../qcan
-VPATH += ./../../../canpie/version3
+VPATH += ./../../../canpie-fd
 
 #---------------------------------------------------------------
 # header files of project 

@@ -77,14 +77,14 @@ RESOURCES =
 #
 INCLUDEPATH  = .
 INCLUDEPATH += ./../../
-INCLUDEPATH += ./../../../canpie/version3/
+INCLUDEPATH += ./../../../canpie-fd
 
 #---------------------------------------------------------------
 # search path for source files
 #
 VPATH  = .
 VPATH += ./../../
-VPATH += ./../../../canpie/version3
+VPATH += ./../../../canpie-fd
 
 
 #---------------------------------------------------------------
