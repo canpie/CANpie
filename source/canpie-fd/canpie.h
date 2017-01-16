@@ -74,8 +74,8 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-#include <cp_platform.h>       // Architecture dependent definitions
 #include "compiler.h"
+#include <cp_platform.h>       // Architecture dependent definitions
 
 
 /*----------------------------------------------------------------------------*\
@@ -336,6 +336,15 @@
 #define  CP_MSG_CTRL_ESI_BIT     ((uint8_t) 0x80)
 
 
+#define  CP_MSG_FORMAT_CBFF      ((uint8_t) 0x00)
+
+#define  CP_MSG_FORMAT_CEFF      (CP_MSG_CTRL_EXT_BIT)
+
+#define  CP_MSG_FORMAT_FBFF      (CP_MSG_CTRL_FDF_BIT)
+
+#define  CP_MSG_FORMAT_FEFF      (CP_MSG_CTRL_FDF_BIT | CP_MSG_CTRL_EXT_BIT)
+
+#define  CP_MSG_FORMAT_MASK      ((uint8_t) 0x03)
 
 
 /*-------------------------------------------------------------------*/
