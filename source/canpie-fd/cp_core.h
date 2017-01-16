@@ -88,8 +88,8 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-#include "../canpie-fd/canpie.h"
-#include "../canpie-fd/cp_fifo.h"
+#include "canpie.h"
+#include "cp_fifo.h"
 
 //-------------------------------------------------------------------//
 // take precautions if compiled with C++ compiler                    //
@@ -193,7 +193,7 @@ CpStatus_tv CpCoreBufferConfig( CpPort_ts * ptsPortV,
                                 uint8_t   ubBufferIdxV,
                                 uint32_t  ulIdentifierV,
                                 uint32_t  ulAcceptMaskV,
-                                uint8_t   ubControlV,
+                                uint8_t   ubFormatV,
                                 uint8_t   ubDirectionV);
 
 CpStatus_tv CpCoreBufferEnable( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
@@ -491,8 +491,8 @@ CpStatus_tv CpCoreFifoRelease(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV);
 ** This function writes to the transmit queue of a CAN controller.
 */
 CpStatus_tv CpCoreFifoWrite(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
-                             CpCanMsg_ts * ptsBufferV,
-                             uint32_t * pulBufferSizeV);
+                            CpCanMsg_ts * ptsCanMsgV,
+                            uint32_t * pulBufferSizeV);
 
 /*!
 ** \brief   Get hardware description information
