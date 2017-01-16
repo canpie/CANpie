@@ -1,6 +1,0 @@
-/Makefile*
-/*.o
-/PCANBasic.h
-/PCBUSB.h
-/.qmake.stash
-/.DS_Store
