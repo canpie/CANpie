@@ -107,7 +107,7 @@ ifeq ($(DEBUG),1)
 	OPTIMIZE	= -O0
 else
 	GDB_FLAG = 
-	OPTIMIZE	= -O1 -fomit-frame-pointer -mlittle-endian
+	OPTIMIZE	= -O1 
 endif
 
 #---------------------------------------------------------------
@@ -165,9 +165,9 @@ DEV_SRC	=	device_canfd.c
 # Unit test source
 # compiled if TEST_OBJS==1
 #--------------------------------------------------------------------
-TEST_SRC =	cp_test_core.c				\
-				cp_test_main.c				\
-				cp_test_msg.c				\
+TEST_SRC =	test_cp_core.c				\
+				test_cp_main.c				\
+				test_cp_msg.c				\
 				unity_fixture.c			\
 				unity.c
 		
