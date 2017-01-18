@@ -182,8 +182,8 @@ CpStatus_tv CpCoreBitrate( CpPort_ts * ptsPortV, int32_t slNomBitRateV,
 ** \li #CP_MSG_CTRL_RTR_BIT : RTR frame
 **
 ** The following example shows the setup of a transmit buffer
-** \dontinclude buf_init.c
-** \skip    void AllocateTrmBuffer
+** \dontinclude demo_buffer_config.c
+** \skip    void DemoTransmitBufferConfiguration
 ** \until   }
 **
 ** An allocated transmit buffer can be sent via the function
@@ -292,7 +292,7 @@ CpStatus_tv CpCoreBufferSend(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV);
 **
 ** aubDataT[0] = 0x11;  // byte 0: set to 11hex
 ** aubDataT[1] = 0x22;  // byte 1: set to 22hex
-
+**
 ** //--- copy the stuff to message buffer 1 ---------------
 ** CpCoreBufferSetData(ptsCanPortS, eCP_BUFFER_1, &aubDataT);
 **
