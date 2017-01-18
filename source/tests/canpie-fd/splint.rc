@@ -1,0 +1,73 @@
+#--------------------------------------------------------------------
+# Include paths
+#
+-I../../canpie-fd
+-I../../device/template
+
+
+#--------------------------------------------------------------------
+# Definitions
+#
+-D__GNUC__
+-D__arm__
+
+#--------------------------------------------------------------------
+# standard testing level
+#
+-standard
+
+#--------------------------------------------------------------------
+# Show file names are they are processed.
+#
++show-scan
+
+#--------------------------------------------------------------------
+# Show statistic information at end of parsing.
+#
++stats
+
+#--------------------------------------------------------------------
+# Show a summary of all errors reported and suppressed. 
+#
++show-summary
+
+#--------------------------------------------------------------------
+# Reserved names in CPP
+#  
++cpp-names
+
+#--------------------------------------------------------------------
+# Function, variable, iterator or constant declared 
+# but never defined.
+#
++decl-undef
+
+
+#--------------------------------------------------------------------
+# do not test a complete program
+#
++partial
+
++bitwisesigned
+
+ +elseifcomplete
+ +exportheader
+ +exportheadervar
+ +external-name-len 31
+ +fcnmacros
+ +forblock
+ +ifblock
+ +internal-name-len 31
+ +isoreserved
+-macrofcndecl
+-macroparams
+-macrounrecog
+ -maintype
+ +noparams
+ +oldstyle
+ +protoparammatch
+ +ptrarith
+ +redecl
+ -relaxquals
+ +retval
+ +whileblock
