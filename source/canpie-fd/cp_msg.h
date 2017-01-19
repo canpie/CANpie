@@ -363,12 +363,12 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV);
 
 #define  CpMsgClrOverrun(MSG_PTR)                                 \
          do {                                                     \
-            (MSG_PTR)->ubMsgCtrl &= ~CP_MASK_OVR_BIT;             \
+            (MSG_PTR)->ubMsgCtrl &= ~CP_MSG_CTRL_OVR_BIT;         \
          } while(0)
 
 #define  CpMsgClrRemote(MSG_PTR)                                  \
          do {                                                     \
-            (MSG_PTR)->ubMsgCtrl &= ~CP_MASK_RTR_BIT;             \
+            (MSG_PTR)->ubMsgCtrl &= ~CP_MSG_CTRL_RTR_BIT;         \
          } while(0)
 
 
@@ -379,10 +379,10 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV);
             ((MSG_PTR)->ubMsgDLC)
 
 #define  CpMsgGetExtId(MSG_PTR)                                   \
-            ((MSG_PTR)->tuMsgId.ulExt)
+            ((MSG_PTR)->ulIdentifier)
 
 #define  CpMsgGetStdId(MSG_PTR)                                   \
-            ((MSG_PTR)->tuMsgId.uwStd)
+            (uint16_t)((MSG_PTR)->ulIdentifier)
 
 #define  CpMsgIsExtended(MSG_PTR)                                 \
             ( (MSG_PTR)->ubMsgCtrl & CP_MSG_CTRL_EXT_BIT )
@@ -407,23 +407,23 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV);
 
 #define  CpMsgSetExtId(MSG_PTR, VAL)                              \
          do {                                                     \
-            (MSG_PTR)->tuMsgId.ulExt = (VAL) & CP_MASK_EXT_FRAME; \
+            (MSG_PTR)->ulIdentifier = (VAL) & CP_MASK_EXT_FRAME;  \
             (MSG_PTR)->ubMsgCtrl |= CP_MSG_CTRL_EXT_BIT;          \
          } while(0)
 
 #define  CpMsgSetOverrun(MSG_PTR)                                 \
          do {                                                     \
-            (MSG_PTR)->ubMsgCtrl |= CP_MASK_OVR_BIT;              \
+            (MSG_PTR)->ubMsgCtrl |= CP_MSG_CTRL_OVR_BIT;          \
          } while(0)
 
 #define  CpMsgSetRemote(MSG_PTR)                                  \
          do {                                                     \
-            (MSG_PTR)->ubMsgCtrl |= CP_MASK_RTR_BIT;              \
+            (MSG_PTR)->ubMsgCtrl |= CP_MSG_CTRL_RTR_BIT;          \
          } while(0)
 
 #define  CpMsgSetStdId(MSG_PTR, VAL)                              \
          do {                                                     \
-            (MSG_PTR)->tuMsgId.uwStd = (VAL) & CP_MASK_STD_FRAME; \
+            (MSG_PTR)->ulIdentifier = (VAL) & CP_MASK_STD_FRAME;  \
             (MSG_PTR)->ubMsgCtrl &= ~CP_MSG_CTRL_EXT_BIT;         \
          } while(0)
 
