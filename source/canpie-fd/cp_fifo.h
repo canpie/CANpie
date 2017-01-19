@@ -37,7 +37,6 @@
 ** \file    cp_fifo.h
 ** \brief   Definitions and prototypes for FIFO implementation
 **
-** The idea is that for FIFO implementation always the same API is used.
 */
 
 /*----------------------------------------------------------------------------*\
@@ -138,9 +137,9 @@ typedef struct CpFifo_s CpFifo_ts;
 ** }
 ** \endcode
 */
-#define  CpFifoDataOutPtr(FIFO_PTR)                      \
-   do {                                                  \
-      ((FIFO_PTR->ptsCanMsg) + (FIFO_PTR->ulIndexOut));  \
+#define  CpFifoDataOutPtr(FIFO_PTR)                            \
+   do {                                                        \
+      (((FIFO_PTR)->ptsCanMsg) + ((FIFO_PTR)->ulIndexOut));    \
    } while(0)
 
 
@@ -168,7 +167,7 @@ typedef struct CpFifo_s CpFifo_ts;
 ** \endcode
 */
 #define  CpFifoIsEmpty(FIFO_PTR) \
-   ((FIFO_PTR->ulIndexIn == FIFO_PTR->ulIndexOut) ? 1 : 0)
+   (((FIFO_PTR)->ulIndexIn == (FIFO_PTR)->ulIndexOut) ? 1 : 0)
 
 
 
@@ -197,9 +196,9 @@ typedef struct CpFifo_s CpFifo_ts;
 **
 */
 #define  CpFifoIsFull(FIFO_PTR)                                            \
-            ( ((FIFO_PTR->ulIndexIn+1 == FIFO_PTR->ulIndexOut) ||          \
-              ((FIFO_PTR->ulIndexOut  == 0) &&                             \
-               (FIFO_PTR->ulIndexIn+1 == FIFO_PTR->ulIndexMax) )) ? 1 : 0)
+            ( (((FIFO_PTR)->ulIndexIn+1 == (FIFO_PTR)->ulIndexOut) ||       \
+              (((FIFO_PTR)->ulIndexOut  == 0) &&                             \
+               ((FIFO_PTR)->ulIndexIn+1 == (FIFO_PTR)->ulIndexMax) )) ? 1 : 0)
 
 
 
@@ -212,10 +211,10 @@ typedef struct CpFifo_s CpFifo_ts;
 */
 #define  CpFifoIncIn(FIFO_PTR)                                       \
          do {                                                        \
-            FIFO_PTR->ulIndexIn++;                                   \
-            if (FIFO_PTR->ulIndexIn >= FIFO_PTR->ulIndexMax)         \
+            (FIFO_PTR)->ulIndexIn++;                                 \
+            if ((FIFO_PTR)->ulIndexIn >= (FIFO_PTR)->ulIndexMax)     \
             {                                                        \
-               FIFO_PTR->ulIndexIn = 0;                              \
+               (FIFO_PTR)->ulIndexIn = 0;                            \
             }                                                        \
          } while (0)
 
@@ -229,10 +228,10 @@ typedef struct CpFifo_s CpFifo_ts;
 */
 #define  CpFifoIncOut(FIFO_PTR)                                      \
          do {                                                        \
-            FIFO_PTR->ulIndexOut++;                                  \
-            if (FIFO_PTR->ulIndexOut >= FIFO_PTR->ulIndexMax)        \
+            (FIFO_PTR)->ulIndexOut++;                                \
+            if ((FIFO_PTR)->ulIndexOut >= (FIFO_PTR)->ulIndexMax)    \
             {                                                        \
-               FIFO_PTR->ulIndexOut = 0;                             \
+               (FIFO_PTR)->ulIndexOut = 0;                           \
             }                                                        \
          } while (0)
 
@@ -265,8 +264,8 @@ typedef struct CpFifo_s CpFifo_ts;
          do {                                                        \
             (FIFO_PTR)->ulIndexIn  = 0;                              \
             (FIFO_PTR)->ulIndexOut = 0;                              \
-            (FIFO_PTR)->ulIndexMax = SIZE;                           \
-            (FIFO_PTR)->ptsCanMsg  = MSG_PTR;                        \
+            (FIFO_PTR)->ulIndexMax = (SIZE);                         \
+            (FIFO_PTR)->ptsCanMsg  = (MSG_PTR);                      \
          } while (0)
 
 
