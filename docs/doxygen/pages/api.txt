@@ -26,6 +26,13 @@
 <tr class="even">
    <td class="entry" style="width:25%">
    <span style="width:6px;display:inline-block;">&nbsp;</span>
+   \ref cp_fifo.h</td>
+   <td class="desc">%CANpie FIFO functions</td>
+</tr>
+
+<tr>
+   <td class="entry" style="width:25%">
+   <span style="width:6px;display:inline-block;">&nbsp;</span>
    \ref cp_msg.h</td>
    <td class="desc">%CANpie message access functions</td>
 </tr>
