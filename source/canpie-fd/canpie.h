@@ -117,13 +117,11 @@
 **
 ** This symbol defines the number of message buffers (mailboxes)
 ** of a CAN controller. In case the controller has no message buffers,
-** it is also possible to emulate these. A value of 0 denotes that
-** there are no message buffers available. This also means all buffer
-** functions (e.g. CpCoreBufferInit(), etc.) return the error code
-** #eCP_ERR_NOT_SUPPORTED.
+** it is also possible to emulate these. A value of 0 is not allowed
+** for this symbol.
 */
 #ifndef  CP_BUFFER_MAX
-#define  CP_BUFFER_MAX              0
+#define  CP_BUFFER_MAX              8
 #endif
 
 /*-------------------------------------------------------------------*/
@@ -156,13 +154,27 @@
 
 /*-------------------------------------------------------------------*/
 /*!
+** \def  CP_CAN_MSG_MARKER
+** \ingroup CP_CONF
+**
+** This symbol defines if the CAN message structure CpCanMsg_s
+** has a marker field.
+** - 0 = no marker field (not supported by hardware / driver)
+** - 1 = include marker field
+*/
+#ifndef  CP_CAN_MSG_MARKER
+#define  CP_CAN_MSG_MARKER          0
+#endif
+
+/*-------------------------------------------------------------------*/
+/*!
 ** \def  CP_CAN_MSG_TIME
 ** \ingroup CP_CONF
 **
 ** This symbol defines if the CAN message structure CpCanMsg_s
-** has a timestamp field.
-** - 0 = no timestamp field (not supported by hardware / driver)
-** - 1 = include timestamp field
+** has a time-stamp field.
+** - 0 = no time-stamp field (not supported by hardware / driver)
+** - 1 = include time-stamp field
 */
 #ifndef  CP_CAN_MSG_TIME
 #define  CP_CAN_MSG_TIME            0
@@ -336,12 +348,44 @@
 #define  CP_MSG_CTRL_ESI_BIT     ((uint8_t) 0x80)
 
 
+/*-------------------------------------------------------------------*/
+/*!
+** \def     CP_MSG_FORMAT_CBFF
+** \ingroup CP_MSG_CTRL
+**
+** Bit definition for a classic CAN frame with Standard Identifier in the
+** \c ubMsgCtrl field of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
+*/
 #define  CP_MSG_FORMAT_CBFF      ((uint8_t) 0x00)
 
+/*-------------------------------------------------------------------*/
+/*!
+** \def     CP_MSG_FORMAT_CEFF
+** \ingroup CP_MSG_CTRL
+**
+** Bit definition for a classic CAN frame with Extended Identifier in the
+** \c ubMsgCtrl field of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
+*/
 #define  CP_MSG_FORMAT_CEFF      (CP_MSG_CTRL_EXT_BIT)
 
+/*-------------------------------------------------------------------*/
+/*!
+** \def     CP_MSG_FORMAT_FBFF
+** \ingroup CP_MSG_CTRL
+**
+** Bit definition for an ISO CAN FD frame with Standard Identifier in the
+** \c ubMsgCtrl field of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
+*/
 #define  CP_MSG_FORMAT_FBFF      (CP_MSG_CTRL_FDF_BIT)
 
+/*-------------------------------------------------------------------*/
+/*!
+** \def     CP_MSG_FORMAT_FEFF
+** \ingroup CP_MSG_CTRL
+**
+** Bit definition for an ISO CAN FD frame with Extended Identifier in the
+** \c ubMsgCtrl field of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
+*/
 #define  CP_MSG_FORMAT_FEFF      (CP_MSG_CTRL_FDF_BIT | CP_MSG_CTRL_EXT_BIT)
 
 #define  CP_MSG_FORMAT_MASK      ((uint8_t) 0x03)
@@ -382,35 +426,35 @@ enum CpErr_e {
 
    /*!   Error not specified (01dec / 01hex)
    */
-   eCP_ERR_GENERIC,
+   eCP_ERR_GENERIC = 1,
 
    /*!   Hardware failure (02dec / 02hex)
    */
-   eCP_ERR_HARDWARE,
+   eCP_ERR_HARDWARE = 2,
 
    /*!   Initialisation failure (03dec / 03hex)
    */
-   eCP_ERR_INIT_FAIL,
+   eCP_ERR_INIT_FAIL = 3,
 
    /*!   Channel is initialised, ready to run (04dec / 04hex)
    */
-   eCP_ERR_INIT_READY,
+   eCP_ERR_INIT_READY = 4,
 
    /*!    CAN channel was not initialised (05dec / 05hex)
    */
-   eCP_ERR_INIT_MISSING,
+   eCP_ERR_INIT_MISSING = 5,
 
-   /*!   Receive buffer is empty (05dec / 05hex)
+   /*!   Receive buffer is empty (06dec / 06hex)
    */
-   eCP_ERR_RCV_EMPTY,
+   eCP_ERR_RCV_EMPTY = 6,
 
-   /*!   Receive buffer overrun (06dec / 06hex)
+   /*!   Receive buffer overrun (07dec / 07hex)
    */
-   eCP_ERR_OVERRUN,
+   eCP_ERR_OVERRUN = 7,
 
-   /*!   Transmit buffer is full (07dec / 07hex)
+   /*!   Transmit buffer is full (08dec / 08hex)
    */
-   eCP_ERR_TRM_FULL,
+   eCP_ERR_TRM_FULL = 8,
 
    /*!   CAN message has wrong format (10dec / 0Ahex)
    */
@@ -418,11 +462,11 @@ enum CpErr_e {
 
    /*!   CAN identifier not valid (11dec / 0Bhex)
    */
-   eCP_ERR_CAN_ID,
+   eCP_ERR_CAN_ID = 11,
 
    /*!   CAN data length code not valid (12dec / 0Chex)
    */
-   eCP_ERR_CAN_DLC,
+   eCP_ERR_CAN_DLC = 12,
 
    /*!   FIFO is empty (20dec / 14hex)
    */
@@ -430,19 +474,19 @@ enum CpErr_e {
 
    /*!   Message is waiting in FIFO (21dec / 15hex)
    */
-   eCP_ERR_FIFO_WAIT,
+   eCP_ERR_FIFO_WAIT = 21,
 
    /*!   FIFO is full (22dec / 16hex)
    */
-   eCP_ERR_FIFO_FULL,
+   eCP_ERR_FIFO_FULL = 22,
 
    /*!   FIFO size is out of range (23dec / 17hex)
    */
-   eCP_ERR_FIFO_SIZE,
+   eCP_ERR_FIFO_SIZE = 23,
 
    /*!   Parameter of FIFO function is out of range (24dec / 18hex)
    */
-   eCP_ERR_FIFO_PARM,
+   eCP_ERR_FIFO_PARM = 24,
 
    /*!   Controller is in error passive (30dec / 1Ehex)
    */
@@ -450,11 +494,11 @@ enum CpErr_e {
 
    /*!   Controller is in bus off (31dec / 1Fhex)
    */
-   eCP_ERR_BUS_OFF,
+   eCP_ERR_BUS_OFF = 31,
 
    /*!   Controller is in warning status (32dec / 20hex)
    */
-   eCP_ERR_BUS_WARNING,
+   eCP_ERR_BUS_WARNING = 32,
 
 
    /*!   Channel out of range (40dec / 28hex)
@@ -463,19 +507,19 @@ enum CpErr_e {
 
    /*!   Register address out of range (41dec / 29hex)
    */
-   eCP_ERR_REGISTER,
+   eCP_ERR_REGISTER = 41,
 
    /*!   bit-rate out of range (42dec / 2Ahex)
    */
-   eCP_ERR_BITRATE,
+   eCP_ERR_BITRATE = 42,
 
    /*!   Buffer number out of range (43dec / 2Bhex)
    */
-   eCP_ERR_BUFFER,
+   eCP_ERR_BUFFER = 43,
 
    /*!   Parameter number out of range (44dec / 2Chex)
    */
-   eCP_ERR_PARAM,
+   eCP_ERR_PARAM = 44,
 
    /*!   Function is not supported (50dec / 32hex)
    */
@@ -556,47 +600,47 @@ enum CpBitrate_e {
    /*!
    ** bit-rate 20 kBit/s
    */
-   eCP_BITRATE_20K,
+   eCP_BITRATE_20K = 1,
 
    /*!
    ** bit-rate 50 kBit/s
    */
-   eCP_BITRATE_50K,
+   eCP_BITRATE_50K = 2,
 
    /*!
    ** bit-rate 100 kBit/s
    */
-   eCP_BITRATE_100K,
+   eCP_BITRATE_100K = 3,
 
    /*!
    ** bit-rate 125 kBit/s
    */
-   eCP_BITRATE_125K,
+   eCP_BITRATE_125K = 4,
 
    /*!
    ** bit-rate 250 kBit/s
    */
-   eCP_BITRATE_250K,
+   eCP_BITRATE_250K = 5,
 
    /*!
    ** bit-rate 500 kBit/s
    */
-   eCP_BITRATE_500K,
+   eCP_BITRATE_500K = 6,
 
    /*!
    ** bit-rate 800 kBit/s
    */
-   eCP_BITRATE_800K,
+   eCP_BITRATE_800K = 7,
 
    /*!
    ** bit-rate 1 MBit/s
    */
-   eCP_BITRATE_1M,
+   eCP_BITRATE_1M = 8,
 
    /*!
    ** Use automatic bit-rate detection
    */
-   eCP_BITRATE_AUTO,
+   eCP_BITRATE_AUTO = 9,
 
    eCP_BITRATE_MAX = eCP_BITRATE_AUTO
 };
@@ -685,29 +729,29 @@ enum CpState_e {
    /*!
    ** CAN controller is in Sleep mode
    */
-   eCP_STATE_SLEEPING,
+   eCP_STATE_SLEEPING = 1,
 
 
    /*!
    ** CAN controller is error active
    */
-   eCP_STATE_BUS_ACTIVE,
+   eCP_STATE_BUS_ACTIVE = 2,
 
 
    /*!
    ** CAN controller is active, warning level is reached
    */
-   eCP_STATE_BUS_WARN,
+   eCP_STATE_BUS_WARN = 3,
 
    /*!
    ** CAN controller is error passive
    */
-   eCP_STATE_BUS_PASSIVE,
+   eCP_STATE_BUS_PASSIVE = 4,
 
    /*!
    ** CAN controller went into Bus Off
    */
-   eCP_STATE_BUS_OFF,
+   eCP_STATE_BUS_OFF = 5,
 
    /*!
    ** General failure of physical layer detected (if supported by hardware)
@@ -717,12 +761,12 @@ enum CpState_e {
    /*!
    ** Fault on CAN-H detected (Low Speed CAN)
    */
-   eCP_STATE_PHY_H,
+   eCP_STATE_PHY_H = 11,
 
    /*!
    ** Fault on CAN-L detected (Low Speed CAN)
    */
-   eCP_STATE_PHY_L
+   eCP_STATE_PHY_L = 12
 
 };
 
@@ -835,28 +879,15 @@ typedef struct CpCanMsg_s {
    ** are reserved (always read 0).
    ** \see CP_MASK
    */
-   union {
-      /*! identifier for Standard Frame      */
-      uint16_t  uwStd;
-      /*! identifier for Extended Frame      */
-      uint32_t  ulExt;
-   } tuMsgId;
+   uint32_t  ulIdentifier;
 
    /*!
-   ** The data field has up to 8 bytes (64 bit) of message data.
+   ** The data field has up to 8 bytes (for classic CAN) or
+   ** 64 bytes (for ISO CAN FD) of message data.
    ** The number of used bytes is described via the structure
    ** member \c ubMsgDLC.
    */
-   union {
-      /*!   byte access                      */
-      uint8_t  aubByte[CP_DATA_SIZE];
-
-      /*!   16 bit access                    */
-      uint16_t  auwWord[CP_DATA_SIZE / 2];
-
-      /*!   32 bit access                    */
-      uint32_t  aulLong[CP_DATA_SIZE / 4];
-   } tuMsgData;
+   uint8_t  aubData[CP_DATA_SIZE];
 
 
    /*!
@@ -886,22 +917,32 @@ typedef struct CpCanMsg_s {
    uint8_t  ubMsgCtrl;
 
 
-#if CP_CAN_MSG_TIME == 1
-   /*!   The time stamp field defines the time when a CAN message
-   **    was received by the CAN controller. This is an optional
-   **    field (available if #CP_CAN_MSG_TIME is set to 1).
+   #if CP_CAN_MSG_TIME == 1
+   /*!
+   ** The time stamp field defines the time when a CAN message
+   ** was received by the CAN controller. This is an optional
+   ** field (available if #CP_CAN_MSG_TIME is set to 1).
    */
    CpTime_ts tsMsgTime;
-#endif
+   #endif
 
-#if CP_CAN_MSG_USER == 1
-
-   /*!   The field user data can hold a 32 bit value, which is
-   **    defined by the user. This is an optional field
-   **    (available if #CP_CAN_MSG_USER is set to 1).
+   #if CP_CAN_MSG_USER == 1
+   /*!
+   ** The field user data can hold a 32 bit value, which is
+   ** defined by the user. This is an optional field
+   ** (available if #CP_CAN_MSG_USER is set to 1).
    */
    uint32_t  ulMsgUser;
-#endif
+   #endif
+
+   #if CP_CAN_MSG_MARKER == 1
+   /*!
+   ** The field message marker can hold a 32 bit value, which is
+   ** defined by the application. This is an optional field
+   ** (available if #CP_CAN_MSG_MARKER is set to 1).
+   */
+   uint32_t  ulMsgMarker;
+   #endif
 
 } CpCanMsg_ts;
 
