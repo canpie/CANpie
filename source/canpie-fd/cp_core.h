@@ -134,6 +134,12 @@ extern "C" {                                                         //
 #endif
 
 
+typedef uint8_t (* CpRcvHandler_Fn)(CpCanMsg_ts * ptsMsgV, uint8_t ubBufferV);
+typedef uint8_t (* CpTrmHandler_Fn)(CpCanMsg_ts * ptsMsgV, uint8_t ubBufferV);
+typedef uint8_t (* CpErrHandler_Fn)(CpState_ts *  ptsErrV);
+
+
+
 /*----------------------------------------------------------------------------*\
 ** Function prototypes                                                        **
 **                                                                            **
@@ -159,7 +165,7 @@ CpStatus_tv CpCoreBitrate( CpPort_ts * ptsPortV, int32_t slNomBitRateV,
 ** \param   ubBufferIdxV      Buffer number
 ** \param   ulIdentifierV     Identifier value
 ** \param   ulAcceptMaskV     Acceptance mask value
-** \param   ubControlV        Direction of message
+** \param   ubFormatV         Message format
 ** \param   ubDirectionV      Message direction
 **
 ** \return  Error code taken from the #CpErr_e enumeration. If no error
@@ -176,10 +182,11 @@ CpStatus_tv CpCoreBitrate( CpPort_ts * ptsPortV, int32_t slNomBitRateV,
 ** parameter \c ulAcceptMaskV is used for acceptance filtering.
 **
 **
-** The parameter \c ubControlV can have the following values:
-** \li #CP_MSG_CTRL_EXT_BIT : Extended frame
-** \li #CP_MSG_CTRL_FDF_BIT : FD frame
-** \li #CP_MSG_CTRL_RTR_BIT : RTR frame
+** The parameter \c ubFormatV can have the following values:
+** \li #CP_MSG_FORMAT_CBFF : Classic CAN frame, Standard Identifier
+** \li #CP_MSG_FORMAT_CEFF : Classic CAN frame, Extended Identifier
+** \li #CP_MSG_FORMAT_FBFF : ISO CAN FD frame, Standard Identifier
+** \li #CP_MSG_FORMAT_FEFF : ISO CAN FD frame, Extended Identifier
 **
 ** The following example shows the setup of a transmit buffer
 ** \dontinclude demo_buffer_config.c
@@ -367,6 +374,7 @@ CpStatus_tv CpCoreCanState(CpPort_ts * ptsPortV, CpState_ts * ptsStateV);
 ** \brief   Initialise the CAN driver
 ** \param   ubPhyIfV     CAN channel of the hardware
 ** \param   ptsPortV     Pointer to CAN port structure
+** \param   ubConfigV    This parameter is reserved for future enhancement
 **
 ** \return  Error code taken from the #CpErr_e enumeration. If no error
 **          occurred, the function will return \c eCP_ERR_NONE.
@@ -394,9 +402,8 @@ CpStatus_tv CpCoreDriverInit(uint8_t ubPhyIfV, CpPort_ts * ptsPortV,
 //
 #if   CP_SMALL_CODE == 1
 #undef   CpCoreDriverInit
-#define  CpCoreDriverInit(A, CH)             CpCoreDriverInit()
+#define  CpCoreDriverInit(A, CH, B)          CpCoreDriverInit(B)
 #endif
-
 
 
 //-------------------------------------------------------------------
@@ -456,6 +463,7 @@ void        CpCoreFifoEvent(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV);
 ** \brief   Read a CAN message from FIFO
 ** \param   ptsPortV       Pointer to CAN port structure
 ** \param   ubBufferIdxV   Buffer number
+** \param   ptsCanMsgV     Pointer to a CAN message structure
 ** \param   pulBufferSizeV Pointer to size variable
 **
 ** \return  Error code taken from the #CpErr_e enumeration. If no error
@@ -482,7 +490,8 @@ CpStatus_tv CpCoreFifoRelease(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV);
 /*!
 ** \brief   Transmit a CAN message
 ** \param   ptsPortV       Pointer to CAN port structure
-** \param   ptsBufferV     Pointer to a CAN message structure
+** \param   ubBufferIdxV   Buffer number
+** \param   ptsCanMsgV     Pointer to a CAN message structure
 ** \param   pulBufferSizeV Pointer to size variable
 **
 ** \return  Error code taken from the #CpErr_e enumeration. If no error
@@ -536,9 +545,9 @@ CpStatus_tv CpCoreHDI(CpPort_ts * ptsPortV, CpHdi_ts * ptsHdiV);
 ** <p>
 */
 CpStatus_tv CpCoreIntFunctions(  CpPort_ts * ptsPortV,
-               /*@null@*/ uint8_t (* pfnRcvHandler) (CpCanMsg_ts *, uint8_t),
-               /*@null@*/ uint8_t (* pfnTrmHandler) (CpCanMsg_ts *, uint8_t),
-               /*@null@*/ uint8_t (* pfnErrHandler) (CpState_ts *)      );
+               /*@null@*/ CpRcvHandler_Fn pfnRcvHandlerV,
+               /*@null@*/ CpTrmHandler_Fn pfnTrmHandlerV,
+               /*@null@*/ CpErrHandler_Fn pfnErrHandlerV);
 
 
 
