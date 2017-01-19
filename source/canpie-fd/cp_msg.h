@@ -356,7 +356,7 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV);
 
 #define  CpMsgClear(MSG_PTR)                                      \
          do {                                                     \
-            (MSG_PTR)->tuMsgId.ulExt = 0;                         \
+            (MSG_PTR)->ulIdentifier = 0;                          \
             (MSG_PTR)->ubMsgCtrl = 0;                             \
             (MSG_PTR)->ubMsgDLC  = 0;                             \
          } while(0)
@@ -373,7 +373,7 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV);
 
 
 #define  CpMsgGetData(MSG_PTR, POS)                               \
-            (MSG_PTR)->tuMsgData.aubByte[POS]
+            (MSG_PTR)->aubData[POS]
 
 #define  CpMsgGetDlc(MSG_PTR)                                     \
             ((MSG_PTR)->ubMsgDLC)
@@ -397,7 +397,7 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV);
             ( (MSG_PTR)->ubMsgCtrl & CP_MASK_RTR_BIT )
 
 #define  CpMsgSetData(MSG_PTR, POS, VAL)                          \
-            ( (MSG_PTR)->tuMsgData.aubByte[POS] = (VAL) )
+            ( (MSG_PTR)->aubData[POS] = (VAL) )
 
 #define  CpMsgSetDlc(MSG_PTR, DLC)                                \
          do {                                                     \
