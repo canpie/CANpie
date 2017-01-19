@@ -118,13 +118,25 @@
 
 /*-------------------------------------------------------------------*/
 /*!
+** \def  CP_CAN_MSG_MARKER
+** \ingroup CP_CONF
+**
+** This symbol defines if the CAN message structure CpCanMsg_s
+** has a marker field.
+** - 0 = no marker field (not supported by hardware / driver)
+** - 1 = include marker field
+*/
+#define  CP_CAN_MSG_MARKER          1
+
+/*-------------------------------------------------------------------*/
+/*!
 ** \def  CP_CAN_MSG_TIME
 ** \ingroup CP_CONF
 **
 ** This symbol defines if the CAN message structure CpCanMsg_s
-** has a timestamp field.
-** - 0 = no timestamp field (not supported by hardware / driver)
-** - 1 = include timestamp field
+** has a time-stamp field.
+** - 0 = no time-stamp field (not supported by hardware / driver)
+** - 1 = include time-stamp field
 */
 #define  CP_CAN_MSG_TIME            1
 
