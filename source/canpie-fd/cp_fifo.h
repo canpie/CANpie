@@ -137,10 +137,8 @@ typedef struct CpFifo_s CpFifo_ts;
 ** }
 ** \endcode
 */
-#define  CpFifoDataOutPtr(FIFO_PTR)                            \
-   do {                                                        \
-      (((FIFO_PTR)->ptsCanMsg) + ((FIFO_PTR)->ulIndexOut));    \
-   } while(0)
+#define  CpFifoDataOutPtr(FIFO_PTR) \
+      (((FIFO_PTR)->ptsCanMsg) + ((FIFO_PTR)->ulIndexOut))
 
 
 /*!
