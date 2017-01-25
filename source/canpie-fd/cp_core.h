@@ -115,11 +115,11 @@ extern "C" {                                                         //
 #if   CP_SMALL_CODE == 1
 #define  CpCoreBitrate(CH, A, B)             CpCoreBitrate(A, B)
 
-#define  CpCoreBufferGetData(CH, A, B)       CpCoreBufferGetData(A, B)
+#define  CpCoreBufferGetData(CH, A, B, C, D)	CpCoreBufferGetData(A, B, C, D)
 #define  CpCoreBufferGetDlc(CH, A, B)        CpCoreBufferGetDlc(A, B)
-#define  CpCoreBufferInit(CH, A, B, C)       CpCoreBufferInit(A, B, C)
+#define  CpCoreBufferConfig(CH, A, B, C, D, E)	CpCoreBufferConfig(A, B, C, D, E)
 #define  CpCoreBufferRelease(CH, A)          CpCoreBufferRelease(A)
-#define  CpCoreBufferSetData(CH, A, B)       CpCoreBufferSetData(A, B)
+#define  CpCoreBufferSetData(CH, A, B, C, D)	CpCoreBufferSetData(A, B, C, D)
 #define  CpCoreBufferSetDlc(CH, A, B)        CpCoreBufferSetDlc(A, B)
 #define  CpCoreBufferSend(CH, A)             CpCoreBufferSend(A)
 #define  CpCoreCanMode(CH, A)                CpCoreCanMode(A)
@@ -368,7 +368,7 @@ CpStatus_tv CpCoreCanState(CpPort_ts * ptsPortV, CpState_ts * ptsStateV);
 // wards!
 //
 #if   CP_SMALL_CODE == 1
-#define  CpCoreDriverInit(A, CH)             CpCoreDriverInit(void)
+#define  CpCoreDriverInit(A, CH, B)             CpCoreDriverInit(void)
 #endif
 /*!
 ** \brief   Initialise the CAN driver

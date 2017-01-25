@@ -75,7 +75,7 @@
 \*----------------------------------------------------------------------------*/
 
 #include "compiler.h"
-#include <cp_platform.h>       // Architecture dependent definitions
+#include "cp_platform.h" // Architecture dependent definitions
 
 
 /*----------------------------------------------------------------------------*\
