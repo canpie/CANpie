@@ -22,7 +22,7 @@
 //    may be used to endorse or promote products derived from this software   //
 //    without specific prior written permission.                              //
 //                                                                            //
-// Provided that this notice is retained in full, this software may be        // 
+// Provided that this notice is retained in full, this software may be        //
 // distributed under the terms of the GNU Lesser General Public License       //
 // ("LGPL") version 3 as distributed in the 'COPYING' file.                   //
 //                                                                            //
@@ -46,7 +46,7 @@
 
 
 //-----------------------------------------------------------------------------
-/*!   
+/*!
 ** \file    cp_cc.h
 ** \brief   CANpie constant values for targets
 **
@@ -63,7 +63,7 @@
 **
 ** //--- CANary, AT89C51CC03 -------------
 ** #define CP_CC_CC03            0x1002
-** 
+**
 ** \endcode
 **
 ** The number must be assigned to the symbol CP_TARGET for the
@@ -71,7 +71,7 @@
 ** file cp_cc.h (at the end) or within the Makefile / compiler
 ** setup. If you forget to set the symbol CP_TARGET, you will
 ** get the following error message: <br>
-** 
+**
 ** <b>Target (Symbol CP_TARGET) is not defined! Check file cp_cc.h!</b>
 */
 

@@ -54,10 +54,10 @@
 //----------------------------------------------------------------------------//
 CpFrameApi::CpFrameApi()
 {
-   this->ulIdentifierP = CAN_FRAME_TYPE_API;
-   setFrameType(eTYPE_FD_EXT);
-   setDlc(15);
-   setData(0, CpFrameApi::eAPI_FUNC_NONE);
+  this->ulIdentifierP = CAN_FRAME_TYPE_API;
+  setFrameType(eTYPE_FD_EXT);
+  setDlc(15);
+  setData(0, CpFrameApi::eAPI_FUNC_NONE);
 }
 
 
@@ -76,14 +76,14 @@ CpFrameApi::~CpFrameApi()
 //----------------------------------------------------------------------------//
 int32_t CpFrameApi::bitrate(void)
 {
-   int32_t  slBitrateT = -1;
+  int32_t  slBitrateT = -1;
 
-   if(data(0) == CpFrameApi::eAPI_FUNC_BITRATE)
-   {
-      slBitrateT = dataUInt32(2);
-   }
+  if (data(0) == CpFrameApi::eAPI_FUNC_BITRATE)
+  {
+    slBitrateT = dataUInt32(2);
+  }
 
-   return(slBitrateT);
+  return (slBitrateT);
 }
 
 
@@ -93,14 +93,14 @@ int32_t CpFrameApi::bitrate(void)
 //----------------------------------------------------------------------------//
 int32_t CpFrameApi::brsClock(void)
 {
-   int32_t  slBrsClockT = -1;
+  int32_t  slBrsClockT = -1;
 
-   if(data(0) == CpFrameApi::eAPI_FUNC_BITRATE)
-   {
-      slBrsClockT = dataUInt32(6);
-   }
+  if (data(0) == CpFrameApi::eAPI_FUNC_BITRATE)
+  {
+    slBrsClockT = dataUInt32(6);
+  }
 
-   return(slBrsClockT);
+  return (slBrsClockT);
 }
 
 //----------------------------------------------------------------------------//
@@ -109,7 +109,7 @@ int32_t CpFrameApi::brsClock(void)
 //----------------------------------------------------------------------------//
 CpFrameApi::ApiFunc_e CpFrameApi::function(void)
 {
-   return((CpFrameApi::ApiFunc_e) data(0));
+  return ((CpFrameApi::ApiFunc_e) data(0));
 
 }
 
@@ -120,7 +120,7 @@ CpFrameApi::ApiFunc_e CpFrameApi::function(void)
 //----------------------------------------------------------------------------//
 CAN_Mode_e CpFrameApi::mode(void)
 {
-   return((CAN_Mode_e ) data(1));
+  return ((CAN_Mode_e) data(1));
 }
 
 
@@ -130,9 +130,9 @@ CAN_Mode_e CpFrameApi::mode(void)
 //----------------------------------------------------------------------------//
 void CpFrameApi::setBitrate(int32_t slBitrateV, int32_t slBrsClockV)
 {
-   setData(0, CpFrameApi::eAPI_FUNC_BITRATE);
-   setDataUInt32(2, slBitrateV);
-   setDataUInt32(6, slBrsClockV);
+  setData(0, CpFrameApi::eAPI_FUNC_BITRATE);
+  setDataUInt32(2, slBitrateV);
+  setDataUInt32(6, slBrsClockV);
 }
 
 
@@ -142,19 +142,19 @@ void CpFrameApi::setBitrate(int32_t slBitrateV, int32_t slBrsClockV)
 //----------------------------------------------------------------------------//
 void CpFrameApi::setMode(CAN_Mode_e teModeV)
 {
-   setData(0, CpFrameApi::eAPI_FUNC_CAN_MODE);
-   setData(1, (uint8_t) teModeV);
+  setData(0, CpFrameApi::eAPI_FUNC_CAN_MODE);
+  setData(1, (uint8_t) teModeV);
 }
 
 
 void CpFrameApi::setDriverInit()
 {
-   setData(0, CpFrameApi::eAPI_FUNC_DRIVER_INIT);
+  setData(0, CpFrameApi::eAPI_FUNC_DRIVER_INIT);
 
 }
 void CpFrameApi::setDriverRelease()
 {
-   setData(0, CpFrameApi::eAPI_FUNC_DRIVER_RELEASE);
+  setData(0, CpFrameApi::eAPI_FUNC_DRIVER_RELEASE);
 
 }
 

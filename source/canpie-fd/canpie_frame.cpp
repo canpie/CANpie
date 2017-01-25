@@ -68,17 +68,17 @@
 //----------------------------------------------------------------------------//
 CpFrame::CpFrame()
 {
-   ulIdentifierP = 0;
-   for(uint8_t ubPosT = 0; ubPosT < CAN_FRAME_DATA_MAX; ubPosT++)
-   {
-      aubByteP[ubPosT] = 0;
-   }
-   
-   ubMsgDlcP  = 0;
-   ubMsgCtrlP = eTYPE_CAN_STD;
-   
-   ulMsgUserP   = 0;
-   ulMsgMarkerP = 0;
+  ulIdentifierP = 0;
+  for (uint8_t ubPosT = 0; ubPosT < CAN_FRAME_DATA_MAX; ubPosT++)
+  {
+    aubByteP[ubPosT] = 0;
+  }
+
+  ubMsgDlcP  = 0;
+  ubMsgCtrlP = eTYPE_CAN_STD;
+
+  ulMsgUserP   = 0;
+  ulMsgMarkerP = 0;
 }
 
 
@@ -86,20 +86,20 @@ CpFrame::CpFrame()
 // CpFrame()                                                                  //
 // constructor                                                                //
 //----------------------------------------------------------------------------//
-CpFrame::CpFrame(const Type_e & ubTypeR, const uint32_t & ulIdentifierR, 
-                 const uint8_t & ubDlcR)
+CpFrame::CpFrame(const Type_e &ubTypeR, const uint32_t &ulIdentifierR,
+                 const uint8_t &ubDlcR)
 {
-   setFrameType(ubTypeR);
-   setIdentifier(ulIdentifierR);
-   setDlc(ubDlcR);
+  setFrameType(ubTypeR);
+  setIdentifier(ulIdentifierR);
+  setDlc(ubDlcR);
 
-   for(uint8_t ubPosT = 0; ubPosT < CAN_FRAME_DATA_MAX; ubPosT++)
-   {
-      aubByteP[ubPosT] = 0;
-   }
+  for (uint8_t ubPosT = 0; ubPosT < CAN_FRAME_DATA_MAX; ubPosT++)
+  {
+    aubByteP[ubPosT] = 0;
+  }
 
-   ulMsgUserP   = 0;
-   ulMsgMarkerP = 0;   
+  ulMsgUserP   = 0;
+  ulMsgMarkerP = 0;
 }
 
 
@@ -119,16 +119,16 @@ CpFrame::~CpFrame()
 //----------------------------------------------------------------------------//
 bool CpFrame::bitrateSwitch(void) const
 {
-   bool btResultT = false;
+  bool btResultT = false;
 
-   if(frameType() > eTYPE_CAN_EXT)
-   {
-      if((ubMsgCtrlP & CAN_FRAME_ISO_FD_BRS) > 0)
-      {
-         btResultT = true;
-      }
-   }
-   return(btResultT);
+  if (frameType() > eTYPE_CAN_EXT)
+  {
+    if ((ubMsgCtrlP & CAN_FRAME_ISO_FD_BRS) > 0)
+    {
+      btResultT = true;
+    }
+  }
+  return (btResultT);
 }
 
 
@@ -136,14 +136,14 @@ bool CpFrame::bitrateSwitch(void) const
 // data()                                                                     //
 // get data                                                                   //
 //----------------------------------------------------------------------------//
-uint8_t  CpFrame::data(const uint8_t & ubPosR) const
+uint8_t  CpFrame::data(const uint8_t &ubPosR) const
 {
-   if(ubPosR < this->dataSize())
-   {
-      return(aubByteP[ubPosR]);
-   }
-   
-   return(0);
+  if (ubPosR < this->dataSize())
+  {
+    return (aubByteP[ubPosR]);
+  }
+
+  return (0);
 }
 
 
@@ -154,51 +154,57 @@ uint8_t  CpFrame::data(const uint8_t & ubPosR) const
 //----------------------------------------------------------------------------//
 uint8_t CpFrame::dataSize(void) const
 {
-   uint8_t  ubSizeT;
-   
-   switch(ubMsgDlcP)
-   {
-      case 0: 
-      case 1: case 2: case 3: case 4:
-      case 5: case 6: case 7: case 8:
-         ubSizeT = ubMsgDlcP;
-         break;
-         
-      case 9:
-         ubSizeT = 12;
-         break;
-         
-      case 10:
-         ubSizeT = 16;
-         break;
+  uint8_t  ubSizeT;
 
-      case 11:
-         ubSizeT = 20;
-         break;
-         
-      case 12:
-         ubSizeT = 24;
-         break;
+  switch (ubMsgDlcP)
+  {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+      ubSizeT = ubMsgDlcP;
+      break;
 
-      case 13:
-         ubSizeT = 32;
-         break;
+    case 9:
+      ubSizeT = 12;
+      break;
 
-      case 14:
-         ubSizeT = 48;
-         break;
+    case 10:
+      ubSizeT = 16;
+      break;
 
-      case 15:
-         ubSizeT = 64;
-         break;
-         
-      default:
-         ubSizeT = 0;
-         break;
-         
-   }
+    case 11:
+      ubSizeT = 20;
+      break;
 
-   return(ubSizeT);
+    case 12:
+      ubSizeT = 24;
+      break;
+
+    case 13:
+      ubSizeT = 32;
+      break;
+
+    case 14:
+      ubSizeT = 48;
+      break;
+
+    case 15:
+      ubSizeT = 64;
+      break;
+
+    default:
+      ubSizeT = 0;
+      break;
+
+  }
+
+  return (ubSizeT);
 }
 
 
@@ -206,28 +212,28 @@ uint8_t CpFrame::dataSize(void) const
 // dataUInt16()                                                               //
 // get uint16_t value which is stored at position ubPosR                      //
 //----------------------------------------------------------------------------//
-uint16_t CpFrame::dataUInt16(const uint8_t & ubPosR,
-                               const bool & btMsbFirstR) const
+uint16_t CpFrame::dataUInt16(const uint8_t &ubPosR,
+                             const bool &btMsbFirstR) const
 {
-   uint16_t uwValueT = 0;
+  uint16_t uwValueT = 0;
 
-   if(ubPosR < (this->dataSize() - 1) && (this->dataSize() > 1))
-   {
-      if(btMsbFirstR)
-      {
-         uwValueT = aubByteP[ubPosR];
-         uwValueT = uwValueT << 8;
-         uwValueT = uwValueT + (uint8_t) aubByteP[ubPosR + 1];
-      }
-      else
-      {
-         uwValueT = aubByteP[ubPosR + 1];
-         uwValueT = uwValueT << 8;
-         uwValueT = uwValueT + (uint8_t) aubByteP[ubPosR];
-      }
-   }
+  if (ubPosR < (this->dataSize() - 1) && (this->dataSize() > 1))
+  {
+    if (btMsbFirstR)
+    {
+      uwValueT = aubByteP[ubPosR];
+      uwValueT = uwValueT << 8;
+      uwValueT = uwValueT + (uint8_t) aubByteP[ubPosR + 1];
+    }
+    else
+    {
+      uwValueT = aubByteP[ubPosR + 1];
+      uwValueT = uwValueT << 8;
+      uwValueT = uwValueT + (uint8_t) aubByteP[ubPosR];
+    }
+  }
 
-   return(uwValueT);
+  return (uwValueT);
 }
 
 
@@ -235,36 +241,36 @@ uint16_t CpFrame::dataUInt16(const uint8_t & ubPosR,
 // dataUInt32()                                                               //
 // get uint32_t value which is stored at position ubPosR                      //
 //----------------------------------------------------------------------------//
-uint32_t CpFrame::dataUInt32(const uint8_t & ubPosR,
-                               const bool & btMsbFirstR) const
+uint32_t CpFrame::dataUInt32(const uint8_t &ubPosR,
+                             const bool &btMsbFirstR) const
 {
-   uint32_t ulValueT = 0;
+  uint32_t ulValueT = 0;
 
-   if(ubPosR < (this->dataSize() - 3) && (this->dataSize() > 3))
-   {
-      if(btMsbFirstR)
-      {
-         ulValueT = aubByteP[ubPosR];
-         ulValueT = ulValueT << 8;
-         ulValueT = ulValueT + (uint8_t) aubByteP[ubPosR + 1];
-         ulValueT = ulValueT << 8;
-         ulValueT = ulValueT + (uint8_t) aubByteP[ubPosR + 2];
-         ulValueT = ulValueT << 8;
-         ulValueT = ulValueT + (uint8_t) aubByteP[ubPosR + 3];
-      }
-      else
-      {
-         ulValueT = aubByteP[ubPosR + 3];
-         ulValueT = ulValueT << 8;
-         ulValueT = ulValueT + (uint8_t) aubByteP[ubPosR + 2];
-         ulValueT = ulValueT << 8;
-         ulValueT = ulValueT + (uint8_t) aubByteP[ubPosR + 1];
-         ulValueT = ulValueT << 8;
-         ulValueT = ulValueT + (uint8_t) aubByteP[ubPosR];
-      }
-   }
+  if (ubPosR < (this->dataSize() - 3) && (this->dataSize() > 3))
+  {
+    if (btMsbFirstR)
+    {
+      ulValueT = aubByteP[ubPosR];
+      ulValueT = ulValueT << 8;
+      ulValueT = ulValueT + (uint8_t) aubByteP[ubPosR + 1];
+      ulValueT = ulValueT << 8;
+      ulValueT = ulValueT + (uint8_t) aubByteP[ubPosR + 2];
+      ulValueT = ulValueT << 8;
+      ulValueT = ulValueT + (uint8_t) aubByteP[ubPosR + 3];
+    }
+    else
+    {
+      ulValueT = aubByteP[ubPosR + 3];
+      ulValueT = ulValueT << 8;
+      ulValueT = ulValueT + (uint8_t) aubByteP[ubPosR + 2];
+      ulValueT = ulValueT << 8;
+      ulValueT = ulValueT + (uint8_t) aubByteP[ubPosR + 1];
+      ulValueT = ulValueT << 8;
+      ulValueT = ulValueT + (uint8_t) aubByteP[ubPosR];
+    }
+  }
 
-   return(ulValueT);
+  return (ulValueT);
 
 }
 
@@ -274,7 +280,7 @@ uint32_t CpFrame::dataUInt32(const uint8_t & ubPosR,
 //----------------------------------------------------------------------------//
 uint8_t CpFrame::dlc(void) const
 {
-   return(ubMsgDlcP);
+  return (ubMsgDlcP);
 }
 
 
@@ -284,16 +290,16 @@ uint8_t CpFrame::dlc(void) const
 //----------------------------------------------------------------------------//
 bool CpFrame::errorStateIndicator(void) const
 {
-   bool btResultT = false;
+  bool btResultT = false;
 
-   if(frameType() > eTYPE_CAN_EXT)
-   {
-      if((ubMsgCtrlP & CAN_FRAME_ISO_FD_ESI) > 0)
-      {
-         btResultT = true;
-      }
-   }
-   return(btResultT);
+  if (frameType() > eTYPE_CAN_EXT)
+  {
+    if ((ubMsgCtrlP & CAN_FRAME_ISO_FD_ESI) > 0)
+    {
+      btResultT = true;
+    }
+  }
+  return (btResultT);
 }
 
 
@@ -303,7 +309,7 @@ bool CpFrame::errorStateIndicator(void) const
 //----------------------------------------------------------------------------//
 CpFrame::Type_e  CpFrame::frameType(void) const
 {
-   return((Type_e) (ubMsgCtrlP & 0x03));
+  return ((Type_e)(ubMsgCtrlP & 0x03));
 }
 
 
@@ -315,18 +321,18 @@ CpFrame::Type_e  CpFrame::frameType(void) const
 //----------------------------------------------------------------------------//
 uint32_t CpFrame::identifier(void) const
 {
-   uint32_t ulIdValueT;
-   
-   if((ubMsgCtrlP & CAN_FRAME_FORMAT_EXT) > 0)
-   {
-      ulIdValueT = ulIdentifierP & CAN_FRAME_ID_MASK_EXT;
-   }
-   else
-   {
-      ulIdValueT = ulIdentifierP & CAN_FRAME_ID_MASK_STD;
-   }
-   
-   return(ulIdValueT);
+  uint32_t ulIdValueT;
+
+  if ((ubMsgCtrlP & CAN_FRAME_FORMAT_EXT) > 0)
+  {
+    ulIdValueT = ulIdentifierP & CAN_FRAME_ID_MASK_EXT;
+  }
+  else
+  {
+    ulIdValueT = ulIdentifierP & CAN_FRAME_ID_MASK_STD;
+  }
+
+  return (ulIdValueT);
 }
 
 
@@ -336,13 +342,13 @@ uint32_t CpFrame::identifier(void) const
 //----------------------------------------------------------------------------//
 bool CpFrame::isExtended(void) const
 {
-   bool btResultT = false;
-   
-   if((ubMsgCtrlP & CAN_FRAME_FORMAT_EXT) > 0)
-   {
-      btResultT = true;
-   }
-   return(btResultT);
+  bool btResultT = false;
+
+  if ((ubMsgCtrlP & CAN_FRAME_FORMAT_EXT) > 0)
+  {
+    btResultT = true;
+  }
+  return (btResultT);
 }
 
 
@@ -352,14 +358,14 @@ bool CpFrame::isExtended(void) const
 //----------------------------------------------------------------------------//
 bool CpFrame::isFrameApi() const
 {
-   bool btResultT = false;
+  bool btResultT = false;
 
-   if((ulIdentifierP & CAN_FRAME_TYPE_API) > 0)
-   {
-      btResultT = true;
-   }
+  if ((ulIdentifierP & CAN_FRAME_TYPE_API) > 0)
+  {
+    btResultT = true;
+  }
 
-   return(btResultT);
+  return (btResultT);
 }
 
 
@@ -369,13 +375,13 @@ bool CpFrame::isFrameApi() const
 //----------------------------------------------------------------------------//
 bool CpFrame::isFrameError() const
 {
-   bool btResultT = false;
+  bool btResultT = false;
 
-   if((ulIdentifierP & CAN_FRAME_TYPE_ERR) > 0)
-   {
-      btResultT = true;
-   }
-   return(btResultT);
+  if ((ulIdentifierP & CAN_FRAME_TYPE_ERR) > 0)
+  {
+    btResultT = true;
+  }
+  return (btResultT);
 }
 
 //----------------------------------------------------------------------------//
@@ -384,13 +390,13 @@ bool CpFrame::isFrameError() const
 //----------------------------------------------------------------------------//
 bool CpFrame::isRemote(void) const
 {
-   bool btResultT = false;
+  bool btResultT = false;
 
-   if((ubMsgCtrlP & CAN_FRAME_FORMAT_RTR) > 0)
-   {
-      btResultT = true;
-   }
-   return(btResultT);
+  if ((ubMsgCtrlP & CAN_FRAME_FORMAT_RTR) > 0)
+  {
+    btResultT = true;
+  }
+  return (btResultT);
 }
 
 
@@ -398,19 +404,19 @@ bool CpFrame::isRemote(void) const
 // setBitrateSwitch()                                                         //
 // set / reset bit-rate switch bit value                                      //
 //----------------------------------------------------------------------------//
-void CpFrame::setBitrateSwitch(const bool & btBrsR)
+void CpFrame::setBitrateSwitch(const bool &btBrsR)
 {
-   if(frameType() > eTYPE_CAN_EXT)
-   {
-      if(btBrsR == true)
-      {
-         ubMsgCtrlP |= CAN_FRAME_ISO_FD_BRS;
-      }
-      else
-      {
-         ubMsgCtrlP &= (~CAN_FRAME_ISO_FD_BRS);
-      }
-   }
+  if (frameType() > eTYPE_CAN_EXT)
+  {
+    if (btBrsR == true)
+    {
+      ubMsgCtrlP |= CAN_FRAME_ISO_FD_BRS;
+    }
+    else
+    {
+      ubMsgCtrlP &= (~CAN_FRAME_ISO_FD_BRS);
+    }
+  }
 }
 
 
@@ -418,12 +424,12 @@ void CpFrame::setBitrateSwitch(const bool & btBrsR)
 // setData()                                                                  //
 // set data value                                                             //
 //----------------------------------------------------------------------------//
-void CpFrame::setData(const uint8_t & ubPosR, const uint8_t & ubValueR)
+void CpFrame::setData(const uint8_t &ubPosR, const uint8_t &ubValueR)
 {
-   if(ubPosR < dataSize())
-   {
-      aubByteP[ubPosR] = ubValueR;
-   }
+  if (ubPosR < dataSize())
+  {
+    aubByteP[ubPosR] = ubValueR;
+  }
 }
 
 
@@ -433,55 +439,55 @@ void CpFrame::setData(const uint8_t & ubPosR, const uint8_t & ubValueR)
 //----------------------------------------------------------------------------//
 void CpFrame::setDataSize(uint8_t ubSizeV)
 {
-   if(frameType() > eTYPE_CAN_EXT)
-   {
-      //--------------------------------------------------------
-      // set DLC value to maximum requested size value
-      //
-      if(ubSizeV <= 8)
-      {
-         ubMsgDlcP = ubSizeV;
-      }
-      else if((ubSizeV > 8) && (ubSizeV <= 12))
-      {
-         ubMsgDlcP = 9;
-      }
-      else if((ubSizeV > 12) && (ubSizeV <= 16))
-      {
-         ubMsgDlcP = 10;
-      }
-      else if((ubSizeV > 16) && (ubSizeV <= 20))
-      {
-         ubMsgDlcP = 11;
-      }
-      else if((ubSizeV > 20) && (ubSizeV <= 24))
-      {
-         ubMsgDlcP = 12;
-      }
-      else if((ubSizeV > 24) && (ubSizeV <= 32))
-      {
-         ubMsgDlcP = 13;
-      }
-      else if((ubSizeV > 32) && (ubSizeV <= 48))
-      {
-         ubMsgDlcP = 14;
-      }
-      else
-      {
-         ubMsgDlcP = 15;
-      }
-   }
-   else
-   {
-      //--------------------------------------------------------
-      // Classic CAN supports 0 .. 8 byte
-      //
-      if(ubSizeV > 8)
-      {
-         ubSizeV = 8;
-      }
+  if (frameType() > eTYPE_CAN_EXT)
+  {
+    //--------------------------------------------------------
+    // set DLC value to maximum requested size value
+    //
+    if (ubSizeV <= 8)
+    {
       ubMsgDlcP = ubSizeV;
-   }
+    }
+    else if ((ubSizeV > 8) && (ubSizeV <= 12))
+    {
+      ubMsgDlcP = 9;
+    }
+    else if ((ubSizeV > 12) && (ubSizeV <= 16))
+    {
+      ubMsgDlcP = 10;
+    }
+    else if ((ubSizeV > 16) && (ubSizeV <= 20))
+    {
+      ubMsgDlcP = 11;
+    }
+    else if ((ubSizeV > 20) && (ubSizeV <= 24))
+    {
+      ubMsgDlcP = 12;
+    }
+    else if ((ubSizeV > 24) && (ubSizeV <= 32))
+    {
+      ubMsgDlcP = 13;
+    }
+    else if ((ubSizeV > 32) && (ubSizeV <= 48))
+    {
+      ubMsgDlcP = 14;
+    }
+    else
+    {
+      ubMsgDlcP = 15;
+    }
+  }
+  else
+  {
+    //--------------------------------------------------------
+    // Classic CAN supports 0 .. 8 byte
+    //
+    if (ubSizeV > 8)
+    {
+      ubSizeV = 8;
+    }
+    ubMsgDlcP = ubSizeV;
+  }
 }
 
 
@@ -489,27 +495,27 @@ void CpFrame::setDataSize(uint8_t ubSizeV)
 // setDataUInt16()                                                            //
 // set data value                                                             //
 //----------------------------------------------------------------------------//
-void CpFrame::setDataUInt16(const uint8_t & ubPosR,
-                              const uint16_t & uwValueR,
-                              const bool & btMsbFirstR)
+void CpFrame::setDataUInt16(const uint8_t &ubPosR,
+                            const uint16_t &uwValueR,
+                            const bool &btMsbFirstR)
 {
-   uint16_t uwValueT = uwValueR;
+  uint16_t uwValueT = uwValueR;
 
-   if(ubPosR < (this->dataSize() - 1) && (this->dataSize() > 1))
-   {
-      if(btMsbFirstR)
-      {
-         aubByteP[ubPosR + 1] = (uint8_t) uwValueT;
-         uwValueT = uwValueT >> 8;
-         aubByteP[ubPosR + 0] = (uint8_t) uwValueT;
-      }
-      else
-      {
-         aubByteP[ubPosR + 0] = (uint8_t) uwValueT;
-         uwValueT = uwValueT >> 8;
-         aubByteP[ubPosR + 1] = (uint8_t) uwValueT;
-      }
-   }
+  if (ubPosR < (this->dataSize() - 1) && (this->dataSize() > 1))
+  {
+    if (btMsbFirstR)
+    {
+      aubByteP[ubPosR + 1] = (uint8_t) uwValueT;
+      uwValueT = uwValueT >> 8;
+      aubByteP[ubPosR + 0] = (uint8_t) uwValueT;
+    }
+    else
+    {
+      aubByteP[ubPosR + 0] = (uint8_t) uwValueT;
+      uwValueT = uwValueT >> 8;
+      aubByteP[ubPosR + 1] = (uint8_t) uwValueT;
+    }
+  }
 
 }
 
@@ -518,35 +524,35 @@ void CpFrame::setDataUInt16(const uint8_t & ubPosR,
 // setDataUInt32()                                                            //
 // set data value                                                             //
 //----------------------------------------------------------------------------//
-void CpFrame::setDataUInt32(const uint8_t & ubPosR,
-                              const uint32_t & ulValueR,
-                              const bool & btMsbFirstR)
+void CpFrame::setDataUInt32(const uint8_t &ubPosR,
+                            const uint32_t &ulValueR,
+                            const bool &btMsbFirstR)
 {
-   uint32_t ulValueT = ulValueR;
+  uint32_t ulValueT = ulValueR;
 
-   if(ubPosR < (this->dataSize() - 3) && (this->dataSize() > 3))
-   {
-      if(btMsbFirstR)
-      {
-         aubByteP[ubPosR + 3] = (uint8_t) ulValueT;
-         ulValueT = ulValueT >> 8;
-         aubByteP[ubPosR + 2] = (uint8_t) ulValueT;
-         ulValueT = ulValueT >> 8;
-         aubByteP[ubPosR + 1] = (uint8_t) ulValueT;
-         ulValueT = ulValueT >> 8;
-         aubByteP[ubPosR + 0] = (uint8_t) ulValueT;
-      }
-      else
-      {
-         aubByteP[ubPosR + 0] = (uint8_t) ulValueT;
-         ulValueT = ulValueT >> 8;
-         aubByteP[ubPosR + 1] = (uint8_t) ulValueT;
-         ulValueT = ulValueT >> 8;
-         aubByteP[ubPosR + 2] = (uint8_t) ulValueT;
-         ulValueT = ulValueT >> 8;
-         aubByteP[ubPosR + 3] = (uint8_t) ulValueT;
-      }
-   }
+  if (ubPosR < (this->dataSize() - 3) && (this->dataSize() > 3))
+  {
+    if (btMsbFirstR)
+    {
+      aubByteP[ubPosR + 3] = (uint8_t) ulValueT;
+      ulValueT = ulValueT >> 8;
+      aubByteP[ubPosR + 2] = (uint8_t) ulValueT;
+      ulValueT = ulValueT >> 8;
+      aubByteP[ubPosR + 1] = (uint8_t) ulValueT;
+      ulValueT = ulValueT >> 8;
+      aubByteP[ubPosR + 0] = (uint8_t) ulValueT;
+    }
+    else
+    {
+      aubByteP[ubPosR + 0] = (uint8_t) ulValueT;
+      ulValueT = ulValueT >> 8;
+      aubByteP[ubPosR + 1] = (uint8_t) ulValueT;
+      ulValueT = ulValueT >> 8;
+      aubByteP[ubPosR + 2] = (uint8_t) ulValueT;
+      ulValueT = ulValueT >> 8;
+      aubByteP[ubPosR + 3] = (uint8_t) ulValueT;
+    }
+  }
 }
 
 
@@ -556,29 +562,29 @@ void CpFrame::setDataUInt32(const uint8_t & ubPosR,
 //----------------------------------------------------------------------------//
 void CpFrame::setDlc(uint8_t ubDlcV)
 {
-   //----------------------------------------------------------------
-   // limit the DLC value range from 0 .. 15
-   //
-   ubDlcV = ubDlcV & 0x0F;
-   
-   if(frameType() < eTYPE_FD_STD)
-   {
-      //--------------------------------------------------------
-      // classic CAN is limited to a DLC value of 8
-      //
-      if(ubDlcV > 8)
-      {
-         ubDlcV = 8;
-      }
-      ubMsgDlcP = ubDlcV;
-   }
-   else
-   {
-      //--------------------------------------------------------
-      // CAN FD can have DLC values from 0 .. 15
-      //
-      ubMsgDlcP = ubDlcV;
-   }
+  //----------------------------------------------------------------
+  // limit the DLC value range from 0 .. 15
+  //
+  ubDlcV = ubDlcV & 0x0F;
+
+  if (frameType() < eTYPE_FD_STD)
+  {
+    //--------------------------------------------------------
+    // classic CAN is limited to a DLC value of 8
+    //
+    if (ubDlcV > 8)
+    {
+      ubDlcV = 8;
+    }
+    ubMsgDlcP = ubDlcV;
+  }
+  else
+  {
+    //--------------------------------------------------------
+    // CAN FD can have DLC values from 0 .. 15
+    //
+    ubMsgDlcP = ubDlcV;
+  }
 }
 
 //----------------------------------------------------------------------------//
@@ -587,40 +593,40 @@ void CpFrame::setDlc(uint8_t ubDlcV)
 //----------------------------------------------------------------------------//
 void CpFrame::setFrameType(const Type_e &ubTypeR)
 {
-   ubMsgCtrlP &= (~0x03);     // remove existing frame type bits
-   ubMsgCtrlP |= ubTypeR;
+  ubMsgCtrlP &= (~0x03);     // remove existing frame type bits
+  ubMsgCtrlP |= ubTypeR;
 
-   //----------------------------------------------------------------
-   // check for Classic CAN frame
-   //
-   if(ubTypeR < eTYPE_FD_STD)
-   {
-      //--------------------------------------------------------
-      // ESI and BRS are cleared
-      //
-      ubMsgCtrlP &= (~CAN_FRAME_ISO_FD_BRS);
-      ubMsgCtrlP &= (~CAN_FRAME_ISO_FD_ESI);
+  //----------------------------------------------------------------
+  // check for Classic CAN frame
+  //
+  if (ubTypeR < eTYPE_FD_STD)
+  {
+    //--------------------------------------------------------
+    // ESI and BRS are cleared
+    //
+    ubMsgCtrlP &= (~CAN_FRAME_ISO_FD_BRS);
+    ubMsgCtrlP &= (~CAN_FRAME_ISO_FD_ESI);
 
-      //--------------------------------------------------------
-      // make sure the DLC value is limited to 8
-      //
-      if(ubMsgDlcP > 8)
-      {
-         ubMsgDlcP = 8;
-      }
-   }
+    //--------------------------------------------------------
+    // make sure the DLC value is limited to 8
+    //
+    if (ubMsgDlcP > 8)
+    {
+      ubMsgDlcP = 8;
+    }
+  }
 
-   //----------------------------------------------------------------
-   // check for ISO FD CAN frame
-   //
-   else
-   {
-      //--------------------------------------------------------
-      // RTR is cleared
-      //
-      ubMsgCtrlP &= (~CAN_FRAME_FORMAT_RTR);
+  //----------------------------------------------------------------
+  // check for ISO FD CAN frame
+  //
+  else
+  {
+    //--------------------------------------------------------
+    // RTR is cleared
+    //
+    ubMsgCtrlP &= (~CAN_FRAME_FORMAT_RTR);
 
-   }
+  }
 }
 
 
@@ -630,28 +636,28 @@ void CpFrame::setFrameType(const Type_e &ubTypeR)
 //----------------------------------------------------------------------------//
 void CpFrame::setIdentifier(uint32_t ulIdentifierV)
 {
-   switch(frameType())
-   {
-      case eTYPE_CAN_STD:
-      case eTYPE_FD_STD:
-         ulIdentifierP = ulIdentifierV & CAN_FRAME_ID_MASK_STD;
-         break;
+  switch (frameType())
+  {
+    case eTYPE_CAN_STD:
+    case eTYPE_FD_STD:
+      ulIdentifierP = ulIdentifierV & CAN_FRAME_ID_MASK_STD;
+      break;
 
-      case eTYPE_CAN_EXT:
-      case eTYPE_FD_EXT:
-         ulIdentifierP = ulIdentifierV & CAN_FRAME_ID_MASK_EXT;
-         break;
+    case eTYPE_CAN_EXT:
+    case eTYPE_FD_EXT:
+      ulIdentifierP = ulIdentifierV & CAN_FRAME_ID_MASK_EXT;
+      break;
 
-   }
+  }
 }
 
 
 
 
 
-void CpFrame::setMarker(const uint32_t & ulMarkerValueR)
+void CpFrame::setMarker(const uint32_t &ulMarkerValueR)
 {
-   ulMsgMarkerP = ulMarkerValueR;
+  ulMsgMarkerP = ulMarkerValueR;
 }
 
 
@@ -659,30 +665,30 @@ void CpFrame::setMarker(const uint32_t & ulMarkerValueR)
 // setRemote()                                                                //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void CpFrame::setRemote(const bool & btRtrR)
+void CpFrame::setRemote(const bool &btRtrR)
 {
-   if(frameType() < eTYPE_FD_STD)
-   {
-      if (btRtrR == true)
-      {
-         ubMsgCtrlP |=   CAN_FRAME_FORMAT_RTR;
-      }
-      else
-      {
-         ubMsgCtrlP &= (~CAN_FRAME_FORMAT_RTR);
-      }
-   }
-   else
-   {
+  if (frameType() < eTYPE_FD_STD)
+  {
+    if (btRtrR == true)
+    {
+      ubMsgCtrlP |=   CAN_FRAME_FORMAT_RTR;
+    }
+    else
+    {
       ubMsgCtrlP &= (~CAN_FRAME_FORMAT_RTR);
-   }
+    }
+  }
+  else
+  {
+    ubMsgCtrlP &= (~CAN_FRAME_FORMAT_RTR);
+  }
 
 }
 
 
-void CpFrame::setUser(const uint32_t & ulUserValueR)
+void CpFrame::setUser(const uint32_t &ulUserValueR)
 {
-   ulMsgUserP = ulUserValueR;
+  ulMsgUserP = ulUserValueR;
 }
 
 
@@ -690,30 +696,30 @@ void CpFrame::setUser(const uint32_t & ulUserValueR)
 // operator ==                                                                //
 // compare two CAN frames                                                     //
 //----------------------------------------------------------------------------//
-bool CpFrame::operator==(const CpFrame & clCanFrameR)
+bool CpFrame::operator==(const CpFrame &clCanFrameR)
 {
-   bool btResultT = false;
-   
-   if(this->frameType() == clCanFrameR.frameType())
-   {
-      if(this->identifier() == clCanFrameR.identifier())
+  bool btResultT = false;
+
+  if (this->frameType() == clCanFrameR.frameType())
+  {
+    if (this->identifier() == clCanFrameR.identifier())
+    {
+      if (this->dlc() == clCanFrameR.dlc())
       {
-         if(this->dlc() == clCanFrameR.dlc())
-         {
-            btResultT = true;
-            for(uint8_t ubCntT = 0; ubCntT < this->dataSize(); ubCntT++)
-            {
-               if(this->data(ubCntT) != clCanFrameR.data(ubCntT))
-               {
-                  btResultT = false;
-                  break;
-               }
-            }
-         }
+        btResultT = true;
+        for (uint8_t ubCntT = 0; ubCntT < this->dataSize(); ubCntT++)
+        {
+          if (this->data(ubCntT) != clCanFrameR.data(ubCntT))
+          {
+            btResultT = false;
+            break;
+          }
+        }
       }
-   }
-   
-   return(btResultT);
+    }
+  }
+
+  return (btResultT);
 }
 
 
@@ -721,8 +727,8 @@ bool CpFrame::operator==(const CpFrame & clCanFrameR)
 // operator !=                                                                //
 // compare two CAN frames                                                     //
 //----------------------------------------------------------------------------//
-bool CpFrame::operator!=(const CpFrame & clCanFrameR)
+bool CpFrame::operator!=(const CpFrame &clCanFrameR)
 {
-   return(!(*this == clCanFrameR));
+  return (!(*this == clCanFrameR));
 }
 

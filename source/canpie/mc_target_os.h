@@ -36,7 +36,7 @@
 
 
 //-----------------------------------------------------------------------------
-/*!   
+/*!
 ** \file    mc_target_os.h
 ** \brief   MCL - OS specific definitions and includes
 **

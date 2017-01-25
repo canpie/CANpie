@@ -304,18 +304,19 @@ typedef  int64_t              _S64;
 ** \brief Needed to access a float value like an 32bit unsigned value
 **        and otherwise
 */
-union Float_u {
-   /*!
-   ** \var     ftValue
-   ** \brief   Floating-point value
-   */
-   float       ftValue;
+union Float_u
+{
+  /*!
+  ** \var     ftValue
+  ** \brief   Floating-point value
+  */
+  float       ftValue;
 
-   /*!
-   ** \var     ulValue
-   ** \brief   32bit unsigned value
-   */
-   uint32_t    ulValue;
+  /*!
+  ** \var     ulValue
+  ** \brief   32bit unsigned value
+  */
+  uint32_t    ulValue;
 };
 
 #endif

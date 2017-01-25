@@ -91,22 +91,23 @@
 ** \brief   Port structure for Linux
 **
 */
-struct CpPortLinux_s {
+struct CpPortLinux_s
+{
 
-   /*!   logical CAN interface number,
-   **    first index is 0, value -1 denotes not assigned
-   */
-   int      slLogIf;
+  /*!   logical CAN interface number,
+  **    first index is 0, value -1 denotes not assigned
+  */
+  int      slLogIf;
 
-   /*!   physical CAN interface number,
-   **    first index is 0, value -1 denotes not assigned
-   */
-   int      slPhyIf;
+  /*!   physical CAN interface number,
+  **    first index is 0, value -1 denotes not assigned
+  */
+  int      slPhyIf;
 
-   /*!   CAN message queue number,
-   **    first index is 0, value -1 denotes not assigned
-   */
-   int      slQueue;
+  /*!   CAN message queue number,
+  **    first index is 0, value -1 denotes not assigned
+  */
+  int      slQueue;
 };
 
 
@@ -116,17 +117,18 @@ struct CpPortLinux_s {
 ** \brief   Port structure for embedded target
 **
 */
-struct CpPortEmbedded_s {
+struct CpPortEmbedded_s
+{
 
-   /*!   physical CAN interface number,
-   **    first CAN channel (index) is 0
-   */
-   uint8_t     ubPhyIf;
+  /*!   physical CAN interface number,
+  **    first CAN channel (index) is 0
+  */
+  uint8_t     ubPhyIf;
 
-   /*!   logical CAN interface number,
-   **    first index is 0
-   */
-   uint8_t     ubLogIf;
+  /*!   logical CAN interface number,
+  **    first index is 0
+  */
+  uint8_t     ubLogIf;
 
 };
 
