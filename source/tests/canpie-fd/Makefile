@@ -167,7 +167,10 @@ DEV_SRC	=	device_canfd.c
 #--------------------------------------------------------------------
 TEST_SRC =	test_cp_core.c				\
 				test_cp_main.c				\
-				test_cp_msg.c				\
+				test_cp_msg_ccf.c			\
+				test_cp_msg_ccm.c			\
+				test_cp_msg_fdf.c			\
+				test_cp_msg_fdm.c			\
 				unity_fixture.c			\
 				unity.c
 		
