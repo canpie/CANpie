@@ -84,6 +84,7 @@ TEST(CP_MSG_CCF, 001)
    CpMsgClear(&tsCanMsgS);                // clear the message
    //TEST_ASSERT_EQUAL( CpMsgGetDlc(&tsCanMsgT), 0);
 
+   // Hallo
    //TEST_ASSERT_EQUAL( CpMsgGetStdId(&tsCanMsgT), 0);
 
 }
