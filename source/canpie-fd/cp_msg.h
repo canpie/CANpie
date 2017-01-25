@@ -373,7 +373,7 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV);
 
 
 #define  CpMsgGetData(MSG_PTR, POS)                               \
-            (MSG_PTR)->aubData[POS]
+            ((MSG_PTR)->aubData[POS])
 
 #define  CpMsgGetDlc(MSG_PTR)                                     \
             ((MSG_PTR)->ubMsgDLC)
