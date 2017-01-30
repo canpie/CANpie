@@ -144,7 +144,6 @@ TEST_GROUP_RUNNER(CP_MSG_FDF)
 {
    UnityPrint("Run test group CP_MSG_FDF ");
    printf("\n");
-   printf("Size of structure CpCanMsg_s %d\n", sizeof(struct CpCanMsg_s));
 
    RUN_TEST_CASE(CP_MSG_FDF, 001);
    RUN_TEST_CASE(CP_MSG_FDF, 002);

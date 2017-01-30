@@ -136,7 +136,7 @@ TEST_GROUP_RUNNER(CP_MSG_CCM)
 {
    UnityPrint("Run test group CP_MSG_CCM ");
    printf("\n");
-   printf("Size of structure CpCanMsg_s %d\n", sizeof(struct CpCanMsg_s));
+ //  printf("Size of structure CpCanMsg_s %d\n", sizeof(struct CpCanMsg_s));
 
    RUN_TEST_CASE(CP_MSG_CCM, 001);
    RUN_TEST_CASE(CP_MSG_CCM, 002);
