@@ -218,7 +218,7 @@ TEST(CP_MSG_CCF, 003)
    //----------------------------------------------------------------
    // @SubTest02
    //
-   // uint8_t ubCountS;
+
       CpMsgClear(&tsCanMsgS);
 
       CpMsgSetDlc(&tsCanMsgS, 0x01);
