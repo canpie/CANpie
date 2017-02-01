@@ -1,5 +1,0 @@
-*.c   filter=version
-*.h   filter=version
-*.cpp filter=version
-*.hpp filter=version
-*.inc filter=version

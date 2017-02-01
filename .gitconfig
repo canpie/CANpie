@@ -1,3 +1,0 @@
-[filter "version"]
-	clean = ./clean_version.sh
-	smudge = ./get_version.sh
