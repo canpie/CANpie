@@ -171,10 +171,10 @@ QCanInterface::InterfaceError_e QCanInterfaceIxxat::read(QCanFrame &clFrameR)
             // copy all needed parameters to QCanFrame structure
             if (tsCanMsgT.uMsgInfo.Bits.ext)
             {
-               clFrameR.setExtId(tsCanMsgT.dwMsgId);
+               clFrameR.setIdentifier(tsCanMsgT.dwMsgId);
             } else
             {
-               clFrameR.setStdId((uint16_t)tsCanMsgT.dwMsgId);
+               clFrameR.setIdentifier((uint16_t)tsCanMsgT.dwMsgId);
             }
 
             clFrameR.setDlc(tsCanMsgT.uMsgInfo.Bits.dlc);
