@@ -62,20 +62,21 @@
 ** Opposite to this structure FIFO macros can be used to manage the
 ** FIFO access.
 */
-struct CpFifo_s {
-   /*! Index where the last data has been written to
-   */
-   uint32_t  ulIndexIn;
+struct CpFifo_s
+{
+  /*! Index where the last data has been written to
+  */
+  uint32_t  ulIndexIn;
 
-   /*! Index where the last data has been read from
-   */
-   uint32_t  ulIndexOut;
+  /*! Index where the last data has been read from
+  */
+  uint32_t  ulIndexOut;
 
-   /*! Maximum number of FIFO entries
-   */
-   uint32_t  ulIndexMax;
+  /*! Maximum number of FIFO entries
+  */
+  uint32_t  ulIndexMax;
 
-   CpCanMsg_ts * ptsCanMsg;
+  CpCanMsg_ts *ptsCanMsg;
 };
 /*!
 ** \typedef    CpFifo_ts

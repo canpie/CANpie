@@ -350,112 +350,113 @@
 ** table with hardware specific error codes, which must be in the range
 ** from 128 to 255.
 */
-enum CpErr {
+enum CpErr
+{
 
-   /*!   No error (00dec / 00hex)
-   */
-   CpErr_OK = 0,
+  /*!   No error (00dec / 00hex)
+  */
+  CpErr_OK = 0,
 
-   /*!   Error not specified (01dec / 01hex)
-   */
-   CpErr_GENERIC,
+  /*!   Error not specified (01dec / 01hex)
+  */
+  CpErr_GENERIC,
 
-   /*!   Hardware failure (02dec / 02hex)
-   */
-   CpErr_HARDWARE,
+  /*!   Hardware failure (02dec / 02hex)
+  */
+  CpErr_HARDWARE,
 
-   /*!   Initialisation failure (03dec / 03hex)
-   */
-   CpErr_INIT_FAIL,
+  /*!   Initialisation failure (03dec / 03hex)
+  */
+  CpErr_INIT_FAIL,
 
-   /*!   Channel is initialised, ready to run (04dec / 04hex)
-   */
-   CpErr_INIT_READY,
+  /*!   Channel is initialised, ready to run (04dec / 04hex)
+  */
+  CpErr_INIT_READY,
 
-   /*!    CAN channel was not initialised (05dec / 05hex)
-   */
-   CpErr_INIT_MISSING,
+  /*!    CAN channel was not initialised (05dec / 05hex)
+  */
+  CpErr_INIT_MISSING,
 
-   /*!   Receive buffer is empty (05dec / 05hex)
-   */
-   CpErr_RCV_EMPTY,
+  /*!   Receive buffer is empty (05dec / 05hex)
+  */
+  CpErr_RCV_EMPTY,
 
-   /*!   Receive buffer overrun (06dec / 06hex)
-   */
-   CpErr_OVERRUN,
+  /*!   Receive buffer overrun (06dec / 06hex)
+  */
+  CpErr_OVERRUN,
 
-   /*!   Transmit buffer is full (07dec / 07hex)
-   */
-   CpErr_TRM_FULL,
+  /*!   Transmit buffer is full (07dec / 07hex)
+  */
+  CpErr_TRM_FULL,
 
-   /*!   CAN message has wrong format (10dec / 0Ahex)
-   */
-   CpErr_CAN_MESSAGE = 10,
+  /*!   CAN message has wrong format (10dec / 0Ahex)
+  */
+  CpErr_CAN_MESSAGE = 10,
 
-   /*!   CAN identifier not valid (11dec / 0Bhex)
-   */
-   CpErr_CAN_ID,
+  /*!   CAN identifier not valid (11dec / 0Bhex)
+  */
+  CpErr_CAN_ID,
 
-   /*!   CAN data length code not valid (12dec / 0Chex)
-   */
-   CpErr_CAN_DLC,
+  /*!   CAN data length code not valid (12dec / 0Chex)
+  */
+  CpErr_CAN_DLC,
 
-   /*!   FIFO is empty (20dec / 14hex)
-   */
-   CpErr_FIFO_EMPTY = 20,
+  /*!   FIFO is empty (20dec / 14hex)
+  */
+  CpErr_FIFO_EMPTY = 20,
 
-   /*!   Message is waiting in FIFO (21dec / 15hex)
-   */
-   CpErr_FIFO_WAIT,
+  /*!   Message is waiting in FIFO (21dec / 15hex)
+  */
+  CpErr_FIFO_WAIT,
 
-   /*!   FIFO is full (22dec / 16hex)
-   */
-   CpErr_FIFO_FULL,
+  /*!   FIFO is full (22dec / 16hex)
+  */
+  CpErr_FIFO_FULL,
 
-   /*!   FIFO size is out of range (23dec / 17hex)
-   */
-   CpErr_FIFO_SIZE,
+  /*!   FIFO size is out of range (23dec / 17hex)
+  */
+  CpErr_FIFO_SIZE,
 
-   /*!   Parameter of FIFO function is out of range (24dec / 18hex)
-   */
-   CpErr_FIFO_PARM,
+  /*!   Parameter of FIFO function is out of range (24dec / 18hex)
+  */
+  CpErr_FIFO_PARM,
 
-   /*!   Controller is in error passive (30dec / 1Ehex)
-   */
-   CpErr_BUS_PASSIVE = 30,
+  /*!   Controller is in error passive (30dec / 1Ehex)
+  */
+  CpErr_BUS_PASSIVE = 30,
 
-   /*!   Controller is in bus off (31dec / 1Fhex)
-   */
-   CpErr_BUS_OFF,
+  /*!   Controller is in bus off (31dec / 1Fhex)
+  */
+  CpErr_BUS_OFF,
 
-   /*!   Controller is in warning status (32dec / 20hex)
-   */
-   CpErr_BUS_WARNING,
+  /*!   Controller is in warning status (32dec / 20hex)
+  */
+  CpErr_BUS_WARNING,
 
 
-   /*!   Channel out of range (40dec / 28hex)
-   */
-   CpErr_CHANNEL = 40,
+  /*!   Channel out of range (40dec / 28hex)
+  */
+  CpErr_CHANNEL = 40,
 
-   /*!   Register address out of range (41dec / 29hex)
-   */
-   CpErr_REGISTER,
+  /*!   Register address out of range (41dec / 29hex)
+  */
+  CpErr_REGISTER,
 
-   /*!   Baudrate out of range (42dec / 2Ahex)
-   */
-   CpErr_BAUDRATE,
+  /*!   Baudrate out of range (42dec / 2Ahex)
+  */
+  CpErr_BAUDRATE,
 
-   /*!   Buffer number out of range (43dec / 2Bhex)
-   */
-   CpErr_BUFFER,
+  /*!   Buffer number out of range (43dec / 2Bhex)
+  */
+  CpErr_BUFFER,
 
-   /*!   Parameter number out of range (44dec / 2Chex)
-   */
-   CpErr_PARAM,
+  /*!   Parameter number out of range (44dec / 2Chex)
+  */
+  CpErr_PARAM,
 
-   /*!   Function is not supported (50dec / 32hex)
-   */
-   CpErr_NOT_SUPPORTED = 50
+  /*!   Function is not supported (50dec / 32hex)
+  */
+  CpErr_NOT_SUPPORTED = 50
 };
 
 
@@ -464,9 +465,10 @@ enum CpErr {
 ** \enum    CP_FIFO
 ** \brief   FIFO Buffer numbers
 */
-enum CP_FIFO {
-   CP_FIFO_RCV = 0,
-   CP_FIFO_TRM
+enum CP_FIFO
+{
+  CP_FIFO_RCV = 0,
+  CP_FIFO_TRM
 };
 
 
@@ -495,17 +497,18 @@ enum CP_FIFO {
 ** <br>
 **
 */
-enum CP_CALLBACK {
+enum CP_CALLBACK
+{
 
-   /*!
-   ** Message was processed by callback and is not inserted in the FIFO
-   */
-   CP_CALLBACK_PROCESSED = 0,
+  /*!
+  ** Message was processed by callback and is not inserted in the FIFO
+  */
+  CP_CALLBACK_PROCESSED = 0,
 
-   /*!
-   ** Message was processed by callback and is inserted in the FIFO
-   */
-   CP_CALLBACK_PUSH_FIFO
+  /*!
+  ** Message was processed by callback and is inserted in the FIFO
+  */
+  CP_CALLBACK_PUSH_FIFO
 };
 
 
@@ -517,58 +520,59 @@ enum CP_CALLBACK {
 ** The values of the enumeration CP_BAUD are used as parameter for the
 ** function CpCoreBaudrate().
 */
-enum CP_BAUD {
-   /*!
-   ** Baudrate 10 kBit/sec
-   */
-   CP_BAUD_10K = 0,
+enum CP_BAUD
+{
+  /*!
+  ** Baudrate 10 kBit/sec
+  */
+  CP_BAUD_10K = 0,
 
-   /*!
-   ** Baudrate 20 kBit/sec
-   */
-   CP_BAUD_20K,
+  /*!
+  ** Baudrate 20 kBit/sec
+  */
+  CP_BAUD_20K,
 
-   /*!
-   ** Baudrate 50 kBit/sec
-   */
-   CP_BAUD_50K,
+  /*!
+  ** Baudrate 50 kBit/sec
+  */
+  CP_BAUD_50K,
 
-   /*!
-   ** Baudrate 100 kBit/sec
-   */
-   CP_BAUD_100K,
+  /*!
+  ** Baudrate 100 kBit/sec
+  */
+  CP_BAUD_100K,
 
-   /*!
-   ** Baudrate 125 kBit/sec
-   */
-   CP_BAUD_125K,
+  /*!
+  ** Baudrate 125 kBit/sec
+  */
+  CP_BAUD_125K,
 
-   /*!
-   ** Baudrate 250 kBit/sec
-   */
-   CP_BAUD_250K,
+  /*!
+  ** Baudrate 250 kBit/sec
+  */
+  CP_BAUD_250K,
 
-   /*!
-   ** Baudrate 500 kBit/sec
-   */
-   CP_BAUD_500K,
+  /*!
+  ** Baudrate 500 kBit/sec
+  */
+  CP_BAUD_500K,
 
-   /*!
-   ** Baudrate 800 kBit/sec
-   */
-   CP_BAUD_800K,
+  /*!
+  ** Baudrate 800 kBit/sec
+  */
+  CP_BAUD_800K,
 
-   /*!
-   ** Baudrate 1 MBit/sec
-   */
-   CP_BAUD_1M,
+  /*!
+  ** Baudrate 1 MBit/sec
+  */
+  CP_BAUD_1M,
 
-   /*!
-   ** Use automatic baudrate detection
-   */
-   CP_BAUD_AUTO,
+  /*!
+  ** Use automatic baudrate detection
+  */
+  CP_BAUD_AUTO,
 
-   CP_BAUD_MAX = CP_BAUD_AUTO
+  CP_BAUD_MAX = CP_BAUD_AUTO
 };
 
 
@@ -581,31 +585,32 @@ enum CP_BAUD {
 ** number of physical CAN interfaces on the target system). The enumeration
 ** CP_CHANNEL lists up to 8 physical interfaces.
 */
-enum CP_CHANNEL {
+enum CP_CHANNEL
+{
 
-   /*! CAN interface 1              */
-   CP_CHANNEL_1 = 0,
+  /*! CAN interface 1              */
+  CP_CHANNEL_1 = 0,
 
-   /*! CAN interface 2              */
-   CP_CHANNEL_2,
+  /*! CAN interface 2              */
+  CP_CHANNEL_2,
 
-   /*! CAN interface 3              */
-   CP_CHANNEL_3,
+  /*! CAN interface 3              */
+  CP_CHANNEL_3,
 
-   /*! CAN interface 4              */
-   CP_CHANNEL_4,
+  /*! CAN interface 4              */
+  CP_CHANNEL_4,
 
-   /*! CAN interface 5              */
-   CP_CHANNEL_5,
+  /*! CAN interface 5              */
+  CP_CHANNEL_5,
 
-   /*! CAN interface 6              */
-   CP_CHANNEL_6,
+  /*! CAN interface 6              */
+  CP_CHANNEL_6,
 
-   /*! CAN interface 7              */
-   CP_CHANNEL_7,
+  /*! CAN interface 7              */
+  CP_CHANNEL_7,
 
-   /*! CAN interface 8              */
-   CP_CHANNEL_8
+  /*! CAN interface 8              */
+  CP_CHANNEL_8
 };
 
 
@@ -619,22 +624,23 @@ enum CP_CHANNEL {
 ** These values are used as parameter for the function CpCoreCanMode() in
 ** order to change the state of the CAN controller.
 */
-enum CP_MODE {
-   /*!   Set controller in Stop mode (no reception / transmission possible)
-   */
-   CP_MODE_STOP = 0,
+enum CP_MODE
+{
+  /*!   Set controller in Stop mode (no reception / transmission possible)
+  */
+  CP_MODE_STOP = 0,
 
-   /*!   Set controller into normal operation
-   */
-   CP_MODE_START,
+  /*!   Set controller into normal operation
+  */
+  CP_MODE_START,
 
-   /*!   Set controller into listen-only mode
-   */
-   CP_MODE_LISTEN_ONLY,
+  /*!   Set controller into listen-only mode
+  */
+  CP_MODE_LISTEN_ONLY,
 
-   /*!   Set controller into Sleep mode
-   */
-   CP_MODE_SLEEP
+  /*!   Set controller into Sleep mode
+  */
+  CP_MODE_SLEEP
 };
 
 
@@ -645,65 +651,67 @@ enum CP_MODE {
 **
 ** These values are used as return value for the function CpCoreCanState().
 */
-enum CP_STATE {
-   /*!
-   ** CAN controller is in stopped mode
-   */
-   CP_STATE_STOPPED  = 0,
+enum CP_STATE
+{
+  /*!
+  ** CAN controller is in stopped mode
+  */
+  CP_STATE_STOPPED  = 0,
 
 
-   /*!
-   ** CAN controller is in Sleep mode
-   */
-   CP_STATE_SLEEPING,
+  /*!
+  ** CAN controller is in Sleep mode
+  */
+  CP_STATE_SLEEPING,
 
 
-   /*!
-   ** CAN controller is error active
-   */
-   CP_STATE_BUS_ACTIVE,
+  /*!
+  ** CAN controller is error active
+  */
+  CP_STATE_BUS_ACTIVE,
 
 
-   /*!
-   ** CAN controller is active, warning level is reached
-   */
-   CP_STATE_BUS_WARN,
+  /*!
+  ** CAN controller is active, warning level is reached
+  */
+  CP_STATE_BUS_WARN,
 
-   /*!
-   ** CAN controller is error passive
-   */
-   CP_STATE_BUS_PASSIVE,
+  /*!
+  ** CAN controller is error passive
+  */
+  CP_STATE_BUS_PASSIVE,
 
-   /*!
-   ** CAN controller went into Bus Off
-   */
-   CP_STATE_BUS_OFF,
+  /*!
+  ** CAN controller went into Bus Off
+  */
+  CP_STATE_BUS_OFF,
 
-   /*!
-   ** General failure of physical layer detected (if supported by hardware)
-   */
-   CP_STATE_PHY_FAULT = 10,
+  /*!
+  ** General failure of physical layer detected (if supported by hardware)
+  */
+  CP_STATE_PHY_FAULT = 10,
 
-   /*!
-   ** Fault on CAN-H detected (Low Speed CAN)
-   */
-   CP_STATE_PHY_H,
+  /*!
+  ** Fault on CAN-H detected (Low Speed CAN)
+  */
+  CP_STATE_PHY_H,
 
-   /*!
-   ** Fault on CAN-L detected (Low Speed CAN)
-   */
-   CP_STATE_PHY_L
+  /*!
+  ** Fault on CAN-L detected (Low Speed CAN)
+  */
+  CP_STATE_PHY_L
 
 };
 
-enum CP_ERR_TYPE {
-   CP_ERR_TYPE_NONE   = 0,
-   CP_ERR_TYPE_BIT0,
-   CP_ERR_TYPE_BIT1,
-   CP_ERR_TYPE_STUFF,
-   CP_ERR_TYPE_FORM,
-   CP_ERR_TYPE_CRC,
-   CP_ERR_TYPE_ACK
+enum CP_ERR_TYPE
+{
+  CP_ERR_TYPE_NONE   = 0,
+  CP_ERR_TYPE_BIT0,
+  CP_ERR_TYPE_BIT1,
+  CP_ERR_TYPE_STUFF,
+  CP_ERR_TYPE_FORM,
+  CP_ERR_TYPE_CRC,
+  CP_ERR_TYPE_ACK
 };
 
 /*----------------------------------------------------------------------------*/
@@ -714,22 +722,23 @@ enum CP_ERR_TYPE {
 ** The enumeration CP_BUFFER is used to define a message buffer inside a
 ** FullCAN controller. The index for the first buffer starts at 1.
 */
-enum CP_BUFFER {
-   CP_BUFFER_1 = 1,
-   CP_BUFFER_2,
-   CP_BUFFER_3,
-   CP_BUFFER_4,
-   CP_BUFFER_5,
-   CP_BUFFER_6,
-   CP_BUFFER_7,
-   CP_BUFFER_8,
-   CP_BUFFER_9,
-   CP_BUFFER_10,
-   CP_BUFFER_11,
-   CP_BUFFER_12,
-   CP_BUFFER_13,
-   CP_BUFFER_14,
-   CP_BUFFER_15
+enum CP_BUFFER
+{
+  CP_BUFFER_1 = 1,
+  CP_BUFFER_2,
+  CP_BUFFER_3,
+  CP_BUFFER_4,
+  CP_BUFFER_5,
+  CP_BUFFER_6,
+  CP_BUFFER_7,
+  CP_BUFFER_8,
+  CP_BUFFER_9,
+  CP_BUFFER_10,
+  CP_BUFFER_11,
+  CP_BUFFER_12,
+  CP_BUFFER_13,
+  CP_BUFFER_14,
+  CP_BUFFER_15
 };
 
 
@@ -738,16 +747,17 @@ enum CP_BUFFER {
 ** \enum    CP_BUFFER_DIR
 ** \brief   Buffer direction definition
 */
-enum CP_BUFFER_DIR {
-   /*!
-   **    Buffer direction is receive
-   */
-   CP_BUFFER_DIR_RX = 0,
+enum CP_BUFFER_DIR
+{
+  /*!
+  **    Buffer direction is receive
+  */
+  CP_BUFFER_DIR_RX = 0,
 
-   /*!
-   **    Buffer direction is transmit
-   */
-   CP_BUFFER_DIR_TX
+  /*!
+  **    Buffer direction is transmit
+  */
+  CP_BUFFER_DIR_TX
 };
 
 
@@ -762,9 +772,10 @@ enum CP_BUFFER_DIR {
 ** \brief   CAN time structure
 **
 */
-struct CpTime_s {
-   uint32_t  ulSec1970;
-   uint32_t  ulNanoSec;
+struct CpTime_s
+{
+  uint32_t  ulSec1970;
+  uint32_t  ulNanoSec;
 };
 
 /*!
@@ -790,81 +801,84 @@ typedef struct CpTime_s  _TsCpTime;
 ** all necessary informations is used. The structure has the following
 ** data fields:
 */
-struct CpCanMsg_s {
+struct CpCanMsg_s
+{
 
-   /*!
-   ** The identifier field may have 11 bits for standard frames
-   ** (CAN specification 2.0A) or 29 bits for extended frames
-   ** (CAN specification 2.0B). The three most significant bits
-   ** are reserved (always read 0).
-   ** \see CP_MASK
-   */
-   union {
-      /*! identifier for Standard Frame      */
-      uint16_t  uwStd;
-      /*! identifier for Extended Frame      */
-      uint32_t  ulExt;
-   } tuMsgId;
+  /*!
+  ** The identifier field may have 11 bits for standard frames
+  ** (CAN specification 2.0A) or 29 bits for extended frames
+  ** (CAN specification 2.0B). The three most significant bits
+  ** are reserved (always read 0).
+  ** \see CP_MASK
+  */
+  union
+  {
+    /*! identifier for Standard Frame      */
+    uint16_t  uwStd;
+    /*! identifier for Extended Frame      */
+    uint32_t  ulExt;
+  } tuMsgId;
 
-   /*!
-   ** The data field has up to 8 bytes (64 bit) of message data.
-   ** The number of used bytes is described via the structure
-   ** member \c ubMsgDLC.
-   */
-   union {
-      /*!   byte access, array of 8 byte     */
-      uint8_t  aubByte[8];
+  /*!
+  ** The data field has up to 8 bytes (64 bit) of message data.
+  ** The number of used bytes is described via the structure
+  ** member \c ubMsgDLC.
+  */
+  union
+  {
+    /*!   byte access, array of 8 byte     */
+    uint8_t  aubByte[8];
 
-      /*!   16 bit access, array of 4 words  */
-      uint16_t  auwWord[4];
+    /*!   16 bit access, array of 4 words  */
+    uint16_t  auwWord[4];
 
-      /*!   32 bit access, array of 2 longs  */
-      uint32_t  aulLong[2];
-   } tuMsgData;
-
-
-   /*!
-   ** The data length code denotes the number of data bytes
-   ** which are transmitted by a message.
-   ** The possible value range for the data length code is
-   ** from 0 to 8 (bytes).
-   */
-   uint8_t  ubMsgDLC;
+    /*!   32 bit access, array of 2 longs  */
+    uint32_t  aulLong[2];
+  } tuMsgData;
 
 
-   /*!
-   ** The structure member \c ubMsgCtrl defines the
-   ** different data frames (2.0A / 2.0B) and the RTR frames.
-   ** <ul>
-   ** <li>Bit 0: Extended Frame if set to 1, else Standard Frame
-   ** <li>Bit 1: Remote Frame if set to 1, else Data Frame
-   ** <li>Bit 2: Receiver Overrun if set to 1, else normal reception
-   ** <li>Bit 3: Message enable
-   ** <li>Bit 4: Transmit Request
-   ** <li>Bit 5: reserved, always 0
-   ** <li>Bit 6: reserved, always 0
-   ** <li>Bit 7: reserved, always 0
-   ** </ul>
-   ** \see CP_MASK
-   */
-   uint8_t  ubMsgCtrl;
+  /*!
+  ** The data length code denotes the number of data bytes
+  ** which are transmitted by a message.
+  ** The possible value range for the data length code is
+  ** from 0 to 8 (bytes).
+  */
+  uint8_t  ubMsgDLC;
+
+
+  /*!
+  ** The structure member \c ubMsgCtrl defines the
+  ** different data frames (2.0A / 2.0B) and the RTR frames.
+  ** <ul>
+  ** <li>Bit 0: Extended Frame if set to 1, else Standard Frame
+  ** <li>Bit 1: Remote Frame if set to 1, else Data Frame
+  ** <li>Bit 2: Receiver Overrun if set to 1, else normal reception
+  ** <li>Bit 3: Message enable
+  ** <li>Bit 4: Transmit Request
+  ** <li>Bit 5: reserved, always 0
+  ** <li>Bit 6: reserved, always 0
+  ** <li>Bit 7: reserved, always 0
+  ** </ul>
+  ** \see CP_MASK
+  */
+  uint8_t  ubMsgCtrl;
 
 
 #if CP_CAN_MSG_TIME == 1
-   /*!   The time stamp field defines the time when a CAN message
-   **    was received by the CAN controller. This is an optional
-   **    field (available if #CP_CAN_MSG_TIME is set to 1).
-   */
-   CpTime_ts tsMsgTime;
+  /*!   The time stamp field defines the time when a CAN message
+  **    was received by the CAN controller. This is an optional
+  **    field (available if #CP_CAN_MSG_TIME is set to 1).
+  */
+  CpTime_ts tsMsgTime;
 #endif
 
 #if CP_CAN_MSG_USER == 1
 
-   /*!   The field user data can hold a 32 bit value, which is
-   **    defined by the user. This is an optional field
-   **    (available if #CP_CAN_MSG_USER is set to 1).
-   */
-   uint32_t  ulMsgUser;
+  /*!   The field user data can hold a 32 bit value, which is
+  **    defined by the user. This is an optional field
+  **    (available if #CP_CAN_MSG_USER is set to 1).
+  */
+  uint32_t  ulMsgUser;
 #endif
 
 };
@@ -898,34 +912,35 @@ typedef struct CpCanMsg_s  _TsCpCanMsg;
 ** supplied by the designer of the CAN driver. The hardware description
 ** structure is available for every physical CAN channel.
 */
-struct CpHdi_s {
+struct CpHdi_s
+{
 
   uint16_t uwVersionNumber;
 
-   /*!   Bit coded value that describes the features of the CAN driver.
-   **    <ul>
-   **    <li>Bit 0/1: 0 = Standard Frame, 1 = Extended Frame passive,
-   **        2 = Extended Frame active
-   **    <li>Bit 2: 0 = BasicCAN, 1 = FullCAN
-   **    <li>Bit 3: 0 = No IRQ Handler, 1 = Has IRQ Handler
-   **    <li>Bit 4: 0 = No identifier filter, 1 = software identifier filter
-   **    <li>Bit 5: 0 = No timestamp, 1 = has timestamp
-   **    <li>Bit 6: 0 = No user data field, 1 = has user data field
-   **    <li>Bit 7: reserved
-   **    </ul>
-   */
+  /*!   Bit coded value that describes the features of the CAN driver.
+  **    <ul>
+  **    <li>Bit 0/1: 0 = Standard Frame, 1 = Extended Frame passive,
+  **        2 = Extended Frame active
+  **    <li>Bit 2: 0 = BasicCAN, 1 = FullCAN
+  **    <li>Bit 3: 0 = No IRQ Handler, 1 = Has IRQ Handler
+  **    <li>Bit 4: 0 = No identifier filter, 1 = software identifier filter
+  **    <li>Bit 5: 0 = No timestamp, 1 = has timestamp
+  **    <li>Bit 6: 0 = No user data field, 1 = has user data field
+  **    <li>Bit 7: reserved
+  **    </ul>
+  */
   uint16_t uwSupportFlags;
 
-   /*!   Constant value that identifies the used CAN controller
-   **    chip. Possible values for this member are listed
-   **    in the header file cp_cc.h
-   */
+  /*!   Constant value that identifies the used CAN controller
+  **    chip. Possible values for this member are listed
+  **    in the header file cp_cc.h
+  */
   uint16_t uwControllerType;
 
-   /*!   Defines the number of the interrupt which is used.
-   **    If the flag IRQHandler is set to 0, the value of
-   **    IRQNumber will be undefined.
-   */
+  /*!   Defines the number of the interrupt which is used.
+  **    If the flag IRQHandler is set to 0, the value of
+  **    IRQNumber will be undefined.
+  */
   uint16_t uwIRQNumber;
 
 
@@ -975,24 +990,25 @@ typedef struct CpHdi_s  _TsCpHdi;
 ** \brief   Bit timing structure
 **
 */
-struct CpBitTiming_s {
+struct CpBitTiming_s
+{
 
-   /*!   Bit timing register 0
-   */
-   uint8_t     ubBtr0;
+  /*!   Bit timing register 0
+  */
+  uint8_t     ubBtr0;
 
-   /*!   Bit timing register 1
-   */
-   uint8_t     ubBtr1;
+  /*!   Bit timing register 1
+  */
+  uint8_t     ubBtr1;
 
-   /*!   Synchronisation jump width
-   */
-   uint8_t     ubSjw;
+  /*!   Synchronisation jump width
+  */
+  uint8_t     ubSjw;
 
 
-   /*!   Baudrate prescaler
-   */
-   uint8_t     ubBrp;
+  /*!   Baudrate prescaler
+  */
+  uint8_t     ubBrp;
 };
 
 /*!
@@ -1017,19 +1033,20 @@ typedef struct CpBitTiming_s  _TsCpBitTiming;
 ** \brief   CAN statistic structure
 **
 */
-struct CpStatistic_s {
+struct CpStatistic_s
+{
 
-   /*!   Total number of received data & remote frames
-   */
-   uint32_t     ulRcvMsgCount;
+  /*!   Total number of received data & remote frames
+  */
+  uint32_t     ulRcvMsgCount;
 
-   /*!   Total number of transmitted data & remote frames
-   */
-   uint32_t     ulTrmMsgCount;
+  /*!   Total number of transmitted data & remote frames
+  */
+  uint32_t     ulTrmMsgCount;
 
-   /*!   Total number of error frames
-   */
-   uint32_t     ulErrMsgCount;
+  /*!   Total number of error frames
+  */
+  uint32_t     ulErrMsgCount;
 
 };
 
@@ -1044,25 +1061,26 @@ typedef struct CpStatistic_s _TsCpStatistic; // old style to be compatible
 ** \brief   CAN state structure
 **
 */
-struct CpState_s {
+struct CpState_s
+{
 
-   /*!   CAN error state 
-   **    Value should correspond to values from #CP_STATE
-   */
-   uint8_t     ubCanErrState;
+  /*!   CAN error state
+  **    Value should correspond to values from #CP_STATE
+  */
+  uint8_t     ubCanErrState;
 
-   /*!   Last error type occurred
-   **    Value should correspond to values from #CP_ERR_TYPE 
-   */
-   uint8_t     ubCanErrType;
+  /*!   Last error type occurred
+  **    Value should correspond to values from #CP_ERR_TYPE
+  */
+  uint8_t     ubCanErrType;
 
-   /*!   receive error counter
-   */
-   uint8_t     ubCanRcvErrCnt;
+  /*!   receive error counter
+  */
+  uint8_t     ubCanRcvErrCnt;
 
-   /*!   transmit error counter
-   */
-   uint8_t     ubCanTrmErrCnt;
+  /*!   transmit error counter
+  */
+  uint8_t     ubCanTrmErrCnt;
 
 };
 

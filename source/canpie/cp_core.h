@@ -163,8 +163,8 @@ extern "C" {                                                         //
 \*----------------------------------------------------------------------------*/
 
 
-CpStatus_tv CpCoreAutobaud(CpPort_ts * ptsPortV, uint8_t * pubBaudSelV,
-                           uint16_t * puwWaitV);
+CpStatus_tv CpCoreAutobaud(CpPort_ts *ptsPortV, uint8_t *pubBaudSelV,
+                           uint16_t *puwWaitV);
 
 
 /*!
@@ -180,7 +180,7 @@ CpStatus_tv CpCoreAutobaud(CpPort_ts * ptsPortV, uint8_t * pubBaudSelV,
 ** from the CP_BAUD enumeration.
 **
 */
-CpStatus_tv CpCoreBaudrate(CpPort_ts * ptsPortV, uint8_t ubBaudSelV);
+CpStatus_tv CpCoreBaudrate(CpPort_ts *ptsPortV, uint8_t ubBaudSelV);
 
 
 /*!
@@ -196,7 +196,7 @@ CpStatus_tv CpCoreBaudrate(CpPort_ts * ptsPortV, uint8_t ubBaudSelV);
 ** the used CAN controller hardware.
 **
 */
-CpStatus_tv CpCoreBittiming(CpPort_ts * ptsPortV, CpBitTiming_ts * ptsBitrateV);
+CpStatus_tv CpCoreBittiming(CpPort_ts *ptsPortV, CpBitTiming_ts *ptsBitrateV);
 
 
 /*!
@@ -214,8 +214,8 @@ CpStatus_tv CpCoreBittiming(CpPort_ts * ptsPortV, CpBitTiming_ts * ptsBitrateV);
 ** CAN standard frames.
 **
 */
-CpStatus_tv CpCoreBufferAccMask( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
-                                 uint32_t ulAccMaskV);
+CpStatus_tv CpCoreBufferAccMask(CpPort_ts *ptsPortV, uint8_t ubBufferIdxV,
+                                uint32_t ulAccMaskV);
 
 /*!
 ** \brief   Get data from message buffer
@@ -231,8 +231,8 @@ CpStatus_tv CpCoreBufferAccMask( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 ** before.
 **
 */
-CpStatus_tv CpCoreBufferGetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
-                                 uint8_t * pubDataV);
+CpStatus_tv CpCoreBufferGetData(CpPort_ts *ptsPortV, uint8_t ubBufferIdxV,
+                                uint8_t *pubDataV);
 
 
 /*!
@@ -247,8 +247,8 @@ CpStatus_tv CpCoreBufferGetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 ** This function retrieves the Data Length Code (DLC) of the selected buffer
 ** \c ubBufferIdxV.
 */
-CpStatus_tv CpCoreBufferGetDlc(  CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
-                                 uint8_t * pubDlcV);
+CpStatus_tv CpCoreBufferGetDlc(CpPort_ts *ptsPortV, uint8_t ubBufferIdxV,
+                               uint8_t *pubDlcV);
 
 
 /*!
@@ -278,8 +278,8 @@ CpStatus_tv CpCoreBufferGetDlc(  CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 ** An allocated transmit buffer can be sent via the function
 ** CpCoreBufferSend().
 */
-CpStatus_tv CpCoreBufferInit( CpPort_ts * ptsPortV, CpCanMsg_ts * ptsCanMsgV,
-                              uint8_t ubBufferIdxV, uint8_t ubDirectionV);
+CpStatus_tv CpCoreBufferInit(CpPort_ts *ptsPortV, CpCanMsg_ts *ptsCanMsgV,
+                             uint8_t ubBufferIdxV, uint8_t ubDirectionV);
 
 
 /*!
@@ -292,7 +292,7 @@ CpStatus_tv CpCoreBufferInit( CpPort_ts * ptsPortV, CpCanMsg_ts * ptsCanMsgV,
 **
 ** \see     CpCoreBufferInit()
 */
-CpStatus_tv CpCoreBufferRelease( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV);
+CpStatus_tv CpCoreBufferRelease(CpPort_ts *ptsPortV, uint8_t ubBufferIdxV);
 
 
 /*!
@@ -309,7 +309,7 @@ CpStatus_tv CpCoreBufferRelease( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV);
 ** the index CP_BUFFER_1.
 **
 */
-CpStatus_tv CpCoreBufferSend(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV);
+CpStatus_tv CpCoreBufferSend(CpPort_ts *ptsPortV, uint8_t ubBufferIdxV);
 
 
 /*!
@@ -343,8 +343,8 @@ CpStatus_tv CpCoreBufferSend(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV);
 ** \endcode
 **
 */
-CpStatus_tv CpCoreBufferSetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
-                                 uint8_t * pubDataV);
+CpStatus_tv CpCoreBufferSetData(CpPort_ts *ptsPortV, uint8_t ubBufferIdxV,
+                                uint8_t *pubDataV);
 
 
 /*!
@@ -359,8 +359,8 @@ CpStatus_tv CpCoreBufferSetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 ** This function sets the Data Length Code (DLC) of the selected buffer
 ** ubBufferIdxV. The DLC must be in the range from 0 to 8.
 */
-CpStatus_tv CpCoreBufferSetDlc(  CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
-                                 uint8_t ubDlcV);
+CpStatus_tv CpCoreBufferSetDlc(CpPort_ts *ptsPortV, uint8_t ubBufferIdxV,
+                               uint8_t ubDlcV);
 
 
 /*!
@@ -375,8 +375,8 @@ CpStatus_tv CpCoreBufferSetDlc(  CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 ** This function will send a message (ptsCanMsgV) out of a FullCAN buffer
 ** given by ubBufferIdxV.
 */
-CpStatus_tv CpCoreBufferTransmit(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
-                                 CpCanMsg_ts * ptsCanMsgV);
+CpStatus_tv CpCoreBufferTransmit(CpPort_ts *ptsPortV, uint8_t ubBufferIdxV,
+                                 CpCanMsg_ts *ptsCanMsgV);
 
 /*!
 ** \brief   Set state of CAN controller
@@ -389,7 +389,7 @@ CpStatus_tv CpCoreBufferTransmit(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 ** This function changes the operating mode of the CAN controller.
 ** Possible values for mode are defined in the #CP_MODE enumeration.
 */
-CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV);
+CpStatus_tv CpCoreCanMode(CpPort_ts *ptsPortV, uint8_t ubModeV);
 
 
 /*!
@@ -404,7 +404,7 @@ CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV);
 ** values are defined in the #CP_STATE enumeration. The state of the CAN
 ** controller is copied to the variable pointer 'ptsStateV'.
 */
-CpStatus_tv CpCoreCanState(CpPort_ts * ptsPortV, CpState_ts * ptsStateV);
+CpStatus_tv CpCoreCanState(CpPort_ts *ptsPortV, CpState_ts *ptsStateV);
 
 
 
@@ -440,7 +440,7 @@ CpStatus_tv CpCoreCanState(CpPort_ts * ptsPortV, CpState_ts * ptsStateV);
 ** An opened handle to a CAN port must be closed via the CpCoreDriverRelease()
 ** function.
 */
-CpStatus_tv CpCoreDriverInit(uint8_t ubPhyIfV, CpPort_ts * ptsPortV);
+CpStatus_tv CpCoreDriverInit(uint8_t ubPhyIfV, CpPort_ts *ptsPortV);
 //-------------------------------------------------------------------
 // Re-define the function for proper compilation.
 //
@@ -477,7 +477,7 @@ CpStatus_tv CpCoreDriverInit(uint8_t ubPhyIfV, CpPort_ts * ptsPortV);
 ** </ul>
 **
 */
-CpStatus_tv CpCoreDriverRelease(CpPort_ts * ptsPortV);
+CpStatus_tv CpCoreDriverRelease(CpPort_ts *ptsPortV);
 //-------------------------------------------------------------------
 // Re-define the function for proper compilation.
 //
@@ -537,7 +537,7 @@ CpStatus_tv CpCoreFilterEnable(CpPort_ts *ptsPortV, uint8_t ubFilterIdxV, uint8_
 **
 ** \attention This function is used internal by the CAN driver!
 */
-CpStatus_tv CpCoreFilterPass(CpPort_ts * ptsPortV, CpCanMsg_ts * ptsCanMsgV);
+CpStatus_tv CpCoreFilterPass(CpPort_ts *ptsPortV, CpCanMsg_ts *ptsCanMsgV);
 
 /*!
 ** \brief   Release selected CAN ID filter for selected CAN port
@@ -566,7 +566,7 @@ CpStatus_tv CpCoreFilterRelease(CpPort_ts *ptsPortV, uint8_t ubFilterIdxV);
 ** This function retrieves information about the used hardware.
 **
 */
-CpStatus_tv CpCoreHDI(CpPort_ts * ptsPortV, CpHdi_ts * ptsHdiV);
+CpStatus_tv CpCoreHDI(CpPort_ts *ptsPortV, CpHdi_ts *ptsHdiV);
 
 
 /*!
@@ -595,10 +595,10 @@ CpStatus_tv CpCoreHDI(CpPort_ts * ptsPortV, CpHdi_ts * ptsHdiV);
 ** </code>
 ** <p>
 */
-CpStatus_tv CpCoreIntFunctions(  CpPort_ts * ptsPortV,
-               /*@null@*/ uint8_t (* pfnRcvHandler) (CpCanMsg_ts *, uint8_t),
-               /*@null@*/ uint8_t (* pfnTrmHandler) (CpCanMsg_ts *, uint8_t),
-               /*@null@*/ uint8_t (* pfnErrHandler) (CpState_ts *)      );
+CpStatus_tv CpCoreIntFunctions(CpPort_ts *ptsPortV,
+                               /*@null@*/ uint8_t (* pfnRcvHandler)(CpCanMsg_ts *, uint8_t),
+                               /*@null@*/ uint8_t (* pfnTrmHandler)(CpCanMsg_ts *, uint8_t),
+                               /*@null@*/ uint8_t (* pfnErrHandler)(CpState_ts *));
 
 
 /*!
@@ -612,8 +612,8 @@ CpStatus_tv CpCoreIntFunctions(  CpPort_ts * ptsPortV,
 **
 ** This function reads the receive queue from a CAN controller.
 */
-CpStatus_tv CpCoreMsgRead( CpPort_ts * ptsPortV, CpCanMsg_ts * ptsBufferV,
-                           uint32_t * pulBufferSizeV);
+CpStatus_tv CpCoreMsgRead(CpPort_ts *ptsPortV, CpCanMsg_ts *ptsBufferV,
+                          uint32_t *pulBufferSizeV);
 
 
 
@@ -628,8 +628,8 @@ CpStatus_tv CpCoreMsgRead( CpPort_ts * ptsPortV, CpCanMsg_ts * ptsBufferV,
 **
 ** This function writes to the transmit queue of a CAN controller.
 */
-CpStatus_tv CpCoreMsgWrite(CpPort_ts * ptsPortV, CpCanMsg_ts * ptsBufferV,
-                           uint32_t * pulBufferSizeV);
+CpStatus_tv CpCoreMsgWrite(CpPort_ts *ptsPortV, CpCanMsg_ts *ptsBufferV,
+                           uint32_t *pulBufferSizeV);
 
 
 /*!
@@ -648,7 +648,7 @@ CpStatus_tv CpCoreMsgWrite(CpPort_ts * ptsPortV, CpCanMsg_ts * ptsBufferV,
 ** pointed by ptsStatsV.
 **
 */
-CpStatus_tv CpCoreStatistic(CpPort_ts * ptsPortV, CpStatistic_ts * ptsStatsV);
+CpStatus_tv CpCoreStatistic(CpPort_ts *ptsPortV, CpStatistic_ts *ptsStatsV);
 
 
 

@@ -43,45 +43,46 @@ using namespace CANpie;
 /*!
 ** \class   CpFrameApi
 ** \brief   CAN API frame
-** 
+**
 ** This class defines a CAN API frame.
 */
 class CpFrameApi : private CpFrame
 {
 public:
-   
 
-   enum ApiFunc_e {
 
-      eAPI_FUNC_NONE   = 0,
-      eAPI_FUNC_BITRATE,
-      eAPI_FUNC_CAN_MODE,
-      eAPI_FUNC_DRIVER_INIT,
-      eAPI_FUNC_DRIVER_RELEASE,
-      eAPI_FUNC_PROCESS_ID
-   };
-   CpFrameApi();
-   
-   
-   ~CpFrameApi();
+  enum ApiFunc_e
+  {
 
-   int32_t  bitrate(void);
-   int32_t  brsClock(void);
+    eAPI_FUNC_NONE   = 0,
+    eAPI_FUNC_BITRATE,
+    eAPI_FUNC_CAN_MODE,
+    eAPI_FUNC_DRIVER_INIT,
+    eAPI_FUNC_DRIVER_RELEASE,
+    eAPI_FUNC_PROCESS_ID
+  };
+  CpFrameApi();
 
-   ApiFunc_e function(void);
 
-   CAN_Mode_e  mode(void);
+  ~CpFrameApi();
 
-   void setBitrate(int32_t slBitrateV, int32_t slBrsClockV);
+  int32_t  bitrate(void);
+  int32_t  brsClock(void);
 
-   void setDriverInit();
-   void setDriverRelease();
-   void  setMode(CAN_Mode_e teModeV);
+  ApiFunc_e function(void);
 
-   
+  CAN_Mode_e  mode(void);
+
+  void setBitrate(int32_t slBitrateV, int32_t slBrsClockV);
+
+  void setDriverInit();
+  void setDriverRelease();
+  void  setMode(CAN_Mode_e teModeV);
+
+
 private:
-   
-   
+
+
 };
 
 

@@ -45,7 +45,7 @@ using namespace CANpie;
 /*!
 ** \class   CpFrameError
 ** \brief   CAN error frame
-** 
+**
 ** This class defines a (virtual) <i>CAN error frame</i>. The class is
 ** used for two scenarios: first for simulation of CAN error frames within
 ** a CAN network (QCanNetwork) and second for retrieval of the error state
@@ -61,127 +61,128 @@ using namespace CANpie;
 class CpFrameError : private CpFrame
 {
 public:
-   
-   enum ErrorType_e {
 
-      /*! no error                                          */
-      eERROR_TYPE_NONE   = 0,
+  enum ErrorType_e
+  {
 
-      /*! Bit 0 error occurred                              */
-      eERROR_TYPE_BIT0,
+    /*! no error                                          */
+    eERROR_TYPE_NONE   = 0,
 
-      /*! Bit 1 error occurred                              */
-      eERROR_TYPE_BIT1,
+    /*! Bit 0 error occurred                              */
+    eERROR_TYPE_BIT0,
 
-      /*! Stuff error occurred                              */
-      eERROR_TYPE_STUFF,
+    /*! Bit 1 error occurred                              */
+    eERROR_TYPE_BIT1,
 
-      /*! Form  error occurred                              */
-      eERROR_TYPE_FORM,
+    /*! Stuff error occurred                              */
+    eERROR_TYPE_STUFF,
 
-      /*! CRC error occurred                                */
-      eERROR_TYPE_CRC,
+    /*! Form  error occurred                              */
+    eERROR_TYPE_FORM,
 
-      /*! Acknowledgement error occurred                    */
-      eERROR_TYPE_ACK
-   };
+    /*! CRC error occurred                                */
+    eERROR_TYPE_CRC,
 
-
-   /*!
-   ** Constructs an empty CAN error frame with a CAN state of
-   ** CANpie::eCAN_STATE_STOPPED and error counter values of 0.
-   */
-   CpFrameError();
-   
-   
-   ~CpFrameError();
-
-   /*!
-   ** \return     Value of receive error counter
-   ** \see        setErrorCounterReceive()
-   **
-   ** This functions returns the current value of the receive error counter.
-   */
-   uint8_t  errorCounterReceive(void) const;
+    /*! Acknowledgement error occurred                    */
+    eERROR_TYPE_ACK
+  };
 
 
-   /*!
-   ** \return     Value of transmit error counter
-   ** \see        setErrorCounterTransmit()
-   **
-   ** This functions returns the current value of the transmit error counter.
-   ** A value of 255 leads to a bus-off condition (CANpie::eCAN_STATE_BUS_OFF).
-   */
-   uint8_t  errorCounterTransmit(void) const;
+  /*!
+  ** Constructs an empty CAN error frame with a CAN state of
+  ** CANpie::eCAN_STATE_STOPPED and error counter values of 0.
+  */
+  CpFrameError();
 
 
-   /*!
-   ** \return     Current error state
-   ** \see        setErrorState()
-   **
-   ** This functions returns the current error state, defined by the
-   ** enumeration CANpie::CAN_State_e.
-   */
-   CAN_State_e             errorState(void) const;
+  ~CpFrameError();
+
+  /*!
+  ** \return     Value of receive error counter
+  ** \see        setErrorCounterReceive()
+  **
+  ** This functions returns the current value of the receive error counter.
+  */
+  uint8_t  errorCounterReceive(void) const;
 
 
-   /*!
-   ** \return     Error type
-   ** \see        setErrorType()
-   **
-   ** This functions returns the error type which caused the last error
-   ** condition.
-   */
-   CpFrameError::ErrorType_e   errorType(void) const;
-   
-
-   /*!
-   ** \param[in]  ubErrorCntR    Receive error counter value
-   ** \see        errorCounterReceive()
-   **
-   ** This functions sets the receive error counter. Passing a value
-   ** greater than 127 will set the error state to error passive
-   ** (CANpie::eCAN_STATE_BUS_PASSIVE).
-   */
-   void setErrorCounterReceive(const uint8_t & ubErrorCntR);
+  /*!
+  ** \return     Value of transmit error counter
+  ** \see        setErrorCounterTransmit()
+  **
+  ** This functions returns the current value of the transmit error counter.
+  ** A value of 255 leads to a bus-off condition (CANpie::eCAN_STATE_BUS_OFF).
+  */
+  uint8_t  errorCounterTransmit(void) const;
 
 
-   /*!
-   ** \param[in]  ubErrorCntR    Transmit error counter value
-   ** \see        errorCounterTransmit()
-   **
-   ** This functions sets the transmit error counter. Passing a value
-   ** greater than 127 will set the error state to error passive
-   ** (CANpie::eCAN_STATE_BUS_PASSIVE). A value of 255 will set the
-   ** error state to bus-off (CANpie::eCAN_STATE_BUS_OFF).
-   */
-   void setErrorCounterTransmit(const uint8_t & ubErrorCntR);
+  /*!
+  ** \return     Current error state
+  ** \see        setErrorState()
+  **
+  ** This functions returns the current error state, defined by the
+  ** enumeration CANpie::CAN_State_e.
+  */
+  CAN_State_e             errorState(void) const;
 
 
-   /*!
-   ** \param[in]  ubStateV       Error state value
-   ** \see                       errorState()
-   **
-   ** This functions sets the current error state, defined by the
-   ** enumeration CANpie::CAN_State_e.
-   */
-   void setErrorState(CAN_State_e ubStateV);
+  /*!
+  ** \return     Error type
+  ** \see        setErrorType()
+  **
+  ** This functions returns the error type which caused the last error
+  ** condition.
+  */
+  CpFrameError::ErrorType_e   errorType(void) const;
 
 
-   /*!
-   ** \param[in]  ubTypeV        Error type value
-   ** \see        errorType()
-   **
-   ** This functions sets the error type which caused the last error
-   ** condition.
-   */
-   void setErrorType(ErrorType_e ubTypeV);
+  /*!
+  ** \param[in]  ubErrorCntR    Receive error counter value
+  ** \see        errorCounterReceive()
+  **
+  ** This functions sets the receive error counter. Passing a value
+  ** greater than 127 will set the error state to error passive
+  ** (CANpie::eCAN_STATE_BUS_PASSIVE).
+  */
+  void setErrorCounterReceive(const uint8_t &ubErrorCntR);
 
 
-   
+  /*!
+  ** \param[in]  ubErrorCntR    Transmit error counter value
+  ** \see        errorCounterTransmit()
+  **
+  ** This functions sets the transmit error counter. Passing a value
+  ** greater than 127 will set the error state to error passive
+  ** (CANpie::eCAN_STATE_BUS_PASSIVE). A value of 255 will set the
+  ** error state to bus-off (CANpie::eCAN_STATE_BUS_OFF).
+  */
+  void setErrorCounterTransmit(const uint8_t &ubErrorCntR);
+
+
+  /*!
+  ** \param[in]  ubStateV       Error state value
+  ** \see                       errorState()
+  **
+  ** This functions sets the current error state, defined by the
+  ** enumeration CANpie::CAN_State_e.
+  */
+  void setErrorState(CAN_State_e ubStateV);
+
+
+  /*!
+  ** \param[in]  ubTypeV        Error type value
+  ** \see        errorType()
+  **
+  ** This functions sets the error type which caused the last error
+  ** condition.
+  */
+  void setErrorType(ErrorType_e ubTypeV);
+
+
+
 private:
-   
-   
+
+
 };
 
 

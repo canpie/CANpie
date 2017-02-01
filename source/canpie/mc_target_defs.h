@@ -36,29 +36,29 @@
 
 
 //-----------------------------------------------------------------------------
-/*!   
+/*!
 ** \file    mc_target_defs.h
 ** \brief   MCL - MCU target definitions
-** 
+**
 ** This file defines values for the supported available microcontroller
 ** (MCU). Each MCU has its unique number, as shown in the following snippet:
 **
 ** \code
-** 
+**
 ** #define  MC_MCU_STM32F437VG                           (0x20043700)
 ** #define  MC_MCU_STM32F437ZG                           (0x20043702)
 ** #define  MC_MCU_STM32F437IG                           (0x20043704)
-** 
+**
 ** \endcode
 **
 ** In addition, each silicon manufacturer has a unique number code.
 ** The number must be assigned to the symbol \b MC_TARGET for the
-** compilation process. If the symbol \b MC_TARGET is not set properly, 
+** compilation process. If the symbol \b MC_TARGET is not set properly,
 ** you will get the following error message: <br>
-** 
+**
 ** <b>MCU target (symbol MC_TARGET) is not defined! </b>
-** 
-** 
+**
+**
 */
 
 //-------------------------------------------------------------------
