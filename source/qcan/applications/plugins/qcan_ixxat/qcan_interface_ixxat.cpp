@@ -158,7 +158,7 @@ QCanInterface::InterfaceError_e QCanInterfaceIxxat::read(QCanFrame &clFrameR)
    //----------------------------------------------------------------
    // get next message in FIFO
    //
-   slResultT = pclIxxatVciP.pfnCanChannelPeekMessageP(0,&tsCanMsgT);
+   slResultT = pclIxxatVciP.pfnCanChannelPeekMessageP(vdCanChannelP,&tsCanMsgT);
 
    if (slResultT == VCI_OK)
    {
@@ -210,7 +210,9 @@ QCanInterface::InterfaceError_e QCanInterfaceIxxat::read(QCanFrame &clFrameR)
 
    else if (slResultT != (HRESULT)VCI_E_RXQUEUE_EMPTY)
    {
-      qWarning() << tr("Fail to call PeekMessage(): ") + QString::number(slResultT,16);
+      qWarning() << "QCanInterface::read() -> CanChannelPeekMessage()" <<
+                    "fail with error:" <<
+                    pclIxxatVciP.formatedError((HRESULT)slResultT);
       return eERROR_DEVICE;
    }
 
@@ -528,7 +530,7 @@ QCanInterface::InterfaceError_e	QCanInterfaceIxxat::write( const QCanFrame &clFr
    }
    else if (slResultT != (HRESULT)VCI_E_TXQUEUE_FULL)
    {
-      qWarning() << tr("Fail to call PeekMessage(): ") + QString::number(slResultT,16);
+      qWarning() << tr("Fail to call pfnCanChannelPostMessageP(): ") + QString::number(slResultT,16);
       return eERROR_DEVICE;
    }
 

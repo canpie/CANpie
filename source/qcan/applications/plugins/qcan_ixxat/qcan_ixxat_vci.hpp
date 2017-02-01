@@ -81,7 +81,7 @@ public:
 
    // helper functions
    bool isAvailable (void);
-//   QString formatedError(TPCANStatus tvErrorV);
+   QString formatedError(HRESULT hrError);
 
 
 
@@ -101,13 +101,14 @@ public:
    typedef HRESULT DRV_CALLBACK_TYPE (*vciEnumDeviceReset_tf)    ( IN HANDLE hEnum );
    typedef HRESULT DRV_CALLBACK_TYPE (*vciEnumDeviceWaitEvent_tf)( IN HANDLE hEnum, IN UINT32 dwMsTimeout );
    typedef HRESULT DRV_CALLBACK_TYPE (*vciFindDeviceByHwid_tf)   ( IN REFGUID rHwid, OUT PVCIID pVciid );
-   typedef HRESULT DRV_CALLBACK_TYPE (*vciFindDeviceByClass_tf)  ( IN REFGUID rClass, IN  UINT32 dwInst, OUT PVCIID  pVciid );
+   typedef HRESULT DRV_CALLBACK_TYPE (*vciFindDeviceByClass_tf)  ( IN REFGUID rClass, IN  UINT32 dwInst, OUT PVCIID pVciid );
    typedef HRESULT DRV_CALLBACK_TYPE (*vciSelectDeviceDlg_tf)    ( IN HWND hwndParent, OUT PVCIID pVciid );
+   typedef void    DRV_CALLBACK_TYPE (*vciFormatError_tf)        ( IN HRESULT hrError, OUT PCHAR pszText, IN UINT32 dwSize );
 
    /*!
     * device specific functions
     */
-   typedef HRESULT DRV_CALLBACK_TYPE (*vciDeviceOpen_tf)   ( IN REFVCIID rVciid, OUT PHANDLE  phDevice );
+   typedef HRESULT DRV_CALLBACK_TYPE (*vciDeviceOpen_tf)   ( IN REFVCIID rVciid, OUT PHANDLE phDevice );
    typedef HRESULT DRV_CALLBACK_TYPE (*vciDeviceOpenDlg_tf)( IN HWND hwndParent, OUT PHANDLE phDevice );
    typedef HRESULT DRV_CALLBACK_TYPE (*vciDeviceClose_tf)  ( IN HANDLE hDevice );
    typedef HRESULT DRV_CALLBACK_TYPE (*vciDeviceGetInfo_tf)( IN HANDLE hDevice, OUT PVCIDEVICEINFO pInfo );
@@ -237,6 +238,7 @@ public:
    vciFindDeviceByHwid_tf     pfnVciFindDeviceByHwidP;
    vciFindDeviceByClass_tf    pfnVciFindDeviceByClassP;
    vciSelectDeviceDlg_tf      pfnVciSelectDeviceDlgP;
+   vciFormatError_tf          pfnVciFormatErrorP;
 
    /*!
     * device specific functions
@@ -297,20 +299,6 @@ public:
    canSchedulerStopMessage_tf pfnCanSchedulerStopMessageP;
 
 
-//   // PCAN Basic access functions
-//   TPCANStatus initialize     (TPCANHandle uwChannelV, TPCANBaudrate uwBtr0Btr1V, TPCANType ubHwTypeV, DWORD ulIOPortV, WORD uwInterruptV);
-//   TPCANStatus initializeFD   (TPCANHandle uwChannelV, TPCANBitrateFD pszBitrateFDV);
-//   TPCANStatus unInitialize   (TPCANHandle uwChannelV);
-//   TPCANStatus reset          (TPCANHandle uwChannelV);
-//   TPCANStatus getStatus      (TPCANHandle uwChannelV);
-//   TPCANStatus read           (TPCANHandle uwChannelV, TPCANMsg *ptsMessageBufferV, TPCANTimestamp *tsTimestampBufferV);
-//   TPCANStatus readFD         (TPCANHandle uwChannelV, TPCANMsgFD *ptsMessageBufferV, TPCANTimestampFD *puqTimestampBufferV);
-//   TPCANStatus write          (TPCANHandle uwChannelV, TPCANMsg *ptsMessageBufferV);
-//   TPCANStatus writeFD        (TPCANHandle uwChannelV, TPCANMsgFD *ptsMessageBufferV);
-//   TPCANStatus filterMessages (TPCANHandle uwChannelV, DWORD ulFromIDV, DWORD ulToIDV, TPCANMode ubModeV);
-//   TPCANStatus getValue       (TPCANHandle uwChannelV, TPCANParameter ubParameterV, void *pvdBufferV, DWORD ulBufferLengthV);
-//   TPCANStatus setValue       (TPCANHandle uwChannelV, TPCANParameter ubParameterV, void *pvdBufferV, DWORD ulBufferLengthV);
-//   TPCANStatus getErrorText   (TPCANStatus ulErrorV, WORD uwLanguageV, LPSTR pszBufferV);
 };
 
 #endif /*QCAN_IXXAT_VCI_H_*/
