@@ -66,6 +66,8 @@
 
 #define  CP_CAN_MSG_MACRO           1
 
+#define  CP_CAN_MSG_MARKER          1
+
 #define  CP_CAN_MSG_TIME            1
 
 #define  CP_CAN_MSG_USER            1

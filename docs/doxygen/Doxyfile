@@ -1987,7 +1987,11 @@ INCLUDE_FILE_PATTERNS  =
 
 PREDEFINED             = __GNUC__ \
                          __arm__ \
-                         MC_TARGET=0x01000000
+                         CP_CAN_FD \
+                         CP_CAN_MSG_MARKER \
+                         CP_CAN_MSG_TIME \
+                         CP_CAN_MSG_USER
+                         
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The

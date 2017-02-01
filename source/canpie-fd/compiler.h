@@ -149,7 +149,7 @@
 /*----------------------------------------------------------------------------*/
 
 #if defined(__LCLINT__)
-#define  CPP_PARM_UNUSED(x)         (/*@unused@*/x)
+#define  CPP_PARM_UNUSED     /*@unused@*/
 #endif
 
 
@@ -169,7 +169,9 @@
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE
 #define  CPP_PACK
+#ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
+#endif
 
 typedef  short                Status_tv;
 
@@ -203,6 +205,7 @@ typedef  long                 int32_t;
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   UNUSED_ ## x __attribute__((unused))
 #endif
+#define  CPP_NULL             (void *) 0
 
 typedef  int32_t              Status_tv;
 
@@ -232,7 +235,8 @@ typedef  bool                 bool_t;
 #define  CPP_PARM_UNUSED(x)   UNUSED_ ## x __attribute__((unused))
 #endif
 
-#define  CPP_NULL             0
+#define  CPP_NULL             (void *) 0
+
 #define  CPP_BIG_ENDIAN       0     // 0: Litte endian, 1: Big endian
 
 typedef  int32_t              Status_tv;
@@ -264,7 +268,9 @@ typedef  bool                 bool_t;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE           inline
 #define  CPP_PACK
+#ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   UNUSED_ ## x __attribute__((unused))
+#endif
 
 typedef  int8_t               Status_tv;
 
@@ -288,7 +294,9 @@ typedef  uint8_t              bool_t;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE           inline
 #define  CPP_PACK
+#ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   UNUSED_ ## x __attribute__((unused))
+#endif
 
 typedef  int8_t               Status_tv;
 
@@ -312,7 +320,9 @@ typedef  uint8_t              bool_t;
 #define  CPP_DATA_SIZE        64
 #define  CPP_INLINE           inline
 #define  CPP_PACK
+#ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   UNUSED_ ## x __attribute__((unused))
+#endif
 
 typedef  int8_t               Status_tv;
 
@@ -377,7 +387,9 @@ typedef  bool                 bool_t;
 #define  CPP_DATA_SIZE        64
 #define  CPP_INLINE           inline
 #define  CPP_PACK
+#ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   UNUSED_ ## x __attribute__((unused))
+#endif
 
 typedef  int32_t              Status_tv;
 
@@ -412,7 +424,9 @@ typedef  signed   long long   int64_t;
 #define  CPP_DATA_SIZE        64
 #define  CPP_INLINE           inline
 #define  CPP_PACK             __attribute__ ((packed))
+#ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
+#endif
 #define  CPP_BIG_ENDIAN       0
 #define  CPP_NULL             0
 
@@ -442,7 +456,9 @@ typedef  bool                 bool_t;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE           inline
 #define  CPP_PACK             __attribute__ ((packed))
+#ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   UNUSED_ ## x __attribute__((unused))
+#endif
 #define  CPP_NULL             0
 
 typedef  int32_t              Status_tv;
@@ -465,7 +481,9 @@ typedef  uint8_t              bool_t;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE
 #define  CPP_PACK
+#ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
+#endif
 
 typedef  unsigned char        Status_tv;
 
@@ -492,7 +510,9 @@ typedef  long                 int32_t;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE
 #define  CPP_PACK
+#ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
+#endif
 
 #include <stdint.h>
 
@@ -515,7 +535,9 @@ typedef  uint8_t              bool_t;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE
 #define  CPP_PACK
+#ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
+#endif
 
 #include <stdint.h>
 
@@ -537,7 +559,9 @@ typedef  uint8_t              bool_t;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE           __inline
 #define  CPP_PACK
+#ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
+#endif
 
 typedef  int32_t              Status_tv;
 
@@ -559,7 +583,9 @@ typedef  uint8_t              bool_t;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE
 #define  CPP_PACK
+#ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
+#endif
 
 typedef  signed char          Status_tv;
 
@@ -587,7 +613,9 @@ typedef  long                 int32_t;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE
 #define  CPP_PACK
+#ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
+#endif
 
 typedef  signed short         Status_tv;
 
@@ -614,7 +642,9 @@ typedef  long                 int32_t;
 #define  CPP_DATA_SIZE        64
 #define  CPP_INLINE           __inline
 #define  CPP_PACK
+#ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
+#endif
 
 #include <stdint.h>
 
@@ -642,8 +672,9 @@ typedef  uint8_t              bool_t;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE
 #define  CPP_PACK
+#ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
-
+#endif
 
 typedef  unsigned char        _BIT;
 typedef  unsigned char        uint8_t;
@@ -674,7 +705,9 @@ typedef  uint8_t              bool_t;
 #define  CPP_DATA_SIZE        64
 #define  CPP_INLINE
 #define  CPP_PACK
+#ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   __attribute__((unused)) x
+#endif
 
 typedef  short                Status_tv;
 
@@ -704,7 +737,9 @@ typedef  long long            int64_t;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE
 #define  CPP_PACK
+#ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   __attribute__((unused)) x
+#endif
 
 typedef  short                Status_tv;
 
@@ -717,19 +752,6 @@ typedef  unsigned long        uint32_t;
 typedef  long                 int32_t;
 typedef  unsigned long long   uint64_t;
 typedef  long long            int64_t;
-
-//--------------------------------------------------------------
-// deprecated list of data types
-//
-typedef  unsigned char        _BIT;
-typedef  unsigned char        _U08;
-typedef  signed char          _S08;
-typedef  unsigned short       _U16;
-typedef  short                _S16;
-typedef  unsigned long        _U32;
-typedef  long                 _S32;
-typedef  unsigned long long   _U64;
-typedef  long long            _S64;
 
 #endif
 // End of definition: __XC16
@@ -744,7 +766,9 @@ typedef  long long            _S64;
 #define  CPP_DATA_SIZE        64
 #define  CPP_INLINE
 #define  CPP_PACK
+#ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   __attribute__((unused)) x
+#endif
 
 typedef  short                Status_tv;
 
@@ -758,18 +782,7 @@ typedef  long                 int32_t;
 typedef  unsigned long long   uint64_t;
 typedef  long long            int64_t;
 
-//--------------------------------------------------------------
-// deprecated list of data types
-//
-typedef  unsigned char        _BIT;
-typedef  unsigned char        _U08;
-typedef  signed char          _S08;
-typedef  unsigned short       _U16;
-typedef  short                _S16;
-typedef  unsigned long        _U32;
-typedef  long                 _S32;
-typedef  unsigned long long   _U64;
-typedef  long long            _S64;
+
 
 #endif
 // End of definition: __XC32 && __PIC32MX__
@@ -785,7 +798,9 @@ typedef  long long            _S64;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE
 #define  CPP_PACK
+#ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
+#endif
 
 typedef  int32_t              Status_tv;
 
@@ -797,16 +812,6 @@ typedef  short                int16_t;
 typedef  unsigned long        uint32_t;
 typedef  long                 int32_t;
 
-//--------------------------------------------------------------
-// deprecated list of data types
-//
-typedef  unsigned char        _BIT;
-typedef  unsigned char        _U08;
-typedef  signed char          _S08;
-typedef  unsigned short       _U16;
-typedef  short                _S16;
-typedef  unsigned long        _U32;
-typedef  long                 _S32;
 
 #endif
 // End of definition: _MSC_VER
@@ -823,7 +828,9 @@ typedef  long                 _S32;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE
 #define  CPP_PACK
+#ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
+#endif
 
 typedef  int32_t              Status_tv;
 
@@ -835,16 +842,6 @@ typedef  short                int16_t;
 typedef  unsigned long        uint32_t;
 typedef  long                 int32_t;
 
-//--------------------------------------------------------------
-// deprecated list of data types
-//
-typedef  unsigned char        _BIT;
-typedef  unsigned char        _U08;
-typedef  signed char          _S08;
-typedef  unsigned short       _U16;
-typedef  short                _S16;
-typedef  unsigned long        _U32;
-typedef  long                 _S32;
 
 #endif
 // End of definition: _CVI_
@@ -861,7 +858,9 @@ typedef  long                 _S32;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE
 #define  CPP_PACK
+#ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
+#endif
 
 typedef  short                Status_tv;
 
@@ -873,16 +872,6 @@ typedef  short                int16_t;
 typedef  unsigned long        uint32_t;
 typedef  long                 int32_t;
 
-//--------------------------------------------------------------
-// deprecated list of data types
-//
-typedef  unsigned char        _BIT;
-typedef  unsigned char        _U08;
-typedef  signed char          _S08;
-typedef  unsigned short       _U16;
-typedef  short                _S16;
-typedef  unsigned long        _U32;
-typedef  long                 _S32;
 
 #endif
 // End of definition:  NC30
@@ -898,7 +887,13 @@ typedef  long                 _S32;
 #define  CPP_DATA_SIZE        64
 #define  CPP_INLINE
 #define  CPP_PACK
-#define  CPP_PARM_UNUSED(x)   x
+#ifndef  CPP_PARM_UNUSED
+#define  CPP_PARM_UNUSED(x)   (x)
+#endif
+
+#define  CPP_NULL             (void *) 0
+
+#include <stdbool.h>
 
 typedef  long                 Status_tv;
 
@@ -924,7 +919,9 @@ typedef  long long            int64_t;
 #define  CPP_DATA_SIZE        64
 #define  CPP_INLINE
 #define  CPP_PACK
+#ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
+#endif
 
 typedef  short                Status_tv;
 
@@ -937,17 +934,6 @@ typedef  unsigned long        uint32_t;
 typedef  long                 int32_t;
 typedef  unsigned long long   uint64_t;
 typedef  long long            int64_t;
-
-//--------------------------------------------------------------
-// deprecated list of data types
-//
-typedef  unsigned char        _BIT;
-typedef  unsigned char        _U08;
-typedef  signed char          _S08;
-typedef  unsigned short       _U16;
-typedef  short                _S16;
-typedef  unsigned long        _U32;
-typedef  long                 _S32;
 
 #endif
 // End of definition:  __TMS320C28XX__

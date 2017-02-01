@@ -25,10 +25,14 @@
 //============================================================================//
 
 
-//------------------------------------------------------------------------------
-// SVN  $Date: 2015-10-17 18:16:40 +0200 (Sa, 17 Okt 2015) $
-// SVN  $Rev: 7160 $ --- $Author: koppe $
-//------------------------------------------------------------------------------
+
+/*----------------------------------------------------------------------------*\
+** Pre-condition                                                              **
+**                                                                            **
+\*----------------------------------------------------------------------------*/
+
+#define  CP_CAN_FD               1
+#define  CP_CAN_MSG_MACRO        1
 
 
 /*----------------------------------------------------------------------------*\
@@ -36,7 +40,7 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-#include "cp_core.h"
+#include "cp_msg.h"
 #include "unity_fixture.h"
 
 /*----------------------------------------------------------------------------*\
@@ -44,7 +48,7 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-TEST_GROUP(CP_CORE);     // test group name
+TEST_GROUP(CP_MSG_FDM);     // test group name
 
 
 /*----------------------------------------------------------------------------*\
@@ -57,7 +61,7 @@ TEST_GROUP(CP_CORE);     // test group name
 // TEST_SETUP()                                                               //
 // init code for each test case                                               //
 //----------------------------------------------------------------------------//
-TEST_SETUP(CP_CORE)
+TEST_SETUP(CP_MSG_FDM)
 {
 
 }
@@ -66,89 +70,84 @@ TEST_SETUP(CP_CORE)
 // TEST_TEAR_DOWN()                                                           //
 // release code for each test case                                            //
 //----------------------------------------------------------------------------//
-TEST_TEAR_DOWN(CP_CORE)
+TEST_TEAR_DOWN(CP_MSG_FDM)
 {
 
 }
 
 //----------------------------------------------------------------------------//
-// Test case CP_CORE_001                                                      //
+// CpMsgClear()                                                               //
 //                                                                            //
 //----------------------------------------------------------------------------//
-TEST(CP_CORE, 001)
+TEST(CP_MSG_FDM, 001)
 {
-   CpStatus_tv    tvResultT;
-   CpPort_ts      tsPortT;
+   CpCanMsg_ts    tsCanMsgT;
 
-   //----------------------------------------------------------------
-   // valid initialisation
-   //
-   tvResultT = CpCoreDriverInit( eCP_CHANNEL_1, &tsPortT, 0);
-   TEST_ASSERT_EQUAL(tvResultT, eCP_ERR_NONE);
-
-   tvResultT = CpCoreDriverRelease(&tsPortT);
-   TEST_ASSERT_EQUAL(tvResultT, eCP_ERR_NONE);
+   CpMsgClear(&tsCanMsgT);                // clear the message
 
 
-   //----------------------------------------------------------------
-   // init two times initialisation
-   //
-   tvResultT = CpCoreDriverInit( eCP_CHANNEL_1, &tsPortT, 0);
-   TEST_ASSERT_EQUAL(eCP_ERR_NONE, tvResultT);
+  // TEST_ASSERT_EQUAL( CpMsgGetDlc(&tsCanMsgT), 0);
 
-   tvResultT = CpCoreDriverInit( eCP_CHANNEL_1, &tsPortT, 0);
-   TEST_ASSERT_EQUAL(eCP_ERR_INIT_FAIL, tvResultT);
-
-   tvResultT = CpCoreDriverRelease(&tsPortT);
-   TEST_ASSERT_EQUAL(tvResultT, eCP_ERR_NONE);
-
-   //----------------------------------------------------------------
-   // release two times
-   //
+   TEST_ASSERT_EQUAL( CpMsgGetStdId(&tsCanMsgT), 0);
 
 }
 
 
 //----------------------------------------------------------------------------//
-// Test case CP_CORE_002                                                      //
+// CpMsgSetStdId()                                                            //
 //                                                                            //
 //----------------------------------------------------------------------------//
-TEST(CP_CORE, 002)
+TEST(CP_MSG_FDM, 002)
 {
-   CpStatus_tv    tvResultT;
-   CpPort_ts      tsPortT;
+   CpCanMsg_ts    tsCanMsgT;
+   uint16_t       uwStdIdT;
 
-   //----------------------------------------------------------------
-   // valid initialisation
-   //
-   tvResultT = CpCoreDriverInit( eCP_CHANNEL_1, &tsPortT, 0);
-   TEST_ASSERT_EQUAL(tvResultT, eCP_ERR_NONE);
-
-   tvResultT = CpCoreDriverRelease(&tsPortT);
-   TEST_ASSERT_EQUAL(tvResultT, eCP_ERR_NONE);
+   CpMsgClear(&tsCanMsgT);                // clear the message
 
 
-   //----------------------------------------------------------------
-   // calling functions without valid initialisation
-   //
-   tvResultT = CpCoreBitrate(tsPortT, eCP_BITRATE_500K, eCP_BITRATE_NONE);
-   TEST_ASSERT_EQUAL(eCP_ERR_INIT_MISSING, tvResultT);
-
-
+   for(uwStdIdT = 0; uwStdIdT < CP_MASK_STD_FRAME; uwStdIdT ++)
+   {
+      CpMsgSetStdId(&tsCanMsgT, uwStdIdT);
+      TEST_ASSERT_EQUAL( CpMsgGetStdId(&tsCanMsgT), uwStdIdT);
+      TEST_ASSERT_EQUAL( CpMsgIsExtended(&tsCanMsgT), 0);
+   }
 }
+
+
+//----------------------------------------------------------------------------//
+// CpMsgSetExtId()                                                            //
+//                                                                            //
+//----------------------------------------------------------------------------//
+TEST(CP_MSG_FDM, 003)
+{
+   CpCanMsg_ts    tsCanMsgT;
+   uint32_t       ulExtIdT;
+
+   CpMsgClear(&tsCanMsgT);                // clear the message
+
+
+   for(ulExtIdT = 0; ulExtIdT < CP_MASK_EXT_FRAME; ulExtIdT ++)
+   {
+      CpMsgSetExtId(&tsCanMsgT, ulExtIdT);
+      TEST_ASSERT_EQUAL( CpMsgGetExtId(&tsCanMsgT), ulExtIdT);
+      TEST_ASSERT_EQUAL( CpMsgIsExtended(&tsCanMsgT), 1);
+   }
+}
+
 
 //----------------------------------------------------------------------------//
 // TEST_GROUP_RUNNER()                                                        //
 // execute all test cases                                                     //
 //----------------------------------------------------------------------------//
-TEST_GROUP_RUNNER(CP_CORE)
+TEST_GROUP_RUNNER(CP_MSG_FDM)
 {
-   //printf("Run test group CP_MSG_FDM ...\n");
-
-   UnityPrint("Run test group CP_CORE");
+   UnityPrint("Run test group CP_MSG_FDM ");
    printf("\n");
-   RUN_TEST_CASE(CP_CORE, 001);
-   RUN_TEST_CASE(CP_CORE, 002);
+
+   RUN_TEST_CASE(CP_MSG_FDM, 001);
+   RUN_TEST_CASE(CP_MSG_FDM, 002);
+   RUN_TEST_CASE(CP_MSG_FDM, 003);
+
    printf("\n");
 
 }

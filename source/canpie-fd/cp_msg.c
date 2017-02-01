@@ -56,7 +56,7 @@
 //----------------------------------------------------------------------------//
 void  CpMsgClear(CpCanMsg_ts * ptsCanMsgV)
 {
-   uint8_t  ubDataCntT = 0;
+   uint8_t  ubDataCntT = (uint8_t) 0;
 
    //----------------------------------------------------------------
    // check for valid pointer
@@ -66,25 +66,30 @@ void  CpMsgClear(CpCanMsg_ts * ptsCanMsgV)
       //--------------------------------------------------------
       // clear all fields of the structure
       //
-      ptsCanMsgV->tuMsgId.ulExt        = 0;
+      ptsCanMsgV->ulIdentifier        = 0UL;
 
-      for(ubDataCntT = 0; ubDataCntT < (CP_DATA_SIZE / 4); ubDataCntT++)
+      for(ubDataCntT = 0; ubDataCntT < CP_DATA_SIZE; ubDataCntT++)
       {
-         ptsCanMsgV->tuMsgData.aulLong[ubDataCntT] = 0;
+         ptsCanMsgV->aubData[ubDataCntT] = (uint8_t) 0;
       }
 
-      ptsCanMsgV->ubMsgDLC             = 0;
+      ptsCanMsgV->ubMsgDLC             = (uint8_t) 0;
 
-      ptsCanMsgV->ubMsgCtrl            = 0;
+      ptsCanMsgV->ubMsgCtrl            = (uint8_t) 0;
 
       #if CP_CAN_MSG_TIME == 1
-      ptsCanMsgV->tsMsgTime.ulSec1970  = 0;
-      ptsCanMsgV->tsMsgTime.ulNanoSec  = 0;
+      ptsCanMsgV->tsMsgTime.ulSec1970  = 0UL;
+      ptsCanMsgV->tsMsgTime.ulNanoSec  = 0UL;
       #endif
 
       #if CP_CAN_MSG_USER == 1
-      ptsCanMsgV->ulMsgUser            = 0;
+      ptsCanMsgV->ulMsgUser            = 0UL;
       #endif
+
+      #if CP_CAN_MSG_MARKER == 1
+      ptsCanMsgV->ulMsgMarker          = 0UL;
+      #endif
+
    }
 
 }
@@ -135,7 +140,7 @@ void CpMsgClrRemote(CpCanMsg_ts * ptsCanMsgV)
 //----------------------------------------------------------------------------//
 uint8_t  CpMsgGetData(CpCanMsg_ts * ptsCanMsgV, uint8_t ubPosV)
 {
-   uint8_t  ubDataT = 0;
+   uint8_t  ubDataT = (uint8_t) 0;
 
    //----------------------------------------------------------------
    // check for valid pointer
@@ -149,14 +154,14 @@ uint8_t  CpMsgGetData(CpCanMsg_ts * ptsCanMsgV, uint8_t ubPosV)
       {
          if(ubPosV < 64)
          {
-            ubDataT = ptsCanMsgV->tuMsgData.aubByte[ubPosV];
+            ubDataT = ptsCanMsgV->aubData[ubPosV];
          }
       }
       else
       {
          if(ubPosV <  8)
          {
-            ubDataT = ptsCanMsgV->tuMsgData.aubByte[ubPosV];
+            ubDataT = ptsCanMsgV->aubData[ubPosV];
          }
       }
    }
@@ -205,7 +210,7 @@ uint32_t  CpMsgGetExtId(CpCanMsg_ts * ptsCanMsgV)
       //--------------------------------------------------------
       // mask the lower 29 bits
       //
-      ulExtIdT = ptsCanMsgV->tuMsgId.ulExt & CP_MASK_EXT_FRAME;
+      ulExtIdT = ptsCanMsgV->ulIdentifier & CP_MASK_EXT_FRAME;
    }
 
    return(ulExtIdT);
@@ -218,7 +223,7 @@ uint32_t  CpMsgGetExtId(CpCanMsg_ts * ptsCanMsgV)
 //----------------------------------------------------------------------------//
 uint16_t  CpMsgGetStdId(CpCanMsg_ts * ptsCanMsgV)
 {
-   uint16_t  uwStdIdT = 0;
+   uint16_t  uwStdIdT = (uint16_t) 0;
 
    //----------------------------------------------------------------
    // check for valid pointer
@@ -228,7 +233,7 @@ uint16_t  CpMsgGetStdId(CpCanMsg_ts * ptsCanMsgV)
       //--------------------------------------------------------
       // mask the lower 11 bits
       //
-      uwStdIdT = ptsCanMsgV->tuMsgId.uwStd & CP_MASK_STD_FRAME;
+      uwStdIdT = (uint16_t) (ptsCanMsgV->ulIdentifier & CP_MASK_STD_FRAME);
    }
 
    return(uwStdIdT);
@@ -387,14 +392,14 @@ void  CpMsgSetData(CpCanMsg_ts * ptsCanMsgV, uint8_t ubPosV, uint8_t ubValueV)
       {
          if(ubPosV < 64)
          {
-            ptsCanMsgV->tuMsgData.aubByte[ubPosV] = ubValueV;
+            ptsCanMsgV->aubData[ubPosV] = ubValueV;
          }
       }
       else
       {
          if(ubPosV <  8)
          {
-            ptsCanMsgV->tuMsgData.aubByte[ubPosV] = ubValueV;
+            ptsCanMsgV->aubData[ubPosV] = ubValueV;
          }
       }
    }
@@ -454,7 +459,7 @@ void  CpMsgSetExtId(CpCanMsg_ts * ptsCanMsgV, uint32_t ulExtIdV)
       //
       ptsCanMsgV->ubMsgCtrl |= CP_MSG_CTRL_EXT_BIT;
 
-      ptsCanMsgV->tuMsgId.ulExt = ulExtIdV;
+      ptsCanMsgV->ulIdentifier = ulExtIdV;
    }
 }
 
@@ -528,7 +533,7 @@ void  CpMsgSetStdId(CpCanMsg_ts * ptsCanMsgV, uint16_t uwStdIdV)
       //
       ptsCanMsgV->ubMsgCtrl &= ~CP_MSG_CTRL_EXT_BIT;
 
-      ptsCanMsgV->tuMsgId.uwStd = uwStdIdV;
+      ptsCanMsgV->ulIdentifier = (uint32_t) uwStdIdV;
    }
 
 }

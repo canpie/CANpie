@@ -65,14 +65,15 @@
 //
 static CpCanMsg_ts atsCanMsgS[CP_BUFFER_MAX];
 
+static CpFifo_ts * aptsFifoS[CP_BUFFER_MAX];
 
 
 //-------------------------------------------------------------------
 // these pointers store the callback handlers
 //
-static uint8_t    (* pfnRcvIntHandler) (CpCanMsg_ts *, uint8_t);
-static uint8_t    (* pfnTrmIntHandler) (CpCanMsg_ts *, uint8_t);
-static uint8_t    (* pfnErrIntHandler) (CpState_ts *);
+static CpRcvHandler_Fn  /*@null@*/  pfnRcvHandlerS = CPP_NULL;
+static CpTrmHandler_Fn  /*@null@*/  pfnTrmHandlerS = CPP_NULL;
+static CpErrHandler_Fn  /*@null@*/  pfnErrHandlerS = CPP_NULL;
 
 
 /*----------------------------------------------------------------------------*\
@@ -492,8 +493,8 @@ CpStatus_tv CpCoreCanState(CpPort_ts * ptsPortV, CpState_ts * ptsStateV)
 // CpCoreDriverInit()                                                         //
 // init CAN controller                                                        //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreDriverInit(uint8_t ubPhyIfV, CpPort_ts * ptsPortV,
-                             uint8_t ubConfigV)
+CpStatus_tv CpCoreDriverInit( uint8_t ubPhyIfV, CpPort_ts * ptsPortV,
+                              uint8_t CPP_PARM_UNUSED(ubConfigV) )
 {
 
    if(ubPhyIfV != eCP_CHANNEL_1)
@@ -552,7 +553,7 @@ CpStatus_tv CpCoreFifoConfig(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 
    if(ptsFifoV != 0)
    {
-
+      aptsFifoS[ubBufferIdxV - 1] = ptsFifoV;
    }
    return(eCP_ERR_NONE);
 }
@@ -699,9 +700,9 @@ CpStatus_tv CpCoreHDI(CpPort_ts * ptsPortV, CpHdi_ts * ptsHdiV)
 //                                                                            //
 //----------------------------------------------------------------------------//
 CpStatus_tv CpCoreIntFunctions(CpPort_ts * ptsPortV,
-                        uint8_t (* pfnRcvHandler)(CpCanMsg_ts *, uint8_t),
-                        uint8_t (* pfnTrmHandler)(CpCanMsg_ts *, uint8_t),
-                        uint8_t (* pfnErrHandler)(CpState_ts *) )
+                               CpRcvHandler_Fn pfnRcvHandlerV,
+                               CpTrmHandler_Fn pfnTrmHandlerV,
+                               CpErrHandler_Fn pfnErrHandlerV )
 {
    //----------------------------------------------------------------
    // test CAN port
@@ -716,9 +717,9 @@ CpStatus_tv CpCoreIntFunctions(CpPort_ts * ptsPortV,
    //----------------------------------------------------------------
    // store the new callbacks
    //
-   pfnRcvIntHandler = pfnRcvHandler;
-   pfnTrmIntHandler = pfnTrmHandler;
-   pfnErrIntHandler = pfnErrHandler;
+   pfnRcvHandlerS = pfnRcvHandlerV;
+   pfnTrmHandlerS = pfnTrmHandlerV;
+   pfnErrHandlerS = pfnErrHandlerV;
 
 
    return (eCP_ERR_NONE);
