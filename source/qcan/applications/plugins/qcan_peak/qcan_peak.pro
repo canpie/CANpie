@@ -15,6 +15,17 @@
 QMAKE_PROJECT_NAME = "QCan PEAK"
 
 #---------------------------------------------------------------
+# compile plugin only if necessary header file exists
+#
+macx {
+   DRIVER_API = ./include/PCBUSB.h
+}
+win32 {
+   DRIVER_API = ./include/PCANBasic.h
+}
+exists($$DRIVER_API) {
+
+#---------------------------------------------------------------
 # template type
 #
 TEMPLATE = lib
@@ -42,6 +53,7 @@ OBJECTS_DIR = ./objs/
 #---------------------------------------------------------------
 # project configuration and compiler options
 #
+CONFIG += debug
 CONFIG += release
 CONFIG += plugin
 CONFIG += warn_on
@@ -133,4 +145,15 @@ win32 {
    }
 }
 
+#---------------------------------------------------------------
+# necessary header file does not exist!
+#
+} else {
+   message(" ");
+   message(" '$$QMAKE_PROJECT_NAME' ommited from build, because PCAN-Basic API is not available!");
+   message(" Make sure './include' contains PCAN-Basic API.");
+   message(" Copy or link content of 'PCAN-Basic API/Include' to the './include' folder.");
+   message(" PCAN-Basic API can be downloaded from http://www.peak-system.com/");
+   message(" ");
+}
 

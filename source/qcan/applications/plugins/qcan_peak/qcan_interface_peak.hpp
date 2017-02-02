@@ -1,5 +1,5 @@
 //============================================================================//
-// File:          qcan_peakusb.hpp                                            //
+// File:          qcan_interface_peak.hpp                                     //
 // Description:   CAN plugin for PEAK USB device                              //
 //                                                                            //
 // Copyright (C) MicroControl GmbH & Co. KG                                   //
@@ -26,8 +26,8 @@
 //                                                                            //
 //============================================================================//
 
-#ifndef QCAN_INTERFACE_PEAK_USB_H_
-#define QCAN_INTERFACE_PEAK_USB_H_
+#ifndef QCAN_INTERFACE_PEAK_H_
+#define QCAN_INTERFACE_PEAK_H_
 
 #include <QObject>
 #include <QtPlugin>
@@ -127,4 +127,4 @@ Q_SIGNALS:
     void errorOccurred(int32_t slCanBusErrorV);
 };
 
-#endif /*QCAN_INTERFACE_PEAK_USB_H_*/
+#endif /*QCAN_INTERFACE_PEAK_H_*/

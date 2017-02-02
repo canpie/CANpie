@@ -1,5 +1,5 @@
 //============================================================================//
-// File:          qcan_ixxatusb.cpp                                           //
+// File:          qcan_interface_ixxat.cpp                                    //
 // Description:   CAN plugin for IXXAT USB device                             //
 //                                                                            //
 // Copyright (C) MicroControl GmbH & Co. KG                                   //
@@ -282,7 +282,7 @@ QCanInterface::InterfaceError_e QCanInterfaceIxxat::setBitrate(int32_t slBitrate
    }
 
    //----------------------------------------------------------------
-   // select corresponding PEAK baud rate value
+   // select corresponding baud rate value
    //
    switch (slBitrateV)
    {

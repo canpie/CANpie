@@ -39,19 +39,13 @@
 
 #ifdef Q_OS_WIN32
 #include <windows.h>
-#if !(__has_include("vcinpl.h"))
-#error   "IXXAT VCI 3.5 API is not available!"
-#warning "Make sure the '../qcan_ixxat/include' contains VCI 3.5 API,"
-#warning "copy or link content of 'IXXAT/VCI 3.5/sdk/Microsoft_VisualC/inc' to the given folder above."
-#warning "IXXAT VCI 3.5 API can be downloaded from https://www.ixxat.com/"
-#else
 #include "vcinpl.h"
-#endif
 
 #define QCAN_IXXATLIB "vcinpl.dll"
 #ifndef DRV_CALLBACK_TYPE
 #define DRV_CALLBACK_TYPE VCIAPI
 #endif
+
 #else
 #define DRV_CALLBACK_TYPE
 #endif
@@ -103,56 +97,56 @@ public:
    /*!
     * device manager specific functions
     */
-   typedef HRESULT DRV_CALLBACK_TYPE (*vciEnumDeviceOpen_tf)     ( OUT PHANDLE hEnum );
-   typedef HRESULT DRV_CALLBACK_TYPE (*vciEnumDeviceClose_tf)    ( IN HANDLE hEnum );
-   typedef HRESULT DRV_CALLBACK_TYPE (*vciEnumDeviceNext_tf)     ( IN HANDLE hEnum, OUT PVCIDEVICEINFO pInfo );
-   typedef HRESULT DRV_CALLBACK_TYPE (*vciEnumDeviceReset_tf)    ( IN HANDLE hEnum );
-   typedef HRESULT DRV_CALLBACK_TYPE (*vciEnumDeviceWaitEvent_tf)( IN HANDLE hEnum, IN UINT32 dwMsTimeout );
-   typedef HRESULT DRV_CALLBACK_TYPE (*vciFindDeviceByHwid_tf)   ( IN REFGUID rHwid, OUT PVCIID pVciid );
-   typedef HRESULT DRV_CALLBACK_TYPE (*vciFindDeviceByClass_tf)  ( IN REFGUID rClass, IN  UINT32 dwInst, OUT PVCIID pVciid );
-   typedef HRESULT DRV_CALLBACK_TYPE (*vciSelectDeviceDlg_tf)    ( IN HWND hwndParent, OUT PVCIID pVciid );
-   typedef void    DRV_CALLBACK_TYPE (*vciFormatError_tf)        ( IN HRESULT hrError, OUT PCHAR pszText, IN UINT32 dwSize );
+   typedef HRESULT (DRV_CALLBACK_TYPE *vciEnumDeviceOpen_tf)     ( OUT PHANDLE hEnum );
+   typedef HRESULT (DRV_CALLBACK_TYPE *vciEnumDeviceClose_tf)    ( IN HANDLE hEnum );
+   typedef HRESULT (DRV_CALLBACK_TYPE *vciEnumDeviceNext_tf)     ( IN HANDLE hEnum, OUT PVCIDEVICEINFO pInfo );
+   typedef HRESULT (DRV_CALLBACK_TYPE *vciEnumDeviceReset_tf)    ( IN HANDLE hEnum );
+   typedef HRESULT (DRV_CALLBACK_TYPE *vciEnumDeviceWaitEvent_tf)( IN HANDLE hEnum, IN UINT32 dwMsTimeout );
+   typedef HRESULT (DRV_CALLBACK_TYPE *vciFindDeviceByHwid_tf)   ( IN REFGUID rHwid, OUT PVCIID pVciid );
+   typedef HRESULT (DRV_CALLBACK_TYPE *vciFindDeviceByClass_tf)  ( IN REFGUID rClass, IN  UINT32 dwInst, OUT PVCIID pVciid );
+   typedef HRESULT (DRV_CALLBACK_TYPE *vciSelectDeviceDlg_tf)    ( IN HWND hwndParent, OUT PVCIID pVciid );
+   typedef void    (DRV_CALLBACK_TYPE *vciFormatError_tf)        ( IN HRESULT hrError, OUT PCHAR pszText, IN UINT32 dwSize );
 
    /*!
     * device specific functions
     */
-   typedef HRESULT DRV_CALLBACK_TYPE (*vciDeviceOpen_tf)   ( IN REFVCIID rVciid, OUT PHANDLE phDevice );
-   typedef HRESULT DRV_CALLBACK_TYPE (*vciDeviceOpenDlg_tf)( IN HWND hwndParent, OUT PHANDLE phDevice );
-   typedef HRESULT DRV_CALLBACK_TYPE (*vciDeviceClose_tf)  ( IN HANDLE hDevice );
-   typedef HRESULT DRV_CALLBACK_TYPE (*vciDeviceGetInfo_tf)( IN HANDLE hDevice, OUT PVCIDEVICEINFO pInfo );
-   typedef HRESULT DRV_CALLBACK_TYPE (*vciDeviceGetCaps_tf)( IN HANDLE hDevice, OUT PVCIDEVICECAPS pCaps );
+   typedef HRESULT (DRV_CALLBACK_TYPE *vciDeviceOpen_tf)   ( IN REFVCIID rVciid, OUT PHANDLE phDevice );
+   typedef HRESULT (DRV_CALLBACK_TYPE *vciDeviceOpenDlg_tf)( IN HWND hwndParent, OUT PHANDLE phDevice );
+   typedef HRESULT (DRV_CALLBACK_TYPE *vciDeviceClose_tf)  ( IN HANDLE hDevice );
+   typedef HRESULT (DRV_CALLBACK_TYPE *vciDeviceGetInfo_tf)( IN HANDLE hDevice, OUT PVCIDEVICEINFO pInfo );
+   typedef HRESULT (DRV_CALLBACK_TYPE *vciDeviceGetCaps_tf)( IN HANDLE hDevice, OUT PVCIDEVICECAPS pCaps );
 
    /*!
     * CAN controller specific functions
     */
-   typedef HRESULT DRV_CALLBACK_TYPE (*canControlOpen_tf)         ( IN HANDLE   hDevice,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canControlOpen_tf)         ( IN HANDLE   hDevice,
                                                          IN UINT32   dwCanNo,
                                                          OUT PHANDLE phCanCtl );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canControlClose_tf)        ( IN HANDLE hCanCtl );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canControlGetCaps_tf)      ( IN HANDLE hCanCtl, OUT PCANCAPABILITIES pCanCaps );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canControlGetStatus_tf)    ( IN HANDLE hCanCtl, OUT PCANLINESTATUS pStatus );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canControlDetectBitrate_tf)( IN HANDLE  hCanCtl,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canControlClose_tf)        ( IN HANDLE hCanCtl );
+   typedef HRESULT (DRV_CALLBACK_TYPE *canControlGetCaps_tf)      ( IN HANDLE hCanCtl, OUT PCANCAPABILITIES pCanCaps );
+   typedef HRESULT (DRV_CALLBACK_TYPE *canControlGetStatus_tf)    ( IN HANDLE hCanCtl, OUT PCANLINESTATUS pStatus );
+   typedef HRESULT (DRV_CALLBACK_TYPE *canControlDetectBitrate_tf)( IN HANDLE  hCanCtl,
                                                          IN UINT16  wMsTimeout,
                                                          IN UINT32  dwCount,
                                                          IN PUINT8  pabBtr0,
                                                          IN PUINT8  pabBtr1,
                                                          OUT PINT32 plIndex );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canControlInitialize_tf)   ( IN HANDLE hCanCtl,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canControlInitialize_tf)   ( IN HANDLE hCanCtl,
                                                          IN UINT8  bMode,
                                                          IN UINT8  bBtr0,
                                                          IN UINT8  bBtr1 );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canControlReset_tf)        ( IN HANDLE hCanCtl );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canControlStart_tf)        ( IN HANDLE hCanCtl,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canControlReset_tf)        ( IN HANDLE hCanCtl );
+   typedef HRESULT (DRV_CALLBACK_TYPE *canControlStart_tf)        ( IN HANDLE hCanCtl,
                                                          IN BOOL   fStart );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canControlSetAccFilter_tf) ( IN HANDLE hCanCtl,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canControlSetAccFilter_tf) ( IN HANDLE hCanCtl,
                                                          IN BOOL   fExtend,
                                                          IN UINT32 dwCode,
                                                          IN UINT32 dwMask );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canControlAddFilterIds_tf) ( IN HANDLE hCanCtl,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canControlAddFilterIds_tf) ( IN HANDLE hCanCtl,
                                                          IN BOOL   fExtend,
                                                          IN UINT32 dwCode,
                                                          IN UINT32 dwMask );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canControlRemFilterIds_tf) ( IN HANDLE hCanCtl,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canControlRemFilterIds_tf) ( IN HANDLE hCanCtl,
                                                          IN BOOL   fExtend,
                                                          IN UINT32 dwCode,
                                                          IN UINT32 dwMask );
@@ -160,50 +154,50 @@ public:
    /*!
    * CAN message channel specific functions
    */
-   typedef HRESULT DRV_CALLBACK_TYPE (*canChannelOpen_tf) ( IN  HANDLE  hDevice,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canChannelOpen_tf) ( IN  HANDLE  hDevice,
                                                  IN  UINT32  dwCanNo,
                                                  IN  BOOL    fExclusive,
                                                  OUT PHANDLE phCanChn );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canChannelClose_tf) ( IN HANDLE hCanChn );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canChannelGetCaps_tf) ( IN  HANDLE           hCanChn,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canChannelClose_tf) ( IN HANDLE hCanChn );
+   typedef HRESULT (DRV_CALLBACK_TYPE *canChannelGetCaps_tf) ( IN  HANDLE           hCanChn,
                                                     OUT PCANCAPABILITIES pCanCaps );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canChannelGetStatus_tf)  ( IN  HANDLE         hCanChn,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canChannelGetStatus_tf)  ( IN  HANDLE         hCanChn,
                                                        OUT PCANCHANSTATUS pStatus );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canChannelInitialize_tf) ( IN HANDLE hCanChn,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canChannelInitialize_tf) ( IN HANDLE hCanChn,
                                                        IN UINT16 wRxFifoSize,
                                                        IN UINT16 wRxThreshold,
                                                        IN UINT16 wTxFifoSize,
                                                        IN UINT16 wTxThreshold );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canChannelActivate_tf)   ( IN HANDLE hCanChn,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canChannelActivate_tf)   ( IN HANDLE hCanChn,
                                                        IN BOOL   fEnable );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canChannelPeekMessage_tf) ( IN  HANDLE  hCanChn,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canChannelPeekMessage_tf) ( IN  HANDLE  hCanChn,
                                                         OUT PCANMSG pCanMsg );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canChannelPostMessage_tf) ( IN HANDLE  hCanChn,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canChannelPostMessage_tf) ( IN HANDLE  hCanChn,
                                                         IN PCANMSG pCanMsg );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canChannelWaitRxEvent_tf) ( IN HANDLE hCanChn,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canChannelWaitRxEvent_tf) ( IN HANDLE hCanChn,
                                                         IN UINT32 dwMsTimeout );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canChannelWaitTxEvent_tf) ( IN HANDLE hCanChn,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canChannelWaitTxEvent_tf) ( IN HANDLE hCanChn,
                                                         IN UINT32 dwMsTimeout );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canChannelReadMessage_tf) ( IN  HANDLE  hCanChn,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canChannelReadMessage_tf) ( IN  HANDLE  hCanChn,
                                                         IN  UINT32  dwMsTimeout,
                                                         OUT PCANMSG pCanMsg );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canChannelSendMessage_tf) ( IN HANDLE  hCanChn,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canChannelSendMessage_tf) ( IN HANDLE  hCanChn,
                                                         IN UINT32  dwMsTimeout,
                                                         IN PCANMSG pCanMsg );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canChannelPeekMultipleMessages_tf)
+   typedef HRESULT (DRV_CALLBACK_TYPE *canChannelPeekMultipleMessages_tf)
                                     ( IN     HANDLE  hCanChn,
                                       IN OUT UINT32 * pdwNum,
                                       OUT    CANMSG aCanMsg[] );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canChannelPostMultipleMessages_tf)
+   typedef HRESULT (DRV_CALLBACK_TYPE *canChannelPostMultipleMessages_tf)
                                     ( IN     HANDLE  hCanChn,
                                       IN OUT UINT32 * pdwNum,
                                       IN     CANMSG aCanMsg[] );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canChannelReadMultipleMessages_tf)
+   typedef HRESULT (DRV_CALLBACK_TYPE *canChannelReadMultipleMessages_tf)
                                     ( IN     HANDLE  hCanChn,
                                       IN     UINT32  dwMsTimeout,
                                       IN OUT UINT32 * pdwNum,
                                       OUT    CANMSG aCanMsg[] );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canChannelSendMultipleMessages_tf)
+   typedef HRESULT (DRV_CALLBACK_TYPE *canChannelSendMultipleMessages_tf)
                                     ( IN     HANDLE  hCanChn,
                                       IN     UINT32  dwMsTimeout,
                                       IN OUT UINT32 * pdwNum,
@@ -212,26 +206,26 @@ public:
    /*!
     * cyclic CAN message scheduler specific functions
     */
-   typedef HRESULT DRV_CALLBACK_TYPE (*canSchedulerOpen_tf)         ( IN  HANDLE  hDevice,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canSchedulerOpen_tf)         ( IN  HANDLE  hDevice,
                                                            IN  UINT32  dwCanNo,
                                                            OUT PHANDLE phCanShd );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canSchedulerClose_tf)        ( IN HANDLE hCanShd );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canSchedulerGetCaps_tf)      ( IN  HANDLE           hCanShd,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canSchedulerClose_tf)        ( IN HANDLE hCanShd );
+   typedef HRESULT (DRV_CALLBACK_TYPE *canSchedulerGetCaps_tf)      ( IN  HANDLE           hCanShd,
                                                            OUT PCANCAPABILITIES pCanCaps );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canSchedulerGetStatus_tf)    ( IN  HANDLE              hCanShd,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canSchedulerGetStatus_tf)    ( IN  HANDLE              hCanShd,
                                                            OUT PCANSCHEDULERSTATUS pStatus );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canSchedulerActivate_tf)     ( IN HANDLE hCanShd,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canSchedulerActivate_tf)     ( IN HANDLE hCanShd,
                                                            IN BOOL   fEnable );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canSchedulerReset_tf)        ( IN HANDLE hCanShd );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canSchedulerAddMessage_tf)   ( IN  HANDLE          hCanShd,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canSchedulerReset_tf)        ( IN HANDLE hCanShd );
+   typedef HRESULT (DRV_CALLBACK_TYPE *canSchedulerAddMessage_tf)   ( IN  HANDLE          hCanShd,
                                                            IN  PCANCYCLICTXMSG pMessage,
                                                            OUT PUINT32         pdwIndex );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canSchedulerRemMessage_tf)   ( IN HANDLE hCanShd,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canSchedulerRemMessage_tf)   ( IN HANDLE hCanShd,
                                                            IN UINT32 dwIndex );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canSchedulerStartMessage_tf) ( IN HANDLE hCanShd,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canSchedulerStartMessage_tf) ( IN HANDLE hCanShd,
                                                            IN UINT32 dwIndex,
                                                            IN UINT16 wRepeat );
-   typedef HRESULT DRV_CALLBACK_TYPE (*canSchedulerStopMessage_tf)  ( IN HANDLE hCanShd,
+   typedef HRESULT (DRV_CALLBACK_TYPE *canSchedulerStopMessage_tf)  ( IN HANDLE hCanShd,
                                                            IN UINT32 dwIndex );
 
 

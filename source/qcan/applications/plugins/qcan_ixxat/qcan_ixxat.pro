@@ -15,6 +15,17 @@
 QMAKE_PROJECT_NAME = "QCan IXXAT"
 
 #---------------------------------------------------------------
+# compile plugin only if necessary header file exists
+#
+macx {
+   DRIVER_API =
+}
+win32 {
+   DRIVER_API = ./include/vcinpl.h
+}
+exists($$DRIVER_API) {
+
+#---------------------------------------------------------------
 # template type
 #
 TEMPLATE = lib
@@ -42,6 +53,7 @@ OBJECTS_DIR = ./objs/
 #---------------------------------------------------------------
 # project configuration and compiler options
 #
+CONFIG += debug
 CONFIG += release
 CONFIG += plugin
 CONFIG += warn_on
@@ -131,3 +143,14 @@ win32 {
    }
 }
 
+#---------------------------------------------------------------
+# necessary header file does not exist!
+#
+} else {
+   message(" ");
+   message(" '$$QMAKE_PROJECT_NAME' ommited from build, because IXXAT VCI 3.5 API is not available!");
+   message(" Make sure './include' contains IXXAT VCI 3.5 API.");
+   message(" Copy or link content of 'IXXAT/VCI 3.5/sdk/Microsoft_VisualC/inc' to the './include' folder.");
+   message(" IXXAT VCI 3.5 API is included by 'VCI V3 driver' and can be downloaded from https://www.ixxat.com");
+   message(" ");
+}

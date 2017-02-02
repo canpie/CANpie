@@ -33,14 +33,7 @@
 
 #ifdef   Q_OS_WIN32
 #include <windows.h>
-#if !(__has_include("PCANBasic.h"))
-#error   "PCAN-Basic API is not available!"
-#warning "Make sure the '../qcan_peak/include' contains PCAN-Basic API,"
-#warning "copy or link content of 'PCAN-Basic API/Include' to the given folder above."
-#warning "PCAN-Basic API can be downloaded from http://www.peak-system.com/"
-#else
 #include "PCANBasic.h"
-#endif
 #define  DRV_CALLBACK_TYPE       WINAPI
 #define  QCAN_SUPPORT_CAN_FD     1
 #define  QCAN_PEAKLIB            "PCANBasic.dll"
