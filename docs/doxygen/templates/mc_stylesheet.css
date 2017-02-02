@@ -57,6 +57,16 @@ h2 {
    width: 100%;
 }
 
+h3 {
+   border-bottom: 1px solid #f76013;
+   color: #374D79;
+   font-size: 110%;
+   font-weight: normal;
+   margin-top: 1.75em;
+   padding-top: 8px;
+   padding-bottom: 4px;
+   width: 40%;
+}
 
 h1.glow, h2.glow, h3.glow, h4.glow, h5.glow, h6.glow {
 	text-shadow: 0 0 15px cyan;
