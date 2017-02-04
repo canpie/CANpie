@@ -95,5 +95,6 @@ CpCoreBufferConfig( &tsCanPortG, eCP_BUFFER_4,
 \endcode
 
 <p>
+<br>
 
 */
