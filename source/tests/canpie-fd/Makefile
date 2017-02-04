@@ -207,7 +207,9 @@ show:
 	@echo ALL_CFILES:
 	@echo $(ALL_CFILES)
 
-
+run:
+	$(OBJ_DIR)/$(TARGET) 
+	
 msg_compiling:
 	echo Build target: $(TARGET) 
 
