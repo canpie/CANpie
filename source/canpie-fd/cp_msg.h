@@ -152,7 +152,7 @@ void  CpMsgClrRemote(CpCanMsg_ts * ptsCanMsgV);
 ** macro implementation does not check the value range of the parameter 
 ** \a ubPosV.
 */
-uint8_t  CpMsgGetData(CPP_CONST CpCanMsg_ts * ptsCanMsgV, uint8_t ubPosV);
+uint8_t  CpMsgGetData(const CpCanMsg_ts * ptsCanMsgV, uint8_t ubPosV);
 
 
 //------------------------------------------------------------------------------
@@ -164,7 +164,7 @@ uint8_t  CpMsgGetData(CPP_CONST CpCanMsg_ts * ptsCanMsgV, uint8_t ubPosV);
 ** This function retrieves the data length code (DLC) of a CAN message.
 ** The return value range is between 0 and 8. 
 */
-uint8_t  CpMsgGetDlc(CPP_CONST CpCanMsg_ts * ptsCanMsgV);
+uint8_t  CpMsgGetDlc(const CpCanMsg_ts * ptsCanMsgV);
 
 
 //------------------------------------------------------------------------------
@@ -181,7 +181,7 @@ uint8_t  CpMsgGetDlc(CPP_CONST CpCanMsg_ts * ptsCanMsgV);
 ** \deprecated It is advised to use CpMsgGetIdentifier() for new applications.
 **
 */
-uint32_t  CpMsgGetExtId(CPP_CONST CpCanMsg_ts * ptsCanMsgV);
+uint32_t  CpMsgGetExtId(const CpCanMsg_ts * ptsCanMsgV);
 
 
 //------------------------------------------------------------------------------
@@ -212,7 +212,7 @@ uint32_t  CpMsgGetIdentifier(const CpCanMsg_ts * ptsCanMsgV);
 ** \deprecated It is advised to use CpMsgGetIdentifier() for new applications.
 **
 */
-uint16_t  CpMsgGetStdId(CPP_CONST CpCanMsg_ts * ptsCanMsgV);
+uint16_t  CpMsgGetStdId(const CpCanMsg_ts * ptsCanMsgV);
 
 
 //------------------------------------------------------------------------------
@@ -239,12 +239,13 @@ void      CpMsgInit(CpCanMsg_ts * ptsCanMsgV, uint8_t ubFormatV);
 ** \brief   Check for bit-rate
 ** \param   ptsCanMsgV  Pointer to a CpCanMsg_ts message
 ** \return  \c true if bit-rate switch is set
+** \see     CpMsgSetBitrateSwitch()
 **
 ** This function checks the frame type. If the frame is a CAN FD
 ** frame and the bit-rate switch (BRS) bit is set, the value \c true
 ** is returned.
 */
-bool_t    CpMsgIsBitrateSwitch(CPP_CONST CpCanMsg_ts * ptsCanMsgV);
+bool_t    CpMsgIsBitrateSwitch(const CpCanMsg_ts * ptsCanMsgV);
 
 
 //------------------------------------------------------------------------------
@@ -257,7 +258,7 @@ bool_t    CpMsgIsBitrateSwitch(CPP_CONST CpCanMsg_ts * ptsCanMsgV);
 ** (Standard Frame), the value \c false is returned. If the frame is
 ** CAN 2.0B (Extended Frame), the value \c true is returned.
 */
-bool_t   CpMsgIsExtended(CPP_CONST CpCanMsg_ts * ptsCanMsgV);
+bool_t   CpMsgIsExtended(const CpCanMsg_ts * ptsCanMsgV);
 
 
 //------------------------------------------------------------------------------
@@ -269,7 +270,7 @@ bool_t   CpMsgIsExtended(CPP_CONST CpCanMsg_ts * ptsCanMsgV);
 ** This function checks the frame type. If the frame is a CAN FD frame
 ** CAN 2.0B (Extended Frame), the value \c true is returned.
 */
-bool_t   CpMsgIsFastData(CPP_CONST CpCanMsg_ts * ptsCanMsgV);
+bool_t   CpMsgIsFastData(const CpCanMsg_ts * ptsCanMsgV);
 
 //------------------------------------------------------------------------------
 /*!
@@ -280,7 +281,7 @@ bool_t   CpMsgIsFastData(CPP_CONST CpCanMsg_ts * ptsCanMsgV);
 ** This function checks if a data overrun has occurred for the message.
 */
 
-bool_t   CpMsgIsOverrun(CPP_CONST CpCanMsg_ts * ptsCanMsgV);
+bool_t   CpMsgIsOverrun(const CpCanMsg_ts * ptsCanMsgV);
 
 
 //------------------------------------------------------------------------------
@@ -293,8 +294,18 @@ bool_t   CpMsgIsOverrun(CPP_CONST CpCanMsg_ts * ptsCanMsgV);
 ** set. If the RTR bit is set, the function will return 1, otherwise
 ** 0.
 */
-bool_t   CpMsgIsRemote(CPP_CONST CpCanMsg_ts * ptsCanMsgV);
+bool_t   CpMsgIsRemote(const CpCanMsg_ts * ptsCanMsgV);
 
+//------------------------------------------------------------------------------
+/*!
+** \brief   Set bit-rate switch
+** \param   ptsCanMsgV  Pointer to a CpCanMsg_ts message
+** \see     CpMsgIsBitrateSwitch()
+**
+** This function checks the frame type. If the frame is a CAN FD
+** frame the bit-rate switch (BRS) bit is set, otherwise the bit
+** value in the message control field is not altered.
+*/
 void     CpMsgSetBitrateSwitch(CpCanMsg_ts * ptsCanMsgV);
 
 //------------------------------------------------------------------------------
@@ -337,6 +348,8 @@ void  CpMsgSetDlc(CpCanMsg_ts * ptsCanMsgV, uint8_t ubDlcV);
 ** Extended Frame (CAN 2.0B) and marks the frame format as
 ** accordingly. The value of \c ulExtIdV is limited to
 ** #CP_MASK_EXT_FRAME.
+**
+** \deprecated It is advised to use CpMsgSetIdentifier() for new applications.
 */
 void  CpMsgSetExtId(CpCanMsg_ts * ptsCanMsgV, uint32_t ulExtIdV);
 
@@ -390,6 +403,8 @@ void  CpMsgSetRemote(CpCanMsg_ts * ptsCanMsgV);
 **
 ** This function sets the identifier value for a Standard frame (CAN 2.0A).
 ** The value of \c uwStdIdV is limited to #CP_MASK_STD_FRAME.
+**
+** \deprecated It is advised to use CpMsgSetIdentifier() for new applications.
 */
 void  CpMsgSetStdId(CpCanMsg_ts * ptsCanMsgV, uint16_t uwStdIdV);
 
@@ -402,7 +417,7 @@ void  CpMsgSetStdId(CpCanMsg_ts * ptsCanMsgV, uint16_t uwStdIdV);
 **
 ** This function sets the time-stamp value for a CAN frame.
 */
-void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CPP_CONST CpTime_ts * ptsTimeV);
+void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, const CpTime_ts * ptsTimeV);
 
 
 
