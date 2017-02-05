@@ -48,11 +48,11 @@
 ** \code
 ** //--- setup a CAN message ----------------------------------------
 ** CpCanMsg_ts   myMessage;
-** CpMsgClear(&myMessage);                // clear the message
-** CpMsgSetStdId(&myMessage, 100, 0);     // identifier is 100 dec, no RTR
-** CpMsgSetDlc(&myMessage, 2);            // data length code is 2
-** CpMsgSetData(&myMessage, 0, 0x11);     // byte 0 has the value 0x11
-** CpMsgSetData(&myMessage, 1, 0x22);     // byte 1 has the value 0x22
+** CpMsgInit(&myMessage, CP_MSG_FORMAT_CBFF);   // initialise message
+** CpMsgSetIdentifier(&myMessage, 100);         // identifier is 100 dec.
+** CpMsgSetDlc(&myMessage, 2);                  // data length code is 2
+** CpMsgSetData(&myMessage, 0, 0x11);           // byte 0 has the value 0x11
+** CpMsgSetData(&myMessage, 1, 0x22);           // byte 1 has the value 0x22
 ** //... do something with it ....
 **
 ** //--- evaluate a message that was received -----------------------
@@ -111,6 +111,9 @@ extern "C" {                                                         //
 ** This function sets the identifier field and the flags field
 ** of a CAN message structure to 0. It is recommended to use
 ** this function when a message structure is assigned in memory.
+**
+** \deprecated It is advised to use CpMsgInit() for new applications.
+**
 */
 void  CpMsgClear(CpCanMsg_ts * ptsCanMsgV);
 
@@ -150,7 +153,7 @@ void  CpMsgClrRemote(CpCanMsg_ts * ptsCanMsgV);
 ** macro implementation does not check the value range of the parameter 
 ** \a ubPosV.
 */
-uint8_t  CpMsgGetData(CpCanMsg_ts * ptsCanMsgV, uint8_t ubPosV);
+uint8_t  CpMsgGetData(CPP_CONST CpCanMsg_ts * ptsCanMsgV, uint8_t ubPosV);
 
 
 //------------------------------------------------------------------------------
@@ -162,7 +165,7 @@ uint8_t  CpMsgGetData(CpCanMsg_ts * ptsCanMsgV, uint8_t ubPosV);
 ** This function retrieves the data length code (DLC) of a CAN message.
 ** The return value range is between 0 and 8. 
 */
-uint8_t  CpMsgGetDlc(CpCanMsg_ts * ptsCanMsgV);
+uint8_t  CpMsgGetDlc(CPP_CONST CpCanMsg_ts * ptsCanMsgV);
 
 
 //------------------------------------------------------------------------------
@@ -175,8 +178,25 @@ uint8_t  CpMsgGetDlc(CpCanMsg_ts * ptsCanMsgV);
 ** This function retrieves the value for the identifier of an
 ** extended frame (CAN 2.0B). The frame format of the CAN message
 ** can be tested with the CpMsgIsExtended() function.
+**
+** \deprecated It is advised to use CpMsgGetIdentifier() for new applications.
+**
 */
-uint32_t  CpMsgGetExtId(CpCanMsg_ts * ptsCanMsgV);
+uint32_t  CpMsgGetExtId(CPP_CONST CpCanMsg_ts * ptsCanMsgV);
+
+
+//------------------------------------------------------------------------------
+/*!
+** \brief   Get Identifier Value
+** \param   ptsCanMsgV  Pointer to a CpCanMsg_ts message
+** \return  Identifier value
+** \see     CpMsgSetIdentifier()
+**
+** This function retrieves the value for the identifier of a CAN frame.
+** The frame format of the CAN message can be tested with the
+** CpMsgIsExtended() function.
+*/
+uint32_t  CpMsgGetIdentifier(const CpCanMsg_ts * ptsCanMsgV);
 
 
 //------------------------------------------------------------------------------
@@ -189,9 +209,31 @@ uint32_t  CpMsgGetExtId(CpCanMsg_ts * ptsCanMsgV);
 ** This macro retrieves the value for the identifier of an
 ** standard frame (CAN 2.0A). The frame format of the CAN message
 ** can be tested with the CpMsgIsExtended() function.
+**
+** \deprecated It is advised to use CpMsgGetIdentifier() for new applications.
+**
 */
-uint16_t  CpMsgGetStdId(CpCanMsg_ts * ptsCanMsgV);
+uint16_t  CpMsgGetStdId(CPP_CONST CpCanMsg_ts * ptsCanMsgV);
 
+
+//------------------------------------------------------------------------------
+/*!
+** \brief   Initialise message structure
+** \param   ptsCanMsgV  Pointer to a CpCanMsg_ts message
+** \param   ubFormatV   Frame format
+**
+** This function sets the identifier field and the DLC field
+** of a CAN message structure to 0. The parameter \a ubFormatV defines
+** the frame format. Possible value are:
+** - #CP_MSG_FORMAT_CBFF : Classical base frame format
+** - #CP_MSG_FORMAT_CEFF : Classical extended frame format
+** - #CP_MSG_FORMAT_FBFF : FD base frame format
+** - #CP_MSG_FORMAT_FEFF : FD extended frame format
+**
+** The contents of the data field and all other optional fields
+** (time-stamp, user, message marker) are not altered.
+*/
+void      CpMsgInit(CpCanMsg_ts * ptsCanMsgV, uint8_t ubFormatV);
 
 //------------------------------------------------------------------------------
 /*!
@@ -203,7 +245,7 @@ uint16_t  CpMsgGetStdId(CpCanMsg_ts * ptsCanMsgV);
 ** frame and the bit-rate switch (BRS) bit is set, the value \c true
 ** is returned.
 */
-bool_t    CpMsgIsBitrateSwitch(CpCanMsg_ts * ptsCanMsgV);
+bool_t    CpMsgIsBitrateSwitch(CPP_CONST CpCanMsg_ts * ptsCanMsgV);
 
 
 //------------------------------------------------------------------------------
@@ -216,7 +258,7 @@ bool_t    CpMsgIsBitrateSwitch(CpCanMsg_ts * ptsCanMsgV);
 ** (Standard Frame), the value \c false is returned. If the frame is
 ** CAN 2.0B (Extended Frame), the value \c true is returned.
 */
-bool_t   CpMsgIsExtended(CpCanMsg_ts * ptsCanMsgV);
+bool_t   CpMsgIsExtended(CPP_CONST CpCanMsg_ts * ptsCanMsgV);
 
 
 //------------------------------------------------------------------------------
@@ -228,7 +270,7 @@ bool_t   CpMsgIsExtended(CpCanMsg_ts * ptsCanMsgV);
 ** This function checks the frame type. If the frame is a CAN FD frame
 ** CAN 2.0B (Extended Frame), the value \c true is returned.
 */
-bool_t   CpMsgIsFastData(CpCanMsg_ts * ptsCanMsgV);
+bool_t   CpMsgIsFastData(CPP_CONST CpCanMsg_ts * ptsCanMsgV);
 
 //------------------------------------------------------------------------------
 /*!
@@ -239,7 +281,7 @@ bool_t   CpMsgIsFastData(CpCanMsg_ts * ptsCanMsgV);
 ** This function checks if a data overrun has occurred for the message.
 */
 
-bool_t   CpMsgIsOverrun(CpCanMsg_ts * ptsCanMsgV);
+bool_t   CpMsgIsOverrun(CPP_CONST CpCanMsg_ts * ptsCanMsgV);
 
 
 //------------------------------------------------------------------------------
@@ -252,7 +294,7 @@ bool_t   CpMsgIsOverrun(CpCanMsg_ts * ptsCanMsgV);
 ** set. If the RTR bit is set, the function will return 1, otherwise
 ** 0.
 */
-bool_t   CpMsgIsRemote(CpCanMsg_ts * ptsCanMsgV);
+bool_t   CpMsgIsRemote(CPP_CONST CpCanMsg_ts * ptsCanMsgV);
 
 void     CpMsgSetBitrateSwitch(CpCanMsg_ts * ptsCanMsgV);
 
@@ -290,7 +332,7 @@ void  CpMsgSetDlc(CpCanMsg_ts * ptsCanMsgV, uint8_t ubDlcV);
 ** \brief   Set 29 Bit Identifier Value
 ** \param   ptsCanMsgV     Pointer to a CpCanMsg_ts message
 ** \param   ulExtIdV       Identifier value
-** \see     CpMsgSetStdFrame()
+** \see     CpMsgSetStdId()
 **
 ** This function sets the identifier value for an
 ** Extended Frame (CAN 2.0B) and marks the frame format as
@@ -299,7 +341,24 @@ void  CpMsgSetDlc(CpCanMsg_ts * ptsCanMsgV, uint8_t ubDlcV);
 */
 void  CpMsgSetExtId(CpCanMsg_ts * ptsCanMsgV, uint32_t ulExtIdV);
 
-void  CpMsgSetFastData(CpCanMsg_ts * ptsCanMsgV);
+
+//------------------------------------------------------------------------------
+/*!
+** \brief   Set Identifier Value
+** \param   ptsCanMsgV     Pointer to a CpCanMsg_ts message
+** \param   ulIdentifierV  Identifier value
+** \see     CpMsgGetIdentifier()
+**
+** This function sets the identifier value for a CAN frame. The
+** parameter \c ulIdentifierV is truncated to a 11-bit value (AND
+** operation with #CP_MASK_STD_FRAME) when the message uses base
+** frame format. The parameter \c ulIdentifierV is truncated to
+** a 29-bit value (AND operation with #CP_MASK_EXT_FRAME) when the
+** message uses extended frame format.
+**
+*/
+void  CpMsgSetIdentifier(CpCanMsg_ts * ptsCanMsgV, uint32_t ulIdentifierV);
+
 
 //------------------------------------------------------------------------------
 /*!
@@ -344,7 +403,7 @@ void  CpMsgSetStdId(CpCanMsg_ts * ptsCanMsgV, uint16_t uwStdIdV);
 **
 ** This function sets the time-stamp value for a CAN frame.
 */
-void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV);
+void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CPP_CONST CpTime_ts * ptsTimeV);
 
 
 
