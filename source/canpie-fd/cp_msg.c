@@ -138,7 +138,7 @@ void CpMsgClrRemote(CpCanMsg_ts * ptsCanMsgV)
 // CpMsgGetData()                                                             //
 //                                                                            //
 //----------------------------------------------------------------------------//
-uint8_t  CpMsgGetData(CPP_CONST CpCanMsg_ts * ptsCanMsgV, uint8_t ubPosV)
+uint8_t  CpMsgGetData(const CpCanMsg_ts * ptsCanMsgV, uint8_t ubPosV)
 {
    uint8_t  ubDataT = (uint8_t) 0;
 
@@ -178,7 +178,7 @@ uint8_t  CpMsgGetData(CPP_CONST CpCanMsg_ts * ptsCanMsgV, uint8_t ubPosV)
 // CpMsgGetDlc()                                                              //
 //                                                                            //
 //----------------------------------------------------------------------------//
-uint8_t  CpMsgGetDlc(CPP_CONST CpCanMsg_ts * ptsCanMsgV)
+uint8_t  CpMsgGetDlc(const CpCanMsg_ts * ptsCanMsgV)
 {
    uint8_t  ubDlcT = 0;
 
@@ -198,7 +198,7 @@ uint8_t  CpMsgGetDlc(CPP_CONST CpCanMsg_ts * ptsCanMsgV)
 // CpMsgGetExtId()                                                            //
 //                                                                            //
 //----------------------------------------------------------------------------//
-uint32_t  CpMsgGetExtId(CPP_CONST CpCanMsg_ts * ptsCanMsgV)
+uint32_t  CpMsgGetExtId(const CpCanMsg_ts * ptsCanMsgV)
 {
    uint32_t  ulExtIdT = 0UL;
 
@@ -221,7 +221,7 @@ uint32_t  CpMsgGetExtId(CPP_CONST CpCanMsg_ts * ptsCanMsgV)
 // CpMsgGetStdId()                                                            //
 //                                                                            //
 //----------------------------------------------------------------------------//
-uint16_t  CpMsgGetStdId(CPP_CONST CpCanMsg_ts * ptsCanMsgV)
+uint16_t  CpMsgGetStdId(const CpCanMsg_ts * ptsCanMsgV)
 {
    uint16_t  uwStdIdT = (uint16_t) 0;
 
@@ -265,7 +265,7 @@ void  CpMsgInit(CpCanMsg_ts * ptsCanMsgV, uint8_t ubFormatV)
 // CpMsgIsBitrateSwitch()                                                     //
 //                                                                            //
 //----------------------------------------------------------------------------//
-bool_t  CpMsgIsBitrateSwitch(CPP_CONST CpCanMsg_ts * ptsCanMsgV)
+bool_t  CpMsgIsBitrateSwitch(const CpCanMsg_ts * ptsCanMsgV)
 {
    bool_t btResultT = false;
 
@@ -291,7 +291,7 @@ bool_t  CpMsgIsBitrateSwitch(CPP_CONST CpCanMsg_ts * ptsCanMsgV)
 // CpMsgIsExtended()                                                          //
 //                                                                            //
 //----------------------------------------------------------------------------//
-bool_t  CpMsgIsExtended(CPP_CONST CpCanMsg_ts * ptsCanMsgV)
+bool_t  CpMsgIsExtended(const CpCanMsg_ts * ptsCanMsgV)
 {
    bool_t btResultT = false;
 
@@ -314,7 +314,7 @@ bool_t  CpMsgIsExtended(CPP_CONST CpCanMsg_ts * ptsCanMsgV)
 // CpMsgIsFastData()                                                          //
 //                                                                            //
 //----------------------------------------------------------------------------//
-bool_t  CpMsgIsFastData(CPP_CONST CpCanMsg_ts * ptsCanMsgV)
+bool_t  CpMsgIsFastData(const CpCanMsg_ts * ptsCanMsgV)
 {
    bool_t btResultT = false;
 
@@ -337,7 +337,7 @@ bool_t  CpMsgIsFastData(CPP_CONST CpCanMsg_ts * ptsCanMsgV)
 // CpMsgIsOverrun()                                                           //
 //                                                                            //
 //----------------------------------------------------------------------------//
-bool_t  CpMsgIsOverrun(CPP_CONST CpCanMsg_ts * ptsCanMsgV)
+bool_t  CpMsgIsOverrun(const CpCanMsg_ts * ptsCanMsgV)
 {
    bool_t btResultT = false;
 
@@ -360,7 +360,7 @@ bool_t  CpMsgIsOverrun(CPP_CONST CpCanMsg_ts * ptsCanMsgV)
 // CpMsgIsRemote()                                                            //
 //                                                                            //
 //----------------------------------------------------------------------------//
-bool_t  CpMsgIsRemote(CPP_CONST CpCanMsg_ts * ptsCanMsgV)
+bool_t  CpMsgIsRemote(const CpCanMsg_ts * ptsCanMsgV)
 {
    bool_t btResultT = false;
 
@@ -486,22 +486,6 @@ void  CpMsgSetExtId(CpCanMsg_ts * ptsCanMsgV, uint32_t ulExtIdV)
 
 
 //----------------------------------------------------------------------------//
-// CpMsgSetFastData()                                                         //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void  CpMsgSetFastData(CpCanMsg_ts * ptsCanMsgV)
-{
-   //----------------------------------------------------------------
-   // check for valid pointer
-   //
-   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
-   {
-      ptsCanMsgV->ubMsgCtrl |= CP_MSG_CTRL_FDF_BIT;
-   }
-}
-
-
-//----------------------------------------------------------------------------//
 // CpMsgSetOverrun()                                                          //
 //                                                                            //
 //----------------------------------------------------------------------------//
@@ -564,7 +548,7 @@ void  CpMsgSetStdId(CpCanMsg_ts * ptsCanMsgV, uint16_t uwStdIdV)
 // CpMsgSetTime()                                                             //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CPP_CONST CpTime_ts * ptsTimeV)
+void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, const CpTime_ts * ptsTimeV)
 {
    //----------------------------------------------------------------
    // check for valid pointer
