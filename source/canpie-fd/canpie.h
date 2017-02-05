@@ -257,7 +257,7 @@
 **
 ** This symbol defines if the driver version major value.
 */
-#define  CP_VERSION_MAJOR           3
+#define  CP_VERSION_MAJOR           ((uint8_t) 3)
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -266,7 +266,7 @@
 **
 ** This symbol defines if the driver version minor value.
 */
-#define  CP_VERSION_MINOR           0
+#define  CP_VERSION_MINOR           ((uint8_t) 0)
 
 
 //-----------------------------------------------------------------------------
@@ -738,9 +738,14 @@ enum CpMode_e {
    */
    eCP_MODE_LISTEN_ONLY,
 
-   /*!   Set controller into Sleep mode
+   /*!   Set controller into sleep (power-down) mode
    */
-   eCP_MODE_SLEEP
+   eCP_MODE_SLEEP,
+
+   /*!   Set controller into self-test mode
+   */
+   eCP_MODE_SELF_TEST
+
 };
 
 
@@ -990,7 +995,7 @@ typedef struct CpCanMsg_s {
 ** The hardware description structure is available for every physical 
 ** CAN channel.
 */
-struct CpHdi_s {
+typedef struct CpHdi_s {
    
    /*!
    ** Major version number of CANpie driver
@@ -1004,7 +1009,7 @@ struct CpHdi_s {
    
    /*!   
    ** The element \a ubCanFeatures defines the capabilities of the CAN 
-   ** controller.
+   ** controller. Reserved bit values are read as 0.
    ** <ul>
    ** <li>Bit 0: 0 = 2.0A support, 1 = 2.0B support
    ** <li>Bit 1: 0 = Classic CAN , 1 = ISO CAN FD
@@ -1020,7 +1025,7 @@ struct CpHdi_s {
    
    /*!   
    ** The element \a ubDriverFeatures defines the capabilities of the 
-   ** software driver.
+   ** software driver. Reserved bit values are read as 0.
    ** <ul>
    ** <li>Bit 0: 0 = no time stamp, 1 = time stamp support
    ** <li>Bit 1: 0 = no user data , 1 = user data support
@@ -1056,34 +1061,34 @@ struct CpHdi_s {
    uint32_t ulCanClock;
    
    /*!
-   ** The element \a ulBitrate defines the actual configured bit-rate 
+   ** The element \a ulBitRateMin defines the lowest configurable bit-rate
+   ** in bits-per-second (bps). The value is specified through the used CAN
+   ** transceiver.
+   */
+   uint32_t ulBitRateMin;
+
+   /*!
+   ** The element \a ulBitRateMax defines the highest configurable bit-rate
+   ** in bits-per-second (bps). The value is specified through the used
+   ** CAN transceiver.
+   */
+   uint32_t ulBitRateMax;
+
+   /*!
+   ** The element \a ulNomBitRate defines the actual configured bit-rate
    ** of the CAN controller in bits-per-second (bps). For ISO CAN FD 
    ** the value defines the bit-rate of the arbitration phase.
    */
-   uint32_t ulBitrate;
+   uint32_t ulNomBitRate;
    
    /*!
-   ** The element ulBitrateFD is only valid for ISO CAN FD controller.
+   ** The element ulDatBitRate is only valid for ISO CAN FD controller.
    ** The value defines the actual configured bit-rate of the data phase
    ** in bits-per-second (bps).
    */
-   uint32_t ulBitrateFD;
+   uint32_t ulDatBitRate;
 
-};
-
-
-/*----------------------------------------------------------------------------*/
-/*!
-** \typedef CpHdi_ts
-** \brief   Hardware description interface structure
-**
-** The structure CpHdi_s provides fields to gather information about
-** the CAN hardware.
-**
-*/
-typedef struct CpHdi_s  CpHdi_ts;
-
-
+} CpHdi_ts ;
 
 
 /*----------------------------------------------------------------------------*/
