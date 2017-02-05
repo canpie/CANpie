@@ -1,0 +1,13 @@
+//-----------------------------------------------------------------------------
+/*!
+** \page page.ex_buffer    demo_buffer_config.c
+
+<hr>
+\include demo_buffer_config.c
+
+<p>
+<br>
+<br>
+<br>
+
+*/

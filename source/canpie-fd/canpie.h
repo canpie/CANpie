@@ -36,36 +36,38 @@
 ** \file    canpie.h
 ** \brief   %CANpie constants, structures and enumerations
 **
-** This file holds constants and structures used within %CANpie<sup>FD</sup>.
-** All functions, structures, defines and constants in %CANpie<sup>FD</sup> 
+** This file holds constants and structures used within %CANpie FD.
+** All functions, structures, defines and constants in %CANpie FD 
 ** have the prefix "Cp". The following table shows the used nomenclature:
 **
-** <table border=0>
-** <tr class="memlist">
-** <td width=200 class="memItemLeft"> <b>%CANpie code</b></td>
-** <td width=200 class="memItemRight"><b>Prefix</b></td>
-** </tr>
-** <tr>
-** <td width=200 class="memItemLeft">Core functions</td>
-** <td width=200 class="memItemRight">CpCore</td>
-** </tr>
-** <tr>
-** <td width=200 class="memItemLeft">Message access functions</td>
-** <td width=200 class="memItemRight">CpMsg</td>
-** </tr>
-** <tr>
-** <td width=200 class="memItemLeft">Structures</td>
-** <td width=200 class="memItemRight">CpName_ts</td>
-** </tr>
-** <tr>
-** <td width=200 class="memItemLeft">Constants / Defines</td>
-** <td width=200 class="memItemRight">CP</td>
-** </tr>
-** <tr>
-** <td width=200 class="memItemLeft">Error Codes</td>
-** <td width=200 class="memItemRight">eCP_ERR</td>
-** </tr>
-** </table>
+** <div class="function" style="width:400px">
+**<table class="function" style="width:400px">
+**<tr class="head">
+**<td class="entry" style="width:50%"><b>%CANpie code</b></td>
+**<td class="desc"><b>Nomenclature</b></td>
+**</tr>
+**<tr class="odd">
+**<td class="entry" style="width:50%">Core functions</td>
+**<td class="desc">CpCore<Name></td>
+**</tr>
+**<tr>
+**<td class="entry" style="width:50%">Message access functions</td>
+**<td class="desc">CpMsg<Name></td>
+**</tr>
+**<tr class="odd">
+**<td class="entry" style="width:50%">Structures</td>
+**<td class="desc">Cp<Name>_ts</td>
+**</tr>
+**<tr>
+**<td class="entry" style="width:25%">Definitions</td>
+**<td class="desc">CP_<NAME></td>
+**</tr>
+**<tr class="odd">
+**<td class="entry" style="width:50%">Enumerations</td>
+**<td class="desc">eCP_<NAME></td>
+**</tr>
+**</table>
+**</div>
 */
 
 
@@ -87,7 +89,7 @@
 /*!
 ** \defgroup CP_CONF  CANpie configuration options
 **
-** The %CANpie<sup>FD</sup> driver can be configured during compile time
+** The %CANpie FD driver can be configured during compile time
 ** via several configuration options. They are typically defined in the
 ** \c cp_platform.h configuration file.
 ** <p>
@@ -240,8 +242,30 @@
 #endif
 
 
+//-----------------------------------------------------------------------------
+/*!
+** \defgroup CP_VERSION  CANpie version information
+** 
+** The %CANpie FD version information read dunring run-time via the
+** function CpCoreHDI().
+*/
 
+/*-------------------------------------------------------------------*/
+/*!
+** \def  CP_VERSION_MAJOR
+** \ingroup CP_VERSION
+**
+** This symbol defines if the driver version major value.
+*/
 #define  CP_VERSION_MAJOR           3
+
+/*-------------------------------------------------------------------*/
+/*!
+** \def  CP_VERSION_MINOR
+** \ingroup CP_VERSION
+**
+** This symbol defines if the driver version minor value.
+*/
 #define  CP_VERSION_MINOR           0
 
 

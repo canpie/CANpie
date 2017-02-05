@@ -35,11 +35,10 @@
 //-----------------------------------------------------------------------------
 /*!
 ** \file    cp_msg.h
-** \brief   CANpie message access
+** \brief   %CANpie message access
 **
-** &nbsp;<p>
-** In order to create small and fast code, CANpie supplies a set of
-** macros to access the CAN message structure (#CpCanMsg_ts). These
+** In order to create small and fast code, %CANpie supplies a set of
+** macros to access the CAN message structure (CpCanMsg_ts). These
 ** macros can be used instead of the functions defined in the cp_msg.h
 ** header file. However keep in mind that macros can't be used to check
 ** for value ranges or parameter consistency. Usage of macros is enabled
