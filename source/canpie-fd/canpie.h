@@ -353,8 +353,9 @@
 ** \def     CP_MSG_FORMAT_CBFF
 ** \ingroup CP_MSG_CTRL
 **
-** Bit definition for a classic CAN frame with Standard Identifier in the
-** \c ubMsgCtrl field of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
+** Bit definition for a Classical CAN frame with Standard Identifier
+** (CBFF: Classical base frame format) in the \c ubMsgCtrl field of
+** the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
 */
 #define  CP_MSG_FORMAT_CBFF      ((uint8_t) 0x00)
 
@@ -363,8 +364,9 @@
 ** \def     CP_MSG_FORMAT_CEFF
 ** \ingroup CP_MSG_CTRL
 **
-** Bit definition for a classic CAN frame with Extended Identifier in the
-** \c ubMsgCtrl field of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
+** Bit definition for a Classical CAN frame with Extended Identifier
+** (CEFF: Classical extended frame format) in the \c ubMsgCtrl field
+** of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
 */
 #define  CP_MSG_FORMAT_CEFF      (CP_MSG_CTRL_EXT_BIT)
 
@@ -373,8 +375,9 @@
 ** \def     CP_MSG_FORMAT_FBFF
 ** \ingroup CP_MSG_CTRL
 **
-** Bit definition for an ISO CAN FD frame with Standard Identifier in the
-** \c ubMsgCtrl field of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
+** Bit definition for an ISO CAN FD frame with Standard Identifier
+** (FBFF: FD base frame format) in the \c ubMsgCtrl field of the
+** CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
 */
 #define  CP_MSG_FORMAT_FBFF      (CP_MSG_CTRL_FDF_BIT)
 
@@ -383,8 +386,9 @@
 ** \def     CP_MSG_FORMAT_FEFF
 ** \ingroup CP_MSG_CTRL
 **
-** Bit definition for an ISO CAN FD frame with Extended Identifier in the
-** \c ubMsgCtrl field of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
+** Bit definition for an ISO CAN FD frame with Extended Identifier
+** (FEFF: FD extended frame format) in the \c ubMsgCtrl field of the
+** CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
 */
 #define  CP_MSG_FORMAT_FEFF      (CP_MSG_CTRL_FDF_BIT | CP_MSG_CTRL_EXT_BIT)
 
@@ -651,14 +655,18 @@ enum CpBitrate_e {
 ** \enum    CpChannel_e
 ** \brief   Channel definition
 **
-** The physical CAN interfaces are numbered from 0 .. N-1 (N: total
+** The physical CAN interfaces are numbered from 1 .. N (N: total
 ** number of physical CAN interfaces on the target system). The enumeration
-** CpChannel_e lists up to 8 physical interfaces.
+** CpChannel_e lists up to 8 physical interfaces. The enumeration value
+** eCP_CHANNEL_NONE denotes an invalid channel value.
 */
 enum CpChannel_e {
 
+   /*! CAN interface invalid        */
+   eCP_CHANNEL_NONE = 0,
+
    /*! CAN interface 1              */
-   eCP_CHANNEL_1 = 0,
+   eCP_CHANNEL_1,
 
    /*! CAN interface 2              */
    eCP_CHANNEL_2,
