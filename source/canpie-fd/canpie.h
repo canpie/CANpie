@@ -822,10 +822,19 @@ enum CpErrType_e {
    /*! Bit 0 error                     */
    eCP_ERR_TYPE_BIT0,
 
+   /*! Bit 1 error                     */
    eCP_ERR_TYPE_BIT1,
+
+   /*! Stuff error                     */
    eCP_ERR_TYPE_STUFF,
+
+   /*! Format error                    */
    eCP_ERR_TYPE_FORM,
+
+   /*! CRC error                       */
    eCP_ERR_TYPE_CRC,
+   
+   /*! Acknowledge error               */
    eCP_ERR_TYPE_ACK
 };
 
@@ -835,15 +844,16 @@ enum CpErrType_e {
 ** \brief   Buffer definition
 **
 ** The enumeration CpBuffer_e is used to define a message buffer inside a
-** FullCAN controller. The index for the first buffer starts at 0.
+** FullCAN controller. The index for the first buffer starts at 1.
 */
 enum CpBuffer_e {
-   /*! First buffer of FullCAN controller             */
+   /*! Buffer number 1              */
    eCP_BUFFER_1 = 1,
 
-   /*! Seconds buffer of FullCAN controller           */
+   /*! Buffer number 2              */
    eCP_BUFFER_2,
 
+   /*! Buffer number 3 ..           */
    eCP_BUFFER_3,
    eCP_BUFFER_4,
    eCP_BUFFER_5,
@@ -857,6 +867,8 @@ enum CpBuffer_e {
    eCP_BUFFER_13,
    eCP_BUFFER_14,
    eCP_BUFFER_15,
+
+   /*! Buffer number 16             */
    eCP_BUFFER_16
 };
 
