@@ -78,5 +78,5 @@ void DemoTransmitBufferConfiguration(CpPort_ts * ptsPortV)
                       CP_MSG_FORMAT_CBFF,
                       eCP_BUFFER_DIR_TRM);
    
-   CpCoreBufferConfig(CpPort_ts * ptsPortV, eCP_BUFFER_1, 4);
+   CpCoreBufferSetDlc(CpPort_ts * ptsPortV, eCP_BUFFER_1, 4);
 }
