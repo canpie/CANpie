@@ -26,7 +26,19 @@
 //                                                                            //
 //============================================================================//
 
+
+/*----------------------------------------------------------------------------*\
+** Include files                                                              **
+**                                                                            **
+\*----------------------------------------------------------------------------*/
 #include "qcan_plugin_ixxat.hpp"
+
+
+/*----------------------------------------------------------------------------*\
+** Function implementation                                                    **
+**                                                                            **
+\*----------------------------------------------------------------------------*/
+
 
 //----------------------------------------------------------------------------//
 // QCanPluginIxxat()                                                          //
@@ -41,7 +53,7 @@ QCanPluginIxxat::QCanPluginIxxat()
    //
    if (!pclIxxatVciP.isAvailable())
    {
-      qCritical() << "QCanPluginPeak::QCanPluginPeak() CRITICAL: IXXAT VCI library is not available or not all functions could be loaded!";
+      qCritical() << "QCanPluginIxxat::QCanPluginIxxat() CRITICAL: IXXAT VCI library is not available or not all functions could be loaded!";
    }
 }
 
@@ -52,7 +64,6 @@ QCanPluginIxxat::QCanPluginIxxat()
 QCanPluginIxxat::~QCanPluginIxxat()
 {
    qDebug() << "QCanPluginIxxat::~QCanPluginIxxat()";
-//   apclQCanInterfacePeakP.clear();
 }
 
 //----------------------------------------------------------------------------//
@@ -61,6 +72,15 @@ QCanPluginIxxat::~QCanPluginIxxat()
 //----------------------------------------------------------------------------//
 uint8_t QCanPluginIxxat::interfaceCount()
 {
+   //----------------------------------------------------------------
+   // check PCAN Basic lib is available
+   //
+   if (!pclIxxatVciP.isAvailable())
+   {
+      qWarning() << tr("WARNING: No lib available!");
+      return 0;
+   }
+
    //----------------------------------------------------------------
    // Try to open device list
    //
@@ -138,7 +158,7 @@ QIcon QCanPluginIxxat::icon()
 //----------------------------------------------------------------------------//
 QString QCanPluginIxxat::name()
 {
-   return QString("IXXAT VCI");
+   return QString("IXXAT VCI 3.5");
 }
 
 

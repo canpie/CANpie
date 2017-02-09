@@ -68,7 +68,7 @@ void  CpMsgClear(CpCanMsg_ts * ptsCanMsgV)
       //
       ptsCanMsgV->ulIdentifier        = 0UL;
 
-      for(ubDataCntT = 0; ubDataCntT < CP_DATA_SIZE; ubDataCntT++)
+      for(ubDataCntT = 0; ubDataCntT < (uint8_t) CP_DATA_SIZE; ubDataCntT++)
       {
          ptsCanMsgV->aubData[ubDataCntT] = (uint8_t) 0;
       }
@@ -109,7 +109,7 @@ void CpMsgClrOverrun(CpCanMsg_ts * ptsCanMsgV)
       //--------------------------------------------------------
       // clear overrun bit
       //
-      ptsCanMsgV->ubMsgCtrl &= ~CP_MSG_CTRL_OVR_BIT;
+      ptsCanMsgV->ubMsgCtrl &= ~(CP_MSG_CTRL_OVR_BIT);
    }
 }
 
@@ -138,7 +138,7 @@ void CpMsgClrRemote(CpCanMsg_ts * ptsCanMsgV)
 // CpMsgGetData()                                                             //
 //                                                                            //
 //----------------------------------------------------------------------------//
-uint8_t  CpMsgGetData(CpCanMsg_ts * ptsCanMsgV, uint8_t ubPosV)
+uint8_t  CpMsgGetData(const CpCanMsg_ts * ptsCanMsgV, uint8_t ubPosV)
 {
    uint8_t  ubDataT = (uint8_t) 0;
 
@@ -178,7 +178,7 @@ uint8_t  CpMsgGetData(CpCanMsg_ts * ptsCanMsgV, uint8_t ubPosV)
 // CpMsgGetDlc()                                                              //
 //                                                                            //
 //----------------------------------------------------------------------------//
-uint8_t  CpMsgGetDlc(CpCanMsg_ts * ptsCanMsgV)
+uint8_t  CpMsgGetDlc(const CpCanMsg_ts * ptsCanMsgV)
 {
    uint8_t  ubDlcT = 0;
 
@@ -198,7 +198,7 @@ uint8_t  CpMsgGetDlc(CpCanMsg_ts * ptsCanMsgV)
 // CpMsgGetExtId()                                                            //
 //                                                                            //
 //----------------------------------------------------------------------------//
-uint32_t  CpMsgGetExtId(CpCanMsg_ts * ptsCanMsgV)
+uint32_t  CpMsgGetExtId(const CpCanMsg_ts * ptsCanMsgV)
 {
    uint32_t  ulExtIdT = 0UL;
 
@@ -221,7 +221,7 @@ uint32_t  CpMsgGetExtId(CpCanMsg_ts * ptsCanMsgV)
 // CpMsgGetStdId()                                                            //
 //                                                                            //
 //----------------------------------------------------------------------------//
-uint16_t  CpMsgGetStdId(CpCanMsg_ts * ptsCanMsgV)
+uint16_t  CpMsgGetStdId(const CpCanMsg_ts * ptsCanMsgV)
 {
    uint16_t  uwStdIdT = (uint16_t) 0;
 
@@ -241,10 +241,31 @@ uint16_t  CpMsgGetStdId(CpCanMsg_ts * ptsCanMsgV)
 
 
 //----------------------------------------------------------------------------//
+// CpMsgInit()                                                                //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void  CpMsgInit(CpCanMsg_ts * ptsCanMsgV, uint8_t ubFormatV)
+{
+   //----------------------------------------------------------------
+   // check for valid pointer
+   //
+   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      //--------------------------------------------------------
+      // initialise identifier, DLC and frame format
+      //
+      ptsCanMsgV->ulIdentifier = 0UL;
+      ptsCanMsgV->ubMsgDLC     = (uint8_t) 0;
+      ptsCanMsgV->ubMsgCtrl    = ubFormatV & CP_MSG_FORMAT_MASK;
+   }
+}
+
+
+//----------------------------------------------------------------------------//
 // CpMsgIsBitrateSwitch()                                                     //
 //                                                                            //
 //----------------------------------------------------------------------------//
-bool_t  CpMsgIsBitrateSwitch(CpCanMsg_ts * ptsCanMsgV)
+bool_t  CpMsgIsBitrateSwitch(const CpCanMsg_ts * ptsCanMsgV)
 {
    bool_t btResultT = false;
 
@@ -270,7 +291,7 @@ bool_t  CpMsgIsBitrateSwitch(CpCanMsg_ts * ptsCanMsgV)
 // CpMsgIsExtended()                                                          //
 //                                                                            //
 //----------------------------------------------------------------------------//
-bool_t  CpMsgIsExtended(CpCanMsg_ts * ptsCanMsgV)
+bool_t  CpMsgIsExtended(const CpCanMsg_ts * ptsCanMsgV)
 {
    bool_t btResultT = false;
 
@@ -293,7 +314,7 @@ bool_t  CpMsgIsExtended(CpCanMsg_ts * ptsCanMsgV)
 // CpMsgIsFastData()                                                          //
 //                                                                            //
 //----------------------------------------------------------------------------//
-bool_t  CpMsgIsFastData(CpCanMsg_ts * ptsCanMsgV)
+bool_t  CpMsgIsFastData(const CpCanMsg_ts * ptsCanMsgV)
 {
    bool_t btResultT = false;
 
@@ -316,7 +337,7 @@ bool_t  CpMsgIsFastData(CpCanMsg_ts * ptsCanMsgV)
 // CpMsgIsOverrun()                                                           //
 //                                                                            //
 //----------------------------------------------------------------------------//
-bool_t  CpMsgIsOverrun(CpCanMsg_ts * ptsCanMsgV)
+bool_t  CpMsgIsOverrun(const CpCanMsg_ts * ptsCanMsgV)
 {
    bool_t btResultT = false;
 
@@ -339,7 +360,7 @@ bool_t  CpMsgIsOverrun(CpCanMsg_ts * ptsCanMsgV)
 // CpMsgIsRemote()                                                            //
 //                                                                            //
 //----------------------------------------------------------------------------//
-bool_t  CpMsgIsRemote(CpCanMsg_ts * ptsCanMsgV)
+bool_t  CpMsgIsRemote(const CpCanMsg_ts * ptsCanMsgV)
 {
    bool_t btResultT = false;
 
@@ -465,22 +486,6 @@ void  CpMsgSetExtId(CpCanMsg_ts * ptsCanMsgV, uint32_t ulExtIdV)
 
 
 //----------------------------------------------------------------------------//
-// CpMsgSetFastData()                                                         //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void  CpMsgSetFastData(CpCanMsg_ts * ptsCanMsgV)
-{
-   //----------------------------------------------------------------
-   // check for valid pointer
-   //
-   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
-   {
-      ptsCanMsgV->ubMsgCtrl |= CP_MSG_CTRL_FDF_BIT;
-   }
-}
-
-
-//----------------------------------------------------------------------------//
 // CpMsgSetOverrun()                                                          //
 //                                                                            //
 //----------------------------------------------------------------------------//
@@ -543,7 +548,7 @@ void  CpMsgSetStdId(CpCanMsg_ts * ptsCanMsgV, uint16_t uwStdIdV)
 // CpMsgSetTime()                                                             //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV)
+void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, const CpTime_ts * ptsTimeV)
 {
    //----------------------------------------------------------------
    // check for valid pointer
@@ -551,7 +556,7 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV)
    if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
    {
       #if CP_CAN_MSG_TIME > 0
-      ptsCanMsgV->tsMsgTime.ulSec1970 = ptsTimeV->ulSec1970;
+      ptsCanMsgV->tsMsgTime.ulSec1970 = (ptsTimeV->ulSec1970);
       ptsCanMsgV->tsMsgTime.ulNanoSec = ptsTimeV->ulNanoSec;
       #endif
    }

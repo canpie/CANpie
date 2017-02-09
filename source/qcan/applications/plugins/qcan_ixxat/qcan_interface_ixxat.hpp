@@ -26,9 +26,15 @@
 //                                                                            //
 //============================================================================//
 
+
 #ifndef QCAN_INTERFACE_IXXAT_H_
 #define QCAN_INTERFACE_IXXAT_H_
 
+
+/*----------------------------------------------------------------------------*\
+** Include files                                                              **
+**                                                                            **
+\*----------------------------------------------------------------------------*/
 #include <QObject>
 #include <QtPlugin>
 #include <QLibrary>
@@ -36,6 +42,13 @@
 #include <QCanInterface>
 #include "qcan_ixxat_vci.hpp"
 
+
+//-----------------------------------------------------------------------------
+/*!
+** \class   QCanInterfaceIxxat
+** \brief   IXXAT interface
+** 
+*/
 class QCanInterfaceIxxat : public QCanInterface
 {
 

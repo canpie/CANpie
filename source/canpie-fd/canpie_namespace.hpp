@@ -105,8 +105,11 @@ namespace CANpie {
 
    enum CAN_Channel_e {
 
+      /* CAN interface invalid         */
+      eCAN_CHANNEL_NONE = 0,
+
       /*! CAN interface 1              */
-      eCAN_CHANNEL_1 = 0,
+      eCAN_CHANNEL_1,
 
       /*! CAN interface 2              */
       eCAN_CHANNEL_2,

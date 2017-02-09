@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------------
 /*!
-** \page page.download    %CANpie<sup>FD</sup> Download
+** \page page.download    %CANpie FD Download
 
-The %CANpie<sup>FD</sup> Github source code repository is located here:
+The %CANpie FD Github source code repository is located here:
 
 https://github.com/canpie/CANpie
 

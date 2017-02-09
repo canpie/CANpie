@@ -1,5 +1,5 @@
 //============================================================================//
-// File:          qcan_ixxatusb.cpp                                           //
+// File:          qcan_interface_ixxat.cpp                                    //
 // Description:   CAN plugin for IXXAT USB device                             //
 //                                                                            //
 // Copyright (C) MicroControl GmbH & Co. KG                                   //
@@ -26,11 +26,26 @@
 //                                                                            //
 //============================================================================//
 
+
+/*----------------------------------------------------------------------------*\
+** Include files                                                              **
+**                                                                            **
+\*----------------------------------------------------------------------------*/
 #include <QtWidgets>
 #include "qcan_defs.hpp"
 #include <qcan_interface_ixxat.hpp>
 
 
+/*----------------------------------------------------------------------------*\
+** Function implementation                                                    **
+**                                                                            **
+\*----------------------------------------------------------------------------*/
+
+
+//----------------------------------------------------------------------------//
+// QCanInterfaceIxxat()                                                       //
+//                                                                            //
+//----------------------------------------------------------------------------//
 QCanInterfaceIxxat::QCanInterfaceIxxat(VCIDEVICEINFO clDevInfoV)
 {
    qDebug() << "QCanInterfaceIxxat::QCanInterfaceIxxat()";
@@ -43,6 +58,10 @@ QCanInterfaceIxxat::QCanInterfaceIxxat(VCIDEVICEINFO clDevInfoV)
    clDevInfoP = clDevInfoV;
 }
 
+//----------------------------------------------------------------------------//
+// ~QCanInterfaceIxxat()                                                      //
+//                                                                            //
+//----------------------------------------------------------------------------//
 QCanInterfaceIxxat::~QCanInterfaceIxxat()
 {
 
@@ -158,7 +177,7 @@ QCanInterface::InterfaceError_e QCanInterfaceIxxat::read(QCanFrame &clFrameR)
    //----------------------------------------------------------------
    // get next message in FIFO
    //
-   slResultT = pclIxxatVciP.pfnCanChannelPeekMessageP(0,&tsCanMsgT);
+   slResultT = pclIxxatVciP.pfnCanChannelPeekMessageP(vdCanChannelP,&tsCanMsgT);
 
    if (slResultT == VCI_OK)
    {
@@ -171,10 +190,10 @@ QCanInterface::InterfaceError_e QCanInterfaceIxxat::read(QCanFrame &clFrameR)
             // copy all needed parameters to QCanFrame structure
             if (tsCanMsgT.uMsgInfo.Bits.ext)
             {
-               clFrameR.setExtId(tsCanMsgT.dwMsgId);
+               clFrameR.setIdentifier(tsCanMsgT.dwMsgId);
             } else
             {
-               clFrameR.setStdId((uint16_t)tsCanMsgT.dwMsgId);
+               clFrameR.setIdentifier((uint16_t)tsCanMsgT.dwMsgId);
             }
 
             clFrameR.setDlc(tsCanMsgT.uMsgInfo.Bits.dlc);
@@ -210,7 +229,9 @@ QCanInterface::InterfaceError_e QCanInterfaceIxxat::read(QCanFrame &clFrameR)
 
    else if (slResultT != (HRESULT)VCI_E_RXQUEUE_EMPTY)
    {
-      qWarning() << tr("Fail to call PeekMessage(): ") + QString::number(slResultT,16);
+      qWarning() << "QCanInterface::read() -> CanChannelPeekMessage()" <<
+                    "fail with error:" <<
+                    pclIxxatVciP.formatedError((HRESULT)slResultT);
       return eERROR_DEVICE;
    }
 
@@ -261,7 +282,7 @@ QCanInterface::InterfaceError_e QCanInterfaceIxxat::setBitrate(int32_t slBitrate
    }
 
    //----------------------------------------------------------------
-   // select corresponding PEAK baud rate value
+   // select corresponding baud rate value
    //
    switch (slBitrateV)
    {
@@ -528,7 +549,7 @@ QCanInterface::InterfaceError_e	QCanInterfaceIxxat::write( const QCanFrame &clFr
    }
    else if (slResultT != (HRESULT)VCI_E_TXQUEUE_FULL)
    {
-      qWarning() << tr("Fail to call PeekMessage(): ") + QString::number(slResultT,16);
+      qWarning() << tr("Fail to call pfnCanChannelPostMessageP(): ") + QString::number(slResultT,16);
       return eERROR_DEVICE;
    }
 

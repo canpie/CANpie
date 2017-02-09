@@ -23,8 +23,3 @@ TEMPLATE = subdirs
 #
 SUBDIRS  = ./qcan/applications \
            ./qcan/examples
-
-#           ./tests
-
-RESOURCES += \
-    qcan/applications/server/server.qrc

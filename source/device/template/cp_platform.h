@@ -101,8 +101,9 @@
 ** - 0 = disable ISO CAN FD support
 ** - 1 = enable ISO CAN FD support
 */
+#ifndef  CP_CAN_FD
 #define  CP_CAN_FD                  1
-
+#endif
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -114,7 +115,9 @@
 ** - 0 = access via functions
 ** - 1 = access via macros
 */
+#ifndef  CP_CAN_MSG_MACRO
 #define  CP_CAN_MSG_MACRO           0
+#endif
 
 /*-------------------------------------------------------------------*/
 /*!

@@ -1,33 +1,39 @@
 //-----------------------------------------------------------------------------
 /*!
-** \mainpage    %CANpie<sup>FD</sup> Documentation
+** \mainpage    %CANpie FD Documentation
 
-The goal of this project is to define a standard Application Programming 
-Interface (API) for access to the CAN bus. The \ref page.api provides 
-functionality for ISO/OSI Layer-2 (Data Link Layer). It is not the intention 
-of %CANpie<sup>FD</sup> to incorporate higher layer functionality (e.g. 
-CANopen, J1939). The \ref page.api covers support for classic CAN frames as 
-well as for ISO CAN FD frames. 
+%CANpie FD (CAN Programming Interface Environment) is an open source project 
+and pursues the objective of creating and establishing an open and 
+standardized software API for access to the CAN bus. 
 
-Where ever it is possible %CANpie<sup>FD</sup> is independent from the used 
-hardware and operating system. The function calls are unique for different 
-kinds of hardware. 
-Also %CANpie<sup>FD</sup> provides a method to gather information about the 
-features of the CAN hardware. This is especially important for an application 
-designer, who wants to write the code only once.
+The current version of the \ref page.api covers both classic CAN frames as 
+well as ISO CAN FD frames. The API is designed for embedded control 
+applications as well as for PC interface boards: programming of an embedded 
+microcontroller is done in C, a C++ API is provided for OS independent access 
+to interface boards. It is not the intention of %CANpie FD to incorporate 
+higher layer functionality (e.g. CANopen, J1939).
 
-The API is designed for embedded control applications as well as for PC 
-interface boards.
+%CANpie FD provides a method to gather information about the features of 
+the CAN hardware. This is especially important for an application designer, 
+who wants to write the code only once.
+
 
 <h2>Compatibilty</h2>
-The C language API of %CANpie<sup>FD</sup> is compatible to 
-<a href="http://canpie.sourceforge.net">CANpie Version 2</a>,
+
+The C language API of %CANpie FD (i.e. version 3) is compatible to 
+<a href="http://canpie.sourceforge.net">CANpie</a> (i.e. version 2)
+with the exception that 8 functions are deprecated. Please refer to 
+the section \ref page.api_deprecated for details.
+ 
 
 <h2>%CANpie File structure</h2>
 
+Refer to \ref page.file_struct for on overview. 
 
 <h2>%CANpie configuration options</h2>
 
+The %CANpie FD driver offers a flexible concept for adaptation to
+a CAN controller. Please refer to the section \ref CP_CONF for details.
 
 <p>
 <br>

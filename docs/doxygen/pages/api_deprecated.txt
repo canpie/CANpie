@@ -1,27 +1,71 @@
 //-----------------------------------------------------------------------------
 /*!
-** \page page.api_deprecated    Deprecated functions
-<p>
-- CpCore
-<p>
+** \page page.api_deprecated    Deprecated %CANpie functions
 
-/*!
-** \brief   Set buffer acceptance mask
-** \param   ptsPortV       Pointer to CAN port structure
-** \param   ubBufferIdxV   Buffer number
-** \param   ulAccMaskV     Acceptance mask
-**
-** \return  Error code taken from the #CpErr enumeration. If no error
-**          occurred, the function will return \c CpErr_OK.
-**
-** This function sets the acceptance mask \a ulAccMaskV for the message
-** buffer with index \a ubBufferIdxV. An acceptance mask value of
-** 0x000007FF configures the message buffer to receive all possible
-** CAN standard frames.
-**
-*/
-CpStatus_tv CpCoreBufferAccMask( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
-                                 uint32_t ulAccMaskV);
+The following table lists functions from %CANpie (version 2) which are
+deprecated.
+
+<div class="function" style="width:800px">
+<table class="function" style="width:800px">
+
+<tr class="head">
+<td class="entry" style="width:25%"><b>%CANpie function</b></td>
+<td class="desc"  style="width:25%"><b>%CANpie FD replacement</b></td>
+<td class="desc"  ><b>Description</b></td>
+</tr>
+
+<tr class="odd">
+   <td class="entry" style="width:25%">CpCoreBaudrate()</td>
+   <td class="desc">#CpCoreBitrate()</td>
+   <td class="desc">Additional parameter for data bit-rate configuration</td>
+</tr>
+
+<tr>
+   <td class="entry" style="width:25%">CpCoreBufferAccMask()</td>
+   <td class="desc">#CpCoreBufferConfig()</td>
+   <td class="desc">Acceptance mask is a paramter of replacement</td>
+</tr>
+
+<tr class="odd">
+   <td class="entry" style="width:25%">%CpCoreBufferGetData()</td>
+   <td class="desc">#CpCoreBufferGetData()</td>
+   <td class="desc">Additional parameters (start position / size)</td>
+</tr>
+
+<tr>
+   <td class="entry" style="width:25%">%CpCoreBufferInit()</td>
+   <td class="desc">#CpCoreBufferConfig()</td>
+   <td class="desc">Additional parameters</td>
+</tr>
+
+<tr class="odd">
+   <td class="entry" style="width:25%">%CpCoreBufferSetData()</td>
+   <td class="desc">#CpCoreBufferSetData()</td>
+   <td class="desc">Additional parameters (start position / size)</td>
+</tr>
+
+<tr>
+   <td class="entry" style="width:25%">%CpCoreBufferTransmit()</td>
+   <td class="desc">#CpCoreFifoWrite()</td>
+   <td class="desc">Function replaced by FIFO support</td>
+</tr>
+
+<tr class="odd">
+   <td class="entry" style="width:25%">%CpCoreMsgRead()</td>
+   <td class="desc">#CpCoreFifoRead()</td>
+   <td class="desc">Function replaced by FIFO support</td>
+</tr>
+
+<tr>
+   <td class="entry" style="width:25%">%CpCoreMsgWrite()</td>
+   <td class="desc">#CpCoreFifoWrite()</td>
+   <td class="desc">Function replaced by FIFO support</td>
+</tr>
+
+</table>
+</div>
+
+<p>
+The section \ref page.api_migration explains how to adapt existing code.
                                  
-n is taken from the enumeration #CP_BAUD (canpie.h).
 */

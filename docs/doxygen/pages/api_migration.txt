@@ -1,0 +1,100 @@
+//-----------------------------------------------------------------------------
+/*!
+** \page page.api_migration    Migration from %CANpie to %CANpie FD
+
+
+<h2>Configuration of bit-rate</h2>
+
+The function for bit-rate setup \a CpCoreBaudrate() has been renamed to
+CpCoreBitrate(), the new function has an additional parameter for 
+configuration of the data bit-rate. The following code example shows
+the difference between the two API versions for a bit-rate setting of
+500 kBit/s.
+
+\code
+
+//-----------------------------------------------------
+// CANpie configuration of bit-rate
+//
+CpCoreBaudrate(&tsCanPortG, CP_BAUD_500K);
+
+//-----------------------------------------------------
+// CANpie FD configuration of bit-rate
+//
+CpCoreBitrate(&tsCanPortG, eCP_BITRATE_500K, 0);
+
+\endcode 
+
+
+<h2>Configuration of message buffer</h2>
+
+The functions \a CpCoreBufferInit() and \a CpCoreBufferAccMask() have been
+removed, the function CpCoreBufferConfig() is the replacement.
+
+<h3>Configuration for message transmission</h3>
+ 
+The following example code depicts the difference for initialization
+of a transmit message buffer between %CANpie and %CANpie FD. New new
+API does not require a CAN message structure CpCanMsg_ts any more.
+
+\code
+
+//-----------------------------------------------------
+// CANpie configuration 
+//
+CpCanMsg_ts    tsCanMsgT;     // CAN message structure
+
+CpCoreBufferRelease(&tsCanPortG, CP_BUFFER_2);
+CpMsgClear(&tsCanMsgT);
+CpMsgSetStdId(&tsCanMsgT, (uint16_t) 0x123);
+CpMsgSetDlc(&tsCanMsgT, 8);
+CpCoreBufferInit(&tsCanPortG, &tsCanMsgT, CP_BUFFER_2, CP_BUFFER_DIR_TX);
+
+//-----------------------------------------------------
+// CANpie FD configuration 
+//
+CpCoreBufferRelease(&tsCanPortG, eCP_BUFFER_2);
+CpCoreBufferConfig(&tsCanPortG, eCP_BUFFER_2, 
+                   (uint32_t) 0x123, CP_MASK_STD_FRAME,
+                   CP_MSG_FORMAT_CBFF, eCP_BUFFER_DIR_TRM);
+CpCoreBufferSetDlc( &tsCanPortG, eCP_BUFFER_2, 8);
+
+\endcode
+
+<h3>Configuration for message reception</h3>
+ 
+The following example code depicts the difference for initialization
+of a receive message buffer between %CANpie and %CANpie FD. New new
+API does not require a CAN message structure CpCanMsg_ts any more.
+
+\code
+
+//-----------------------------------------------------
+// CANpie configuration 
+// accept identifier in the range from 700h .. 77Fh
+//
+CpCanMsg_ts    tsCanMsgT;     // CAN message structure
+
+CpMsgClear(&tsCanMsgT);
+CpMsgSetStdId(&tsCanMsgT, 0x700 );
+CpMsgSetDlc(&tsCanMsgT, 1);
+CpCoreBufferInit( &tsCanPortG, &tsCanMsgT,
+                  CP_BUFFER_4, CP_BUFFER_DIR_RX);
+CpCoreBufferAccMask(&tsCanPortG, CP_BUFFER_4, 0x780);
+
+//-----------------------------------------------------
+// CANpie FD configuration 
+// accept identifier in the range from 700h .. 77Fh
+//
+CpCoreBufferConfig( &tsCanPortG, eCP_BUFFER_4,
+                    (uint32_t) 0x700,     // identifier
+                    (uint32_t) 0x780,     // mask
+                    CP_MSG_FORMAT_CBFF,   // format
+                    eCP_BUFFER_DIR_RCV);
+                    
+\endcode
+
+<p>
+<br>
+
+*/

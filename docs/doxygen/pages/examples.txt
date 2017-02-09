@@ -1,11 +1,20 @@
 //-----------------------------------------------------------------------------
 /*!
-** \page page.examples    %CANpie<sup>FD</sup> Examples
+** \page page.examples    %CANpie FD Examples
 
+Example code is located inside the directory \a source/examples.
 
-Todo: add example code
+<div class="function" style="width:800px">
+<table class="function" style="width:800px">
 
+<tr class="odd">
+   <td class="entry" style="width:25%">
+   \ref page.ex_buffer</td>
+   <td class="desc">Example for buffer configuration</td>
+</tr>
 
+</table>
+</div>
 
 <p>
 <br>

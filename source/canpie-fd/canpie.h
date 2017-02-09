@@ -36,36 +36,38 @@
 ** \file    canpie.h
 ** \brief   %CANpie constants, structures and enumerations
 **
-** This file holds constants and structures used within %CANpie<sup>FD</sup>.
-** All functions, structures, defines and constants in %CANpie<sup>FD</sup> 
+** This file holds constants and structures used within %CANpie FD.
+** All functions, structures, defines and constants in %CANpie FD 
 ** have the prefix "Cp". The following table shows the used nomenclature:
 **
-** <table border=0>
-** <tr class="memlist">
-** <td width=200 class="memItemLeft"> <b>%CANpie code</b></td>
-** <td width=200 class="memItemRight"><b>Prefix</b></td>
-** </tr>
-** <tr>
-** <td width=200 class="memItemLeft">Core functions</td>
-** <td width=200 class="memItemRight">CpCore</td>
-** </tr>
-** <tr>
-** <td width=200 class="memItemLeft">Message access functions</td>
-** <td width=200 class="memItemRight">CpMsg</td>
-** </tr>
-** <tr>
-** <td width=200 class="memItemLeft">Structures</td>
-** <td width=200 class="memItemRight">CpName_ts</td>
-** </tr>
-** <tr>
-** <td width=200 class="memItemLeft">Constants / Defines</td>
-** <td width=200 class="memItemRight">CP</td>
-** </tr>
-** <tr>
-** <td width=200 class="memItemLeft">Error Codes</td>
-** <td width=200 class="memItemRight">eCP_ERR</td>
-** </tr>
-** </table>
+** <div class="function" style="width:400px">
+**<table class="function" style="width:400px">
+**<tr class="head">
+**<td class="entry" style="width:50%"><b>%CANpie code</b></td>
+**<td class="desc"><b>Nomenclature</b></td>
+**</tr>
+**<tr class="odd">
+**<td class="entry" style="width:50%">Core functions</td>
+**<td class="desc">CpCore<Name></td>
+**</tr>
+**<tr>
+**<td class="entry" style="width:50%">Message access functions</td>
+**<td class="desc">CpMsg<Name></td>
+**</tr>
+**<tr class="odd">
+**<td class="entry" style="width:50%">Structures</td>
+**<td class="desc">Cp<Name>_ts</td>
+**</tr>
+**<tr>
+**<td class="entry" style="width:25%">Definitions</td>
+**<td class="desc">CP_<NAME></td>
+**</tr>
+**<tr class="odd">
+**<td class="entry" style="width:50%">Enumerations</td>
+**<td class="desc">eCP_<NAME></td>
+**</tr>
+**</table>
+**</div>
 */
 
 
@@ -87,7 +89,7 @@
 /*!
 ** \defgroup CP_CONF  CANpie configuration options
 **
-** The %CANpie<sup>FD</sup> driver can be configured during compile time
+** The %CANpie FD driver can be configured during compile time
 ** via several configuration options. They are typically defined in the
 ** \c cp_platform.h configuration file.
 ** <p>
@@ -240,9 +242,31 @@
 #endif
 
 
+//-----------------------------------------------------------------------------
+/*!
+** \defgroup CP_VERSION  CANpie version information
+** 
+** The %CANpie FD version information read dunring run-time via the
+** function CpCoreHDI().
+*/
 
-#define  CP_VERSION_MAJOR           3
-#define  CP_VERSION_MINOR           0
+/*-------------------------------------------------------------------*/
+/*!
+** \def  CP_VERSION_MAJOR
+** \ingroup CP_VERSION
+**
+** This symbol defines if the driver version major value.
+*/
+#define  CP_VERSION_MAJOR           ((uint8_t) 3)
+
+/*-------------------------------------------------------------------*/
+/*!
+** \def  CP_VERSION_MINOR
+** \ingroup CP_VERSION
+**
+** This symbol defines if the driver version minor value.
+*/
+#define  CP_VERSION_MINOR           ((uint8_t) 0)
 
 
 //-----------------------------------------------------------------------------
@@ -353,8 +377,9 @@
 ** \def     CP_MSG_FORMAT_CBFF
 ** \ingroup CP_MSG_CTRL
 **
-** Bit definition for a classic CAN frame with Standard Identifier in the
-** \c ubMsgCtrl field of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
+** Bit definition for a Classical CAN frame with Standard Identifier
+** (CBFF: Classical base frame format) in the \c ubMsgCtrl field of
+** the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
 */
 #define  CP_MSG_FORMAT_CBFF      ((uint8_t) 0x00)
 
@@ -363,8 +388,9 @@
 ** \def     CP_MSG_FORMAT_CEFF
 ** \ingroup CP_MSG_CTRL
 **
-** Bit definition for a classic CAN frame with Extended Identifier in the
-** \c ubMsgCtrl field of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
+** Bit definition for a Classical CAN frame with Extended Identifier
+** (CEFF: Classical extended frame format) in the \c ubMsgCtrl field
+** of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
 */
 #define  CP_MSG_FORMAT_CEFF      (CP_MSG_CTRL_EXT_BIT)
 
@@ -373,8 +399,9 @@
 ** \def     CP_MSG_FORMAT_FBFF
 ** \ingroup CP_MSG_CTRL
 **
-** Bit definition for an ISO CAN FD frame with Standard Identifier in the
-** \c ubMsgCtrl field of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
+** Bit definition for an ISO CAN FD frame with Standard Identifier
+** (FBFF: FD base frame format) in the \c ubMsgCtrl field of the
+** CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
 */
 #define  CP_MSG_FORMAT_FBFF      (CP_MSG_CTRL_FDF_BIT)
 
@@ -383,8 +410,9 @@
 ** \def     CP_MSG_FORMAT_FEFF
 ** \ingroup CP_MSG_CTRL
 **
-** Bit definition for an ISO CAN FD frame with Extended Identifier in the
-** \c ubMsgCtrl field of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
+** Bit definition for an ISO CAN FD frame with Extended Identifier
+** (FEFF: FD extended frame format) in the \c ubMsgCtrl field of the
+** CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
 */
 #define  CP_MSG_FORMAT_FEFF      (CP_MSG_CTRL_FDF_BIT | CP_MSG_CTRL_EXT_BIT)
 
@@ -651,14 +679,18 @@ enum CpBitrate_e {
 ** \enum    CpChannel_e
 ** \brief   Channel definition
 **
-** The physical CAN interfaces are numbered from 0 .. N-1 (N: total
+** The physical CAN interfaces are numbered from 1 .. N (N: total
 ** number of physical CAN interfaces on the target system). The enumeration
-** CpChannel_e lists up to 8 physical interfaces.
+** CpChannel_e lists up to 8 physical interfaces. The enumeration value
+** eCP_CHANNEL_NONE denotes an invalid channel value.
 */
 enum CpChannel_e {
 
+   /*! CAN interface invalid        */
+   eCP_CHANNEL_NONE = 0,
+
    /*! CAN interface 1              */
-   eCP_CHANNEL_1 = 0,
+   eCP_CHANNEL_1,
 
    /*! CAN interface 2              */
    eCP_CHANNEL_2,
@@ -706,9 +738,14 @@ enum CpMode_e {
    */
    eCP_MODE_LISTEN_ONLY,
 
-   /*!   Set controller into Sleep mode
+   /*!   Set controller into sleep (power-down) mode
    */
-   eCP_MODE_SLEEP
+   eCP_MODE_SLEEP,
+
+   /*!   Set controller into self-test mode
+   */
+   eCP_MODE_SELF_TEST
+
 };
 
 
@@ -785,10 +822,19 @@ enum CpErrType_e {
    /*! Bit 0 error                     */
    eCP_ERR_TYPE_BIT0,
 
+   /*! Bit 1 error                     */
    eCP_ERR_TYPE_BIT1,
+
+   /*! Stuff error                     */
    eCP_ERR_TYPE_STUFF,
+
+   /*! Format error                    */
    eCP_ERR_TYPE_FORM,
+
+   /*! CRC error                       */
    eCP_ERR_TYPE_CRC,
+   
+   /*! Acknowledge error               */
    eCP_ERR_TYPE_ACK
 };
 
@@ -798,15 +844,16 @@ enum CpErrType_e {
 ** \brief   Buffer definition
 **
 ** The enumeration CpBuffer_e is used to define a message buffer inside a
-** FullCAN controller. The index for the first buffer starts at 0.
+** FullCAN controller. The index for the first buffer starts at 1.
 */
 enum CpBuffer_e {
-   /*! First buffer of FullCAN controller             */
+   /*! Buffer number 1              */
    eCP_BUFFER_1 = 1,
 
-   /*! Seconds buffer of FullCAN controller           */
+   /*! Buffer number 2              */
    eCP_BUFFER_2,
 
+   /*! Buffer number 3 ..           */
    eCP_BUFFER_3,
    eCP_BUFFER_4,
    eCP_BUFFER_5,
@@ -820,6 +867,8 @@ enum CpBuffer_e {
    eCP_BUFFER_13,
    eCP_BUFFER_14,
    eCP_BUFFER_15,
+
+   /*! Buffer number 16             */
    eCP_BUFFER_16
 };
 
@@ -958,7 +1007,7 @@ typedef struct CpCanMsg_s {
 ** The hardware description structure is available for every physical 
 ** CAN channel.
 */
-struct CpHdi_s {
+typedef struct CpHdi_s {
    
    /*!
    ** Major version number of CANpie driver
@@ -972,7 +1021,7 @@ struct CpHdi_s {
    
    /*!   
    ** The element \a ubCanFeatures defines the capabilities of the CAN 
-   ** controller.
+   ** controller. Reserved bit values are read as 0.
    ** <ul>
    ** <li>Bit 0: 0 = 2.0A support, 1 = 2.0B support
    ** <li>Bit 1: 0 = Classic CAN , 1 = ISO CAN FD
@@ -988,7 +1037,7 @@ struct CpHdi_s {
    
    /*!   
    ** The element \a ubDriverFeatures defines the capabilities of the 
-   ** software driver.
+   ** software driver. Reserved bit values are read as 0.
    ** <ul>
    ** <li>Bit 0: 0 = no time stamp, 1 = time stamp support
    ** <li>Bit 1: 0 = no user data , 1 = user data support
@@ -1024,34 +1073,34 @@ struct CpHdi_s {
    uint32_t ulCanClock;
    
    /*!
-   ** The element \a ulBitrate defines the actual configured bit-rate 
+   ** The element \a ulBitRateMin defines the lowest configurable bit-rate
+   ** in bits-per-second (bps). The value is specified through the used CAN
+   ** transceiver.
+   */
+   uint32_t ulBitRateMin;
+
+   /*!
+   ** The element \a ulBitRateMax defines the highest configurable bit-rate
+   ** in bits-per-second (bps). The value is specified through the used
+   ** CAN transceiver.
+   */
+   uint32_t ulBitRateMax;
+
+   /*!
+   ** The element \a ulNomBitRate defines the actual configured bit-rate
    ** of the CAN controller in bits-per-second (bps). For ISO CAN FD 
    ** the value defines the bit-rate of the arbitration phase.
    */
-   uint32_t ulBitrate;
+   uint32_t ulNomBitRate;
    
    /*!
-   ** The element ulBitrateFD is only valid for ISO CAN FD controller.
+   ** The element ulDatBitRate is only valid for ISO CAN FD controller.
    ** The value defines the actual configured bit-rate of the data phase
    ** in bits-per-second (bps).
    */
-   uint32_t ulBitrateFD;
+   uint32_t ulDatBitRate;
 
-};
-
-
-/*----------------------------------------------------------------------------*/
-/*!
-** \typedef CpHdi_ts
-** \brief   Hardware description interface structure
-**
-** The structure CpHdi_s provides fields to gather information about
-** the CAN hardware.
-**
-*/
-typedef struct CpHdi_s  CpHdi_ts;
-
-
+} CpHdi_ts ;
 
 
 /*----------------------------------------------------------------------------*/

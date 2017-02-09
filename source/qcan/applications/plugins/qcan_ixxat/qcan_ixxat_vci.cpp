@@ -26,7 +26,19 @@
 //                                                                            //
 //============================================================================//
 
+
+/*----------------------------------------------------------------------------*\
+** Include files                                                              **
+**                                                                            **
+\*----------------------------------------------------------------------------*/
 #include "qcan_ixxat_vci.hpp"
+
+
+/*----------------------------------------------------------------------------*\
+** Function implementation                                                    **
+**                                                                            **
+\*----------------------------------------------------------------------------*/
+
 
 //----------------------------------------------------------------------------//
 // QCanPcanBasic()                                                            //
@@ -55,6 +67,7 @@ QCanIxxatVci::QCanIxxatVci()
    pfnVciFindDeviceByHwidP = (vciFindDeviceByHwid_tf) clCanLibP.resolve("vciFindDeviceByHwid");
    pfnVciFindDeviceByClassP = (vciFindDeviceByClass_tf) clCanLibP.resolve("vciFindDeviceByClass");
    pfnVciSelectDeviceDlgP = (vciSelectDeviceDlg_tf) clCanLibP.resolve("vciSelectDeviceDlg");
+   pfnVciFormatErrorP = (vciFormatError_tf) clCanLibP.resolve("vciFormatError");
 
    pfnVciDeviceOpenP = (vciDeviceOpen_tf) clCanLibP.resolve("vciDeviceOpen");
    pfnVciDeviceOpenDlgP = (vciDeviceOpenDlg_tf) clCanLibP.resolve("vciDeviceOpenDlg");
@@ -113,6 +126,7 @@ QCanIxxatVci::QCanIxxatVci()
                      pfnVciFindDeviceByHwidP &&
                      pfnVciFindDeviceByClassP &&
                      pfnVciSelectDeviceDlgP &&
+                     pfnVciFormatErrorP &&
 
                      pfnVciDeviceOpenP &&
                      pfnVciDeviceOpenDlgP &&
@@ -255,98 +269,29 @@ bool QCanIxxatVci::isAvailable()
 
 }
 
-////----------------------------------------------------------------------------//
-//// formatedError()                                                            //
-////                                                                            //
-////----------------------------------------------------------------------------//
-//QString QCanPcanBasic::formatedError(TPCANStatus tvErrorV)
-//{
-//   TPCANStatus tvStatusT;
-//   char aszBufferT[256];
-//   QString clResultT;
-
-//   memset(aszBufferT,'\0',256);
-
-//   // Gets the text using the GetErrorText API function
-//   // If the function success, the translated error is returned. If it fails,
-//   // a text describing the current error is returned.
-//   //
-
-//   tvStatusT = pfnCAN_GetErrorTextP(tvErrorV,0x00,aszBufferT);
-//   if(tvStatusT != PCAN_ERROR_OK)
-//   {
-//      clResultT = ("An error ocurred. Error-code's text ("+ QString::number(tvErrorV,16).toUpper() + "h) couldn't be retrieved");
-//   } else
-//   {
-//      clResultT = QString::number(tvErrorV,16).toUpper() + "h : " + QLatin1String(aszBufferT);
-//   }
-
-//   return clResultT;
-//}
-/*
-
-TPCANStatus QCanPcanBasic::initialize     (TPCANHandle uwChannelV, TPCANBaudrate uwBtr0Btr1V, TPCANType ubHwTypeV, DWORD ulIOPortV, WORD uwInterruptV)
+//----------------------------------------------------------------------------//
+// formatedError()                                                            //
+//                                                                            //
+//----------------------------------------------------------------------------//
+QString QCanIxxatVci::formatedError(HRESULT hrError)
 {
-   return pfnCAN_InitializeP(uwChannelV, uwBtr0Btr1V, ubHwTypeV, ulIOPortV, uwInterruptV);
-}
+   char aszBufferT[256];
+   QString clResultT;
 
-TPCANStatus QCanPcanBasic::initializeFD   (TPCANHandle uwChannelV, TPCANBitrateFD pszBitrateFDV)
-{
-   return pfnCAN_InitializeFDP(uwChannelV, pszBitrateFDV);
-}
+   memset(aszBufferT,'\0',256);
 
-TPCANStatus QCanPcanBasic::unInitialize   (TPCANHandle uwChannelV)
-{
-   return pfnCAN_UninitializeP(uwChannelV);
-}
+   // Gets the text using the vciFormatError API function
+   //
 
-TPCANStatus QCanPcanBasic::reset          (TPCANHandle uwChannelV)
-{
-   return pfnCAN_ResetP(uwChannelV);
-}
+   pfnVciFormatErrorP(hrError,aszBufferT,255);
+   clResultT = QLatin1String(aszBufferT);
+   if(clResultT.length() == 0)
+   {
+      clResultT = ("An error ocurred. Error-code's text ("+ QString::number(hrError,16).toUpper() + "h) couldn't be retrieved");
+   } else
+   {
+      clResultT = QString::number(hrError,16).toUpper() + "h : " + QLatin1String(aszBufferT);
+   }
 
-TPCANStatus QCanPcanBasic::getStatus      (TPCANHandle uwChannelV)
-{
-   return pfnCAN_GetStatusP(uwChannelV);
+   return clResultT;
 }
-
-TPCANStatus QCanPcanBasic::read           (TPCANHandle uwChannelV, TPCANMsg *ptsMessageBufferV, TPCANTimestamp *tsTimestampBufferV)
-{
-   return pfnCAN_ReadP(uwChannelV,ptsMessageBufferV,tsTimestampBufferV);
-}
-
-TPCANStatus QCanPcanBasic::readFD         (TPCANHandle uwChannelV, TPCANMsgFD *ptsMessageBufferV, TPCANTimestampFD *puqTimestampBufferV)
-{
-   return pfnCAN_ReadFDP(uwChannelV,ptsMessageBufferV,puqTimestampBufferV);
-}
-
-TPCANStatus QCanPcanBasic::write          (TPCANHandle uwChannelV, TPCANMsg *ptsMessageBufferV)
-{
-   return pfnCAN_WriteP(uwChannelV,ptsMessageBufferV);
-}
-
-TPCANStatus QCanPcanBasic::writeFD        (TPCANHandle uwChannelV, TPCANMsgFD *ptsMessageBufferV)
-{
-   return pfnCAN_WriteFDP(uwChannelV,ptsMessageBufferV);
-}
-
-TPCANStatus QCanPcanBasic::filterMessages (TPCANHandle uwChannelV, DWORD ulFromIDV, DWORD ulToIDV, TPCANMode ubModeV)
-{
-   return pfnCAN_FilterMessagesP(uwChannelV,ulFromIDV,ulToIDV,ubModeV);
-}
-
-TPCANStatus QCanPcanBasic::getValue       (TPCANHandle uwChannelV, TPCANParameter ubParameterV, void *pvdBufferV, DWORD ulBufferLengthV)
-{
-   return pfnCAN_GetValueP(uwChannelV,ubParameterV,pvdBufferV,ulBufferLengthV);
-}
-
-TPCANStatus QCanPcanBasic::setValue       (TPCANHandle uwChannelV, TPCANParameter ubParameterV, void *pvdBufferV, DWORD ulBufferLengthV)
-{
-   return pfnCAN_SetValueP(uwChannelV,ubParameterV,pvdBufferV,ulBufferLengthV);
-}
-
-TPCANStatus QCanPcanBasic::getErrorText   (TPCANStatus ulErrorV, WORD uwLanguageV, LPSTR pszBufferV)
-{
-   return pfnCAN_GetErrorTextP(ulErrorV, uwLanguageV, pszBufferV);
-}
-*/
