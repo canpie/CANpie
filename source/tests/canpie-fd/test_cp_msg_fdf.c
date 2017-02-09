@@ -50,7 +50,7 @@
 \*----------------------------------------------------------------------------*/
 
 TEST_GROUP(CP_MSG_FDF);     // test group name
-
+static CpCanMsg_ts    tsCanMsgS;
 
 /*----------------------------------------------------------------------------*\
 ** Function implementations                                                   **
@@ -82,15 +82,40 @@ TEST_TEAR_DOWN(CP_MSG_FDF)
 //----------------------------------------------------------------------------//
 TEST(CP_MSG_FDF, 001)
 {
-   CpCanMsg_ts    tsCanMsgT;
+   //----------------------------------------------------------------
+      // @SubTest01
+      //
+      CpMsgClear(&tsCanMsgS);
+      TEST_ASSERT_EQUAL_UINT16(0, CpMsgGetStdId(&tsCanMsgS));
+      TEST_ASSERT_EQUAL_UINT32(0,CpMsgGetExtId(&tsCanMsgS));
+      TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
+      TEST_ASSERT_EQUAL_UINT8(0,CpMsgGetDlc(&tsCanMsgS));
 
-   CpMsgClear(&tsCanMsgT);                // clear the message
+      //----------------------------------------------------------------
+      // @SubTest02
+      //
+      CpMsgSetStdId(&tsCanMsgS, 0xE04);
+      CpMsgSetExtId(&tsCanMsgS, 0x2000E04);
+      CpMsgSetDlc(&tsCanMsgS, 0x56);
+      CpMsgSetData(&tsCanMsgS, 1,0x63);
 
+      CpMsgClear(&tsCanMsgS);
 
-  // TEST_ASSERT_EQUAL( CpMsgGetDlc(&tsCanMsgT), 0);
+      TEST_ASSERT_EQUAL_UINT32(0, CpMsgGetStdId(&tsCanMsgS));
+      TEST_ASSERT_EQUAL_UINT32(0, CpMsgGetExtId(&tsCanMsgS));
+      TEST_ASSERT_EQUAL_UINT32(0, CpMsgGetDlc(&tsCanMsgS));
+      TEST_ASSERT_EQUAL_UINT32(0, CpMsgGetStdId(&tsCanMsgS));
+      TEST_ASSERT_EQUAL_UINT32(0, CpMsgGetData(&tsCanMsgS,1));
 
-   TEST_ASSERT_EQUAL( CpMsgGetStdId(&tsCanMsgT), 0);
-
+      //----------------------------------------------------------------
+      // @SubTest03
+      //
+      memset(&tsCanMsgS, 0xFF, sizeof(CpCanMsg_ts));
+      CpMsgClear(&tsCanMsgS);
+      TEST_ASSERT_EQUAL_UINT32(0, CpMsgGetStdId(&tsCanMsgS));
+      TEST_ASSERT_EQUAL_UINT32(0,CpMsgGetExtId(&tsCanMsgS));
+      TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
+      TEST_ASSERT_EQUAL_UINT32(0,CpMsgGetDlc(&tsCanMsgS));
 }
 
 
@@ -104,7 +129,6 @@ TEST(CP_MSG_FDF, 002)
    uint16_t       uwStdIdT;
 
    CpMsgClear(&tsCanMsgT);                // clear the message
-
 
    for(uwStdIdT = 0; uwStdIdT < CP_MASK_STD_FRAME; uwStdIdT ++)
    {

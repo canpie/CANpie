@@ -279,7 +279,7 @@ void  CpMsgSetData(CpCanMsg_ts * ptsCanMsgV, uint8_t ubPosV, uint8_t ubValueV);
 **
 ** This function sets the Data Length Code (DLC) of a CAN message.
 ** The parameter ubDlcV must be within the range from 0..8.
-** Please note that the macro implementation does not check the value
+** \attention Please note that the macro implementation does not check the value
 ** range of the parameter \c ubDlcV.
 */
 void  CpMsgSetDlc(CpCanMsg_ts * ptsCanMsgV, uint8_t ubDlcV);
@@ -360,6 +360,7 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV);
             (MSG_PTR)->ubMsgCtrl = 0;                             \
             (MSG_PTR)->ubMsgDLC  = 0;                             \
          } while(0)
+            // aubData auf 0 setzen!?
 
 #define  CpMsgClrOverrun(MSG_PTR)                                 \
          do {                                                     \
@@ -394,16 +395,19 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV);
             ( (MSG_PTR)->ubMsgCtrl & CP_MSG_CTRL_OVR_BIT )
 
 #define  CpMsgIsRemote(MSG_PTR)                                   \
-            ( (MSG_PTR)->ubMsgCtrl & CP_MASK_RTR_BIT )
+            ( (MSG_PTR)->ubMsgCtrl & CP_MSG_CTRL_RTR_BIT) // FEHLER KORRIGIERT! -->"CP_MASK_RTR_BIT" FALSCH!
 
-#define  CpMsgSetData(MSG_PTR, POS, VAL)                          \
-            ( (MSG_PTR)->aubData[POS] = (VAL) )
+#define  CpMsgSetData(MSG_PTR, POS, VAL)                        \
+        do {                                                    \
+            (POS > 0x08) ? ( (MSG_PTR)->aubData[POS] = 0x00 ) : ( (MSG_PTR)->aubData[POS] = (VAL) ); \
+         } while(0) //NEU!
+         //  ( (MSG_PTR)->aubData[POS] = (VAL) );   ALT!
 
-#define  CpMsgSetDlc(MSG_PTR, DLC)                                \
-         do {                                                     \
-            (MSG_PTR)->ubMsgDLC = (DLC);                          \
-         } while(0)
-
+#define  CpMsgSetDlc(MSG_PTR, DLC)                               \
+         do {                                                    \
+            (DLC < 9) ? (MSG_PTR)->ubMsgDLC = (DLC) : 0;         \
+         } while(0) //NEU!
+         // ( (MSG_PTR)->aubData[POS] = (VAL) );    ALT!
 
 #define  CpMsgSetExtId(MSG_PTR, VAL)                              \
          do {                                                     \

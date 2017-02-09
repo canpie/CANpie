@@ -56,11 +56,9 @@
 ** \file    test_cp_msg_ccf.c
 ** \brief   CANpie test cases for message-functions
 **
-** &nbsp;<p>
-** The complex CANpie API uses a mass of functions to program and control any supported controller.
-** To test these functions this file will include all test cases as introduced in the MicroControl
-** Test Specification.
-** <p>
+** The complex CANpie API uses a mass of functions to program and control any
+** supported controller. To test these functions this file will include
+** all test cases as introduced in the MicroControl Test Specification.
 **
 */
 //----------------------------------------------------------------------------//
@@ -88,7 +86,6 @@ TEST_SETUP(CP_MSG_CCF)
 {
 
 }
-
 
 //----------------------------------------------------------------------------//
 // TEST_TEAR_DOWN()                                                           //
@@ -123,28 +120,27 @@ TEST(CP_MSG_CCF, 001)
    //
    CpMsgSetStdId(&tsCanMsgS, 0xE04);
    CpMsgSetExtId(&tsCanMsgS, 0x2000E04);
-   CpMsgSetDlc(&tsCanMsgS, 0x56);
+   CpMsgSetDlc(&tsCanMsgS, 0x07);
    CpMsgSetData(&tsCanMsgS, 1,0x63);
 
    CpMsgClear(&tsCanMsgS);
 
-   TEST_ASSERT_EQUAL_UINT32(0, CpMsgGetStdId(&tsCanMsgS));
-   TEST_ASSERT_EQUAL_UINT32(0, CpMsgGetExtId(&tsCanMsgS));
-   TEST_ASSERT_EQUAL_UINT32(0, CpMsgGetDlc(&tsCanMsgS));
-   TEST_ASSERT_EQUAL_UINT32(0, CpMsgGetStdId(&tsCanMsgS));
-   TEST_ASSERT_EQUAL_UINT32(0, CpMsgGetData(&tsCanMsgS,1));
+   TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetStdId(&tsCanMsgS));
+   TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetExtId(&tsCanMsgS));
+   TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetDlc(&tsCanMsgS));
+   TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetStdId(&tsCanMsgS));
+   TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetData(&tsCanMsgS,1));
 
    //----------------------------------------------------------------
    // @SubTest03
    //
    memset(&tsCanMsgS, 0xFF, sizeof(CpCanMsg_ts));
    CpMsgClear(&tsCanMsgS);
-   TEST_ASSERT_EQUAL_UINT32(0, CpMsgGetStdId(&tsCanMsgS));
-   TEST_ASSERT_EQUAL_UINT32(0,CpMsgGetExtId(&tsCanMsgS));
+   TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetStdId(&tsCanMsgS));
+   TEST_ASSERT_EQUAL_UINT8(0,CpMsgGetExtId(&tsCanMsgS));
    TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
-   TEST_ASSERT_EQUAL_UINT32(0,CpMsgGetDlc(&tsCanMsgS));
+   TEST_ASSERT_EQUAL_UINT8(0,CpMsgGetDlc(&tsCanMsgS));
 }
-
 
 
 //----------------------------------------------------------------------------//
@@ -165,7 +161,7 @@ TEST(CP_MSG_CCF, 002)
    for(uwCountS= 0x0000; uwCountS <= 0x07FF;uwCountS++)
    {
       CpMsgSetStdId(&tsCanMsgS, uwCountS);
-      TEST_ASSERT_EQUAL_UINT32(uwCountS, CpMsgGetStdId(&tsCanMsgS));
+      TEST_ASSERT_EQUAL_UINT16(uwCountS, CpMsgGetStdId(&tsCanMsgS));
       TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
    }
 
@@ -176,7 +172,8 @@ TEST(CP_MSG_CCF, 002)
    for(uwCountS = 0x0FF0; uwCountS < 0xFEFF ; uwCountS++)
    {
       CpMsgSetStdId(&tsCanMsgS, uwCountS);
-      TEST_ASSERT_EQUAL_UINT32(uwCountS & CP_MASK_STD_FRAME, CpMsgGetStdId(&tsCanMsgS));
+      TEST_ASSERT_EQUAL_UINT16(uwCountS & CP_MASK_STD_FRAME,
+                               CpMsgGetStdId(&tsCanMsgS));
       TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
    }
 
@@ -187,7 +184,8 @@ TEST(CP_MSG_CCF, 002)
    for(uwCountS = 0xFFFF; uwCountS >= 0xFF00; uwCountS--) //0xF800
    {
       CpMsgSetStdId(&tsCanMsgS, uwCountS);
-      TEST_ASSERT_EQUAL_UINT32(uwCountS & CP_MASK_STD_FRAME, CpMsgGetStdId(&tsCanMsgS));
+      TEST_ASSERT_EQUAL_UINT16(uwCountS & CP_MASK_STD_FRAME,
+                               CpMsgGetStdId(&tsCanMsgS));
       TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
    }
 }
@@ -218,11 +216,8 @@ TEST(CP_MSG_CCF, 003)
    //----------------------------------------------------------------
    // @SubTest02
    //
-
       CpMsgClear(&tsCanMsgS);
-
       CpMsgSetDlc(&tsCanMsgS, 0x01);
-
       for(ubCountS = 0xFF ; ubCountS >=0x09 ; ubCountS--)
       {
          CpMsgSetDlc(&tsCanMsgS, ubCountS);
@@ -233,7 +228,7 @@ TEST(CP_MSG_CCF, 003)
 //----------------------------------------------------------------------------//
 /*!
 ** \brief   CP_MSG_CCF_004
-** <br>The cases shall check the correct behaviour of setting and getting
+** <br>The cases shall check the correct behavior of setting and getting
 ** The 8 -Bits of Data using the CpMsgSetData() and CpMsgGetData() function.<br>
 */
 //----------------------------------------------------------------------------//
@@ -247,7 +242,8 @@ TEST(CP_MSG_CCF, 004)
    for(ubCountS = 0x00 ; ubCountS <= 0x07; ubCountS++)
    {
       CpMsgSetData(&tsCanMsgS, ubCountS, 0xAA);
-      TEST_ASSERT_EQUAL_UINT8(0xAA & CP_MASK_STD_FRAME,CpMsgGetData(&tsCanMsgS, ubCountS));
+      TEST_ASSERT_EQUAL_UINT8(0xAA & CP_MASK_STD_FRAME,
+                              CpMsgGetData(&tsCanMsgS, ubCountS));
    }
 
    //----------------------------------------------------------------
@@ -257,7 +253,8 @@ TEST(CP_MSG_CCF, 004)
    for(ubCountS = 0xFF; ubCountS >= 0x08; ubCountS--)
    {
       CpMsgSetData(&tsCanMsgS, ubCountS, 0x55);
-      TEST_ASSERT_EQUAL_UINT8(0x00 & CP_MASK_STD_FRAME, CpMsgGetData(&tsCanMsgS,ubCountS));
+      TEST_ASSERT_EQUAL_UINT8(0x00 & CP_MASK_STD_FRAME,
+                              CpMsgGetData(&tsCanMsgS,ubCountS));
    }
 }
 
@@ -292,7 +289,7 @@ TEST(CP_MSG_CCF, 005)
    // @SubTest02
    //
    ulCountS = 0x4000000;
-   CpMsgClear(&tsCanMsgS);  // clear the message
+   CpMsgClear(&tsCanMsgS);
    for(ubCountS= 0; ubCountS<21;ubCountS++)
    {
       CpMsgSetExtId(&tsCanMsgS, ulCountS);
@@ -329,7 +326,7 @@ TEST(CP_MSG_CCF, 005)
 /*!
 ** \brief   CP_MSG_CCF_006
 **
-** The cases shall check the correct behaviour of setting the RTR -Bit
+** The cases shall check the correct behavior of setting the RTR -Bit
 ** (Remote-Bit) of an Can Message Frame using the CpMsgSetRemote() function.
 ** The Cases also will check a Can Message Frame if the RTS -bit is set or not
 ** by calling the CpMsgIsRemote() function.
@@ -352,10 +349,10 @@ TEST(CP_MSG_CCF, 006)
 }
 
 
-//-----------------------------------------------------------------------------------//
-// TEST_GROUP_RUNNER()                                                               //
-// execute all test cases                                                            //
-//-----------------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
+// TEST_GROUP_RUNNER()                                                        //
+// execute all test cases                                                     //
+//----------------------------------------------------------------------------//
 TEST_GROUP_RUNNER(CP_MSG_CCF)
 {
    UnityPrint("Run test group CP_MSG_CCF ");
