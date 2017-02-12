@@ -28,6 +28,7 @@
 
 #include "qcan_send.hpp"
 
+#include <QTime>
 #include <QTimer>
 #include <QDebug>
 
@@ -104,11 +105,10 @@ void QCanSend::aboutToQuitApp()
 //----------------------------------------------------------------------------//
 void QCanSend::quit()
 {
-   qDebug() << "I will quit soon";
+   //qDebug() << "I will quit soon";
+   clCanSocketP.disconnectNetwork();
 
-    // you can do some cleanup here
-    // then do emit finished to signal CoreApplication to quit
-    emit finished();
+   emit finished();
 }
 
 
@@ -131,20 +131,47 @@ void QCanSend::runCmdParser(void)
                                       tr("CAN interface, e.g. can1"));
 
    //-----------------------------------------------------------
+   // command line option: -D <dlc>
+   //
+   QCommandLineOption clOptFrameDlcT("D", 
+         tr("Set DLC to <dlc>"),
+         tr("dlc"),
+         "0");          // default value
+   clCmdParserP.addOption(clOptFrameDlcT);
+   
+   //-----------------------------------------------------------
+   // command line option: -f <format>
+   //
+   QCommandLineOption clOptFormatT("f", 
+         tr("Set frame format to [CBFF|CEFF|FBFF|FEFF]"),
+         tr("format"),
+         "CBFF");       // default value
+   clCmdParserP.addOption(clOptFormatT);
+   
+   //-----------------------------------------------------------
+   // command line option: -g <msec>
+   //
+   QCommandLineOption clOptGapT("g", 
+         tr("Time gap in milil-seconds between multiple CAN frames"),
+         tr("gap"),
+         "10");          // default value
+   clCmdParserP.addOption(clOptGapT);
+   
+   //-----------------------------------------------------------
    // command line option: -H <host>
    //
    QCommandLineOption clOptHostT("H", 
          tr("Connect to <host>"),
          tr("host"));
    clCmdParserP.addOption(clOptHostT);
-
+   
    //-----------------------------------------------------------
-   // command line option: -n <count>
+   // command line option: -i <type>
    //
-   QCommandLineOption clOptCountT("n", 
-         tr("Terminate after transmission of <count> CAN frames"),
-         tr("count"));
-   clCmdParserP.addOption(clOptCountT);
+   QCommandLineOption clOptIncT("i", 
+         tr("Increment the requested type"),
+         tr("I|D|P"));
+   clCmdParserP.addOption(clOptIncT);
    
    //-----------------------------------------------------------
    // command line option: -I <id>
@@ -155,21 +182,23 @@ void QCanSend::runCmdParser(void)
    clCmdParserP.addOption(clOptFrameIdT);
    
    //-----------------------------------------------------------
-   // command line option: -D <dlc>
+   // command line option: -n <count>
    //
-   QCommandLineOption clOptFrameDlcT("D", 
-         tr("Set DLC to <dlc>"),
-         tr("dlc"));
-   clCmdParserP.addOption(clOptFrameDlcT);
-
+   QCommandLineOption clOptCountT("n", 
+         tr("Terminate after transmission of <count> CAN frames"),
+         tr("count"),
+         "1");          // default value
+   clCmdParserP.addOption(clOptCountT);
+   
    //-----------------------------------------------------------
-   // command line option: -i <type>
+   // command line option: -P <payload>
    //
-   QCommandLineOption clOptIncrementT("i", 
-         tr("Increment the requested type"),
-         tr("I|D|P"));
-   clCmdParserP.addOption(clOptIncrementT);
-
+   QCommandLineOption clOptFrameDataT("P", 
+         tr("Set payload to <payload>, i.e. a string of hex values"),
+         tr("payload"));
+   clCmdParserP.addOption(clOptFrameDataT);
+   
+   
    clCmdParserP.addVersionOption();
 
    //----------------------------------------------------------------
@@ -214,27 +243,89 @@ void QCanSend::runCmdParser(void)
    //-----------------------------------------------------------
    // store CAN interface channel (CAN_Channel_e)
    //
-   ubChannelP = (uint8_t) (slChannelT - 1);
+   ubChannelP = (uint8_t) (slChannelT);
 
+   //----------------------------------------------------------------
+   // get frame format
+   //
+   if (clCmdParserP.value(clOptFormatT).contains("CBFF", Qt::CaseInsensitive))
+   {
+      ubFrameFormatP = CpFrame::eFORMAT_CAN_STD;
+   }
+   else if (clCmdParserP.value(clOptFormatT).contains("CEFF", Qt::CaseInsensitive))
+   {
+      ubFrameFormatP = CpFrame::eFORMAT_CAN_EXT;
+   }
+   else if (clCmdParserP.value(clOptFormatT).contains("FBFF", Qt::CaseInsensitive))
+   {
+      ubFrameFormatP = CpFrame::eFORMAT_FD_STD;
+   }
+   else if (clCmdParserP.value(clOptFormatT).contains("FEFF", Qt::CaseInsensitive))
+   {
+      ubFrameFormatP = CpFrame::eFORMAT_FD_EXT;
+   }
+   else
+   {
+      fprintf(stderr, "%s \n\n", 
+              qPrintable(tr("Error: Unknown option for frame format.")));
+      clCmdParserP.showHelp(0);
+   }
    
    //----------------------------------------------------------------
    // get identifier value
    //
    ulFrameIdP = clCmdParserP.value(clOptFrameIdT).toInt(Q_NULLPTR, 16);
-
+   
    //----------------------------------------------------------------
    // get DLC value
    //
-
+   ubFrameDlcP = clCmdParserP.value(clOptFrameDlcT).toInt(Q_NULLPTR, 10);
+   if( ((ubFrameFormatP > CpFrame::eFORMAT_CAN_EXT) && (ubFrameDlcP > 15)) ||
+       ((ubFrameFormatP < CpFrame::eFORMAT_FD_STD)  && (ubFrameDlcP >  8)) )
+   {
+      fprintf(stderr, "%s \n\n", 
+              qPrintable(tr("Error: DLC value out of range.")));
+      clCmdParserP.showHelp(0);
+   }
+   
    //----------------------------------------------------------------
    // get payload
    //
+   QString clPayloadT = clCmdParserP.value(clOptFrameDataT);
+   for(uint8_t ubCntT = 0; ubCntT < CAN_MSG_DATA_MAX; ubCntT++)
+   {
+      if (clPayloadT.size() >= 2)
+      {
+         //-----------------------------------------------------
+         // convert two characters from string and remove them
+         // afterwards
+         //
+         aubFrameDataP[ubCntT] = clPayloadT.left(2).toUShort(Q_NULLPTR, 16);
+         clPayloadT.remove(0, 2);
+      }
+      else
+      {
+         aubFrameDataP[ubCntT] = 0x00;
+      }
+   }
    
    //----------------------------------------------------------------
    // get number of frames to send
    //
-   ulCountP = clCmdParserP.value(clOptCountT).toInt(Q_NULLPTR, 10);
+   ulFrameCountP = clCmdParserP.value(clOptCountT).toInt(Q_NULLPTR, 10);
 
+   //----------------------------------------------------------------
+   // get time gap between frames
+   //
+   ulFrameGapP = clCmdParserP.value(clOptGapT).toInt(Q_NULLPTR, 10);
+   
+   //----------------------------------------------------------------
+   // get increment type
+   //
+   btIncIdP  = clCmdParserP.value(clOptIncT).contains("I", Qt::CaseInsensitive);
+   btIncDlcP = clCmdParserP.value(clOptIncT).contains("D", Qt::CaseInsensitive);
+   btIncDataP= clCmdParserP.value(clOptIncT).contains("P", Qt::CaseInsensitive);
+   
    //----------------------------------------------------------------
    // set host address for socket
    //
@@ -251,26 +342,101 @@ void QCanSend::runCmdParser(void)
 
 }
 
+//----------------------------------------------------------------------------//
+// sendFrame()                                                                //
+//                                                                            //
+//----------------------------------------------------------------------------//
 void QCanSend::sendFrame(void)
 {
-   QCanFrame clCanFrameT;
+   QTime       clSystemTimeT;
+   CpTimeStamp clCanTimeT;
    
-   clCanFrameT.setIdentifier(ulFrameIdP);
-   clCanFrameT.setDlc(2);
+   clSystemTimeT = QTime::currentTime();
+   clCanTimeT.fromMilliSeconds(clSystemTimeT.msec());
+   clCanFrameP.setTimeStamp(clCanTimeT);
    
-   clCanSocketP.writeFrame(clCanFrameT);
+   clCanSocketP.writeFrame(clCanFrameP);
    
-   qDebug() << "Message count" << ulCountP;
-   if(ulCountP > 0)
+   if (ulFrameCountP > 1)
    {
-      ulCountP--;
-      QTimer::singleShot(10, this, SLOT(sendFrame()));
+      ulFrameCountP--;
+      
+      //--------------------------------------------------------
+      // test if identifier value must be incemented
+      //
+      if (btIncIdP)
+      {
+         ulFrameIdP++;
+         
+         //------------------------------------------------
+         // test for wrap-around
+         //
+         if (clCanFrameP.isExtended())
+         {
+            if (ulFrameIdP > CAN_FRAME_ID_MASK_EXT)
+            {
+               ulFrameIdP = 0;
+            }
+         }
+         else
+         {
+            if (ulFrameIdP > CAN_FRAME_ID_MASK_STD)
+            {
+               ulFrameIdP = 0;
+            }
+         }
+         
+         //------------------------------------------------
+         // set new identifier value
+         //
+         clCanFrameP.setIdentifier(ulFrameIdP);
+      }
+      
+      //--------------------------------------------------------
+      // test if DLC value must be incemented
+      //
+      if (btIncDlcP)
+      {
+         ubFrameDlcP++;
+         
+         //------------------------------------------------
+         // test for wrap-around
+         //
+         if (clCanFrameP.frameFormat() > CpFrame::eFORMAT_CAN_EXT)
+         {
+            if (ubFrameDlcP > 15)
+            {
+               ubFrameDlcP = 0;
+            }
+         }
+         else
+         {
+            if (ubFrameDlcP > 8)
+            {
+               ubFrameDlcP = 0;
+            }
+         }
+         //------------------------------------------------
+         // set new DLC value
+         //
+         clCanFrameP.setDlc(ubFrameDlcP);
+      }  
+      
+      //--------------------------------------------------------
+      // test if data value must be incemented
+      //
+      if (btIncDataP)
+      {
+         clCanFrameP.setDataUInt32(0, clCanFrameP.dataUInt32(0) + 1);
+      }
+      
+      QTimer::singleShot(ulFrameGapP, this, SLOT(sendFrame()));
    }
    else
    {
-      //QTimer::singleShot(50, this, SLOT(quit()));
+      QTimer::singleShot(50, this, SLOT(quit()));
    }
-   //quit();
+
 }
 
 
@@ -280,7 +446,17 @@ void QCanSend::sendFrame(void)
 //----------------------------------------------------------------------------//
 void QCanSend::socketConnected()
 {
-   qDebug() << "Connected to CAN " << ubChannelP;
+   //----------------------------------------------------------------
+   // initial setup of CAN frame
+   //
+   clCanFrameP.setFrameFormat((CpFrame::Format_e) ubFrameFormatP);
+   clCanFrameP.setIdentifier(ulFrameIdP);
+   clCanFrameP.setDlc(ubFrameDlcP);
+   for(uint8_t ubCntT = 0; ubCntT < clCanFrameP.dataSize(); ubCntT++)
+   {
+      clCanFrameP.setData(ubCntT, aubFrameDataP[ubCntT]);
+   }
+    
    QTimer::singleShot(10, this, SLOT(sendFrame()));
 }
 
@@ -312,14 +488,3 @@ void QCanSend::socketError(QAbstractSocket::SocketError teSocketErrorV)
            qPrintable(clCanSocketP.errorString()));
    quit();
 }
-
-
-
-
-
-
-
-
-
-
-

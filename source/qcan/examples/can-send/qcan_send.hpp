@@ -37,7 +37,6 @@ class QCanSend : public QObject
 
 public:
    QCanSend(QObject *parent = 0);
-   void quit();
 
 signals:
    void finished();
@@ -51,6 +50,7 @@ public slots:
    void socketConnected();
    void socketDisconnected();
    void socketError(QAbstractSocket::SocketError teSocketErrorV);
+   void quit();
    
 private:
 
@@ -60,8 +60,16 @@ private:
    QCanSocket           clCanSocketP;
    uint8_t              ubChannelP;
    
+   QCanFrame            clCanFrameP;
    uint32_t             ulFrameIdP;
-   uint32_t             ulCountP;
+   uint32_t             ulFrameGapP;
+   uint8_t              ubFrameDlcP;
+   uint8_t              ubFrameFormatP;
+   uint8_t              aubFrameDataP[CAN_MSG_DATA_MAX];
+   bool                 btIncIdP;
+   bool                 btIncDlcP;
+   bool                 btIncDataP;
+   uint32_t             ulFrameCountP;
 };
 
 
