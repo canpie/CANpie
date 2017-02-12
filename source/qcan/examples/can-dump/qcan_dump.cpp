@@ -28,7 +28,6 @@
 
 #include "qcan_dump.hpp"
 
-#include <QTimer>
 #include <QDebug>
 
 
@@ -113,11 +112,15 @@ void QCanDump::aboutToQuitApp()
 //----------------------------------------------------------------------------//
 void QCanDump::quit()
 {
-   qDebug() << "I will quit soon";
-
-    // you can do some cleanup here
-    // then do emit finished to signal CoreApplication to quit
-    emit finished();
+   if((btQuitNeverP == false) && (ulQuitTimeP > 0))
+   {
+      fprintf(stderr, "%s %d %s\n", 
+              qPrintable(tr("Quit after")),
+              ulQuitTimeP,
+              qPrintable(tr("[ms] without frame reception.")));
+   }
+   
+   emit finished();
 }
 
 
@@ -169,10 +172,9 @@ void QCanDump::runCmdParser()
    //
    QCommandLineOption clOptTimeOutT("T", 
          tr("Terminate after <msec> without reception"),
-         tr("msec"));
+         tr("msec"),
+         "0");
    clCmdParserP.addOption(clOptTimeOutT);
-
-
 
 
    //----------------------------------------------------------------
@@ -217,7 +219,7 @@ void QCanDump::runCmdParser()
    //-----------------------------------------------------------
    // store CAN interface channel (CAN_Channel_e)
    //
-   ubChannelP = (uint8_t) (slChannelT - 1);
+   ubChannelP = (uint8_t) (slChannelT);
 
    
    //----------------------------------------------------------------
@@ -226,9 +228,31 @@ void QCanDump::runCmdParser()
    btTimeStampP = clCmdParserP.isSet(clOptTimeStampT);
 
    
-   qDebug() << "Connect to CAN " << ubChannelP;
+   //----------------------------------------------------------------
+   // check for termination options
+   //
+   btQuitNeverP = true;
+   ulQuitCountP = clCmdParserP.value(clOptCountT).toInt(Q_NULLPTR, 10);    
+   ulQuitTimeP  = clCmdParserP.value(clOptTimeOutT).toInt(Q_NULLPTR, 10);      
+   if ((ulQuitCountP > 0) || (ulQuitTimeP > 0))
+   {
+      btQuitNeverP = false; 
+   }
+   
+   
+   //----------------------------------------------------------------
+   // set host address for socket
+   //
+   if(clCmdParserP.isSet(clOptHostT))
+   {
+      QHostAddress clAddressT = QHostAddress(clCmdParserP.value(clOptHostT));
+      clCanSocketP.setHostAddress(clAddressT);
+   }
+   
+   //----------------------------------------------------------------
+   // connect to CAN interface
+   //
    clCanSocketP.connectNetwork((CAN_Channel_e) ubChannelP);
-
 
 }
 
@@ -240,7 +264,15 @@ void QCanDump::runCmdParser()
 void QCanDump::socketConnected()
 {
    qDebug() << "Connected to CAN " << ubChannelP;
+   qDebug() << "Quit time" << ulQuitTimeP;
    
+   if ((btQuitNeverP == false) && (ulQuitTimeP > 0))
+   {
+      clActivityTimerP.setInterval(ulQuitTimeP);
+      clActivityTimerP.setSingleShot(true);
+      connect(&clActivityTimerP, SIGNAL(timeout()), SLOT(quit()));
+      clActivityTimerP.start();
+   }
 }
 
 
@@ -282,10 +314,25 @@ void QCanDump::socketReceive(uint32_t ulFrameCntV)
    QCanFrame clCanFrameT;
    QString   clCanStringT;
    
-   clCanSocketP.readFrame(clCanFrameT);
+   if ((btQuitNeverP == false) && (ulQuitTimeP > 0))
+   {
+      clActivityTimerP.start(ulQuitTimeP);
+   }
    
-   clCanStringT = clCanFrameT.toString();
-   fprintf(stderr, "%s\n", qPrintable(clCanStringT));
+   while(ulFrameCntV)
+   {
+      if(clCanSocketP.readFrame(clCanFrameT) == true)
+      {
+         clCanStringT = clCanFrameT.toString(btTimeStampP);
+         fprintf(stderr, "%s\n", qPrintable(clCanStringT));
+      }
+      ulFrameCntV--;
+      ulQuitCountP--;
+      if(ulQuitCountP == 0)
+      {
+         quit();
+      }
+   }
 }
 
 

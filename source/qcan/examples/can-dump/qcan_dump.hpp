@@ -28,6 +28,7 @@
 
 #include <QCoreApplication>
 #include <QCommandlineParser>
+#include <QTimer>
 
 #include <QCanSocket>
 
@@ -37,7 +38,7 @@ class QCanDump : public QObject
 
 public:
    QCanDump(QObject *parent = 0);
-   void quit();
+
 
 signals:
    void finished();
@@ -51,6 +52,7 @@ public slots:
    void socketDisconnected();
    void socketError(QAbstractSocket::SocketError teSocketErrorV);
    void socketReceive(uint32_t ulFrameCntV);
+   void quit();
    
 private:
 
@@ -60,8 +62,12 @@ private:
    QCanSocket           clCanSocketP;
    uint8_t              ubChannelP;
    
+   QTimer               clActivityTimerP;
    bool                 btTimeStampP;
    bool                 btErrorFramesP;
+   bool                 btQuitNeverP;
+   uint32_t             ulQuitTimeP;
+   uint32_t             ulQuitCountP;
 };
 
 
