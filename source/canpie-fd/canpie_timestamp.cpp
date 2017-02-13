@@ -32,7 +32,7 @@
 ** Include files                                                              **
 **                                                                            **
 \*----------------------------------------------------------------------------*/
-#include "../canpie-fd/canpie_timestamp.hpp"
+#include "canpie_timestamp.hpp"
 
 
 
