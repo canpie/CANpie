@@ -35,7 +35,7 @@
 ** Include files                                                              **
 **                                                                            **
 \*----------------------------------------------------------------------------*/
-#include "../canpie-fd/canpie_frame.hpp"
+#include "canpie_data.hpp"
 
 using namespace CANpie;
 
@@ -46,7 +46,7 @@ using namespace CANpie;
 ** 
 ** This class defines a CAN API frame.
 */
-class CpFrameApi : private CpFrame
+class CpFrameApi : private CpData
 {
 public:
    

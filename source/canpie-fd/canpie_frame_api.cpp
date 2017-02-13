@@ -33,7 +33,7 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-#include "../canpie-fd/canpie_frame_api.hpp"
+#include "canpie_frame_api.hpp"
 
 
 /*----------------------------------------------------------------------------*\
@@ -52,11 +52,8 @@
 // CpFrameApi()                                                               //
 // constructor                                                                //
 //----------------------------------------------------------------------------//
-CpFrameApi::CpFrameApi()
+CpFrameApi::CpFrameApi() : CpData(eTYPE_API)
 {
-   this->ulIdentifierP = CAN_FRAME_TYPE_API;
-   setFrameType(eTYPE_FD_EXT);
-   setDlc(15);
    setData(0, CpFrameApi::eAPI_FUNC_NONE);
 }
 

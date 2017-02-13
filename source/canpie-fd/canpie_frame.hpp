@@ -36,9 +36,12 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-#include "../canpie-fd/canpie_namespace.hpp"
-#include "../canpie-fd/canpie_timestamp.hpp"
+#include "canpie_data.hpp"
 
+
+#define  CAN_FRAME_ID_MASK_STD      ((uint32_t) 0x000007FF)
+
+#define  CAN_FRAME_ID_MASK_EXT      ((uint32_t) 0x1FFFFFFF)
 
 //-------------------------------------------------------------------
 /*!
@@ -46,19 +49,6 @@
 **
 */
 
-
-//-------------------------------------------------------------------
-/*!
-** \def  CAN_FRAME_DATA_MAX
-**
-** The symbol CAN_FRAME_DATA_MAX defines the maximum number of
-** bytes in a CAN frame (payload).
-*/
-#define  CAN_FRAME_DATA_MAX      64
-
-
-#define  CAN_FRAME_TYPE_API      ((uint32_t) 0x40000000)
-#define  CAN_FRAME_TYPE_ERR      ((uint32_t) 0x80000000)
 
 //-----------------------------------------------------------------------------
 /*!
@@ -75,23 +65,23 @@
 **
 **
 */
-class CpFrame
+class CpFrame : public CpData
 {
 public:
    
-   enum Type_e {
+   enum Format_e {
 
       /*! Classic CAN, Standard frame format                */
-      eTYPE_CAN_STD = 0,
+      eFORMAT_CAN_STD = 0,
 
       /*! Classic CAN, Extended frame format                */
-      eTYPE_CAN_EXT,
+      eFORMAT_CAN_EXT,
 
       /*! ISO CAN FD, Standard frame format                 */
-      eTYPE_FD_STD,
+      eFORMAT_FD_STD,
 
       /*! ISO CAN FD, Extended frame format                 */
-      eTYPE_FD_EXT,
+      eFORMAT_FD_EXT,
 
    };
 
@@ -103,14 +93,14 @@ public:
    
 
    /*!
-   ** \param[in] ubTypeR         CAN frame type
+   ** \param[in] ubFormatR       CAN frame format
    ** \param[in] ulIdentifierR   Identifier value
    ** \param[in] ubDlcR          DLC value
    **
    ** Constructs a CAN frame of type \c ubTypeR with an identifier value
    ** of \c ulIdentifierR and a DLC value of \c ubDlcR.
    */
-   CpFrame(const Type_e & ubTypeR, const uint32_t & ulIdentifierR = 0, 
+   CpFrame(const Format_e & ubFormatR, const uint32_t & ulIdentifierR = 0, 
              const uint8_t & ubDlcR = 0);
    
    virtual ~CpFrame();
@@ -208,7 +198,7 @@ public:
    ** The function returns the CAN frame type, defined by the #Type_e
    ** enumeration.
    */
-   Type_e      frameType(void) const;
+   Format_e    frameFormat(void) const;
    
 
    /*!
@@ -242,9 +232,6 @@ public:
    */
    bool        isExtended(void) const;
    
-   bool        isFrameApi() const;
-
-   bool        isFrameError() const;
 
    /*!
    ** \return  \c true if Remote frame
@@ -357,7 +344,7 @@ public:
    **
    **
    */
-   void        setFrameType(const Type_e &ubTypeR);
+   void        setFrameFormat(const Format_e &ubTypeR);
    
 
    /*!
@@ -382,77 +369,13 @@ public:
    */
    void        setRemote(const bool & btRtrR = true);
 
-   inline void setTimeStamp(const CpTimeStamp & clTimeStampR) { clMsgTimeP = clTimeStampR; };
-
    void        setUser(const uint32_t & ulUserValueR);
    
-   inline CpTimeStamp timeStamp(void) const { return clMsgTimeP; };
+
 
    bool operator==(const CpFrame & clCanFrameR);
    
    bool operator!=(const CpFrame & clCanFrameR);
-             
-
-   
-protected:
-   
-   /*!   
-   ** The identifier field may have 11 bits for standard frames
-   ** (CAN specification 2.0A) or 29 bits for extended frames
-   ** (CAN specification 2.0B). 
-   */
-   uint32_t  ulIdentifierP;
-
-   /*!
-   ** The data length code denotes the number of data bytes
-   ** which are transmitted by a message.
-   ** The possible value range for the data length code is
-   ** from 0 to 15.
-   */
-   uint8_t  ubMsgDlcP;
-
-   /*!   
-   ** The structure member \c ubMsgCtrlP defines the
-   ** different frame types (2.0A / 2.0B / Classic / FD / RTR).
-   ** <ul>
-   ** <li>Bit 0: Std. / Ext. Frame
-   ** <li>Bit 1: ISO CAN FD: value of FDF bit
-   ** <li>Bit 2: Remote Frame
-   ** <li>Bit 3: Overload Frame
-   ** <li>Bit 4: reserved, always 0
-   ** <li>Bit 5: reserved, always 0
-   ** <li>Bit 6: ISO CAN FD: value of BRS bit
-   ** <li>Bit 7: ISO CAN FD: value of ESI bit
-   ** </ul>
-   */
-   uint8_t  ubMsgCtrlP;
-
-   /*!   
-   ** The data field has up to 64 bytes of message data.
-   ** The number of used bytes is described via the structure
-   ** member \c ubMsgDlcP.
-   */
-   uint8_t  aubByteP[CAN_FRAME_DATA_MAX];
-
-   /*!   
-   ** The time stamp field defines the time when a CAN message
-   ** was received by the CAN controller. This is an optional
-   ** field (available if #CP_CAN_MSG_TIME is set to 1).
-   */
-   CpTimeStamp clMsgTimeP;
-
-   
-   /*!   
-   ** The field user data can hold a 32 bit value, which is
-   ** defined by the user.
-   */
-   uint32_t ulMsgUserP;
-
-   /*!   
-   ** The field user data can hold a 32 bit value, which is
-   ** defined by the user.
-   */
-   uint32_t ulMsgMarkerP;
    
 };
 

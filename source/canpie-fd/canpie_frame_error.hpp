@@ -36,7 +36,7 @@
 ** Include files                                                              **
 **                                                                            **
 \*----------------------------------------------------------------------------*/
-#include "../canpie-fd/canpie_frame.hpp"
+#include "canpie_data.hpp"
 
 using namespace CANpie;
 
@@ -58,7 +58,7 @@ using namespace CANpie;
 ** about the last error type which caused the error condition
 ** (function errorType()).
 */
-class CpFrameError : private CpFrame
+class CpFrameError : private CpData
 {
 public:
    

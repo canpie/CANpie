@@ -32,7 +32,7 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-#include "../canpie-fd/canpie_frame.hpp"
+#include "canpie_frame.hpp"
 
 
 /*----------------------------------------------------------------------------*\
@@ -40,10 +40,6 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-
-#define  CAN_FRAME_ID_MASK_STD      ((uint32_t) 0x000007FF)
-
-#define  CAN_FRAME_ID_MASK_EXT      ((uint32_t) 0x1FFFFFFF)
 
 #define  CAN_FRAME_FORMAT_EXT       ((uint8_t) 0x01)
 
@@ -66,19 +62,9 @@
 // CpFrame()                                                                  //
 // constructor                                                                //
 //----------------------------------------------------------------------------//
-CpFrame::CpFrame()
+CpFrame::CpFrame() : CpData(eTYPE_CAN)
 {
-   ulIdentifierP = 0;
-   for(uint8_t ubPosT = 0; ubPosT < CAN_FRAME_DATA_MAX; ubPosT++)
-   {
-      aubByteP[ubPosT] = 0;
-   }
-   
-   ubMsgDlcP  = 0;
-   ubMsgCtrlP = eTYPE_CAN_STD;
-   
-   ulMsgUserP   = 0;
-   ulMsgMarkerP = 0;
+
 }
 
 
@@ -86,20 +72,12 @@ CpFrame::CpFrame()
 // CpFrame()                                                                  //
 // constructor                                                                //
 //----------------------------------------------------------------------------//
-CpFrame::CpFrame(const Type_e & ubTypeR, const uint32_t & ulIdentifierR, 
-                 const uint8_t & ubDlcR)
+CpFrame::CpFrame(const Format_e & ubFormatR, const uint32_t & ulIdentifierR, 
+                 const uint8_t & ubDlcR) : CpData(eTYPE_CAN)
 {
-   setFrameType(ubTypeR);
+   setFrameFormat(ubFormatR);
    setIdentifier(ulIdentifierR);
    setDlc(ubDlcR);
-
-   for(uint8_t ubPosT = 0; ubPosT < CAN_FRAME_DATA_MAX; ubPosT++)
-   {
-      aubByteP[ubPosT] = 0;
-   }
-
-   ulMsgUserP   = 0;
-   ulMsgMarkerP = 0;   
 }
 
 
@@ -121,7 +99,7 @@ bool CpFrame::bitrateSwitch(void) const
 {
    bool btResultT = false;
 
-   if(frameType() > eTYPE_CAN_EXT)
+   if(frameFormat() > eFORMAT_CAN_EXT)
    {
       if((ubMsgCtrlP & CAN_FRAME_ISO_FD_BRS) > 0)
       {
@@ -286,7 +264,7 @@ bool CpFrame::errorStateIndicator(void) const
 {
    bool btResultT = false;
 
-   if(frameType() > eTYPE_CAN_EXT)
+   if(frameFormat() > eFORMAT_CAN_EXT)
    {
       if((ubMsgCtrlP & CAN_FRAME_ISO_FD_ESI) > 0)
       {
@@ -301,9 +279,9 @@ bool CpFrame::errorStateIndicator(void) const
 // frameType()                                                                //
 // get CAN frame type                                                         //
 //----------------------------------------------------------------------------//
-CpFrame::Type_e  CpFrame::frameType(void) const
+CpFrame::Format_e  CpFrame::frameFormat(void) const
 {
-   return((Type_e) (ubMsgCtrlP & 0x03));
+   return((Format_e) (ubMsgCtrlP & 0x03));
 }
 
 
@@ -347,38 +325,6 @@ bool CpFrame::isExtended(void) const
 
 
 //----------------------------------------------------------------------------//
-// isFrameApi()                                                               //
-// test for API frame                                                         //
-//----------------------------------------------------------------------------//
-bool CpFrame::isFrameApi() const
-{
-   bool btResultT = false;
-
-   if((ulIdentifierP & CAN_FRAME_TYPE_API) > 0)
-   {
-      btResultT = true;
-   }
-
-   return(btResultT);
-}
-
-
-//----------------------------------------------------------------------------//
-// isFrameError()                                                             //
-// test for error frame                                                       //
-//----------------------------------------------------------------------------//
-bool CpFrame::isFrameError() const
-{
-   bool btResultT = false;
-
-   if((ulIdentifierP & CAN_FRAME_TYPE_ERR) > 0)
-   {
-      btResultT = true;
-   }
-   return(btResultT);
-}
-
-//----------------------------------------------------------------------------//
 // isRemote()                                                                 //
 // test for Remote Frame format                                               //
 //----------------------------------------------------------------------------//
@@ -400,7 +346,7 @@ bool CpFrame::isRemote(void) const
 //----------------------------------------------------------------------------//
 void CpFrame::setBitrateSwitch(const bool & btBrsR)
 {
-   if(frameType() > eTYPE_CAN_EXT)
+   if(frameFormat() > eFORMAT_CAN_EXT)
    {
       if(btBrsR == true)
       {
@@ -433,7 +379,7 @@ void CpFrame::setData(const uint8_t & ubPosR, const uint8_t & ubValueR)
 //----------------------------------------------------------------------------//
 void CpFrame::setDataSize(uint8_t ubSizeV)
 {
-   if(frameType() > eTYPE_CAN_EXT)
+   if(frameFormat() > eFORMAT_CAN_EXT)
    {
       //--------------------------------------------------------
       // set DLC value to maximum requested size value
@@ -561,7 +507,7 @@ void CpFrame::setDlc(uint8_t ubDlcV)
    //
    ubDlcV = ubDlcV & 0x0F;
    
-   if(frameType() < eTYPE_FD_STD)
+   if(frameFormat() < eFORMAT_FD_STD)
    {
       //--------------------------------------------------------
       // classic CAN is limited to a DLC value of 8
@@ -585,15 +531,15 @@ void CpFrame::setDlc(uint8_t ubDlcV)
 // setFrameType()                                                             //
 // set the frame type                                                         //
 //----------------------------------------------------------------------------//
-void CpFrame::setFrameType(const Type_e &ubTypeR)
+void CpFrame::setFrameFormat(const Format_e &ubFormatR)
 {
    ubMsgCtrlP &= (~0x03);     // remove existing frame type bits
-   ubMsgCtrlP |= ubTypeR;
+   ubMsgCtrlP |= ubFormatR;
 
    //----------------------------------------------------------------
    // check for Classic CAN frame
    //
-   if(ubTypeR < eTYPE_FD_STD)
+   if(ubFormatR < eFORMAT_FD_STD)
    {
       //--------------------------------------------------------
       // ESI and BRS are cleared
@@ -630,23 +576,20 @@ void CpFrame::setFrameType(const Type_e &ubTypeR)
 //----------------------------------------------------------------------------//
 void CpFrame::setIdentifier(uint32_t ulIdentifierV)
 {
-   switch(frameType())
+   switch(frameFormat())
    {
-      case eTYPE_CAN_STD:
-      case eTYPE_FD_STD:
+      case eFORMAT_CAN_STD:
+      case eFORMAT_FD_STD:
          ulIdentifierP = ulIdentifierV & CAN_FRAME_ID_MASK_STD;
          break;
 
-      case eTYPE_CAN_EXT:
-      case eTYPE_FD_EXT:
+      case eFORMAT_CAN_EXT:
+      case eFORMAT_FD_EXT:
          ulIdentifierP = ulIdentifierV & CAN_FRAME_ID_MASK_EXT;
          break;
 
    }
 }
-
-
-
 
 
 void CpFrame::setMarker(const uint32_t & ulMarkerValueR)
@@ -661,7 +604,7 @@ void CpFrame::setMarker(const uint32_t & ulMarkerValueR)
 //----------------------------------------------------------------------------//
 void CpFrame::setRemote(const bool & btRtrR)
 {
-   if(frameType() < eTYPE_FD_STD)
+   if(frameFormat() < eFORMAT_FD_STD)
    {
       if (btRtrR == true)
       {
@@ -686,6 +629,7 @@ void CpFrame::setUser(const uint32_t & ulUserValueR)
 }
 
 
+
 //----------------------------------------------------------------------------//
 // operator ==                                                                //
 // compare two CAN frames                                                     //
@@ -694,7 +638,7 @@ bool CpFrame::operator==(const CpFrame & clCanFrameR)
 {
    bool btResultT = false;
    
-   if(this->frameType() == clCanFrameR.frameType())
+   if(this->frameFormat() == clCanFrameR.frameFormat())
    {
       if(this->identifier() == clCanFrameR.identifier())
       {

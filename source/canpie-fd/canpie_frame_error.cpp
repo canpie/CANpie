@@ -33,7 +33,7 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-#include "../canpie-fd/canpie_frame_error.hpp"
+#include "canpie_frame_error.hpp"
 
 
 /*----------------------------------------------------------------------------*\
@@ -52,11 +52,9 @@
 // CpFrameError()                                                             //
 // constructor                                                                //
 //----------------------------------------------------------------------------//
-CpFrameError::CpFrameError()
+CpFrameError::CpFrameError() : CpData(eTYPE_ERROR)
 {
-   this->ulIdentifierP = CAN_FRAME_TYPE_ERR;
-   setFrameType(eTYPE_FD_EXT);
-   setDlc(4);
+
 }
 
 
@@ -76,7 +74,7 @@ CpFrameError::~CpFrameError()
 //----------------------------------------------------------------------------//
 uint8_t CpFrameError::errorCounterReceive(void) const
 {
-   return(data(2));
+   return(aubByteP[2]);
 }
 
 
@@ -86,7 +84,7 @@ uint8_t CpFrameError::errorCounterReceive(void) const
 //----------------------------------------------------------------------------//
 uint8_t CpFrameError::errorCounterTransmit(void) const
 {
-   return(data(3));
+   return(aubByteP[3]);
 }
 
 
@@ -96,7 +94,7 @@ uint8_t CpFrameError::errorCounterTransmit(void) const
 //----------------------------------------------------------------------------//
 CAN_State_e CpFrameError::errorState(void) const
 {
-   return((CAN_State_e) data(0));
+   return((CAN_State_e) aubByteP[0]);
 }
 
 
@@ -106,7 +104,7 @@ CAN_State_e CpFrameError::errorState(void) const
 //----------------------------------------------------------------------------//
 CpFrameError::ErrorType_e CpFrameError::errorType(void) const
 {
-   return((CpFrameError::ErrorType_e) data(1));
+   return((CpFrameError::ErrorType_e) aubByteP[1]);
 }
 
 
@@ -116,7 +114,7 @@ CpFrameError::ErrorType_e CpFrameError::errorType(void) const
 //----------------------------------------------------------------------------//
 void CpFrameError::setErrorCounterReceive(const uint8_t & ubErrorCntR)
 {
-   setData(2, ubErrorCntR);
+   aubByteP[2] = ubErrorCntR;
 }
 
 
@@ -126,7 +124,7 @@ void CpFrameError::setErrorCounterReceive(const uint8_t & ubErrorCntR)
 //----------------------------------------------------------------------------//
 void CpFrameError::setErrorCounterTransmit(const uint8_t & ubErrorCntR)
 {
-   setData(3, ubErrorCntR);
+   aubByteP[3] = ubErrorCntR;
 }
 
 
@@ -136,7 +134,7 @@ void CpFrameError::setErrorCounterTransmit(const uint8_t & ubErrorCntR)
 //----------------------------------------------------------------------------//
 void CpFrameError::setErrorState(CAN_State_e ubStateV)
 {
-   setData(0, ubStateV);
+   aubByteP[0] = ubStateV;
 }
 
 
@@ -146,7 +144,7 @@ void CpFrameError::setErrorState(CAN_State_e ubStateV)
 //----------------------------------------------------------------------------//
 void CpFrameError::setErrorType(ErrorType_e ubTypeV)
 {
-   setData(1, ubTypeV);
+   aubByteP[1] = ubTypeV;
 }
 
       
