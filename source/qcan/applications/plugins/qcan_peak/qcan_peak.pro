@@ -43,8 +43,12 @@ TARGET          = $$qtLibraryTarget(QCanPeak)
 #---------------------------------------------------------------
 # directory for target file
 #
-DESTDIR = ../../../../../bin/plugins
-
+macx {
+   DESTDIR = ../../../../../bin/CANpieServer.app/Contents/Plugins
+}
+win32 {
+   DESTDIR = ../../../../../bin/plugins
+}
 #---------------------------------------------------------------
 # Objects directory
 #
