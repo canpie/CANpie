@@ -70,10 +70,18 @@ QCanFrameApi::~QCanFrameApi()
 
 }
 
+//----------------------------------------------------------------------------//
+// fromByteArray()                                                            //
+//                                                                            //
+//----------------------------------------------------------------------------//
+bool QCanFrameApi::fromByteArray(const QByteArray & clByteArrayR)
+{
+   return(QCanFrame::fromByteArray(clByteArrayR));
+}
 
 QByteArray QCanFrameApi::toByteArray() const
 {
-   return(QCanFrame::toByteArray());
+   return QCanFrame::toByteArray();
 }
 
 //----------------------------------------------------------------------------//
