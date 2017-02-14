@@ -52,7 +52,7 @@
 // CpFrameApi()                                                               //
 // constructor                                                                //
 //----------------------------------------------------------------------------//
-CpFrameApi::CpFrameApi() : CpData(eTYPE_API)
+CpFrameApi::CpFrameApi() //: CpData(eTYPE_API)
 {
    setData(0, CpFrameApi::eAPI_FUNC_NONE);
 }

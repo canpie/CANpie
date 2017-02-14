@@ -65,9 +65,20 @@
 **
 **
 */
-class CpFrame : public CpData
+class CpFrame
 {
 public:
+   
+   enum Type_e {
+
+      eTYPE_API = 0,
+      
+      eTYPE_CAN,
+
+      eTYPE_ERROR
+
+   };
+   
    
    enum Format_e {
 
@@ -200,6 +211,12 @@ public:
    */
    Format_e    frameFormat(void) const;
    
+   Type_e      frameType(void) const;
+   
+   bool        isFrameApi() const;
+
+   bool        isFrameCan() const;
+   bool        isFrameError() const;
 
    /*!
    ** \return  \c true if error state indicator is set
@@ -371,11 +388,78 @@ public:
 
    void        setUser(const uint32_t & ulUserValueR);
    
+   inline void  setTimeStamp(const CpTimeStamp & clTimeStampR)       \
+                     { clMsgTimeP = clTimeStampR; };
 
+   inline CpTimeStamp timeStamp(void) const { return clMsgTimeP; };
 
    bool operator==(const CpFrame & clCanFrameR);
    
    bool operator!=(const CpFrame & clCanFrameR);
+   
+private:
+   
+   /*!   
+   ** The identifier field may have 11 bits for standard frames
+   ** (CAN specification 2.0A) or 29 bits for extended frames
+   ** (CAN specification 2.0B). 
+   */
+   uint32_t  ulIdentifierP;
+
+   /*!
+   ** The data length code denotes the number of data bytes
+   ** which are transmitted by a message.
+   ** The possible value range for the data length code is
+   ** from 0 to 15.
+   */
+   uint8_t  ubMsgDlcP;
+
+   /*!   
+   ** The structure member \c ubMsgCtrlP defines the
+   ** different frame types (2.0A / 2.0B / Classic / FD / RTR).
+   ** <ul>
+   ** <li>Bit 0: Std. / Ext. Frame
+   ** <li>Bit 1: ISO CAN FD: value of FDF bit
+   ** <li>Bit 2: Remote Frame
+   ** <li>Bit 3: Overload Frame
+   ** <li>Bit 4: reserved, always 0
+   ** <li>Bit 5: reserved, always 0
+   ** <li>Bit 6: ISO CAN FD: value of BRS bit
+   ** <li>Bit 7: ISO CAN FD: value of ESI bit
+   ** </ul>
+   */
+   uint8_t  ubMsgCtrlP;
+
+   /*!   
+   ** The data field has up to 64 bytes of message data.
+   ** The number of used bytes is described via the structure
+   ** member \c ubMsgDlcP.
+   */
+   uint8_t  aubByteP[CAN_MSG_DATA_MAX];
+
+   /*!   
+   ** The time stamp field defines the time when a CAN message
+   ** was received by the CAN controller. This is an optional
+   ** field (available if #CP_CAN_MSG_TIME is set to 1).
+   */
+   CpTimeStamp clMsgTimeP;
+
+   
+   /*!   
+   ** The field user data can hold a 32 bit value, which is
+   ** defined by the user.
+   */
+   uint32_t ulMsgUserP;
+
+   /*!   
+   ** The field user data can hold a 32 bit value, which is
+   ** defined by the user.
+   */
+   uint32_t ulMsgMarkerP;  
+   
+   void  setFrameApi(void);
+   
+   void  setFrameError(void);
    
 };
 
