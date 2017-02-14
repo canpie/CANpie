@@ -95,9 +95,9 @@ HEADERS +=  qcan_frame.hpp             \
 #---------------------------------------------------------------
 # source files of project 
 #
-SOURCES +=  canpie_frame.cpp           \
-            canpie_frame_api.cpp       \
+SOURCES +=  canpie_frame_api.cpp       \
             canpie_frame_error.cpp     \
+            canpie_frame.cpp           \
             canpie_timestamp.cpp       \
             qcan_frame.cpp             \
             qcan_frame_api.cpp         \
