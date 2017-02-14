@@ -48,10 +48,10 @@ TestQCanFrame::~TestQCanFrame()
 //----------------------------------------------------------------------------//
 void TestQCanFrame::initTestCase()
 {
-   pclCanStdP = new QCanFrame(QCanFrame::eTYPE_CAN_STD);
-   pclCanExtP = new QCanFrame(QCanFrame::eTYPE_CAN_EXT);
-   pclFdStdP  = new QCanFrame(QCanFrame::eTYPE_FD_STD);
-   pclFdExtP  = new QCanFrame(QCanFrame::eTYPE_FD_EXT);
+   pclCanStdP = new QCanFrame(QCanFrame::eFORMAT_CAN_STD);
+   pclCanExtP = new QCanFrame(QCanFrame::eFORMAT_CAN_EXT);
+   pclFdStdP  = new QCanFrame(QCanFrame::eFORMAT_FD_STD);
+   pclFdExtP  = new QCanFrame(QCanFrame::eFORMAT_FD_EXT);
 
    pclFrameP  = new QCanFrame();
 }
@@ -63,10 +63,12 @@ void TestQCanFrame::initTestCase()
 //----------------------------------------------------------------------------//
 void TestQCanFrame::checkFrameType()
 {
-   QVERIFY(pclCanStdP->frameType() == QCanFrame::eTYPE_CAN_STD);
-   QVERIFY(pclCanExtP->frameType() == QCanFrame::eTYPE_CAN_EXT);
-   QVERIFY(pclFdStdP->frameType()  == QCanFrame::eTYPE_FD_STD);
-   QVERIFY(pclFdExtP->frameType()  == QCanFrame::eTYPE_FD_EXT);
+   QVERIFY(pclCanStdP->frameFormat() == QCanFrame::eFORMAT_CAN_STD);
+   QVERIFY(pclCanExtP->frameFormat() == QCanFrame::eFORMAT_CAN_EXT);
+   QVERIFY(pclFdStdP->frameFormat()  == QCanFrame::eFORMAT_FD_STD);
+   QVERIFY(pclFdExtP->frameFormat()  == QCanFrame::eFORMAT_FD_EXT);
+  
+   
 }
 
 
@@ -134,7 +136,7 @@ void TestQCanFrame::checkFrameDlc()
          // classic CAN
          //
          *pclFrameP = *pclFdStdP;
-         pclFrameP->setFrameType(QCanFrame::eTYPE_CAN_STD);
+         pclFrameP->setFrameFormat(QCanFrame::eFORMAT_CAN_STD);
          
          //------------------------------------------------
          // make sure maximum dataSize of classic CAN is 8
