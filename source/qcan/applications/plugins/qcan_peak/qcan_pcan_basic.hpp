@@ -43,7 +43,7 @@
 #include "PCBUSB.h"
 #define  DRV_CALLBACK_TYPE
 #define  QCAN_SUPPORT_CAN_FD     0
-#define  QCAN_PEAKLIB            "libPCBUSB.0.6.dylib"
+#define  QCAN_PEAKLIB            "libPCBUSB.0.8.pre.2.dylib"
 #endif
 
 #ifndef  QCAN_PEAKLIB
