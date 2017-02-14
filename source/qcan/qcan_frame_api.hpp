@@ -60,8 +60,7 @@ public:
    
    ~QCanFrameApi();
 
-   QCanFrame& base(void)   { return static_cast<QCanFrame&>(*this); };
-
+   bool       fromByteArray(const QByteArray & clByteArrayR);
    QByteArray toByteArray() const;
    QString    toString(const bool & btShowTimeR = false);
    
@@ -74,5 +73,5 @@ private:
 
 
 
-#endif   // QCAN_FRAME_HPP_ 
+#endif   // QCAN_FRAME_API_HPP_ 
 
