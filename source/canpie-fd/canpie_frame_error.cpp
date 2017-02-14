@@ -54,7 +54,7 @@
 //----------------------------------------------------------------------------//
 CpFrameError::CpFrameError()
 {
-   setFrameError();
+   setFrameType(eTYPE_ERROR);
 }
 
 

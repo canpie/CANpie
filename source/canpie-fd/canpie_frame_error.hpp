@@ -60,7 +60,6 @@ using namespace CANpie;
 */
 class CpFrameError : private CpFrame 
 {
-   using CpFrame::setFrameError;
    
 public:
    
