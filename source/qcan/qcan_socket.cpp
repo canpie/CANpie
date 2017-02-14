@@ -114,7 +114,7 @@ bool QCanSocket::connectNetwork(CAN_Channel_e ubChannelV)
       qDebug() << "QCanSocket::connectNetwork() " << ubChannelV;
 
       pclTcpSockP->abort();
-      pclTcpSockP->connectToHost(clTcpHostAddrP, uwTcpPortP + ubChannelV);
+      pclTcpSockP->connectToHost(clTcpHostAddrP, uwTcpPortP + ubChannelV - 1);
       btResultT = true;
    }
 
