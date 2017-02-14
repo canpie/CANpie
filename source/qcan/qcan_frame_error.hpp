@@ -72,8 +72,8 @@ public:
    
    ~QCanFrameError();
 
-   QCanFrame& base(void)   { return static_cast<QCanFrame&>(*this); };
-
+   bool       fromByteArray(const QByteArray & clByteArrayR);
+   QByteArray toByteArray() const;
    virtual QString   toString(const bool & btShowTimeR = false);
    
 private:

@@ -70,6 +70,19 @@ QCanFrameError::~QCanFrameError()
    
 }
 
+//----------------------------------------------------------------------------//
+// fromByteArray()                                                            //
+//                                                                            //
+//----------------------------------------------------------------------------//
+bool QCanFrameError::fromByteArray(const QByteArray & clByteArrayR)
+{
+   return(QCanFrame::fromByteArray(clByteArrayR));
+}
+
+QByteArray QCanFrameError::toByteArray() const
+{
+   return QCanFrame::toByteArray();
+}
 
 //----------------------------------------------------------------------------//
 // toString()                                                                 //
