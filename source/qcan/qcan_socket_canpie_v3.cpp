@@ -934,21 +934,32 @@ CpCanMsg_ts QCanSocketCp3::fromCanFrame(QCanFrame & clCanFrameR)
 
    CpMsgClear(&tsCanMsgT);
 
-   if(clCanFrameR.isExtended() == true)
+   switch(clCanFrameR.frameFormat())
    {
-      CpMsgSetExtId(&tsCanMsgT, clCanFrameR.identifier());
-   }
-   else
-   {
-      CpMsgSetStdId(&tsCanMsgT, clCanFrameR.identifier());
-   }
+      case eTYPE_CAN_STD:
+         CpMsgSetStdId(&tsCanMsgT, clCanFrameR.identifier());
+         break;
 
+      case eTYPE_CAN_EXT:
+         CpMsgSetExtId(&tsCanMsgT, clCanFrameR.identifier());
+         break;
+         
+      case eTYPE_FD_STD:
+         CpMsgSetFastData(tsCanMsgT);
+         CpMsgSetStdId(&tsCanMsgT, clCanFrameR.identifier());
+         break;
+         
+      case eTYPE_FD_EXT:
+         CpMsgSetFastData(tsCanMsgT);
+         CpMsgSetExtId(&tsCanMsgT, clCanFrameR.identifier());
+         break;
+   }
+   
    CpMsgSetDlc(&tsCanMsgT, clCanFrameR.dlc());
 
    for(ubDataCntT = 0; ubDataCntT < 64; ubDataCntT++)
    {
       CpMsgSetData(&tsCanMsgT, ubDataCntT, clCanFrameR.data(ubDataCntT));
    }
-
    return(tsCanMsgT);
 }
