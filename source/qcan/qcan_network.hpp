@@ -272,7 +272,7 @@ protected:
 
 private:
 
-   bool  handleApiFrame(int32_t & slSockSrcR, QCanFrameApi & clApiFrameR);
+   bool  handleApiFrame(int32_t & slSockSrcR, QByteArray & clSockDataR);
    bool  handleCanFrame(int32_t & slSockSrcR, QByteArray & clSockDataR);
    bool  handleErrFrame(int32_t & slSockSrcR, QByteArray & clSockDataR);
 
