@@ -51,6 +51,9 @@
 
 #define  CAN_FRAME_ISO_FD_ESI       ((uint8_t) 0x80)
 
+#define  CAN_FRAME_TYPE_API         ((uint32_t) 0x40000000)
+
+#define  CAN_FRAME_TYPE_ERR         ((uint32_t) 0x80000000)
 
 /*----------------------------------------------------------------------------*\
 ** Class methods                                                              **
@@ -62,7 +65,7 @@
 // CpFrame()                                                                  //
 // constructor                                                                //
 //----------------------------------------------------------------------------//
-CpFrame::CpFrame() : CpData(eTYPE_CAN)
+CpFrame::CpFrame()
 {
 
 }
@@ -73,7 +76,7 @@ CpFrame::CpFrame() : CpData(eTYPE_CAN)
 // constructor                                                                //
 //----------------------------------------------------------------------------//
 CpFrame::CpFrame(const Format_e & ubFormatR, const uint32_t & ulIdentifierR, 
-                 const uint8_t & ubDlcR) : CpData(eTYPE_CAN)
+                 const uint8_t & ubDlcR)
 {
    setFrameFormat(ubFormatR);
    setIdentifier(ulIdentifierR);
@@ -284,8 +287,137 @@ CpFrame::Format_e  CpFrame::frameFormat(void) const
    return((Format_e) (ubMsgCtrlP & 0x03));
 }
 
+CpFrame::Type_e  CpFrame::frameType(void) const
+{
+   if(ulIdentifierP & CAN_FRAME_TYPE_API)
+   {
+      return (CpFrame::eTYPE_API);
+   }
 
+   if(ulIdentifierP & CAN_FRAME_TYPE_ERR)
+   {
+      return (CpFrame::eTYPE_ERROR);
+   }
+  
+   return (CpFrame::eTYPE_CAN);
+}
 
+//----------------------------------------------------------------------------//
+// fromByteArray()                                                            //
+// convert byte array to CpFrame object                                       //
+//----------------------------------------------------------------------------//
+#if CANPIE_QT_SUPPORT > 0
+bool CpFrame::fromByteArray(const QByteArray & clByteArrayR)
+{
+   //----------------------------------------------------------------
+   // test size of byte array
+   //
+   if(clByteArrayR.size() < QCAN_FRAME_ARRAY_SIZE)
+   {
+      return(false);
+   }
+   
+   
+   //----------------------------------------------------------------
+   // build checksum from byte 0 .. 93, and compare with checksum
+   // value at the end
+   //
+   uint16_t uwChecksumT = clByteArrayR[94];
+   uwChecksumT = uwChecksumT << 8;
+   uwChecksumT = uwChecksumT + (uint8_t) clByteArrayR[95];
+   
+   if(uwChecksumT != qChecksum(clByteArrayR.constData(), 
+                               QCAN_FRAME_ARRAY_SIZE - 2))
+   {
+      return(false);
+   }
+   
+   //----------------------------------------------------------------
+   // structure seems to be valid, now start copying the contents,
+   // start with the identifier value
+   //----------------------------------------------------------------
+
+   
+   //----------------------------------------------------------------
+   // set identifier field from byte 0 .. 3, MSB first
+   //
+   ulIdentifierP = clByteArrayR[0];
+   ulIdentifierP = ulIdentifierP << 8;
+   ulIdentifierP = ulIdentifierP + (uint8_t) clByteArrayR[1];
+   ulIdentifierP = ulIdentifierP << 8;
+   ulIdentifierP = ulIdentifierP + (uint8_t) clByteArrayR[2];
+   ulIdentifierP = ulIdentifierP << 8;
+   ulIdentifierP = ulIdentifierP + (uint8_t) clByteArrayR[3];
+
+ 
+   //----------------------------------------------------------------
+   // set DLC field from byte 4
+   //
+   ubMsgDlcP = clByteArrayR[4];
+
+   //----------------------------------------------------------------
+   // set message control field from byte 5
+   //
+   ubMsgCtrlP = clByteArrayR[5];
+   
+   //----------------------------------------------------------------
+   // set message data field from byte 6 .. 69
+   //
+   for(uint8_t ubPosT = 0; ubPosT < CAN_MSG_DATA_MAX; ubPosT++)
+   {
+      aubByteP[ubPosT] = clByteArrayR[6 + ubPosT];
+   }   
+
+   //----------------------------------------------------------------
+   // set message timestamp field from byte 70 .. 77, MSB first
+   //
+   uint32_t  ulTimeValT = 0;
+
+   ulTimeValT  = clByteArrayR[70];
+   ulTimeValT  = ulTimeValT << 8;
+   ulTimeValT += (uint8_t) clByteArrayR[71];
+   ulTimeValT  = ulTimeValT << 8;
+   ulTimeValT += (uint8_t) clByteArrayR[72];
+   ulTimeValT  = ulTimeValT << 8;
+   ulTimeValT += (uint8_t) clByteArrayR[73];
+   clMsgTimeP.setSeconds(ulTimeValT);
+   
+   ulTimeValT  = 0;
+   ulTimeValT  = clByteArrayR[74];
+   ulTimeValT  = ulTimeValT << 8;
+   ulTimeValT += (uint8_t) clByteArrayR[75];
+   ulTimeValT  = ulTimeValT << 8;
+   ulTimeValT += (uint8_t) clByteArrayR[76];
+   ulTimeValT  = ulTimeValT << 8;
+   ulTimeValT += (uint8_t) clByteArrayR[77];
+   clMsgTimeP.setNanoSeconds(ulTimeValT);
+   
+   //----------------------------------------------------------------
+   // set message user field from byte 78 .. 81, MSB first
+   //
+   ulMsgUserP  = clByteArrayR[78];
+   ulMsgUserP  = ulMsgUserP << 8;
+   ulMsgUserP += (uint8_t) clByteArrayR[79];
+   ulMsgUserP  = ulMsgUserP << 8;
+   ulMsgUserP += (uint8_t) clByteArrayR[80];
+   ulMsgUserP  = ulMsgUserP << 8;
+   ulMsgUserP += (uint8_t) clByteArrayR[81];
+      
+   //----------------------------------------------------------------
+   // set message marker field from byte 82 .. 85, MSB first
+   //
+   ulMsgMarkerP  = clByteArrayR[82];
+   ulMsgMarkerP  = ulMsgMarkerP << 8;
+   ulMsgMarkerP += (uint8_t) clByteArrayR[83];
+   ulMsgMarkerP  = ulMsgMarkerP << 8;
+   ulMsgMarkerP += (uint8_t) clByteArrayR[84];
+   ulMsgMarkerP  = ulMsgMarkerP << 8;
+   ulMsgMarkerP += (uint8_t) clByteArrayR[85];
+   
+   
+   return(true);
+}
+#endif
 
 //----------------------------------------------------------------------------//
 // identifier()                                                               //
@@ -569,6 +701,23 @@ void CpFrame::setFrameFormat(const Format_e &ubFormatR)
    }
 }
 
+void CpFrame::setFrameType(const Type_e &ubTypeR)
+{
+   switch(ubTypeR)
+   {
+      case eTYPE_API:
+         ulIdentifierP = CAN_FRAME_TYPE_API;
+         break;
+         
+      case eTYPE_CAN:
+         ulIdentifierP = 0;
+         break;
+         
+      case eTYPE_ERROR:
+         ulIdentifierP = CAN_FRAME_TYPE_ERR;
+         break;
+   }
+}
 
 //----------------------------------------------------------------------------//
 // setIdentifier()                                                            //
@@ -627,6 +776,97 @@ void CpFrame::setUser(const uint32_t & ulUserValueR)
 {
    ulMsgUserP = ulUserValueR;
 }
+
+
+
+//----------------------------------------------------------------------------//
+// toByteArray()                                                              //
+//                                                                            //
+//----------------------------------------------------------------------------//
+#if CANPIE_QT_SUPPORT > 0
+QByteArray CpFrame::toByteArray() const
+{
+   //----------------------------------------------------------------
+   // setup a defined length and clear contents
+   //
+   QByteArray clByteArrayT(QCAN_FRAME_ARRAY_SIZE, 0x00);
+   
+  
+   //----------------------------------------------------------------
+   // place identifier field in byte 0 .. 3, MSB first
+   //
+   clByteArrayT[0] = (uint8_t) (ulIdentifierP >> 24);
+   clByteArrayT[1] = (uint8_t) (ulIdentifierP >> 16);
+   clByteArrayT[2] = (uint8_t) (ulIdentifierP >>  8);
+   clByteArrayT[3] = (uint8_t) (ulIdentifierP >>  0);
+   
+   //----------------------------------------------------------------
+   // place message DLC field in byte 4
+   //
+   clByteArrayT[4] = ubMsgDlcP;
+
+   //----------------------------------------------------------------
+   // place message control field in byte 5
+   //
+   clByteArrayT[5] = ubMsgCtrlP;
+
+   //----------------------------------------------------------------
+   // place message data field in byte 6 .. 69
+   //
+   for(uint8_t ubPosT = 0; ubPosT < CAN_MSG_DATA_MAX; ubPosT++)
+   {
+      clByteArrayT[6 + ubPosT] = aubByteP[ubPosT];
+   }
+
+   //----------------------------------------------------------------
+   // place message timestamp field in byte 70 .. 77, MSB first
+   //
+   uint32_t  ulTimeValT = 0;
+
+   ulTimeValT = clMsgTimeP.seconds();
+   clByteArrayT[70] = (uint8_t) (ulTimeValT >> 24);
+   clByteArrayT[71] = (uint8_t) (ulTimeValT >> 16);
+   clByteArrayT[72] = (uint8_t) (ulTimeValT >>  8);
+   clByteArrayT[73] = (uint8_t) (ulTimeValT >>  0);
+
+   ulTimeValT = clMsgTimeP.nanoSeconds();
+   clByteArrayT[74] = (uint8_t) (ulTimeValT >>  24);
+   clByteArrayT[75] = (uint8_t) (ulTimeValT >>  16);
+   clByteArrayT[76] = (uint8_t) (ulTimeValT >>   8);
+   clByteArrayT[77] = (uint8_t) (ulTimeValT >>   0);
+   
+   //----------------------------------------------------------------
+   // place message user field in byte 78 .. 81, MSB first
+   //
+   clByteArrayT[78] = (uint8_t) (ulMsgUserP >>  24);
+   clByteArrayT[79] = (uint8_t) (ulMsgUserP >>  16);
+   clByteArrayT[80] = (uint8_t) (ulMsgUserP >>   8);
+   clByteArrayT[81] = (uint8_t) (ulMsgUserP >>   0);
+
+   //----------------------------------------------------------------
+   // place message marker field in byte 82 .. 85, MSB first
+   //
+   clByteArrayT[82] = (uint8_t) (ulMsgMarkerP >>  24);
+   clByteArrayT[83] = (uint8_t) (ulMsgMarkerP >>  16);
+   clByteArrayT[84] = (uint8_t) (ulMsgMarkerP >>   8);
+   clByteArrayT[85] = (uint8_t) (ulMsgMarkerP >>   0);
+   
+   //----------------------------------------------------------------
+   // byte 86 .. 93 (i.e. 8 bytes) are not used, set to 0
+   //----------------------------------------------------------------
+   
+   //----------------------------------------------------------------
+   // build checksum from byte 0 .. 93, add checksum at the end
+   // 
+   uint16_t uwChecksumT = qChecksum(clByteArrayT.constData(), 
+                                    QCAN_FRAME_ARRAY_SIZE - 2);
+   
+   clByteArrayT[94] = (uint8_t) (uwChecksumT >> 8);
+   clByteArrayT[95] = (uint8_t) (uwChecksumT >> 0);
+
+   return(clByteArrayT);
+}
+#endif
 
 
 

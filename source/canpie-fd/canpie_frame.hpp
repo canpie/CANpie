@@ -31,23 +31,46 @@
 #define CANPIE_FRAME_HPP_
 
 
+#ifndef  CANPIE_QT_SUPPORT
+#define  CANPIE_QT_SUPPORT          1
+#endif
+
+
 /*----------------------------------------------------------------------------*\
 ** Include files                                                              **
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-#include "canpie_data.hpp"
+#include "canpie_namespace.hpp"
+#include "canpie_timestamp.hpp"
 
+#if CANPIE_QT_SUPPORT > 0
+#include <QByteArray>
+#endif
 
-#define  CAN_FRAME_ID_MASK_STD      ((uint32_t) 0x000007FF)
-
-#define  CAN_FRAME_ID_MASK_EXT      ((uint32_t) 0x1FFFFFFF)
 
 //-------------------------------------------------------------------
 /*!
 ** \file canpie_frame.hpp
 **
 */
+
+
+//-------------------------------------------------------------------
+/*!
+** \def  CAN_MSG_DATA_MAX
+**
+** The symbol CAN_MSG_DATA_MAX defines the maximum number of
+** bytes in a CAN frame (payload).
+*/
+#define  CAN_MSG_DATA_MAX           64
+
+
+#define  CAN_FRAME_ID_MASK_STD      ((uint32_t) 0x000007FF)
+
+#define  CAN_FRAME_ID_MASK_EXT      ((uint32_t) 0x1FFFFFFF)
+
+#define  QCAN_FRAME_ARRAY_SIZE      96
 
 
 //-----------------------------------------------------------------------------
@@ -112,7 +135,7 @@ public:
    ** of \c ulIdentifierR and a DLC value of \c ubDlcR.
    */
    CpFrame(const Format_e & ubFormatR, const uint32_t & ulIdentifierR = 0, 
-             const uint8_t & ubDlcR = 0);
+           const uint8_t & ubDlcR = 0);
    
    virtual ~CpFrame();
    
@@ -127,6 +150,7 @@ public:
    */
    bool        bitrateSwitch(void) const;
 
+   // inline uint8_t    controlField(void) const   { return (ubMsgCtrlP); };
 
    /*!
    ** \return     Data at payload position \a ubPosR
@@ -213,10 +237,6 @@ public:
    
    Type_e      frameType(void) const;
    
-   bool        isFrameApi() const;
-
-   bool        isFrameCan() const;
-   bool        isFrameError() const;
 
    /*!
    ** \return  \c true if error state indicator is set
@@ -235,11 +255,12 @@ public:
    ** 
    ** The function returns the identifier value. In order to distinguish
    ** between standard (11 bit) and extended (29 bit) frame formats use
-   ** frameType() or isExtended().
+   ** frameFormat() or isExtended().
    */
    uint32_t    identifier(void) const;
 
-
+   // inline uint32_t    idField(void) const  { return (ulIdentifierP); };
+   
    /*!
    ** \return  \c true if Extended CAN frame
    ** \see     frameType()
@@ -361,7 +382,7 @@ public:
    **
    **
    */
-   void        setFrameFormat(const Format_e &ubTypeR);
+   void        setFrameFormat(const Format_e &ubFormatR);
    
 
    /*!
@@ -397,6 +418,14 @@ public:
    
    bool operator!=(const CpFrame & clCanFrameR);
    
+protected:
+   void               setFrameType(const Type_e &ubTypeR);
+
+   #if CANPIE_QT_SUPPORT > 0
+   virtual QByteArray toByteArray() const;
+   virtual bool       fromByteArray(const QByteArray & clByteArrayR);
+   #endif
+
 private:
    
    /*!   
@@ -457,9 +486,6 @@ private:
    */
    uint32_t ulMsgMarkerP;  
    
-   void  setFrameApi(void);
-   
-   void  setFrameError(void);
    
 };
 
