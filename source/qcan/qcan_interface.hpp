@@ -158,6 +158,8 @@ public:
    */
    virtual InterfaceError_e   read( QCanFrame &clFrameR) = 0;
 
+   virtual InterfaceError_e   read( QByteArray &clDataR) = 0;
+   
    /*!
    ** \param[in]  slNomBitRateV  Nominal Bit-rate value
    ** \param[in]  slDatBitRateV  Data Bit-rate value
