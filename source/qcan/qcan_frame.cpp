@@ -42,6 +42,7 @@
 
 
 
+
 /*----------------------------------------------------------------------------*\
 ** Class methods                                                              **
 **                                                                            **
@@ -62,9 +63,9 @@ QCanFrame::QCanFrame() : CpFrame()
 // QCanFrame()                                                                //
 // constructor                                                                //
 //----------------------------------------------------------------------------//
-QCanFrame::QCanFrame(const Type_e & ubTypeR, const uint32_t & ulIdentifierR, 
+QCanFrame::QCanFrame(const Format_e & ubFormatR, const uint32_t & ulIdentifierR, 
                      const uint8_t & ubDlcR) 
-         : CpFrame(ubTypeR, ulIdentifierR, ubDlcR)
+         : CpFrame(ubFormatR, ulIdentifierR, ubDlcR)
 {
 }
 
@@ -86,7 +87,7 @@ QCanFrame::~QCanFrame()
 //----------------------------------------------------------------------------//
 QByteArray  QCanFrame::data(void) const
 {
-   QByteArray clDataT((const char *)&aubByteP[0], this->dataSize());
+   QByteArray clDataT; //((const char *)&data(0), this->dataSize());
    return(clDataT);
 }
 
@@ -94,119 +95,15 @@ uint8_t QCanFrame::data(const uint8_t & ubPosR) const
 {
    return(CpFrame::data(ubPosR));
 }
+
+
 //----------------------------------------------------------------------------//
 // fromByteArray()                                                            //
-// test for Extended Frame format                                             //
+//                                                                            //
 //----------------------------------------------------------------------------//
 bool QCanFrame::fromByteArray(const QByteArray & clByteArrayR)
 {
-   //----------------------------------------------------------------
-   // test size of byte array
-   //
-   if(clByteArrayR.size() < QCAN_FRAME_ARRAY_SIZE)
-   {
-      return(false);
-   }
-   
-   
-   //----------------------------------------------------------------
-   // build checksum from byte 0 .. 93, and compare with checksum
-   // value at the end
-   //
-   uint16_t uwChecksumT = clByteArrayR[94];
-   uwChecksumT = uwChecksumT << 8;
-   uwChecksumT = uwChecksumT + (uint8_t) clByteArrayR[95];
-   
-   if(uwChecksumT != qChecksum(clByteArrayR.constData(), 
-                               QCAN_FRAME_ARRAY_SIZE - 2))
-   {
-      return(false);
-   }
-   
-   //----------------------------------------------------------------
-   // structure seems to be valid, now start copying the contents,
-   // start with the identifier value
-   //----------------------------------------------------------------
-
-   
-   //----------------------------------------------------------------
-   // set identifier field from byte 0 .. 3, MSB first
-   //
-   ulIdentifierP = clByteArrayR[0];
-   ulIdentifierP = ulIdentifierP << 8;
-   ulIdentifierP = ulIdentifierP + (uint8_t) clByteArrayR[1];
-   ulIdentifierP = ulIdentifierP << 8;
-   ulIdentifierP = ulIdentifierP + (uint8_t) clByteArrayR[2];
-   ulIdentifierP = ulIdentifierP << 8;
-   ulIdentifierP = ulIdentifierP + (uint8_t) clByteArrayR[3];
-
- 
-   //----------------------------------------------------------------
-   // set DLC field from byte 4
-   //
-   ubMsgDlcP = clByteArrayR[4];
-
-   //----------------------------------------------------------------
-   // set message control field from byte 5
-   //
-   ubMsgCtrlP = clByteArrayR[5];
-   
-   //----------------------------------------------------------------
-   // set message data field from byte 6 .. 69
-   //
-   for(uint8_t ubPosT = 0; ubPosT < CAN_FRAME_DATA_MAX; ubPosT++)
-   {
-      aubByteP[ubPosT] = clByteArrayR[6 + ubPosT];
-   }   
-
-   //----------------------------------------------------------------
-   // set message timestamp field from byte 70 .. 77, MSB first
-   //
-   uint32_t  ulTimeValT = 0;
-
-   ulTimeValT  = clByteArrayR[70];
-   ulTimeValT  = ulTimeValT << 8;
-   ulTimeValT += (uint8_t) clByteArrayR[71];
-   ulTimeValT  = ulTimeValT << 8;
-   ulTimeValT += (uint8_t) clByteArrayR[72];
-   ulTimeValT  = ulTimeValT << 8;
-   ulTimeValT += (uint8_t) clByteArrayR[73];
-   clMsgTimeP.setSeconds(ulTimeValT);
-   
-   ulTimeValT  = 0;
-   ulTimeValT  = clByteArrayR[74];
-   ulTimeValT  = ulTimeValT << 8;
-   ulTimeValT += (uint8_t) clByteArrayR[75];
-   ulTimeValT  = ulTimeValT << 8;
-   ulTimeValT += (uint8_t) clByteArrayR[76];
-   ulTimeValT  = ulTimeValT << 8;
-   ulTimeValT += (uint8_t) clByteArrayR[77];
-   clMsgTimeP.setNanoSeconds(ulTimeValT);
-   
-   //----------------------------------------------------------------
-   // set message user field from byte 78 .. 81, MSB first
-   //
-   ulMsgUserP  = clByteArrayR[78];
-   ulMsgUserP  = ulMsgUserP << 8;
-   ulMsgUserP += (uint8_t) clByteArrayR[79];
-   ulMsgUserP  = ulMsgUserP << 8;
-   ulMsgUserP += (uint8_t) clByteArrayR[80];
-   ulMsgUserP  = ulMsgUserP << 8;
-   ulMsgUserP += (uint8_t) clByteArrayR[81];
-      
-   //----------------------------------------------------------------
-   // set message marker field from byte 82 .. 85, MSB first
-   //
-   ulMsgMarkerP  = clByteArrayR[82];
-   ulMsgMarkerP  = ulMsgMarkerP << 8;
-   ulMsgMarkerP += (uint8_t) clByteArrayR[83];
-   ulMsgMarkerP  = ulMsgMarkerP << 8;
-   ulMsgMarkerP += (uint8_t) clByteArrayR[84];
-   ulMsgMarkerP  = ulMsgMarkerP << 8;
-   ulMsgMarkerP += (uint8_t) clByteArrayR[85];
-   
-   
-   return(true);
+   return(CpFrame::fromByteArray(clByteArrayR));
 }
 
 
@@ -215,93 +112,10 @@ void QCanFrame::setData(const uint8_t & ubPosR, const uint8_t & ubValueR)
    CpFrame::setData(ubPosR, ubValueR);
 }
 
-//----------------------------------------------------------------------------//
-// toByteArray()                                                              //
-// test for Extended Frame format                                             //
-//----------------------------------------------------------------------------//
 QByteArray QCanFrame::toByteArray() const
 {
-   //----------------------------------------------------------------
-   // setup a defined length and clear contents
-   //
-   QByteArray clByteArrayT(QCAN_FRAME_ARRAY_SIZE, 0x00);
-   
-  
-   //----------------------------------------------------------------
-   // place identifier field in byte 0 .. 3, MSB first
-   //
-   clByteArrayT[0] = (uint8_t) (ulIdentifierP >> 24);
-   clByteArrayT[1] = (uint8_t) (ulIdentifierP >> 16);
-   clByteArrayT[2] = (uint8_t) (ulIdentifierP >>  8);
-   clByteArrayT[3] = (uint8_t) (ulIdentifierP >>  0);
-   
-   //----------------------------------------------------------------
-   // place message DLC field in byte 4
-   //
-   clByteArrayT[4] = ubMsgDlcP;
-
-   //----------------------------------------------------------------
-   // place message control field in byte 5
-   //
-   clByteArrayT[5] = ubMsgCtrlP;
-
-   //----------------------------------------------------------------
-   // place message data field in byte 6 .. 69
-   //
-   for(uint8_t ubPosT = 0; ubPosT < CAN_FRAME_DATA_MAX; ubPosT++)
-   {
-      clByteArrayT[6 + ubPosT] = aubByteP[ubPosT];
-   }
-
-   //----------------------------------------------------------------
-   // place message timestamp field in byte 70 .. 77, MSB first
-   //
-   uint32_t  ulTimeValT = 0;
-
-   ulTimeValT = clMsgTimeP.seconds();
-   clByteArrayT[70] = (uint8_t) (ulTimeValT >> 24);
-   clByteArrayT[71] = (uint8_t) (ulTimeValT >> 16);
-   clByteArrayT[72] = (uint8_t) (ulTimeValT >>  8);
-   clByteArrayT[73] = (uint8_t) (ulTimeValT >>  0);
-
-   ulTimeValT = clMsgTimeP.nanoSeconds();
-   clByteArrayT[74] = (uint8_t) (ulTimeValT >>  24);
-   clByteArrayT[75] = (uint8_t) (ulTimeValT >>  16);
-   clByteArrayT[76] = (uint8_t) (ulTimeValT >>   8);
-   clByteArrayT[77] = (uint8_t) (ulTimeValT >>   0);
-   
-   //----------------------------------------------------------------
-   // place message user field in byte 78 .. 81, MSB first
-   //
-   clByteArrayT[78] = (uint8_t) (ulMsgUserP >>  24);
-   clByteArrayT[79] = (uint8_t) (ulMsgUserP >>  16);
-   clByteArrayT[80] = (uint8_t) (ulMsgUserP >>   8);
-   clByteArrayT[81] = (uint8_t) (ulMsgUserP >>   0);
-
-   //----------------------------------------------------------------
-   // place message marker field in byte 82 .. 85, MSB first
-   //
-   clByteArrayT[82] = (uint8_t) (ulMsgMarkerP >>  24);
-   clByteArrayT[83] = (uint8_t) (ulMsgMarkerP >>  16);
-   clByteArrayT[84] = (uint8_t) (ulMsgMarkerP >>   8);
-   clByteArrayT[85] = (uint8_t) (ulMsgMarkerP >>   0);
-   
-   //----------------------------------------------------------------
-   // byte 86 .. 93 (i.e. 8 bytes) are not used, set to 0
-   //----------------------------------------------------------------
-   
-   //----------------------------------------------------------------
-   // build checksum from byte 0 .. 93, add checksum at the end
-   // 
-   uint16_t uwChecksumT = qChecksum(clByteArrayT.constData(), 
-                                    QCAN_FRAME_ARRAY_SIZE - 2);
-   
-   clByteArrayT[94] = (uint8_t) (uwChecksumT >> 8);
-   clByteArrayT[95] = (uint8_t) (uwChecksumT >> 0);
-
-   return(clByteArrayT);
+   return(CpFrame::toByteArray());
 }
-
 
 //----------------------------------------------------------------------------//
 // toString()                                                                 //
@@ -313,41 +127,47 @@ QString QCanFrame::toString(const bool & btShowTimeR)
    // setup a string object
    //
    QString clStringT; //(QCAN_FRAME_STRING_SIZE, '\0');
+   uint32_t ulSecondsT = 0;
+   uint32_t ulNanoSecT = 0;
+   
    
    if(btShowTimeR == true)
    {
-      
+      ulSecondsT = this->timeStamp().seconds();
+      ulNanoSecT = this->timeStamp().nanoSeconds();
+      ulNanoSecT = ulNanoSecT / 10000;
+      clStringT = QString("%1.%2 ").arg(ulSecondsT, 5, 10).arg(ulNanoSecT, 5, 10, QChar('0'));
    }
    
    
    //----------------------------------------------------------------
    // print identifier
    //
-   clStringT += QString("%1  ").arg(ulIdentifierP, 8, 16).toUpper();
+   clStringT += QString("%1  ").arg(identifier(), 8, 16).toUpper();
 
    //----------------------------------------------------------------
    // print frame format
    //
-   switch(frameType())
+   switch(frameFormat())
    {
-      case eTYPE_CAN_STD:
-         clStringT += "CAN-STD ";
+      case eFORMAT_CAN_STD:
+         clStringT += "CBFF ";
          break;
          
-      case eTYPE_CAN_EXT:
-         clStringT += "CAN-EXT ";
+      case eFORMAT_CAN_EXT:
+         clStringT += "CEFF ";
          break;
          
-      case eTYPE_FD_STD:
-         clStringT += " FD-STD ";
+      case eFORMAT_FD_STD:
+         clStringT += "FBFF ";
          break;
          
-      case eTYPE_FD_EXT:
-         clStringT += " FD-EXT ";
+      case eFORMAT_FD_EXT:
+         clStringT += "FEFF ";
          break;
          
       default:
-         clStringT += " N/A    ";
+
          break;
    }
 
@@ -363,13 +183,20 @@ QString QCanFrame::toString(const bool & btShowTimeR)
    for(uint8_t ubCntT = 0; ubCntT < dataSize(); ubCntT++)
    {
       //---------------------------------------------------
-      // print a newline and 22 spaces after 16 data bytes
+      // print a newline and 19/31 spaces after 32 data bytes
       //
-      if((ubCntT > 0) && ((ubCntT % 16) == 0))
+      if((ubCntT > 0) && ((ubCntT % 32) == 0))
       {
-         clStringT +="\n                      ";
+         if(btShowTimeR == true)
+         {
+            clStringT +="\n                               ";
+         }
+         else
+         {
+            clStringT +="\n                   ";
+         }
       }
-      clStringT += QString("%1 ").arg( aubByteP[ubCntT],
+      clStringT += QString("%1 ").arg( data(ubCntT),
                                        2,          // 2 digits
                                       16,          // hex value
                                       QLatin1Char('0')).toUpper();
@@ -378,7 +205,6 @@ QString QCanFrame::toString(const bool & btShowTimeR)
    return(clStringT);
 }
       
-
 
 //----------------------------------------------------------------------------//
 // operator <<                                                                //
@@ -395,20 +221,20 @@ QDataStream & operator<< ( QDataStream & clStreamR,
    //----------------------------------------------------------------
    // place all members to the stream
    //
-   clStreamR << clCanFrameR.ulIdentifierP;
+   clStreamR << clCanFrameR.identifier();
    
-   for(uint8_t ubIndexT = 0; ubIndexT < CAN_FRAME_DATA_MAX; ubIndexT++)
+   for(uint8_t ubIndexT = 0; ubIndexT < CAN_MSG_DATA_MAX; ubIndexT++)
    {
-      clStreamR << clCanFrameR.aubByteP[ubIndexT];
+      clStreamR << clCanFrameR.data(ubIndexT);
    }
       
-   clStreamR << clCanFrameR.ubMsgDlcP;
-   clStreamR << clCanFrameR.ubMsgCtrlP;
+   clStreamR << clCanFrameR.dlc();
+   //clStreamR << clCanFrameR.;
       
-   clStreamR << clCanFrameR.clMsgTimeP.seconds();
-   clStreamR << clCanFrameR.clMsgTimeP.nanoSeconds();
+   //clStreamR << clCanFrameR.clMsgTimeP.seconds();
+   //clStreamR << clCanFrameR.clMsgTimeP.nanoSeconds();
       
-   clStreamR << clCanFrameR.ulMsgUserP;
+   //clStreamR << clCanFrameR.ulMsgUserP;
    
    return(clStreamR);
 }

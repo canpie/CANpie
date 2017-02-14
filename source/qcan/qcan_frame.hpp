@@ -43,8 +43,6 @@
 #include "canpie_frame.hpp"
 
 
-#define  QCAN_FRAME_ARRAY_SIZE      96
-
 
 //-----------------------------------------------------------------------------
 /*!
@@ -67,9 +65,10 @@ public:
    ** Constructs a CAN frame of type \c ubTypeR with an identifier value
    ** of \c ulIdentifierR and a DLC value of \c ubDlcR.
    */
-   QCanFrame(const Type_e & ubTypeR, const uint32_t & ulIdentifierR = 0, 
+   QCanFrame(const Format_e & ubFormatR, const uint32_t & ulIdentifierR = 0, 
              const uint8_t & ubDlcR = 0);
    
+ 
    virtual ~QCanFrame();
    
    uint8_t     data(const uint8_t & ubPosR) const;
@@ -88,7 +87,7 @@ public:
    void        setData(const QByteArray &clDataR);
 
    
-   virtual QByteArray toByteArray() const;
+   QByteArray toByteArray() const;
    
    virtual QString    toString(const bool & btShowTimeR = false);
    
