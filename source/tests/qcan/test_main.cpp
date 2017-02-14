@@ -7,12 +7,11 @@ using namespace std;
 #include <QDebug>
 #include <QTest>
 
-
-
+#include "canpie_frame.hpp"
+#include "canpie_frame_error.hpp"
 #include "test_canpie_timestamp.hpp"
 #include "test_qcan_frame.hpp"
 #include "test_qcan_socket.hpp"
-
 
 
 int main(int argc, char *argv[])
@@ -24,6 +23,7 @@ int main(int argc, char *argv[])
    cout << "#                                                           \n";
    cout << "#===========================================================\n";
    cout << "\n";
+
 
 
    //----------------------------------------------------------------
@@ -43,7 +43,6 @@ int main(int argc, char *argv[])
    //
    TestQCanSocket  clTestQCanSockT;
    slResultT = QTest::qExec(&clTestQCanSockT) + slResultT;
-
 
    cout << "\n";
    cout << "#===========================================================\n";
