@@ -277,13 +277,16 @@ bool QCanNetwork::hasListenOnlySupport(void)
 //                                                                            //
 //----------------------------------------------------------------------------//
 bool  QCanNetwork::handleApiFrame(int32_t & slSockSrcR,
-                                  QCanFrameApi & clApiFrameR)
+                                  QByteArray & clSockDataR)
 {
-   bool btResultT = false;
-
+   bool           btResultT = false;
+   QCanFrameApi   clApiFrameT;
+   
+   clApiFrameT.fromByteArray(clSockDataR);
+   
    if(slSockSrcR != QCAN_SOCKET_CAN_IF)
    {
-      switch(clApiFrameR.function())
+      switch(clApiFrameT.function())
       {
          case QCanFrameApi::eAPI_FUNC_NONE:
 
@@ -292,8 +295,8 @@ bool  QCanNetwork::handleApiFrame(int32_t & slSockSrcR,
          case QCanFrameApi::eAPI_FUNC_BITRATE:
             if(!pclInterfaceP.isNull())
             {
-               pclInterfaceP->setBitrate( clApiFrameR.bitrate(),
-                                          clApiFrameR.brsClock());
+               pclInterfaceP->setBitrate( clApiFrameT.bitrate(),
+                                          clApiFrameT.brsClock());
             }
             btResultT = true;
             break;
@@ -501,45 +504,32 @@ void QCanNetwork::onTimerEvent(void)
    if(pclInterfaceP.isNull() == false)
    {
       slSockIdxT = QCAN_SOCKET_CAN_IF;
-      while(pclInterfaceP->read(clCanFrameT) == QCanInterface::eERROR_NONE)
+      while(pclInterfaceP->read(clSockDataT) == QCanInterface::eERROR_NONE)
       {
-         clSockDataT = clCanFrameT.toByteArray();
+         clCanFrameT.fromByteArray(clSockDataT);
 
-         //-----------------------------------------------------
-         // handle API frames
-         //
-         if(clCanFrameT.isFrameApi())
+         switch(clCanFrameT.frameType())
          {
-            handleApiFrame(slSockIdxT, (QCanFrameApi &) clCanFrameT);
-         }
-         //-----------------------------------------------------
-         // handle error frames
-         //
-         else if(clCanFrameT.isFrameError())
-         {
-            handleErrFrame(slSockIdxT, clSockDataT);
-         }
-         //-------------------------------------
-         // write CAN frame to other sockets
-         //
-         else
-         {
-            switch(clCanFrameT.frameType())
-            {
-               case CpFrame::eTYPE_CAN_STD:
-                  ulMsgBitCntT = 66 + (8 * clCanFrameT.dataSize());
-                  break;
+            //-----------------------------------------------------
+            // handle API frames
+            //
+            case CpFrame::eTYPE_API:
+               handleApiFrame(slSockIdxT, clSockDataT);
+               break;
 
-               case CpFrame::eTYPE_CAN_EXT:
-                  ulMsgBitCntT = 92 + (8 * clCanFrameT.dataSize());
-                  break;
+            //--------------------------------------------------
+            // handle error frames
+            //
+            case CpFrame::eTYPE_ERROR:
+               handleErrFrame(slSockIdxT, clSockDataT);
+               break;
 
-               default:
-                  ulMsgBitCntT = 0;
-                  break;
-            }
-            ulCntBitCurP += ulMsgBitCntT;
-            handleCanFrame(slSockIdxT, clSockDataT);
+            //-------------------------------------
+            // write CAN frame to other sockets
+            //
+            default:
+               handleCanFrame(slSockIdxT, clSockDataT);
+               break;
          }
       }
    }
@@ -557,37 +547,53 @@ void QCanNetwork::onTimerEvent(void)
          clSockDataT = pclSockT->read(QCAN_FRAME_ARRAY_SIZE);
          clCanFrameT.fromByteArray(clSockDataT);
 
-         //-----------------------------------------------------
-         // handle API frames
-         //
-         if(clCanFrameT.isFrameApi())
+         switch(clCanFrameT.frameType())
          {
-            handleApiFrame(slSockIdxT, (QCanFrameApi &) clCanFrameT);
-         }
-         //-----------------------------------------------------
-         // handle error frames
-         //
-         else if(clCanFrameT.isFrameError())
-         {
-            handleErrFrame(slSockIdxT, clSockDataT);
-         }
-         //-----------------------------------------------------
-         // handle CAN frames
-         //
-         else
-         {
-            //---------------------------------------------
-            // check for active CAN interface
+            //-----------------------------------------------------
+            // handle API frames
             //
-            if(pclInterfaceP.isNull() == false)
-            {
-               pclInterfaceP->write(clCanFrameT);
-            }
+            case CpFrame::eTYPE_API:
+               handleApiFrame(slSockIdxT, clSockDataT);
+               break;
 
-            //---------------------------------------------
-            // write to other sockets
+            //--------------------------------------------------
+            // handle error frames
             //
-            handleCanFrame(slSockIdxT, clSockDataT);
+            case CpFrame::eTYPE_ERROR:
+               handleErrFrame(slSockIdxT, clSockDataT);
+               break;         
+
+            //-----------------------------------------------------
+            // handle CAN frames
+            //
+            default:
+               //---------------------------------------------
+               // check for active CAN interface
+               //
+               if(pclInterfaceP.isNull() == false)
+               {
+                  clCanFrameT.fromByteArray(clSockDataT);
+                  pclInterfaceP->write(clCanFrameT);
+               }
+
+               //---------------------------------------------
+               // write to other sockets
+               //
+               handleCanFrame(slSockIdxT, clSockDataT);
+               
+               //---------------------------------------------
+               // calculate approx. length in bit
+               //
+               if(clCanFrameT.isExtended())
+               {
+                  ulMsgBitCntT = 92 + (8 * clCanFrameT.dataSize());
+               }
+               else
+               {
+                  ulMsgBitCntT = 66 + (8 * clCanFrameT.dataSize());
+               }
+               ulCntBitCurP += ulMsgBitCntT;
+               break;
          }
       }
    }
@@ -697,6 +703,10 @@ void QCanNetwork::setBitrate(int32_t slNomBitRateV, int32_t slDatBitRateV)
    //
    switch(slNomBitRateV)
    {
+      case eCAN_BITRATE_125K:
+         ulCntBitMaxP = 125000;
+         break;
+         
       case eCAN_BITRATE_250K:
          ulCntBitMaxP = 250000;
          break;
