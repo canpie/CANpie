@@ -32,7 +32,7 @@
 
 #include <QTest>
 
-#include "../../canpie/canpie-fd/canpie_timestamp.hpp"
+#include "canpie_timestamp.hpp"
 
 
 //-----------------------------------------------------------------------------
