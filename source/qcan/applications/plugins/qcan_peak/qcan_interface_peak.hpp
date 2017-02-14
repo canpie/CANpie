@@ -91,7 +91,7 @@ private:
 
    bool btFdUsedP;
 
-   void setupErroFrame(TPCANStatus ulStatusV, QCanFrame &clFrameR);
+   void setupErrorFrame(TPCANStatus ulStatusV, CpFrameError &clFrameR);
 
 public:
 
@@ -108,8 +108,10 @@ public:
 
    QString           name(void) Q_DECL_OVERRIDE;
 
+   InterfaceError_e  read( QByteArray &clDataR) Q_DECL_OVERRIDE;
+   
    InterfaceError_e  read( QCanFrame &clFrameR) Q_DECL_OVERRIDE;
-
+   
    InterfaceError_e  setBitrate( int32_t slBitrateV,
                                  int32_t slBrsClockV) Q_DECL_OVERRIDE;
 
