@@ -120,7 +120,7 @@ public:
    };
 
    /*!
-   ** Constructs an empty classic standard CAN frame (type eTYPE_CAN_STD)
+   ** Constructs an empty classic standard CAN frame (type eFORMAT_CAN_STD)
    ** with a DLC value of 0.
    */
    CpFrame();
@@ -265,8 +265,8 @@ public:
    ** \return  \c true if Extended CAN frame
    ** \see     frameType()
    **
-   ** The function returns \c true if the frame type is either #eTYPE_CAN_EXT
-   ** or #eTYPE_FD_EXT, otherwise it will return \c false;
+   ** The function returns \c true if the frame type is either #eFORMAT_CAN_EXT
+   ** or #eFORMAT_FD_EXT, otherwise it will return \c false;
    */
    bool        isExtended(void) const;
    
@@ -281,6 +281,13 @@ public:
    */
    bool        isRemote(void) const;
 
+   /*!
+   ** \return  Marker of CAN frame
+   ** \see     setMarker()
+   **
+   ** The function returns the message marker of the frame.
+   */
+   inline uint32_t marker(void) const  { return ulMsgMarkerP;  };
    
    /*!
    ** \param[in]  btBrsR         Value of BRS bit
@@ -396,6 +403,13 @@ public:
    */
    void        setIdentifier(uint32_t ulIdentifierV);
 
+   /*!
+   ** \param[in]  ulMarkerValueR    Marker value
+   ** \see        marker()
+   **
+   ** The function sets a message marker for the CAN frame. The purpose
+   ** of the message marker is application specific.
+   */
    void        setMarker(const uint32_t & ulMarkerValueR);
 
    /*!
@@ -409,9 +423,21 @@ public:
 
    void        setUser(const uint32_t & ulUserValueR);
    
+   /*!
+   ** \param[in]  clTimeStampR    Time-stamp
+   ** \see        timeStamp()
+   **
+   ** The function sets the time-stamp of the CAN frame.
+   */
    inline void  setTimeStamp(const CpTimeStamp & clTimeStampR)       \
                      { clMsgTimeP = clTimeStampR; };
 
+   /*!
+   ** \return     Time-stamp
+   ** \see        setTimeStamp()
+   **
+   ** The function returns the time-stamp value of the CAN frame.
+   */
    inline CpTimeStamp timeStamp(void) const { return clMsgTimeP; };
 
    bool operator==(const CpFrame & clCanFrameR);
