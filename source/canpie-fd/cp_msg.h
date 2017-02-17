@@ -443,7 +443,18 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, const CpTime_ts * ptsTimeV);
          do {                                                     \
             (MSG_PTR)->ubMsgCtrl &= ~CP_MSG_CTRL_RTR_BIT;         \
          } while(0)
+//----------------------------------------------------------
+// NEW:
+#define  CpMsgInit(MSG_PTR, ubFormatV)                            \
+         do {                                                              \
+             (MSG_PTR)->ulIdentifier = 0UL; \
+(MSG_PTR)->ubMsgDLC     = (uint8_t) 0;\
+(MSG_PTR)->ubMsgCtrl    = ubFormatV & CP_MSG_FORMAT_MASK;\
 
+} while (0)
+#define  CpMsgBitrateSwitch(MSG_PTR)                              \
+//
+//----------------------------------------------------------
 
 #define  CpMsgGetData(MSG_PTR, POS)                               \
             ((MSG_PTR)->aubData[POS])
