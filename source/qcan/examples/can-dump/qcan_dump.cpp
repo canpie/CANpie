@@ -27,6 +27,7 @@
 //============================================================================//
 
 #include "qcan_dump.hpp"
+#include <QCanFrameError>
 
 #include <QDebug>
 
@@ -311,8 +312,12 @@ void QCanDump::socketError(QAbstractSocket::SocketError teSocketErrorV)
 //----------------------------------------------------------------------------//
 void QCanDump::socketReceive(uint32_t ulFrameCntV)
 {
-   QCanFrame clCanFrameT;
-   QString   clCanStringT;
+   QByteArray     clCanDataT;
+   QCanFrame      clCanFrameT;
+   QCanFrameApi   clCanApiT;
+   QCanFrameError clCanErrorT;
+   QString        clCanStringT;
+   QCanData::Type_e  ubFrameTypeT;
    
    if ((btQuitNeverP == false) && (ulQuitTimeP > 0))
    {
@@ -321,10 +326,31 @@ void QCanDump::socketReceive(uint32_t ulFrameCntV)
    
    while(ulFrameCntV)
    {
-      if(clCanSocketP.readFrame(clCanFrameT) == true)
+      if(clCanSocketP.read(clCanDataT, &ubFrameTypeT) == true)
       {
-         clCanStringT = clCanFrameT.toString(btTimeStampP);
-         fprintf(stderr, "%s\n", qPrintable(clCanStringT));
+         switch(ubFrameTypeT)
+         {
+            case QCanData::eTYPE_API:
+               if (clCanApiT.fromByteArray(clCanDataT) == true)
+               {
+                  clCanStringT = clCanApiT.toString(btTimeStampP);
+                  fprintf(stderr, "%s\n", qPrintable(clCanStringT));
+               }
+               break;
+               
+            case QCanData::eTYPE_CAN:
+               if (clCanFrameT.fromByteArray(clCanDataT) == true)
+               {
+                  clCanStringT = clCanFrameT.toString(btTimeStampP);
+                  fprintf(stderr, "%s\n", qPrintable(clCanStringT));
+               }
+               break;
+
+            default:
+
+               break;
+               
+         }
       }
       ulFrameCntV--;
       ulQuitCountP--;
