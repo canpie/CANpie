@@ -45,7 +45,7 @@
 #include "qcan_frame_api.hpp"
 #include "qcan_frame_error.hpp"
 
-using namespace CANpie;
+using namespace QCan;
 
 /*----------------------------------------------------------------------------*\
 ** Referenced classes                                                         **
@@ -272,6 +272,8 @@ protected:
 
 private:
 
+   QCanData::Type_e  frameType(const QByteArray & clSockDataR);
+   
    bool  handleApiFrame(int32_t & slSockSrcR, QByteArray & clSockDataR);
    bool  handleCanFrame(int32_t & slSockSrcR, QByteArray & clSockDataR);
    bool  handleErrFrame(int32_t & slSockSrcR, QByteArray & clSockDataR);
