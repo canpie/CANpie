@@ -65,7 +65,7 @@ private:
    uint32_t             ulFrameGapP;
    uint8_t              ubFrameDlcP;
    uint8_t              ubFrameFormatP;
-   uint8_t              aubFrameDataP[CAN_MSG_DATA_MAX];
+   uint8_t              aubFrameDataP[QCAN_MSG_DATA_MAX];
    bool                 btIncIdP;
    bool                 btIncDlcP;
    bool                 btIncDataP;

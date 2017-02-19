@@ -250,19 +250,19 @@ void QCanSend::runCmdParser(void)
    //
    if (clCmdParserP.value(clOptFormatT).contains("CBFF", Qt::CaseInsensitive))
    {
-      ubFrameFormatP = CpFrame::eFORMAT_CAN_STD;
+      ubFrameFormatP = QCanFrame::eFORMAT_CAN_STD;
    }
    else if (clCmdParserP.value(clOptFormatT).contains("CEFF", Qt::CaseInsensitive))
    {
-      ubFrameFormatP = CpFrame::eFORMAT_CAN_EXT;
+      ubFrameFormatP = QCanFrame::eFORMAT_CAN_EXT;
    }
    else if (clCmdParserP.value(clOptFormatT).contains("FBFF", Qt::CaseInsensitive))
    {
-      ubFrameFormatP = CpFrame::eFORMAT_FD_STD;
+      ubFrameFormatP = QCanFrame::eFORMAT_FD_STD;
    }
    else if (clCmdParserP.value(clOptFormatT).contains("FEFF", Qt::CaseInsensitive))
    {
-      ubFrameFormatP = CpFrame::eFORMAT_FD_EXT;
+      ubFrameFormatP = QCanFrame::eFORMAT_FD_EXT;
    }
    else
    {
@@ -280,8 +280,8 @@ void QCanSend::runCmdParser(void)
    // get DLC value
    //
    ubFrameDlcP = clCmdParserP.value(clOptFrameDlcT).toInt(Q_NULLPTR, 10);
-   if( ((ubFrameFormatP > CpFrame::eFORMAT_CAN_EXT) && (ubFrameDlcP > 15)) ||
-       ((ubFrameFormatP < CpFrame::eFORMAT_FD_STD)  && (ubFrameDlcP >  8)) )
+   if( ((ubFrameFormatP > QCanFrame::eFORMAT_CAN_EXT) && (ubFrameDlcP > 15)) ||
+       ((ubFrameFormatP < QCanFrame::eFORMAT_FD_STD)  && (ubFrameDlcP >  8)) )
    {
       fprintf(stderr, "%s \n\n", 
               qPrintable(tr("Error: DLC value out of range.")));
@@ -292,7 +292,7 @@ void QCanSend::runCmdParser(void)
    // get payload
    //
    QString clPayloadT = clCmdParserP.value(clOptFrameDataT);
-   for(uint8_t ubCntT = 0; ubCntT < CAN_MSG_DATA_MAX; ubCntT++)
+   for (uint8_t ubCntT = 0; ubCntT < QCAN_MSG_DATA_MAX; ubCntT++)
    {
       if (clPayloadT.size() >= 2)
       {
@@ -348,8 +348,8 @@ void QCanSend::runCmdParser(void)
 //----------------------------------------------------------------------------//
 void QCanSend::sendFrame(void)
 {
-   QTime       clSystemTimeT;
-   CpTimeStamp clCanTimeT;
+   QTime          clSystemTimeT;
+   QCanTimeStamp  clCanTimeT;
    
    clSystemTimeT = QTime::currentTime();
    clCanTimeT.fromMilliSeconds(clSystemTimeT.msec());
@@ -373,14 +373,14 @@ void QCanSend::sendFrame(void)
          //
          if (clCanFrameP.isExtended())
          {
-            if (ulFrameIdP > CAN_FRAME_ID_MASK_EXT)
+            if (ulFrameIdP > QCAN_FRAME_ID_MASK_EXT)
             {
                ulFrameIdP = 0;
             }
          }
          else
          {
-            if (ulFrameIdP > CAN_FRAME_ID_MASK_STD)
+            if (ulFrameIdP > QCAN_FRAME_ID_MASK_STD)
             {
                ulFrameIdP = 0;
             }
@@ -402,7 +402,7 @@ void QCanSend::sendFrame(void)
          //------------------------------------------------
          // test for wrap-around
          //
-         if (clCanFrameP.frameFormat() > CpFrame::eFORMAT_CAN_EXT)
+         if (clCanFrameP.frameFormat() > QCanFrame::eFORMAT_CAN_EXT)
          {
             if (ubFrameDlcP > 15)
             {
@@ -449,7 +449,7 @@ void QCanSend::socketConnected()
    //----------------------------------------------------------------
    // initial setup of CAN frame
    //
-   clCanFrameP.setFrameFormat((CpFrame::Format_e) ubFrameFormatP);
+   clCanFrameP.setFrameFormat((QCanFrame::Format_e) ubFrameFormatP);
    clCanFrameP.setIdentifier(ulFrameIdP);
    clCanFrameP.setDlc(ubFrameDlcP);
    for(uint8_t ubCntT = 0; ubCntT < clCanFrameP.dataSize(); ubCntT++)
