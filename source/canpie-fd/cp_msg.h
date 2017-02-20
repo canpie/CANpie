@@ -217,6 +217,18 @@ uint16_t  CpMsgGetStdId(const CpCanMsg_ts * ptsCanMsgV);
 
 //------------------------------------------------------------------------------
 /*!
+** \brief   Get time-stamp value
+** \param   ptsCanMsgV  Pointer to a CpCanMsg_ts message
+** \return  Pointer to time-stamp structure
+** \see     CpMsgSetTime
+**
+** This function returns the time-stamp value for a CAN frame.
+*/
+CpTime_ts *  CpMsgGetTime(const CpCanMsg_ts * ptsCanMsgV);
+
+
+//------------------------------------------------------------------------------
+/*!
 ** \brief   Initialise message structure
 ** \param   ptsCanMsgV  Pointer to a CpCanMsg_ts message
 ** \param   ubFormatV   Frame format
