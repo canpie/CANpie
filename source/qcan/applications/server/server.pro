@@ -87,30 +87,26 @@ VPATH += ./../../../canpie-fd
 #---------------------------------------------------------------
 # header files of project 
 #
-HEADERS =   qcan_defs.hpp              \
-            qcan_server_dialog.hpp     \
-            qcan_interface_widget.hpp  \
-            qcan_frame.hpp             \
+HEADERS =   qcan_interface_widget.hpp  \
             qcan_interface.hpp         \
             qcan_network.hpp           \
-            qcan_server.hpp
+            qcan_server.hpp            \
+            qcan_server_dialog.hpp
                 
             
 #---------------------------------------------------------------
 # source files of project 
 #
-SOURCES =   qcan_server_dialog.cpp     \
-            qcan_interface_widget.cpp  \
-            server_main.cpp            \
-            canpie_frame_api.cpp       \
-            canpie_frame_error.cpp     \
-            canpie_frame.cpp           \
-            canpie_timestamp.cpp       \
+SOURCES =   qcan_interface_widget.cpp  \
+            qcan_data.cpp              \
             qcan_frame.cpp             \
             qcan_frame_api.cpp         \
             qcan_frame_error.cpp       \
+            qcan_timestamp.cpp         \
             qcan_network.cpp           \
-            qcan_server.cpp
+            qcan_server.cpp            \
+            qcan_server_dialog.cpp     \
+            server_main.cpp
 
 #---------------------------------------------------------------
 # OS specific settings 
