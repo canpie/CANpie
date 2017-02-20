@@ -218,6 +218,39 @@ uint32_t  CpMsgGetExtId(const CpCanMsg_ts * ptsCanMsgV)
 
 
 //----------------------------------------------------------------------------//
+// CpMsgGetIdentifier()                                                       //
+//                                                                            //
+//----------------------------------------------------------------------------//
+uint32_t  CpMsgGetIdentifier(const CpCanMsg_ts * ptsCanMsgV)
+{
+   uint32_t  ulIdentifierT = 0UL;
+
+   //----------------------------------------------------------------
+   // check for valid pointer
+   //
+   if (ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      if ((ptsCanMsgV->ubMsgCtrl & CP_MSG_CTRL_EXT_BIT) > 0)
+      {
+         //-----------------------------------------------------
+         // mask the lower 29 bits
+         //
+         ulIdentifierT = ptsCanMsgV->ulIdentifier & CP_MASK_EXT_FRAME;
+      }
+      else 
+      {
+         //-----------------------------------------------------
+         // mask the lower 11 bits
+         //
+         ulIdentifierT = ptsCanMsgV->ulIdentifier & CP_MASK_STD_FRAME;
+      }
+   }
+
+   return (ulIdentifierT);
+}
+
+
+//----------------------------------------------------------------------------//
 // CpMsgGetStdId()                                                            //
 //                                                                            //
 //----------------------------------------------------------------------------//
@@ -237,6 +270,27 @@ uint16_t  CpMsgGetStdId(const CpCanMsg_ts * ptsCanMsgV)
    }
 
    return(uwStdIdT);
+}
+
+
+//----------------------------------------------------------------------------//
+// CpMsgGetTime()                                                             //
+//                                                                            //
+//----------------------------------------------------------------------------//
+CpTime_ts * CpMsgGetTime(CpCanMsg_ts * ptsCanMsgV)
+{
+   CpTime_ts * ptsTimeT = CPP_NULL;
+   
+   //----------------------------------------------------------------
+   // check for valid pointer
+   //
+   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      #if CP_CAN_MSG_TIME > 0
+      ptsTimeT = &(ptsCanMsgV->tsMsgTime);
+      #endif
+   }
+   return (ptsTimeT);
 }
 
 
@@ -486,6 +540,35 @@ void  CpMsgSetExtId(CpCanMsg_ts * ptsCanMsgV, uint32_t ulExtIdV)
 
 
 //----------------------------------------------------------------------------//
+// CpMsgSetIdentifier()                                                       //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void  CpMsgSetIdentifier(CpCanMsg_ts * ptsCanMsgV, uint32_t ulIdentifierV)
+{
+   //----------------------------------------------------------------
+   // check for valid pointer
+   //
+   if (ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      if ((ptsCanMsgV->ubMsgCtrl & CP_MSG_CTRL_EXT_BIT) > 0)
+      {
+         //-----------------------------------------------------
+         // mask the lower 29 bits
+         //
+         ptsCanMsgV->ulIdentifier = ulIdentifierV & CP_MASK_EXT_FRAME;
+      }
+      else 
+      {
+         //-----------------------------------------------------
+         // mask the lower 11 bits
+         //
+         ptsCanMsgV->ulIdentifier = ulIdentifierV & CP_MASK_STD_FRAME;
+      }
+   }
+}
+
+
+//----------------------------------------------------------------------------//
 // CpMsgSetOverrun()                                                          //
 //                                                                            //
 //----------------------------------------------------------------------------//
@@ -557,7 +640,7 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, const CpTime_ts * ptsTimeV)
    {
       #if CP_CAN_MSG_TIME > 0
       ptsCanMsgV->tsMsgTime.ulSec1970 = (ptsTimeV->ulSec1970);
-      ptsCanMsgV->tsMsgTime.ulNanoSec = ptsTimeV->ulNanoSec;
+      ptsCanMsgV->tsMsgTime.ulNanoSec = (ptsTimeV->ulNanoSec);
       #endif
    }
 }
