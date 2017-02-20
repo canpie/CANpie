@@ -287,6 +287,7 @@ CpTime_ts * CpMsgGetTime(CpCanMsg_ts * ptsCanMsgV)
    if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
    {
       #if CP_CAN_MSG_TIME > 0
+      /*@ -immediatetrans @*/
       ptsTimeT = &(ptsCanMsgV->tsMsgTime);
       #endif
    }
