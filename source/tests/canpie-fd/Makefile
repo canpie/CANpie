@@ -6,8 +6,8 @@
 
 
 #-----------------------------------------------------------------------------#
-# Target name								                                          #
-#																										#
+# Target name                                                                 #
+#                                                                             #
 #-----------------------------------------------------------------------------#
 TARGET     = canpie-fd
 TARGET_HW  = Simulation
@@ -15,21 +15,20 @@ TARGET_HW  = Simulation
 
 #-----------------------------------------------------------------------------#
 # Debug code generation                                                       #
-#																										#
+#                                                                             #
 #-----------------------------------------------------------------------------#
 DEBUG      = 0
 
 
 #-----------------------------------------------------------------------------#
-# Path setup (source and object directory)												#
-#																										#
+# Path setup (source and object directory)                                    #
+#                                                                             #
 #-----------------------------------------------------------------------------#
 
 #---------------------------------------------------------------
 # PRJ_DIR: absolute or relative path to project root directory
 #
 PRJ_DIR	= .
-
 
 #---------------------------------------------------------------
 # DEV_DIR: path to device directory
@@ -46,7 +45,6 @@ CAN_DIR  = $(PRJ_DIR)/../../canpie-fd
 #
 TEST_DIR	= $(PRJ_DIR)
 
-
 #----------------------------------------------------------
 # Object directory
 #
@@ -54,9 +52,15 @@ OBJ_DIR	= $(PRJ_DIR)
 
 
 #-----------------------------------------------------------------------------#
-# Compiler settings 																				#
-#																										#
+# Compiler settings                                                           #
+#                                                                             #
 #-----------------------------------------------------------------------------#
+ifeq ($(OS),Windows_NT)
+	CC ="D:/devtools/cygwin/cygwin64/bin/gcc"
+	SPLINT=  "d:/devtools/splint/splint-3.1.2/bin/splint.exe"
+else
+
+endif
 
 
 #---------------------------------------------------------------
@@ -114,13 +118,14 @@ endif
 # Specific user/application symbol definition
 # 
 MC_FLAG  = 
-#MC_FLAG += -DUNITY_OUTPUT_CHAR=UnityOutputChar
-
+ifeq ($(OS),Windows_NT)
+MC_FLAG += -D_WIN32=1 
+endif
 
 
 #-----------------------------------------------------------------------------#
-# GCC compiler and linker settings															#
-#																										#
+# GCC compiler and linker settings                                            #
+#                                                                             #
 #-----------------------------------------------------------------------------#
 
 #--------------------------------------------------------------------
@@ -140,8 +145,8 @@ LFLAGS  += $(GDB_FLAG)
 
 
 #-----------------------------------------------------------------------------#
-# List of object files that need to be compiled											#
-#																										#
+# List of object files that need to be compiled                               #
+#                                                                             #
 #-----------------------------------------------------------------------------#
 
 
@@ -152,29 +157,29 @@ LFLAGS  += $(GDB_FLAG)
 CAN_SRC  = cp_msg.c	
 
 
-
 #--------------------------------------------------------------------
 # Device / target CPU source files 
 # 
 #--------------------------------------------------------------------
-DEV_SRC	=	device_canfd.c			
+DEV_SRC	=	
 
+#device_canfd.c
 
 
 #--------------------------------------------------------------------
 # Unit test source
 # compiled if TEST_OBJS==1
 #--------------------------------------------------------------------
-TEST_SRC =	test_cp_core.c				\
-				test_cp_main.c				\
+TEST_SRC =	test_cp_main.c				\
 				test_cp_msg_ccf.c			\
 				test_cp_msg_ccm.c			\
 				test_cp_msg_fdf.c			\
 				test_cp_msg_fdm.c			\
 				unity_fixture.c			\
 				unity.c
-		
-				
+
+#test_cp_core.c				\
+
 #--------------------------------------------------------------------
 # generate list of all required object files
 #
@@ -186,8 +191,8 @@ TARGET_OBJS	+= $(patsubst %.c,$(OBJ_DIR)/%.o, $(TEST_SRC))
 
 
 #-----------------------------------------------------------------------------#
-# Rules																								#
-#																										#
+# Rules                                                                       #
+#                                                                             #
 #-----------------------------------------------------------------------------#
 all: msg_compiling $(TARGET_OBJS)
 	@echo - Linking : Target is $(TARGET).elf for $(TARGET_HW) ...
@@ -207,9 +212,12 @@ show:
 	@echo ALL_CFILES:
 	@echo $(ALL_CFILES)
 
+run:
+	@$(OBJ_DIR)/$(TARGET)
+	
 
 msg_compiling:
-	echo Build target: $(TARGET) 
+	@echo Build target: $(TARGET) 
 
 docs:
 	cd $(DOC_DIR)
@@ -218,15 +226,11 @@ docs:
 clean:
 	@rm -f $(OBJ_DIR)/*.o
 	@rm -f $(OBJ_DIR)/*.d 
-	@rm -f $(OBJ_DIR)/*.hex
-	@rm -f $(OBJ_DIR)/*.map
-	@rm -f $(OBJ_DIR)/*.bin
-	@rm -f $(OBJ_DIR)/*.elf
-	@rm -f ./$(TARGET).hex 
+	@rm -f ./$(TARGET)  
 
 #-----------------------------------------------------------------------------#
-# Dependencies																						#
-#																										#
+# Dependencies                                                                #
+#                                                                             #
 #-----------------------------------------------------------------------------#
 
 #--- standard C files -------------------------------------
