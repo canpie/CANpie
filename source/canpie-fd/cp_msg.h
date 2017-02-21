@@ -217,6 +217,18 @@ uint16_t  CpMsgGetStdId(const CpCanMsg_ts * ptsCanMsgV);
 
 //------------------------------------------------------------------------------
 /*!
+** \brief   Get time-stamp value
+** \param   ptsCanMsgV  Pointer to a CpCanMsg_ts message
+** \return  Pointer to time-stamp structure
+** \see     CpMsgSetTime
+**
+** This function returns the time-stamp value for a CAN frame.
+*/
+/*@null@*/ CpTime_ts *  CpMsgGetTime(CpCanMsg_ts * ptsCanMsgV);
+
+
+//------------------------------------------------------------------------------
+/*!
 ** \brief   Initialise message structure
 ** \param   ptsCanMsgV  Pointer to a CpCanMsg_ts message
 ** \param   ubFormatV   Frame format
@@ -454,8 +466,21 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, const CpTime_ts * ptsTimeV);
 #define  CpMsgGetExtId(MSG_PTR)                                   \
             ((MSG_PTR)->ulIdentifier)
 
+#define  CpMsgGetIdentifier(MSG_PTR)                              \
+            ( ((MSG_PTR)->ulIdentifier) & CP_MASK_EXT_FRAME )
+
 #define  CpMsgGetStdId(MSG_PTR)                                   \
             (uint16_t)((MSG_PTR)->ulIdentifier)
+
+#define  CpMsgInit(MSG_PTR, VAL)                                  \
+         do {                                                     \
+            (MSG_PTR)->ubMsgCtrl = (VAL);                         \
+            (MSG_PTR)->ulIdentifier = 0;                          \
+            (MSG_PTR)->ubMsgDLC  = 0;                             \
+         } while(0)
+
+#define  CpMsgIsBitrateSwitch(MSG_PTR)                            \
+            ( (MSG_PTR)->ubMsgCtrl & CP_MSG_CTRL_BRS_BIT  )
 
 #define  CpMsgIsExtended(MSG_PTR)                                 \
             ( (MSG_PTR)->ubMsgCtrl & CP_MSG_CTRL_EXT_BIT )
@@ -467,7 +492,13 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, const CpTime_ts * ptsTimeV);
             ( (MSG_PTR)->ubMsgCtrl & CP_MSG_CTRL_OVR_BIT )
 
 #define  CpMsgIsRemote(MSG_PTR)                                   \
-            ( (MSG_PTR)->ubMsgCtrl & CP_MASK_RTR_BIT )
+            ( (MSG_PTR)->ubMsgCtrl & CP_MSG_CTRL_RTR_BIT )
+
+#define  CpMsgSetBitrateSwitch(MSG_PTR)                           \
+         do {                                                     \
+            if (( (MSG_PTR)->ubMsgCtrl & CP_MSG_CTRL_FDF_BIT  ))  \
+            { (MSG_PTR)->ubMsgCtrl |= CP_MSG_CTRL_BRS_BIT; }      \
+         } while(0)
 
 #define  CpMsgSetData(MSG_PTR, POS, VAL)                          \
             ( (MSG_PTR)->aubData[POS] = (VAL) )
@@ -482,6 +513,14 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, const CpTime_ts * ptsTimeV);
          do {                                                     \
             (MSG_PTR)->ulIdentifier = (VAL) & CP_MASK_EXT_FRAME;  \
             (MSG_PTR)->ubMsgCtrl |= CP_MSG_CTRL_EXT_BIT;          \
+         } while(0)
+
+#define  CpMsgSetIdentifier(MSG_PTR, VAL)                            \
+         do {                                                        \
+            if ((MSG_PTR)->ubMsgCtrl & CP_MSG_CTRL_EXT_BIT)          \
+            { (MSG_PTR)->ulIdentifier = (VAL) & CP_MASK_EXT_FRAME; } \
+            else                                                     \
+            { (MSG_PTR)->ulIdentifier = (VAL) & CP_MASK_STD_FRAME; } \
          } while(0)
 
 #define  CpMsgSetOverrun(MSG_PTR)                                 \

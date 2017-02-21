@@ -35,7 +35,6 @@
 
 #include "canpie_frame_api.hpp"
 
-
 /*----------------------------------------------------------------------------*\
 ** Definitions                                                                **
 **                                                                            **
@@ -55,7 +54,7 @@
 CpFrameApi::CpFrameApi() 
 {
    setFrameType(eTYPE_API);
-   setData(0, CpFrameApi::eAPI_FUNC_NONE);
+   setMarker(CpFrameApi::eAPI_FUNC_NONE);
 }
 
 
@@ -70,36 +69,22 @@ CpFrameApi::~CpFrameApi()
 
 //----------------------------------------------------------------------------//
 // bitrate()                                                                  //
-// get bit-rate value (byte 2 .. 5)                                           //
+// get bit-rate value (byte 0 .. 3)                                           //
 //----------------------------------------------------------------------------//
-int32_t CpFrameApi::bitrate(void)
+bool CpFrameApi::bitrate(int32_t & slNomBitRateV, int32_t & slDatBitRateV)
 {
-   int32_t  slBitrateT = -1;
+   bool  btResultT = false;
 
-   if(data(0) == CpFrameApi::eAPI_FUNC_BITRATE)
+   if(marker() == CpFrameApi::eAPI_FUNC_BITRATE)
    {
-      slBitrateT = dataUInt32(2);
+      slNomBitRateV = dataUInt32(0);
+      slDatBitRateV = dataUInt32(4);
+      btResultT = true;
    }
 
-   return(slBitrateT);
+   return(btResultT);
 }
 
-
-//----------------------------------------------------------------------------//
-// brsClock()                                                                 //
-// get bit-rate switch clock value (byte 6 ..9)                               //
-//----------------------------------------------------------------------------//
-int32_t CpFrameApi::brsClock(void)
-{
-   int32_t  slBrsClockT = -1;
-
-   if(data(0) == CpFrameApi::eAPI_FUNC_BITRATE)
-   {
-      slBrsClockT = dataUInt32(6);
-   }
-
-   return(slBrsClockT);
-}
 
 //----------------------------------------------------------------------------//
 // function()                                                                 //
@@ -107,7 +92,7 @@ int32_t CpFrameApi::brsClock(void)
 //----------------------------------------------------------------------------//
 CpFrameApi::ApiFunc_e CpFrameApi::function(void)
 {
-   return((CpFrameApi::ApiFunc_e) data(0));
+   return((CpFrameApi::ApiFunc_e) marker());
 
 }
 
@@ -118,19 +103,37 @@ CpFrameApi::ApiFunc_e CpFrameApi::function(void)
 //----------------------------------------------------------------------------//
 CAN_Mode_e CpFrameApi::mode(void)
 {
-   return((CAN_Mode_e ) data(1));
+   return((CAN_Mode_e ) data(0));
+}
+
+bool CpFrameApi::name(QString & clNameR)
+{
+   bool     btResultT = false;
+   uint8_t  ubPosT;
+
+   if(marker() == CpFrameApi::eAPI_FUNC_NAME)
+   {
+      clNameR.clear();
+      for(ubPosT = 0; ubPosT < data(0); ubPosT++)
+      {
+         clNameR.append(data(ubPosT + 1));
+      }
+      btResultT = true;
+   }
+
+   return (btResultT);
 }
 
 
 //----------------------------------------------------------------------------//
 // setBitrate()                                                               //
-// Byte 2 .. 5: slBitrateV, Byte 6 .. 9: slBrsClockV                          //
+// Byte 0 .. 3: slBitrateV, Byte 4 .. 7: slBrsClockV                          //
 //----------------------------------------------------------------------------//
 void CpFrameApi::setBitrate(int32_t slBitrateV, int32_t slBrsClockV)
 {
-   setData(0, CpFrameApi::eAPI_FUNC_BITRATE);
-   setDataUInt32(2, slBitrateV);
-   setDataUInt32(6, slBrsClockV);
+   setMarker(CpFrameApi::eAPI_FUNC_BITRATE);
+   setDataUInt32(0, slBitrateV);
+   setDataUInt32(4, slBrsClockV);
 }
 
 
@@ -140,19 +143,48 @@ void CpFrameApi::setBitrate(int32_t slBitrateV, int32_t slBrsClockV)
 //----------------------------------------------------------------------------//
 void CpFrameApi::setMode(CAN_Mode_e teModeV)
 {
-   setData(0, CpFrameApi::eAPI_FUNC_CAN_MODE);
-   setData(1, (uint8_t) teModeV);
+   setMarker(CpFrameApi::eAPI_FUNC_CAN_MODE);
+   setData(0, (uint8_t) teModeV);
 }
 
 
 void CpFrameApi::setDriverInit()
 {
-   setData(0, CpFrameApi::eAPI_FUNC_DRIVER_INIT);
+   setMarker(CpFrameApi::eAPI_FUNC_DRIVER_INIT);
 
 }
 void CpFrameApi::setDriverRelease()
 {
-   setData(0, CpFrameApi::eAPI_FUNC_DRIVER_RELEASE);
+   setMarker(CpFrameApi::eAPI_FUNC_DRIVER_RELEASE);
 
 }
 
+void CpFrameApi::setName(QString clNameV)
+{
+   int32_t  slSizeT;
+   int32_t  slPosT;
+
+   setMarker(CpFrameApi::eAPI_FUNC_NAME);
+
+   //----------------------------------------------------------------
+   // the maximum number of characters is limited to 63
+   //
+   slSizeT = clNameV.size();
+   if(slSizeT > CAN_MSG_DATA_MAX - 1)
+   {
+      slSizeT = CAN_MSG_DATA_MAX - 1;
+   }
+
+   //----------------------------------------------------------------
+   // copy size in byte 0 of payload
+   //
+   setData(0, (uint8_t) slSizeT);
+
+   //----------------------------------------------------------------
+   // copy string to payload
+   //
+   for (slPosT = 0; slPosT < slSizeT; slPosT++)
+   {
+      setData(slPosT + 1, clNameV.at(slPosT).toLatin1());
+   }
+}
