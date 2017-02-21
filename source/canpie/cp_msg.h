@@ -393,7 +393,7 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV);
             (MSG_PTR)->ubMsgCtrl &= ~CP_MASK_RTR_BIT;             \
          } while(0)
 
-
+/*
 #define  CpMsgDisable(MSG_PTR)                                    \
          do {                                                     \
             (MSG_PTR)->ubMsgCtrl &= ~CP_MASK_EN_BIT;              \
@@ -403,7 +403,7 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV);
          do {                                                     \
             (MSG_PTR)->ubMsgCtrl |= CP_MASK_EN_BIT;               \
          } while(0)
-
+*/
 #define  CpMsgGetData(MSG_PTR, POS)                               \
             (MSG_PTR)->tuMsgData.aubByte[POS]
 
@@ -415,26 +415,34 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, CpTime_ts * ptsTimeV);
 
 #define  CpMsgGetStdId(MSG_PTR)                                   \
             ((MSG_PTR)->tuMsgId.uwStd)
-
+/*
 #define  CpMsgIsEnabled(MSG_PTR)                                  \
             ((MSG_PTR)->ubMsgCtrl & CP_MASK_EN_BIT)
-
+*/
 #define  CpMsgIsExtended(MSG_PTR)                                 \
             ( (MSG_PTR)->ubMsgCtrl & CP_MASK_EXT_BIT )
 
 #define  CpMsgIsOverrun(MSG_PTR)                                  \
             ( (MSG_PTR)->ubMsgCtrl & CP_MASK_OVR_BIT )
+
 #define  CpMsgIsRemote(MSG_PTR)                                   \
             ( (MSG_PTR)->ubMsgCtrl & CP_MASK_RTR_BIT )
-
+/*
 #define  CpMsgIsTxRqst(MSG_PTR)                                   \
             ( (MSG_PTR)->ubMsgCtrl & CP_MASK_TXRQ_BIT )
-
+*/
 #define  CpMsgSetData(MSG_PTR, POS, VAL)                          \
-            ( (MSG_PTR)->tuMsgData.aubByte[POS] = VAL )
+      do {                                                        \
+            (POS > 0x08) ? ( (MSG_PTR)->aubData[POS] =            \
+                   0x00 ) : ( (MSG_PTR)->aubData[POS] = (VAL) );  \
+          } while(0) //NEU!
+          //  ( (MSG_PTR)->tuMsgData.aubByte[POS] = VAL ) ALT!
 
 #define  CpMsgSetDlc(MSG_PTR, DLC)                                \
-            ( (MSG_PTR)->ubMsgDLC = DLC )
+      do {                                                        \
+            (DLC < 9) ? (MSG_PTR)->ubMsgDLC = (DLC) : 0;          \
+          } while(0) //NEU!
+      //      ( (MSG_PTR)->ubMsgDLC = DLC ) ALT!
 
 #define  CpMsgSetExtId(MSG_PTR, VAL)                              \
          do {                                                     \
