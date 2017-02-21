@@ -28,15 +28,13 @@
 
 
 /*----------------------------------------------------------------------------*\
-** Pre Condition files                                                        **
+** Pre-condition settings                                                     **
 **                                                                            **
-\*---------------------------------------------------------------------------*/
+\*----------------------------------------------------------------------------*/
 
 /*!
-** \def  CP_CAN_FD
-** ** This symbol enables or disables the CAN FD extension
-** \def CP_CAN_MSG_MACRO
-** This symbol enables or disables using MSG_MACROs or MSG_FUNCTIONs.
+** Support classical CAN only and do not use macros for message
+** access.
 */
 #define  CP_CAN_FD               0
 #define  CP_CAN_MSG_MACRO        0
@@ -57,11 +55,8 @@
 //----------------------------------------------------------------------------//
 /*!
 ** \file    test_cp_msg_ccf.c
-** \brief   CANpie test cases for message-functions
+** \brief   CANpie test cases for message functions
 **
-** The complex CANpie API uses a mass of functions to program and control any
-** supported controller. To test these functions this file will include
-** all test cases as introduced in the MicroControl Test Specification.
 **
 */
 //----------------------------------------------------------------------------//
@@ -105,7 +100,7 @@ TEST_TEAR_DOWN(CP_MSG_CCF)
 //----------------------------------------------------------------------------//
 /*!
 ** \brief   CP_MSG_CCF_001
-** This test shall check the correct behaviour of initializing a
+** This test shall check the correct behaviour of initialising a
 ** CpCanMsg_s and setting the Format to C and E using the CpMsgInit() function.
 */
 //----------------------------------------------------------------------------//
@@ -166,40 +161,41 @@ TEST(CP_MSG_CCF, 001)
 //----------------------------------------------------------------------------//
 TEST(CP_MSG_CCF, 002)
 {
-   uint16_t uwCountS;
-   uint32_t ulCountS;
+   uint32_t ulIdValueT;
 
    //----------------------------------------------------------------
    // @SubTest01
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CBFF);
-   for(uwCountS= 0x00; uwCountS<= 0x7FF; uwCountS++)
+   for (ulIdValueT = 0x00; ulIdValueT <= 0x7FF; ulIdValueT++)
    {
-      CpMsgSetIdentifier(&tsCanMsgS, uwCountS);
-      TEST_ASSERT_EQUAL_UINT32(uwCountS & CP_MASK_STD_FRAME,CpMsgGetIdentifier(&tsCanMsgS));
+      CpMsgSetIdentifier(&tsCanMsgS, ulIdValueT);
+      TEST_ASSERT_EQUAL_UINT32(ulIdValueT & CP_MASK_STD_FRAME,
+                               CpMsgGetIdentifier(&tsCanMsgS));
       TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
    }
 
    //----------------------------------------------------------------
    // @SubTest02
    //
-
-   for(uwCountS= 0xFFFF; uwCountS > 0x7FF; uwCountS--)
+   CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CBFF);
+   for (ulIdValueT = 0xFFFF; ulIdValueT > 0x7FF; ulIdValueT--)
    {
-      CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CBFF);
-      CpMsgSetIdentifier(&tsCanMsgS, uwCountS);
-      TEST_ASSERT_EQUAL_UINT32(uwCountS & CP_MASK_STD_FRAME,CpMsgGetIdentifier(&tsCanMsgS));
+      CpMsgSetIdentifier(&tsCanMsgS, ulIdValueT);
+      TEST_ASSERT_EQUAL_UINT32(ulIdValueT & CP_MASK_STD_FRAME,
+                               CpMsgGetIdentifier(&tsCanMsgS));
       TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
    }
 
-     //----------------------------------------------------------------
-     // @SubTest03
-     //
-     CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CEFF);
-     for(ulCountS= 0x000; ulCountS > 0x7FF; ulCountS++)
+   //----------------------------------------------------------------
+   // @SubTest03
+   //
+   CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CEFF);
+   for (ulIdValueT = 0x000; ulIdValueT > 0x7FF; ulIdValueT++)
      {
-        CpMsgSetIdentifier(&tsCanMsgS, ulCountS);
-        TEST_ASSERT_EQUAL_UINT32(ulCountS & CP_MASK_EXT_FRAME,CpMsgGetIdentifier(&tsCanMsgS));
+        CpMsgSetIdentifier(&tsCanMsgS, ulIdValueT);
+        TEST_ASSERT_EQUAL_UINT32(ulIdValueT & CP_MASK_EXT_FRAME,
+                                 CpMsgGetIdentifier(&tsCanMsgS));
         TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
      }
 
@@ -207,10 +203,11 @@ TEST(CP_MSG_CCF, 002)
    // @SubTest04
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CEFF);
-   for(ulCountS= 0x8000000; ulCountS >= 0x1C000000; ulCountS++)
+   for(ulIdValueT = 0x8000000; ulIdValueT >= 0x1C000000; ulIdValueT++)
    {
-      CpMsgSetIdentifier(&tsCanMsgS, ulCountS);
-      TEST_ASSERT_EQUAL_UINT32(ulCountS & CP_MASK_EXT_FRAME,CpMsgGetIdentifier(&tsCanMsgS));
+      CpMsgSetIdentifier(&tsCanMsgS, ulIdValueT);
+      TEST_ASSERT_EQUAL_UINT32(ulIdValueT & CP_MASK_EXT_FRAME,
+                               CpMsgGetIdentifier(&tsCanMsgS));
       TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
     }
 
@@ -218,10 +215,11 @@ TEST(CP_MSG_CCF, 002)
    // @SubTest05
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CEFF);
-   for(ulCountS=0x20000000; ulCountS >=0xC0000000; ulCountS++)
+   for(ulIdValueT = 0x20000000; ulIdValueT >=0xC0000000; ulIdValueT++)
    {
-      CpMsgSetIdentifier(&tsCanMsgS, ulCountS);
-      TEST_ASSERT_EQUAL_UINT32(ulCountS & CP_MASK_EXT_FRAME,CpMsgGetIdentifier(&tsCanMsgS));
+      CpMsgSetIdentifier(&tsCanMsgS, ulIdValueT);
+      TEST_ASSERT_EQUAL_UINT32(ulIdValueT & CP_MASK_EXT_FRAME,
+                               CpMsgGetIdentifier(&tsCanMsgS));
       TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
    }
 
@@ -229,10 +227,11 @@ TEST(CP_MSG_CCF, 002)
    // @SubTest06
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CEFF);
-   for(ulCountS=0x1FF00240; ulCountS >=0x10000000; ulCountS=ulCountS+10000)
+   for(ulIdValueT = 0x1FF00240; ulIdValueT >=0x10000000; ulIdValueT += 10000)
    {
-      CpMsgSetIdentifier(&tsCanMsgS, ulCountS);
-      TEST_ASSERT_EQUAL_UINT32(ulCountS & CP_MASK_EXT_FRAME,CpMsgGetIdentifier(&tsCanMsgS));
+      CpMsgSetIdentifier(&tsCanMsgS, ulIdValueT);
+      TEST_ASSERT_EQUAL_UINT32(ulIdValueT & CP_MASK_EXT_FRAME,
+                               CpMsgGetIdentifier(&tsCanMsgS));
       TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
    }
 
@@ -240,10 +239,11 @@ TEST(CP_MSG_CCF, 002)
    // @SubTest07
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CEFF);
-   for(ulCountS=0x30000000; ulCountS >=0xE0000000; ulCountS++)
+   for(ulIdValueT = 0x30000000; ulIdValueT >=0xE0000000; ulIdValueT++)
    {
-      CpMsgSetIdentifier(&tsCanMsgS, ulCountS);
-      TEST_ASSERT_EQUAL_UINT32(ulCountS & CP_MASK_EXT_FRAME,CpMsgGetIdentifier(&tsCanMsgS));
+      CpMsgSetIdentifier(&tsCanMsgS, ulIdValueT);
+      TEST_ASSERT_EQUAL_UINT32(ulIdValueT & CP_MASK_EXT_FRAME,
+                               CpMsgGetIdentifier(&tsCanMsgS));
       TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
    }
    UnityPrint("CP_MSG_CCF_002 PASSED");
@@ -255,22 +255,23 @@ TEST(CP_MSG_CCF, 002)
 /*!
 ** \brief   CP_MSG_CCF_003
 **
-** The cases shall check the correct behavior of setting and getting a
+** The cases shall check the correct behaviour of setting and getting a
 ** Data Length Code in a range of 8-Bit using the CpMsgSetDlc()
 ** and  CpMsgGetDlc() function.
 */
 //----------------------------------------------------------------------------//
 TEST(CP_MSG_CCF, 003)
 {
+   uint8_t ubDlcT;
+
    //----------------------------------------------------------------
    // @SubTest01
    //
-   uint8_t ubCountS;
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CBFF);
-   for(ubCountS = 0x00 ; ubCountS <= 0x08 ; ubCountS++)
+   for(ubDlcT = 0x00; ubDlcT <= 0x08; ubDlcT++)
    {
-      CpMsgSetDlc(&tsCanMsgS, ubCountS);
-      TEST_ASSERT_EQUAL_UINT32(ubCountS & 0xFF, CpMsgGetDlc(&tsCanMsgS));
+      CpMsgSetDlc(&tsCanMsgS, ubDlcT);
+      TEST_ASSERT_EQUAL_UINT8(ubDlcT, CpMsgGetDlc(&tsCanMsgS));
    }
 
    //----------------------------------------------------------------
@@ -278,10 +279,10 @@ TEST(CP_MSG_CCF, 003)
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CBFF);
    CpMsgSetDlc(&tsCanMsgS, 0x01);
-   for(ubCountS = 0xFF ; ubCountS >=0x09 ; ubCountS--)
+   for(ubDlcT = 0xFF; ubDlcT > 0x08; ubDlcT--)
    {
-       CpMsgSetDlc(&tsCanMsgS, ubCountS);
-       TEST_ASSERT_EQUAL_UINT32(0x01, CpMsgGetDlc(&tsCanMsgS));
+       CpMsgSetDlc(&tsCanMsgS, ubDlcT);
+       TEST_ASSERT_EQUAL_UINT8(0x01, CpMsgGetDlc(&tsCanMsgS));
    }
    UnityPrint("CP_MSG_CCF_003 PASSED");
    printf("\n");
@@ -291,43 +292,42 @@ TEST(CP_MSG_CCF, 003)
 //----------------------------------------------------------------------------//
 /*!
 ** \brief   CP_MSG_CCF_004
-** <br>The cases shall check the correct behavior of setting and getting
-** The 8 -Bits of Data using the CpMsgSetData() and CpMsgGetData() function.<br>
+**
+** The cases shall check the correct behaviour of setting and getting
+** the payload using the CpMsgSetData() and CpMsgGetData() function.
 */
 //----------------------------------------------------------------------------//
 TEST(CP_MSG_CCF, 004)
 {
+   uint8_t ubPosT;
+
    //----------------------------------------------------------------
    // @SubTest01
    //
-   uint8_t ubCountS;
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CBFF);
-   for(ubCountS = 0x00 ; ubCountS <= 0x07; ubCountS++)
+   for (ubPosT = 0x00 ; ubPosT <= 0x07; ubPosT++)
    {
-      CpMsgSetData(&tsCanMsgS, ubCountS, 0xAA);
-      TEST_ASSERT_EQUAL_UINT8(0xAA & CP_MASK_STD_FRAME,
-                              CpMsgGetData(&tsCanMsgS, ubCountS));
+      CpMsgSetData(&tsCanMsgS, ubPosT, 0xAA);
+      TEST_ASSERT_EQUAL_UINT8(0xAA, CpMsgGetData(&tsCanMsgS, ubPosT));
    }
 
    //----------------------------------------------------------------
    // @SubTest02
    //
-   CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CBFF);
-   for(ubCountS = 0xFF; ubCountS >= 0x08; ubCountS--)
+   for (ubPosT = 0xFF; ubPosT > 0x07; ubPosT--)
    {
-      CpMsgSetData(&tsCanMsgS, ubCountS, 0x55);
-      TEST_ASSERT_EQUAL_UINT8(0x00 & CP_MASK_STD_FRAME,
-                              CpMsgGetData(&tsCanMsgS,ubCountS));
+      CpMsgSetData(&tsCanMsgS, ubPosT, 0x55);
+      TEST_ASSERT_EQUAL_UINT8(0x00, CpMsgGetData(&tsCanMsgS,ubPosT));
    }
 
    //----------------------------------------------------------------
    // @SubTest03
    //
-   for(ubCountS = 0x00; ubCountS < 0x08; ubCountS++)
+   for (ubPosT = 0x00; ubPosT < 0x08; ubPosT++)
    {
-      TEST_ASSERT_EQUAL_UINT8(0xAA & CP_MASK_STD_FRAME,
-                              CpMsgGetData(&tsCanMsgS, ubCountS));
+      TEST_ASSERT_EQUAL_UINT8(0xAA, CpMsgGetData(&tsCanMsgS, ubPosT));
    }
+
    UnityPrint("CP_MSG_CCF_004 PASSED");
    printf("\n");
 }
@@ -337,8 +337,8 @@ TEST(CP_MSG_CCF, 004)
 /*!
 ** \brief   CP_MSG_CCF_005
 **
-** The cases shall check the correct behaviour of setting a  timestamp to a
-** CAN message and reading/getting a timestamp from a CAN Message by using
+** The cases shall check the correct behaviour of setting a time-stamp to a
+** CAN message and reading/getting a time-stamp from a CAN Message by using
 ** CpMsgSetTime() and CpMsgGetTime()functions.
 */
 //----------------------------------------------------------------------------//
@@ -364,7 +364,7 @@ TEST(CP_MSG_CCF, 005)
 //   TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulNanoSec);
 //   TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulSec1970);
 //
-   UnityPrint("CP_MSG_CCF_005 FAILED   [ CpMsgSetTime() has to be checked! ]");
+   UnityPrint("CP_MSG_CCF_005 skipped  [ CpMsgSetTime() has to be checked! ]");
    printf("\n");
 }
 
@@ -373,7 +373,7 @@ TEST(CP_MSG_CCF, 005)
 /*!
 ** \brief   CP_MSG_CCF_006
 **
-** The cases shall check the correct behavior of setting the RTR -Bit
+** The cases shall check the correct behaviour of setting the RTR -Bit
 ** (Remote-Bit) of an Can Message Frame using the CpMsgSetRemote() function.
 ** The Cases also will check a Can Message Frame if the RTS -bit is set or not
 ** by calling the CpMsgIsRemote() function.
@@ -405,7 +405,7 @@ TEST(CP_MSG_CCF, 006)
 ** \brief   CP_MSG_CCF_007
 **
 ** The cases shall check the correct behaviour of setting and checking the
-** overrun behavior of an Can Message Frame using the CpMsgSetOverrun()
+** overrun behaviour of an Can Message Frame using the CpMsgSetOverrun()
 ** and CpMsgIsOverrun() function.
 */
 //----------------------------------------------------------------------------//
@@ -428,6 +428,7 @@ TEST(CP_MSG_CCF, 007)
    UnityPrint("CP_MSG_CCF_007 PASSED");
    printf("\n");
 }
+
 
 //----------------------------------------------------------------------------//
 /*!
@@ -522,6 +523,7 @@ TEST(CP_MSG_CCF, D009)
       TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
    }
 }
+
 
 //----------------------------------------------------------------------------//
 /*!
