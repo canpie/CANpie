@@ -492,7 +492,7 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, const CpTime_ts * ptsTimeV);
             ( (MSG_PTR)->ubMsgCtrl & CP_MSG_CTRL_OVR_BIT )
 
 #define  CpMsgIsRemote(MSG_PTR)                                   \
-            ( (MSG_PTR)->ubMsgCtrl & CP_MASK_RTR_BIT )
+            ( (MSG_PTR)->ubMsgCtrl & CP_MSG_CTRL_RTR_BIT )
 
 #define  CpMsgSetBitrateSwitch(MSG_PTR)                           \
          do {                                                     \
