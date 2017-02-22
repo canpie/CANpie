@@ -26,47 +26,48 @@
 
 
 
-#ifndef TEST_CANPIE_TIMESTAMP_HPP_
-#define TEST_CANPIE_TIMESTAMP_HPP_
+#ifndef TEST_QCAN_DATA_HPP_
+#define TEST_QCAN_DATA_HPP_
 
 
 #include <QTest>
-
-#include "canpie_timestamp.hpp"
+#include <QCanData>
+#include <QCanFrame>
+#include <QCanFrameApi>
+#include <QCanFrameError>
 
 
 //-----------------------------------------------------------------------------
 /*!
-** \class   TestCpTimestamp
-** \brief   Test CANpie timestamp
+** \class   TestQCanData
+** \brief   Test CAN data structure
 ** 
 */
-class TestCpTimestamp : public QObject
+class TestQCanData : public QObject
 {
    Q_OBJECT
 
 public:
    
-   TestCpTimestamp();
+   TestQCanData();
    
    
-   ~TestCpTimestamp();
+   ~TestQCanData();
 
 private:
    
-   CpTimeStamp *  pclTimestampA;
-   CpTimeStamp *  pclTimestampB;
+   QCanData  *       pclCanDataP;
+   QCanFrame *       pclCanFrameP;
+   QCanFrameApi *    pclCanApiP;
+   QCanFrameError *  pclCanErrorP;
    
-
 private slots:
 
    void initTestCase();
    
-   void checkValueRange();
+   void checkFrameType();
    void checkConversion();
-   void checkOperatorCompare();
-   void checkOperatorPlus();
-   void checkOperatorMinus();
+   void checkByteArray();
    void cleanupTestCase();
 };
 

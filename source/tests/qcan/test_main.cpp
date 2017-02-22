@@ -7,9 +7,8 @@ using namespace std;
 #include <QDebug>
 #include <QTest>
 
-#include "canpie_frame.hpp"
-#include "canpie_frame_error.hpp"
-#include "test_canpie_timestamp.hpp"
+
+#include "test_qcan_timestamp.hpp"
 #include "test_qcan_frame.hpp"
 #include "test_qcan_socket.hpp"
 
@@ -27,10 +26,10 @@ int main(int argc, char *argv[])
 
 
    //----------------------------------------------------------------
-   // test CpTimestamp
+   // test QCanTimestamp
    //
-   TestCpTimestamp  clTestCpTimestampT;
-   slResultT = QTest::qExec(&clTestCpTimestampT, argc, &argv[0]);
+   TestQCanTimestamp  clTestQCanTimestampT;
+   slResultT = QTest::qExec(&clTestQCanTimestampT, argc, &argv[0]);
 
    //----------------------------------------------------------------
    // test QCanFrame

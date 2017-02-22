@@ -27,16 +27,16 @@
 //============================================================================//
 
 
-#include "test_canpie_timestamp.hpp"
+#include "test_qcan_timestamp.hpp"
 
 
-TestCpTimestamp::TestCpTimestamp()
+TestQCanTimestamp::TestQCanTimestamp()
 {
 
 }
 
 
-TestCpTimestamp::~TestCpTimestamp()
+TestQCanTimestamp::~TestQCanTimestamp()
 {
 
 }
@@ -46,10 +46,10 @@ TestCpTimestamp::~TestCpTimestamp()
 // initTestCase()                                                             //
 // prepare test cases                                                         //
 //----------------------------------------------------------------------------//
-void TestCpTimestamp::initTestCase()
+void TestQCanTimestamp::initTestCase()
 {
-   pclTimestampA = new CpTimeStamp();
-   pclTimestampB = new CpTimeStamp(1, 1000);
+   pclTimestampA = new QCanTimeStamp();
+   pclTimestampB = new QCanTimeStamp(1, 1000);
 }
 
 
@@ -57,7 +57,7 @@ void TestCpTimestamp::initTestCase()
 // checkValueRange()                                                          //
 // check value range                                                          //
 //----------------------------------------------------------------------------//
-void TestCpTimestamp::checkValueRange()
+void TestQCanTimestamp::checkValueRange()
 {
    //----------------------------------------------------------------
    // default value of Timestamp A is (0,0)
@@ -112,7 +112,7 @@ void TestCpTimestamp::checkValueRange()
 // checkConversion()                                                          //
 // check conversions from other units                                         //
 //----------------------------------------------------------------------------//
-void TestCpTimestamp::checkConversion()
+void TestQCanTimestamp::checkConversion()
 {
    //----------------------------------------------------------------
    // set 5005 micro-seconds
@@ -191,7 +191,7 @@ void TestCpTimestamp::checkConversion()
 // checkOperatorCompare()                                                     //
 // check comparision between time-stamp values                                //
 //----------------------------------------------------------------------------//
-void TestCpTimestamp::checkOperatorCompare()
+void TestQCanTimestamp::checkOperatorCompare()
 {
    //----------------------------------------------------------------
    // time-stamp A and B are equal
@@ -248,9 +248,9 @@ void TestCpTimestamp::checkOperatorCompare()
 // checkOperatorPlus()                                                        //
 // add time-stamp values                                                      //
 //----------------------------------------------------------------------------//
-void TestCpTimestamp::checkOperatorPlus()
+void TestQCanTimestamp::checkOperatorPlus()
 {
-   CpTimeStamp clResultT;
+   QCanTimeStamp clResultT;
    
    //----------------------------------------------------------------
    // add time-stamp A and B 
@@ -328,9 +328,9 @@ void TestCpTimestamp::checkOperatorPlus()
 // checkOperatorMinus()                                                       //
 // substract time-stamp values                                                //
 //----------------------------------------------------------------------------//
-void TestCpTimestamp::checkOperatorMinus()
+void TestQCanTimestamp::checkOperatorMinus()
 {
-   CpTimeStamp clResultT;
+   QCanTimeStamp clResultT;
    
    //----------------------------------------------------------------
    // substract time-stamp A (1.0 sec) and B (0.1 sec) 
@@ -430,7 +430,7 @@ void TestCpTimestamp::checkOperatorMinus()
 // cleanupTestCase()                                                          //
 // cleanup test cases                                                         //
 //----------------------------------------------------------------------------//
-void TestCpTimestamp::cleanupTestCase()
+void TestQCanTimestamp::cleanupTestCase()
 {
    delete(pclTimestampA);
    delete(pclTimestampB);

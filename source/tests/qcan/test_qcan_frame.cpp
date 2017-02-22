@@ -233,10 +233,10 @@ void TestQCanFrame::checkFrameDataSize()
 void TestQCanFrame::checkFrameData()
 {
    pclCanStdP->setDlc(4);
-   pclCanStdP->CpFrame::setData(0, 0x12);
-   pclCanStdP->CpFrame::setData(1, 0x34);
-   pclCanStdP->CpFrame::setData(2, 0x56);
-   pclCanStdP->CpFrame::setData(3, 0x78);
+   pclCanStdP->setData(0, 0x12);
+   pclCanStdP->setData(1, 0x34);
+   pclCanStdP->setData(2, 0x56);
+   pclCanStdP->setData(3, 0x78);
    
    QVERIFY(pclCanStdP->dataUInt16(0, 1) == 0x1234);
    QVERIFY(pclCanStdP->dataUInt16(1, 1) == 0x3456);
@@ -246,8 +246,8 @@ void TestQCanFrame::checkFrameData()
    QVERIFY(pclCanStdP->dataUInt32(0, 1) == 0x12345678);
 
    pclCanStdP->setDataUInt16(0, 0xAABB);
-   QVERIFY(pclCanStdP->CpFrame::data(0) == 0xBB);
-   QVERIFY(pclCanStdP->CpFrame::data(1) == 0xAA);
+   QVERIFY(pclCanStdP->data(0) == 0xBB);
+   QVERIFY(pclCanStdP->data(1) == 0xAA);
    QVERIFY(pclCanStdP->dataUInt16(0, 0) == 0xAABB);
 
 }
@@ -275,14 +275,14 @@ void TestQCanFrame::checkByteArray()
    {
       pclCanStdP->setIdentifier(0x301 + ubCntT);
       pclCanStdP->setDlc(ubCntT);
-      pclCanStdP->CpFrame::setData(0, ubCntT);
-      pclCanStdP->CpFrame::setData(1, 0x10 + ubCntT);
-      pclCanStdP->CpFrame::setData(2, 0x20 + ubCntT);
-      pclCanStdP->CpFrame::setData(3, 0x30 + ubCntT);
-      pclCanStdP->CpFrame::setData(4, 0x40 + ubCntT);
-      pclCanStdP->CpFrame::setData(5, 0x50 + ubCntT);
-      pclCanStdP->CpFrame::setData(6, 0x60 + ubCntT);
-      pclCanStdP->CpFrame::setData(7, 0x70 + ubCntT);
+      pclCanStdP->setData(0, ubCntT);
+      pclCanStdP->setData(1, 0x10 + ubCntT);
+      pclCanStdP->setData(2, 0x20 + ubCntT);
+      pclCanStdP->setData(3, 0x30 + ubCntT);
+      pclCanStdP->setData(4, 0x40 + ubCntT);
+      pclCanStdP->setData(5, 0x50 + ubCntT);
+      pclCanStdP->setData(6, 0x60 + ubCntT);
+      pclCanStdP->setData(7, 0x70 + ubCntT);
 
       pclCanStdP->setMarker(0x223344);
       pclCanStdP->setUser(0xAB1023);
@@ -295,11 +295,11 @@ void TestQCanFrame::checkByteArray()
       QVERIFY(pclFrameP->dlc()   == (ubCntT));
       if(ubCntT == 4)
       {
-         QVERIFY(pclFrameP->CpFrame::data(0) == (ubCntT));
-         QVERIFY(pclFrameP->CpFrame::data(1) == (0x10 + ubCntT));
-         QVERIFY(pclFrameP->CpFrame::data(2) == (0x20 + ubCntT));
-         QVERIFY(pclFrameP->CpFrame::data(3) == (0x30 + ubCntT));
-         QVERIFY(pclFrameP->CpFrame::data(4) == 0);
+         QVERIFY(pclFrameP->data(0) == (ubCntT));
+         QVERIFY(pclFrameP->data(1) == (0x10 + ubCntT));
+         QVERIFY(pclFrameP->data(2) == (0x20 + ubCntT));
+         QVERIFY(pclFrameP->data(3) == (0x30 + ubCntT));
+         QVERIFY(pclFrameP->data(4) == 0);
       }
 
    }

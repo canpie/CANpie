@@ -72,14 +72,13 @@ RESOURCES =
 #
 INCLUDEPATH += .
 INCLUDEPATH += ./../../qcan
-INCLUDEPATH += ./../../canpie-fd
+
 
 #---------------------------------------------------------------
 # search path for source files
 #
 VPATH  = .
 VPATH += ./../../qcan
-VPATH += ./../../canpie-fd
 
 
 #---------------------------------------------------------------
@@ -88,24 +87,22 @@ VPATH += ./../../canpie-fd
 HEADERS +=  qcan_frame.hpp             \
             qcan_interface.hpp         \
             qcan_socket.hpp            \
-            test_canpie_timestamp.hpp  \
             test_qcan_frame.hpp        \
-            test_qcan_socket.hpp
+            test_qcan_socket.hpp       \
+            test_qcan_timestamp.hpp
 
 #---------------------------------------------------------------
 # source files of project 
 #
-SOURCES +=  canpie_frame_api.cpp       \
-            canpie_frame_error.cpp     \
-            canpie_frame.cpp           \
-            canpie_timestamp.cpp       \
+SOURCES +=  qcan_data.cpp              \
             qcan_frame.cpp             \
             qcan_frame_api.cpp         \
             qcan_frame_error.cpp       \
+            qcan_timestamp.cpp         \
             qcan_socket.cpp            \
-            test_canpie_timestamp.cpp  \
             test_qcan_frame.cpp        \
             test_qcan_socket.cpp       \
+            test_qcan_timestamp.cpp    \
             test_main.cpp
 
 
