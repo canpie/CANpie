@@ -56,7 +56,7 @@ OBJ_DIR	= $(PRJ_DIR)
 #                                                                             #
 #-----------------------------------------------------------------------------#
 ifeq ($(OS),Windows_NT)
-	CC ="D:/devtools/cygwin/cygwin64/bin/gcc"
+	CC ="D:/devtools/cygwin/bin/gcc"
 	SPLINT=  "d:/devtools/splint/splint-3.1.2/bin/splint.exe"
 else
 
@@ -240,12 +240,9 @@ show:
 	@echo $(ALL_CFILES)
 
 run:
-	@$(OBJ_DIR)/$(TARGET)
+	@$(OBJ_DIR)/$(TARGET)_func
+	@$(OBJ_DIR)/$(TARGET)_macro
 	
-
-msg_compiling:
-	@echo Build target: $(TARGET) 
-
 docs:
 	cd $(DOC_DIR)
 	doxygen
