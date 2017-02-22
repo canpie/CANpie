@@ -9,7 +9,7 @@
 # Target name                                                                 #
 #                                                                             #
 #-----------------------------------------------------------------------------#
-TARGET     = canpie-fd
+TARGET     = test_canpie
 TARGET_HW  = Simulation
 
 
@@ -143,6 +143,17 @@ LFLAGS	= $(CPU) $(FPU)
 LFLAGS  += $(GDB_FLAG)
 
 
+#-----------------------------------------------------------------------------#
+# MISRA-C checker settings																		#
+# The TI checker generates false positives for 10.1, 10.5 and 17.6   			#
+#-----------------------------------------------------------------------------#
+
+MISRA_DIR   = /Applications/TexasInstruments/ccsv7/tools/compiler/ti-cgt-arm_16.9.0.LTS
+MCC   		= $(MISRA_DIR)/bin/armcl
+MFLAGS      = --check_misra="all,-2.2,-5.7,-10.1,-10.5,-17.6" 
+MFLAGS     += --misra_advisory=warning --misra_required=warning
+MFLAGS     += $(INC_DIR)
+MFLAGS 	  += -I $(MISRA_DIR)/include
 
 #-----------------------------------------------------------------------------#
 # List of object files that need to be compiled                               #
@@ -170,38 +181,54 @@ DEV_SRC	=
 # Unit test source
 # compiled if TEST_OBJS==1
 #--------------------------------------------------------------------
-TEST_SRC =	test_cp_main.c				\
+
+FUNC_SRC =	test_cp_main_f.c			\
 				test_cp_msg_ccf.c			\
-				test_cp_msg_ccm.c			\
 				test_cp_msg_fdf.c			\
+				unity_fixture.c			\
+				unity.c
+
+MACRO_SRC =	test_cp_main_m.c			\
+				test_cp_msg_ccm.c			\
 				test_cp_msg_fdm.c			\
 				unity_fixture.c			\
 				unity.c
 
-#test_cp_core.c				\
 
 #--------------------------------------------------------------------
 # generate list of all required object files
 #
 #--------------------------------------------------------------------
-TARGET_OBJS  = $(patsubst %.c,$(OBJ_DIR)/%.o, $(CAN_SRC))
-TARGET_OBJS += $(patsubst %.c,$(OBJ_DIR)/%.o, $(DEV_SRC))
-TARGET_OBJS	+= $(patsubst %.c,$(OBJ_DIR)/%.o, $(TEST_SRC))
+FUNC_OBJS  = $(patsubst %.c,$(OBJ_DIR)/%.o, $(DEV_SRC))
+FUNC_OBJS += $(patsubst %.c,$(OBJ_DIR)/%.o, $(FUNC_SRC))
+FUNC_OBJS += $(patsubst %.c,$(OBJ_DIR)/%.o, $(CAN_SRC))
 
-
+MACRO_OBJS  = $(patsubst %.c,$(OBJ_DIR)/%.o, $(DEV_SRC))
+MACRO_OBJS += $(patsubst %.c,$(OBJ_DIR)/%.o, $(MACRO_SRC))
+MACRO_OBJS += $(patsubst %.c,$(OBJ_DIR)/%.o, $(CAN_SRC))
 
 #-----------------------------------------------------------------------------#
 # Rules                                                                       #
 #                                                                             #
 #-----------------------------------------------------------------------------#
-all: msg_compiling $(TARGET_OBJS)
-	@echo - Linking : Target is $(TARGET).elf for $(TARGET_HW) ...
-	$(CC) $(LFLAGS) -o $(OBJ_DIR)/$(TARGET) $(TARGET_OBJS)
+all: msg_func msg_macro
+	@echo - Done
 	
-			
+msg_func: $(FUNC_OBJS) 
+	@echo Build target $(TARGET)_func
+	@echo - Linking : Target is $(TARGET)_func ...
+	@$(CC) $(LFLAGS) -o $(OBJ_DIR)/$(TARGET)_func $(FUNC_OBJS)	
+
+msg_macro: $(MACRO_OBJS) 
+	@echo Build target $(TARGET)_macro
+	@echo - Linking : Target is $(TARGET)_macro ...
+	@$(CC) $(LFLAGS) -o $(OBJ_DIR)/$(TARGET)_macro $(MACRO_OBJS)	
+		
 check:
 	@splint -f splint.rc $(ALL_CFILES)
 
+misra:
+	$(MCC) $(MFLAGS) $(ALL_CFILES)
 show:
 	@echo TARGET_OBJS:
 	@echo $(TARGET_OBJS)
@@ -226,7 +253,8 @@ docs:
 clean:
 	@rm -f $(OBJ_DIR)/*.o
 	@rm -f $(OBJ_DIR)/*.d 
-	@rm -f ./$(TARGET)  
+	@rm -f ./$(TARGET)_func 
+	@rm -f ./$(TARGET)_macro
 
 #-----------------------------------------------------------------------------#
 # Dependencies                                                                #
