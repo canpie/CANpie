@@ -578,7 +578,7 @@ enum CpFifo_e {
 ** uint8_t MyCallback(CpCanMsg_ts * ptsCanMsgV, uint8_t ubBufferIdxV)
 ** {
 **    // Do something with IDs < 100
-**    if( CpMsgGetStdId(ptsCanMsgV) < 100)
+**    if( CpMsgGetIdentifier(ptsCanMsgV) < 100)
 **    {
 **       //.....
 **       return(eCP_CALLBACK_PROCESSED)
@@ -844,11 +844,11 @@ enum CpErrType_e {
 ** \brief   Buffer definition
 **
 ** The enumeration CpBuffer_e is used to define a message buffer inside a
-** FullCAN controller. The index for the first buffer starts at 0.
+** FullCAN controller. The index for the first buffer starts at 1.
 */
 enum CpBuffer_e {
    /*! Buffer number 1              */
-   eCP_BUFFER_1 = 0,
+   eCP_BUFFER_1 = 1,
 
    /*! Buffer number 2              */
    eCP_BUFFER_2,
