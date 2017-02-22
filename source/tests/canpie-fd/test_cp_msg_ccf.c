@@ -170,7 +170,7 @@ TEST(CP_MSG_CCF, 002)
    for (ulIdValueT = 0x00; ulIdValueT <= 0x7FF; ulIdValueT++)
    {
       CpMsgSetIdentifier(&tsCanMsgS, ulIdValueT);
-      TEST_ASSERT_EQUAL_UINT32(ulIdValueT & CP_MASK_STD_FRAME,
+      TEST_ASSERT_EQUAL_UINT32(ulIdValueT,
                                CpMsgGetIdentifier(&tsCanMsgS));
       TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
    }
@@ -191,10 +191,10 @@ TEST(CP_MSG_CCF, 002)
    // @SubTest03
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CEFF);
-   for (ulIdValueT = 0x000; ulIdValueT > 0x7FF; ulIdValueT++)
+   for (ulIdValueT = 0x000; ulIdValueT <= 0x7FF; ulIdValueT++)
      {
         CpMsgSetIdentifier(&tsCanMsgS, ulIdValueT);
-        TEST_ASSERT_EQUAL_UINT32(ulIdValueT & CP_MASK_EXT_FRAME,
+        TEST_ASSERT_EQUAL_UINT32(ulIdValueT,
                                  CpMsgGetIdentifier(&tsCanMsgS));
         TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
      }
@@ -203,7 +203,7 @@ TEST(CP_MSG_CCF, 002)
    // @SubTest04
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CEFF);
-   for(ulIdValueT = 0x8000000; ulIdValueT >= 0x1C000000; ulIdValueT++)
+   for(ulIdValueT = 0x8000000; ulIdValueT <= 0x1C000000; ulIdValueT += 0x400)
    {
       CpMsgSetIdentifier(&tsCanMsgS, ulIdValueT);
       TEST_ASSERT_EQUAL_UINT32(ulIdValueT & CP_MASK_EXT_FRAME,
@@ -215,19 +215,7 @@ TEST(CP_MSG_CCF, 002)
    // @SubTest05
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CEFF);
-   for(ulIdValueT = 0x20000000; ulIdValueT >=0xC0000000; ulIdValueT++)
-   {
-      CpMsgSetIdentifier(&tsCanMsgS, ulIdValueT);
-      TEST_ASSERT_EQUAL_UINT32(ulIdValueT & CP_MASK_EXT_FRAME,
-                               CpMsgGetIdentifier(&tsCanMsgS));
-      TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
-   }
-
-   //----------------------------------------------------------------
-   // @SubTest06
-   //
-   CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CEFF);
-   for(ulIdValueT = 0x1FF00240; ulIdValueT >=0x10000000; ulIdValueT += 10000)
+   for(ulIdValueT = 0x1FF00240; ulIdValueT <=0x10000000; ulIdValueT += 0x800)
    {
       CpMsgSetIdentifier(&tsCanMsgS, ulIdValueT);
       TEST_ASSERT_EQUAL_UINT32(ulIdValueT & CP_MASK_EXT_FRAME,
@@ -239,7 +227,7 @@ TEST(CP_MSG_CCF, 002)
    // @SubTest07
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CEFF);
-   for(ulIdValueT = 0x30000000; ulIdValueT >=0xE0000000; ulIdValueT++)
+   for(ulIdValueT = 0x30000000; ulIdValueT <=0xE0000000; ulIdValueT += 0x400)
    {
       CpMsgSetIdentifier(&tsCanMsgS, ulIdValueT);
       TEST_ASSERT_EQUAL_UINT32(ulIdValueT & CP_MASK_EXT_FRAME,
