@@ -67,7 +67,7 @@
 \*----------------------------------------------------------------------------*/
 TEST_GROUP(CP_MSG_CCM);             // test group name
 static CpCanMsg_ts    tsCanMsgS;    // CAN message
-//static CpTime_ts      tsCanTimeS;    // CAN TimeStamp
+static CpTime_ts      tsCanTimeS;   // CAN TimeStamp
 
 
 /*----------------------------------------------------------------------------*\
@@ -100,9 +100,10 @@ TEST_TEAR_DOWN(CP_MSG_CCM)
 /*!
 ** \brief   CP_MSG_CCF_001
 ** This test shall check the correct behaviour of initialising a
-** CpCanMsg_s and setting the Format to C and E using the CpMsgInit() function.
+** CpCanMsg_s and setting the Format to ClassicCanFormat or ExtendedCanFormat
+** using the CpMsgInit() macro.
 */
-//----------------------------------------------------------------------------//
+//----------------------------------------------------------------------------///
 TEST(CP_MSG_CCM, 001)
 {
    //----------------------------------------------------------------
@@ -144,7 +145,7 @@ TEST(CP_MSG_CCM, 001)
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetIdentifier(&tsCanMsgS));
    TEST_ASSERT_FALSE(CpMsgIsFastData(&tsCanMsgS));
    TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
-   UnityPrint("CP_MSG_CCF_001 PASSED");
+   UnityPrint(" CP_MSG_CCM_001 PASSED");
    printf("\n");
 }
 
@@ -154,8 +155,8 @@ TEST(CP_MSG_CCM, 001)
 ** \brief   CP_MSG_CCF_002
 **
 ** The cases shall check the correct behaviour of setting and getting a
-** Identifier (11-bit for Classic CAN or 29-bit for Extended CAN) using the
-**  CpMsgSetIdentifier(), CpMsgGetIdentifier() and CpMsgIsExtended() function
+** Identifier (11-bit ClassicCanFormat or 29-bit ExtendedCanFormat) using the
+** CpMsgSetIdentifier(), CpMsgGetIdentifier() and CpMsgIsExtended() macros.
 */
 //----------------------------------------------------------------------------//
 TEST(CP_MSG_CCM, 002)
@@ -233,7 +234,7 @@ TEST(CP_MSG_CCM, 002)
                                CpMsgGetIdentifier(&tsCanMsgS));
       TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
    }
-   UnityPrint("CP_MSG_CCF_002 PASSED");
+   UnityPrint(" CP_MSG_CCM_002 PASSED");
    printf("\n");
 }
 
@@ -243,8 +244,7 @@ TEST(CP_MSG_CCM, 002)
 ** \brief   CP_MSG_CCF_003
 **
 ** The cases shall check the correct behaviour of setting and getting a
-** Data Length Code in a range of 8-Bit using the CpMsgSetDlc()
-** and  CpMsgGetDlc() function.
+** Data Length Code using the CpMsgSetDlc() and  CpMsgGetDlc() macros.
 */
 //----------------------------------------------------------------------------//
 TEST(CP_MSG_CCM, 003)
@@ -261,7 +261,7 @@ TEST(CP_MSG_CCM, 003)
       TEST_ASSERT_EQUAL_UINT8(ubDlcT, CpMsgGetDlc(&tsCanMsgS));
    }
 
-   UnityPrint("CP_MSG_CCF_003 PASSED");
+   UnityPrint(" CP_MSG_CCM_003 PASSED");
    printf("\n");
 }
 
@@ -271,7 +271,7 @@ TEST(CP_MSG_CCM, 003)
 ** \brief   CP_MSG_CCF_004
 **
 ** The cases shall check the correct behaviour of setting and getting
-** the payload using the CpMsgSetData() and CpMsgGetData() function.
+** the payload by using the CpMsgSetData() and CpMsgGetData() macros.
 */
 //----------------------------------------------------------------------------//
 TEST(CP_MSG_CCM, 004)
@@ -288,7 +288,7 @@ TEST(CP_MSG_CCM, 004)
       TEST_ASSERT_EQUAL_UINT8(0xAA, CpMsgGetData(&tsCanMsgS, ubPosT));
    }
 
-   UnityPrint("CP_MSG_CCF_004 PASSED");
+   UnityPrint(" CP_MSG_CCM_004 PASSED");
    printf("\n");
 }
 
@@ -297,34 +297,33 @@ TEST(CP_MSG_CCM, 004)
 /*!
 ** \brief   CP_MSG_CCF_005
 **
-** The cases shall check the correct behaviour of setting a time-stamp to a
-** CAN message and reading/getting a time-stamp from a CAN Message by using
-** CpMsgSetTime() and CpMsgGetTime()functions.
+** The cases shall check the correct behaviour of getting and setting a time-
+** stamp to a CAN message by using CpMsgSetTime() and CpMsgGetTime() macros.
 */
 //----------------------------------------------------------------------------//
 TEST(CP_MSG_CCM, 005)
 {
-//   //----------------------------------------------------------------
-//   // @SubTest01
-//   //
-//   CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CBFF);
-//   tsCanTimeS.ulNanoSec = 5;
-//   tsCanTimeS.ulSec1970 = 5;
-//   CpMsgSetTime(&tsCanMsgS, &tsCanTimeS);
-//   TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulNanoSec);
-//   TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulSec1970);
-//
-//   //----------------------------------------------------------------
-//   // @SubTest02
-//   //
-//   CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CBFF);
-//   tsCanTimeS.ulNanoSec = 5;
-//   tsCanTimeS.ulSec1970 = 5;
-//   CpMsgSetTime(&tsCanMsgS, &tsCanTimeS);
-//   TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulNanoSec);
-//   TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulSec1970);
-//
-   UnityPrint("CP_MSG_CCF_005 skipped  [ CpMsgSetTime() has to be checked! ]");
+   //----------------------------------------------------------------
+   // @SubTest01
+   //
+   CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CBFF);
+   tsCanTimeS.ulNanoSec = 4;
+   tsCanTimeS.ulSec1970 = 3;
+   CpMsgSetTime(&tsCanMsgS, &tsCanTimeS);
+   TEST_ASSERT_EQUAL(4, (CpMsgGetTime(&tsCanMsgS))->ulNanoSec);
+   TEST_ASSERT_EQUAL(3, (CpMsgGetTime(&tsCanMsgS))->ulSec1970);
+
+   //----------------------------------------------------------------
+   // @SubTest02
+   //
+   CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CEFF);
+   tsCanTimeS.ulNanoSec = 5;
+   tsCanTimeS.ulSec1970 = 5;
+   CpMsgSetTime(&tsCanMsgS, &tsCanTimeS);
+   TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulNanoSec);
+   TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulSec1970);
+
+   UnityPrint(" CP_MSG_CCM_005 PASSED");
    printf("\n");
 }
 
@@ -333,10 +332,9 @@ TEST(CP_MSG_CCM, 005)
 /*!
 ** \brief   CP_MSG_CCF_006
 **
-** The cases shall check the correct behaviour of setting the RTR -Bit
-** (Remote-Bit) of an Can Message Frame using the CpMsgSetRemote() function.
-** The Cases also will check a Can Message Frame if the RTS -bit is set or not
-** by calling the CpMsgIsRemote() function.
+** The cases shall check the correct behaviour of setting the RTR-Bit in a
+** Can Message Frame using the CpMsgSetRemote() function. The Cases also will
+** check if the RTS-bit is set or not, by calling the CpMsgIsRemote() macro.
 */
 //----------------------------------------------------------------------------//
 TEST(CP_MSG_CCM, 006)
@@ -354,7 +352,7 @@ TEST(CP_MSG_CCM, 006)
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CBFF);
    TEST_ASSERT_FALSE(CpMsgIsRemote(&tsCanMsgS));
 
-   UnityPrint("CP_MSG_CCF_006 PASSED");
+   UnityPrint(" CP_MSG_CCM_006 PASSED");
    printf("\n");
 }
 
@@ -365,7 +363,7 @@ TEST(CP_MSG_CCM, 006)
 **
 ** The cases shall check the correct behaviour of setting and checking the
 ** overrun behaviour of an Can Message Frame using the CpMsgSetOverrun()
-** and CpMsgIsOverrun() function.
+** and CpMsgIsOverrun() macros.
 */
 //----------------------------------------------------------------------------//
 TEST(CP_MSG_CCM, 007)
@@ -384,7 +382,7 @@ TEST(CP_MSG_CCM, 007)
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CBFF);
    TEST_ASSERT_FALSE(CpMsgIsOverrun(&tsCanMsgS));
 
-   UnityPrint("CP_MSG_CCF_007 PASSED");
+   UnityPrint(" CP_MSG_CCM_007 PASSED");
    printf("\n");
 }
 
@@ -394,7 +392,7 @@ TEST(CP_MSG_CCM, 007)
 ** \brief   CP_MSG_CCFD_008
 **
 ** This test cases shall verify the correct field values of the CAN message
-** structure CpCanMsg_s using the CpMsgClear() function.
+** structure CpCanMsg_s using the CpMsgClear() macro.
 */
 //----------------------------------------------------------------------------//
 TEST(CP_MSG_CCM, D008)
@@ -442,7 +440,7 @@ TEST(CP_MSG_CCM, D008)
 ** \brief   CP_MSG_CCFD_009
 **
 ** The cases shall check the correct behavior of setting and getting a
-** 11-Bit identifier using the CpMsgSetStdId() and  CpMsgIsExtended() function.
+** 11-Bit identifier using the CpMsgSetStdId() and  CpMsgIsExtended() macro.
 */
 //----------------------------------------------------------------------------//
 TEST(CP_MSG_CCM, D009)
@@ -469,8 +467,8 @@ TEST(CP_MSG_CCM, D009)
 ** \brief   CP_MSG_CCFD_010
 **
 ** The cases shall check the correct behavior of setting and getting the
-** extended 29-Bit identifier using the CpMsgSetExtId()and CpMsgGetExtId()
-** function.
+** extended 29-Bit identifier using the CpMsgSetExtId() and CpMsgGetExtId()
+** macros.
 */
 //----------------------------------------------------------------------------//
 TEST(CP_MSG_CCM, D010)
