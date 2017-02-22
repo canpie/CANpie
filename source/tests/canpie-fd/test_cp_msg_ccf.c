@@ -68,7 +68,7 @@
 \*----------------------------------------------------------------------------*/
 TEST_GROUP(CP_MSG_CCF);             // test group name
 static CpCanMsg_ts    tsCanMsgS;    // CAN message
-//static CpTime_ts      tsCanTimeS;    // CAN TimeStamp
+static CpTime_ts      tsCanTimeS;    // CAN TimeStamp
 
 
 /*----------------------------------------------------------------------------*\
@@ -101,7 +101,8 @@ TEST_TEAR_DOWN(CP_MSG_CCF)
 /*!
 ** \brief   CP_MSG_CCF_001
 ** This test shall check the correct behaviour of initialising a
-** CpCanMsg_s and setting the Format to C and E using the CpMsgInit() function.
+** CpCanMsg_s and setting the Format to ClassicCanFormat or ExtendedCanFormat
+** using the CpMsgInit() function.
 */
 //----------------------------------------------------------------------------//
 TEST(CP_MSG_CCF, 001)
@@ -155,8 +156,8 @@ TEST(CP_MSG_CCF, 001)
 ** \brief   CP_MSG_CCF_002
 **
 ** The cases shall check the correct behaviour of setting and getting a
-** Identifier (11-bit for Classic CAN or 29-bit for Extended CAN) using the
-**  CpMsgSetIdentifier(), CpMsgGetIdentifier() and CpMsgIsExtended() function
+** Identifier (11-bit ClassicCanFormat or 29-bit ExtendedCanFormat) using the
+** CpMsgSetIdentifier(), CpMsgGetIdentifier() and CpMsgIsExtended() functions.
 */
 //----------------------------------------------------------------------------//
 TEST(CP_MSG_CCF, 002)
@@ -282,7 +283,7 @@ TEST(CP_MSG_CCF, 003)
 ** \brief   CP_MSG_CCF_004
 **
 ** The cases shall check the correct behaviour of setting and getting
-** the payload using the CpMsgSetData() and CpMsgGetData() function.
+** the payload by using the CpMsgSetData() and CpMsgGetData() function.
 */
 //----------------------------------------------------------------------------//
 TEST(CP_MSG_CCF, 004)
@@ -315,7 +316,6 @@ TEST(CP_MSG_CCF, 004)
    {
       TEST_ASSERT_EQUAL_UINT8(0xAA, CpMsgGetData(&tsCanMsgS, ubPosT));
    }
-
    UnityPrint("CP_MSG_CCF_004 PASSED");
    printf("\n");
 }
@@ -325,34 +325,32 @@ TEST(CP_MSG_CCF, 004)
 /*!
 ** \brief   CP_MSG_CCF_005
 **
-** The cases shall check the correct behaviour of setting a time-stamp to a
-** CAN message and reading/getting a time-stamp from a CAN Message by using
-** CpMsgSetTime() and CpMsgGetTime()functions.
+** The cases shall check the correct behaviour of getting and setting a time-
+** stamp to a CAN message by using CpMsgSetTime() and CpMsgGetTime() functions.
 */
 //----------------------------------------------------------------------------//
 TEST(CP_MSG_CCF, 005)
 {
-//   //----------------------------------------------------------------
-//   // @SubTest01
-//   //
-//   CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CBFF);
-//   tsCanTimeS.ulNanoSec = 5;
-//   tsCanTimeS.ulSec1970 = 5;
-//   CpMsgSetTime(&tsCanMsgS, &tsCanTimeS);
-//   TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulNanoSec);
-//   TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulSec1970);
-//
-//   //----------------------------------------------------------------
-//   // @SubTest02
-//   //
-//   CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CBFF);
-//   tsCanTimeS.ulNanoSec = 5;
-//   tsCanTimeS.ulSec1970 = 5;
-//   CpMsgSetTime(&tsCanMsgS, &tsCanTimeS);
-//   TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulNanoSec);
-//   TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulSec1970);
-//
-   UnityPrint("CP_MSG_CCF_005 skipped  [ CpMsgSetTime() has to be checked! ]");
+   //----------------------------------------------------------------
+   // @SubTest01
+   //
+   CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CBFF);
+   tsCanTimeS.ulNanoSec = 5;
+   tsCanTimeS.ulSec1970 = 5;
+   CpMsgSetTime(&tsCanMsgS, &tsCanTimeS);
+   TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulNanoSec);
+   TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulSec1970);
+
+   //----------------------------------------------------------------
+   // @SubTest02
+   //
+   CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CEFF);
+   tsCanTimeS.ulNanoSec = 5;
+   tsCanTimeS.ulSec1970 = 5;
+   CpMsgSetTime(&tsCanMsgS, &tsCanTimeS);
+   TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulNanoSec);
+   TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulSec1970);
+   UnityPrint("CP_MSG_CCF_005 PASSED");
    printf("\n");
 }
 
@@ -361,10 +359,9 @@ TEST(CP_MSG_CCF, 005)
 /*!
 ** \brief   CP_MSG_CCF_006
 **
-** The cases shall check the correct behaviour of setting the RTR -Bit
-** (Remote-Bit) of an Can Message Frame using the CpMsgSetRemote() function.
-** The Cases also will check a Can Message Frame if the RTS -bit is set or not
-** by calling the CpMsgIsRemote() function.
+** The cases shall check the correct behaviour of setting the RTR-Bit in a
+** Can Message Frame using the CpMsgSetRemote() function. The Cases also will
+** check if the RTS-bit is set or not, by calling the CpMsgIsRemote() function.
 */
 //----------------------------------------------------------------------------//
 TEST(CP_MSG_CCF, 006)
@@ -382,7 +379,6 @@ TEST(CP_MSG_CCF, 006)
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CBFF);
    TEST_ASSERT_FALSE(CpMsgIsRemote(&tsCanMsgS));
-
    UnityPrint("CP_MSG_CCF_006 PASSED");
    printf("\n");
 }
@@ -412,7 +408,6 @@ TEST(CP_MSG_CCF, 007)
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CBFF);
    TEST_ASSERT_FALSE(CpMsgIsOverrun(&tsCanMsgS));
-
    UnityPrint("CP_MSG_CCF_007 PASSED");
    printf("\n");
 }
@@ -460,6 +455,8 @@ TEST(CP_MSG_CCF, D008)
    TEST_ASSERT_EQUAL_UINT8(0,CpMsgGetExtId(&tsCanMsgS));
    TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
    TEST_ASSERT_EQUAL_UINT8(0,CpMsgGetDlc(&tsCanMsgS));
+   UnityPrint("CP_MSG_CCFD_008 PASSED");
+   printf("\n");
 }
 
 
@@ -508,6 +505,8 @@ TEST(CP_MSG_CCF, D009)
                                CpMsgGetStdId(&tsCanMsgS));
       TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
    }
+   UnityPrint("CP_MSG_CCFD_009 PASSED");
+   printf("\n");
 }
 
 
@@ -571,6 +570,8 @@ TEST(CP_MSG_CCF, D010)
    TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
    CpMsgSetStdId(&tsCanMsgS, ubCountS);
    TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
+   UnityPrint("CP_MSG_CCFD_010 PASSED");
+   printf("\n");
 }
 
 
@@ -590,7 +591,7 @@ TEST_GROUP_RUNNER(CP_MSG_CCF)
    RUN_TEST_CASE(CP_MSG_CCF, 006);
    RUN_TEST_CASE(CP_MSG_CCF, 007);
    RUN_TEST_CASE(CP_MSG_CCF, D008);
-//   RUN_TEST_CASE(CP_MSG_CCF, D009);
-//   RUN_TEST_CASE(CP_MSG_CCF, D010);
+   RUN_TEST_CASE(CP_MSG_CCF, D009);
+   RUN_TEST_CASE(CP_MSG_CCF, D010);
    printf("\n");
 }

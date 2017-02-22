@@ -66,7 +66,7 @@
 \*----------------------------------------------------------------------------*/
 TEST_GROUP(CP_MSG_FDM);             // test group name
 static CpCanMsg_ts    tsCanMsgS;    // CAN message
-//static CpTime_ts      tsCanTimeS;    // CAN TimeStamp
+static CpTime_ts      tsCanTimeS;   // CAN TimeStamp
 
 
 /*----------------------------------------------------------------------------*\
@@ -143,7 +143,7 @@ TEST(CP_MSG_FDM, 001)
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetIdentifier(&tsCanMsgS));
    TEST_ASSERT_TRUE(CpMsgIsFastData(&tsCanMsgS));
    TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
-   UnityPrint("CP_MSG_CCF_001 PASSED");
+   UnityPrint(" CP_MSG_FDM_001 PASSED");
    printf("\n");
 }
 
@@ -232,7 +232,7 @@ TEST(CP_MSG_FDM, 002)
                                CpMsgGetIdentifier(&tsCanMsgS));
       TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
    }
-   UnityPrint("CP_MSG_CCF_002 PASSED");
+   UnityPrint(" CP_MSG_FDM_002 PASSED");
    printf("\n");
 }
 
@@ -260,7 +260,7 @@ TEST(CP_MSG_FDM, 003)
       TEST_ASSERT_EQUAL_UINT8(ubDlcT, CpMsgGetDlc(&tsCanMsgS));
    }
 
-   UnityPrint("CP_MSG_CCF_003 PASSED");
+   UnityPrint(" CP_MSG_FDM_003 PASSED");
    printf("\n");
 }
 
@@ -286,8 +286,7 @@ TEST(CP_MSG_FDM, 004)
       CpMsgSetData(&tsCanMsgS, ubPosT, 0xAA);
       TEST_ASSERT_EQUAL_UINT8(0xAA, CpMsgGetData(&tsCanMsgS, ubPosT));
    }
-
-   UnityPrint("CP_MSG_CCF_004 PASSED");
+   UnityPrint(" CP_MSG_FDM_004 PASSED");
    printf("\n");
 }
 
@@ -303,17 +302,26 @@ TEST(CP_MSG_FDM, 004)
 //----------------------------------------------------------------------------//
 TEST(CP_MSG_FDM, 005)
 {
-//   //----------------------------------------------------------------
-//   // @SubTest01
-//   //
-//   CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FBFF);
-//   tsCanTimeS.ulNanoSec = 5;
-//   tsCanTimeS.ulSec1970 = 5;
-//   CpMsgSetTime(&tsCanMsgS, &tsCanTimeS);
-//   TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulNanoSec);
-//   TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulSec1970);
+   //----------------------------------------------------------------
+   // @SubTest01
+   //
+   CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FBFF);
+   tsCanTimeS.ulNanoSec = 8;
+   tsCanTimeS.ulSec1970 = 7;
+   CpMsgSetTime(&tsCanMsgS, &tsCanTimeS);
+   TEST_ASSERT_EQUAL(8, (CpMsgGetTime(&tsCanMsgS))->ulNanoSec);
+   TEST_ASSERT_EQUAL(7, (CpMsgGetTime(&tsCanMsgS))->ulSec1970);
 
-   UnityPrint("CP_MSG_CCF_005 skipped  [ CpMsgSetTime() has to be checked! ]");
+   //----------------------------------------------------------------
+   // @SubTest02
+   //
+   CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FEFF);
+   tsCanTimeS.ulNanoSec = 5;
+   tsCanTimeS.ulSec1970 = 5;
+   CpMsgSetTime(&tsCanMsgS, &tsCanTimeS);
+   TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulNanoSec);
+   TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulSec1970);
+   UnityPrint(" CP_MSG_FDM_005 PASSED");
    printf("\n");
 }
 
@@ -322,7 +330,10 @@ TEST(CP_MSG_FDM, 005)
 /*!
 ** \brief   CP_MSG_CCF_006
 **
-** BRS
+** The cases shall check the correct behaviour of setting the BTR-Bit in a
+** CanFD Message Frame using the CpMsgSetBitrateSwitch() macro.
+** The Cases also will check if the BTS-bit is set or not, by using the
+** CpMsgIsBitrateSwitch() macro.
 */
 //----------------------------------------------------------------------------//
 TEST(CP_MSG_FDM, 006)
@@ -353,8 +364,7 @@ TEST(CP_MSG_FDM, 006)
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FEFF);
    TEST_ASSERT_FALSE(CpMsgIsBitrateSwitch(&tsCanMsgS));
-
-   UnityPrint("CP_MSG_CCF_006 PASSED");
+   UnityPrint(" CP_MSG_FDM_006 PASSED");
    printf("\n");
 }
 
@@ -363,7 +373,10 @@ TEST(CP_MSG_FDM, 006)
 /*!
 ** \brief   CP_MSG_CCF_007
 **
-** Remote
+** The cases shall check the correct behaviour of setting and getting the
+** RTR-Bit in a Can FD Message Frame by using the CpMsgSetRemote() and
+** CpMsgIsRemote() macros. As the RTR-bit does not exist in CanFD Frames,the
+** expected returnvalue should be FALSE and the Frame isnt thouched at all.
 */
 //----------------------------------------------------------------------------//
 TEST(CP_MSG_FDM, 007)
@@ -382,8 +395,7 @@ TEST(CP_MSG_FDM, 007)
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FEFF);
    CpMsgSetRemote(&tsCanMsgS);
    TEST_ASSERT_FALSE(CpMsgIsRemote(&tsCanMsgS));
-
-   UnityPrint("CP_MSG_CCF_006 PASSED");
+   UnityPrint(" CP_MSG_FDM_007 PASSED");
    printf("\n");
 }
 
@@ -394,7 +406,7 @@ TEST(CP_MSG_FDM, 007)
 **
 ** The cases shall check the correct behaviour of setting and checking the
 ** overrun behaviour of an Can Message Frame using the CpMsgSetOverrun()
-** and CpMsgIsOverrun() function.
+** and CpMsgIsOverrun() macros.
 */
 //----------------------------------------------------------------------------//
 TEST(CP_MSG_FDM, 008)
@@ -412,8 +424,7 @@ TEST(CP_MSG_FDM, 008)
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CBFF);
    TEST_ASSERT_FALSE(CpMsgIsOverrun(&tsCanMsgS));
-
-   UnityPrint("CP_MSG_CCF_007 PASSED");
+   UnityPrint(" CP_MSG_FDM_008 PASSED");
    printf("\n");
 }
 
@@ -423,7 +434,7 @@ TEST(CP_MSG_FDM, 008)
 ** \brief   CP_MSG_CCFD_009
 **
 ** This test cases shall verify the correct field values of the CAN message
-** structure CpCanMsg_s using the CpMsgClear() function.
+** structure CpCanMsg_s using the CpMsgClear() macro.
 */
 //----------------------------------------------------------------------------//
 TEST(CP_MSG_FDM, D009)
@@ -460,6 +471,8 @@ TEST(CP_MSG_FDM, D009)
    TEST_ASSERT_EQUAL_UINT8(0,CpMsgGetExtId(&tsCanMsgS));
    TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
    TEST_ASSERT_EQUAL_UINT8(0,CpMsgGetDlc(&tsCanMsgS));
+   UnityPrint("CP_MSG_FDMD_009 PASSED");
+   printf("\n");
 }
 
 
@@ -468,7 +481,7 @@ TEST(CP_MSG_FDM, D009)
 ** \brief   CP_MSG_CCFD_010
 **
 ** The cases shall check the correct behavior of setting and getting a
-** 11-Bit identifier using the CpMsgSetStdId() and  CpMsgIsExtended() function.
+** 11-Bit identifier using the CpMsgSetStdId() and  CpMsgIsExtended() macros.
 */
 //----------------------------------------------------------------------------//
 TEST(CP_MSG_FDM, D010)
@@ -508,6 +521,8 @@ TEST(CP_MSG_FDM, D010)
                                CpMsgGetStdId(&tsCanMsgS));
       TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
    }
+   UnityPrint("CP_MSG_FDMD_010 PASSED");
+   printf("\n");
 }
 
 
@@ -517,7 +532,7 @@ TEST(CP_MSG_FDM, D010)
 **
 ** The cases shall check the correct behavior of setting and getting the
 ** extended 29-Bit identifier using the CpMsgSetExtId()and CpMsgGetExtId()
-** function.
+** macros.
 */
 //----------------------------------------------------------------------------//
 TEST(CP_MSG_FDM, D011)
@@ -571,6 +586,8 @@ TEST(CP_MSG_FDM, D011)
    TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
    CpMsgSetStdId(&tsCanMsgS, ubCountS);
    TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
+   UnityPrint("CP_MSG_FDMD_011 PASSED");
+   printf("\n");
 }
 
 
