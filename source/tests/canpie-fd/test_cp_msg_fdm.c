@@ -143,7 +143,7 @@ TEST(CP_MSG_FDM, 001)
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetIdentifier(&tsCanMsgS));
    TEST_ASSERT_TRUE(CpMsgIsFastData(&tsCanMsgS));
    TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
-   UnityPrint("CP_MSG_CCF_001 PASSED");
+   UnityPrint(" CP_MSG_FDM_001 PASSED");
    printf("\n");
 }
 
@@ -232,7 +232,7 @@ TEST(CP_MSG_FDM, 002)
                                CpMsgGetIdentifier(&tsCanMsgS));
       TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
    }
-   UnityPrint("CP_MSG_CCF_002 PASSED");
+   UnityPrint(" CP_MSG_FDM_002 PASSED");
    printf("\n");
 }
 
@@ -260,7 +260,7 @@ TEST(CP_MSG_FDM, 003)
       TEST_ASSERT_EQUAL_UINT8(ubDlcT, CpMsgGetDlc(&tsCanMsgS));
    }
 
-   UnityPrint("CP_MSG_CCF_003 PASSED");
+   UnityPrint(" CP_MSG_FDM_003 PASSED");
    printf("\n");
 }
 
@@ -286,8 +286,7 @@ TEST(CP_MSG_FDM, 004)
       CpMsgSetData(&tsCanMsgS, ubPosT, 0xAA);
       TEST_ASSERT_EQUAL_UINT8(0xAA, CpMsgGetData(&tsCanMsgS, ubPosT));
    }
-
-   UnityPrint("CP_MSG_CCF_004 PASSED");
+   UnityPrint(" CP_MSG_FDM_004 PASSED");
    printf("\n");
 }
 
@@ -322,8 +321,7 @@ TEST(CP_MSG_FDM, 005)
    CpMsgSetTime(&tsCanMsgS, &tsCanTimeS);
    TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulNanoSec);
    TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulSec1970);
-
-   UnityPrint("CP_MSG_CCF_005 PASSED");
+   UnityPrint(" CP_MSG_FDM_005 PASSED");
    printf("\n");
 }
 
@@ -366,8 +364,7 @@ TEST(CP_MSG_FDM, 006)
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FEFF);
    TEST_ASSERT_FALSE(CpMsgIsBitrateSwitch(&tsCanMsgS));
-
-   UnityPrint("CP_MSG_CCF_006 PASSED");
+   UnityPrint(" CP_MSG_FDM_006 PASSED");
    printf("\n");
 }
 
@@ -398,8 +395,7 @@ TEST(CP_MSG_FDM, 007)
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FEFF);
    CpMsgSetRemote(&tsCanMsgS);
    TEST_ASSERT_FALSE(CpMsgIsRemote(&tsCanMsgS));
-
-   UnityPrint("CP_MSG_CCF_006 PASSED");
+   UnityPrint(" CP_MSG_FDM_007 PASSED");
    printf("\n");
 }
 
@@ -428,8 +424,7 @@ TEST(CP_MSG_FDM, 008)
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CBFF);
    TEST_ASSERT_FALSE(CpMsgIsOverrun(&tsCanMsgS));
-
-   UnityPrint("CP_MSG_CCF_007 PASSED");
+   UnityPrint(" CP_MSG_FDM_008 PASSED");
    printf("\n");
 }
 
@@ -476,6 +471,8 @@ TEST(CP_MSG_FDM, D009)
    TEST_ASSERT_EQUAL_UINT8(0,CpMsgGetExtId(&tsCanMsgS));
    TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
    TEST_ASSERT_EQUAL_UINT8(0,CpMsgGetDlc(&tsCanMsgS));
+   UnityPrint("CP_MSG_FDMD_009 PASSED");
+   printf("\n");
 }
 
 
@@ -524,6 +521,8 @@ TEST(CP_MSG_FDM, D010)
                                CpMsgGetStdId(&tsCanMsgS));
       TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
    }
+   UnityPrint("CP_MSG_FDMD_010 PASSED");
+   printf("\n");
 }
 
 
@@ -587,6 +586,8 @@ TEST(CP_MSG_FDM, D011)
    TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
    CpMsgSetStdId(&tsCanMsgS, ubCountS);
    TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
+   UnityPrint("CP_MSG_FDMD_011 PASSED");
+   printf("\n");
 }
 
 

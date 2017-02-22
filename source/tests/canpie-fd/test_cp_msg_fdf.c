@@ -315,7 +315,6 @@ TEST(CP_MSG_FDF, 004)
    {
       TEST_ASSERT_EQUAL_UINT8(0xAA, CpMsgGetData(&tsCanMsgS, ubPosT));
    }
-
    UnityPrint("CP_MSG_CCF_004 PASSED");
    printf("\n");
 }
@@ -350,7 +349,6 @@ TEST(CP_MSG_FDF, 005)
    CpMsgSetTime(&tsCanMsgS, &tsCanTimeS);
    TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulNanoSec);
    TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulSec1970);
-
    UnityPrint("CP_MSG_CCF_005 PASSED");
    printf("\n");
 }
@@ -394,7 +392,6 @@ TEST(CP_MSG_FDF, 006)
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FEFF);
    TEST_ASSERT_FALSE(CpMsgIsBitrateSwitch(&tsCanMsgS));
-
    UnityPrint("CP_MSG_CCF_006 PASSED");
    printf("\n");
 }
@@ -426,7 +423,6 @@ TEST(CP_MSG_FDF, 007)
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FEFF);
    CpMsgSetRemote(&tsCanMsgS);
    TEST_ASSERT_FALSE(CpMsgIsRemote(&tsCanMsgS));
-
    UnityPrint("CP_MSG_CCF_006 PASSED");
    printf("\n");
 }
@@ -456,7 +452,6 @@ TEST(CP_MSG_FDF, 008)
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CBFF);
    TEST_ASSERT_FALSE(CpMsgIsOverrun(&tsCanMsgS));
-
    UnityPrint("CP_MSG_CCF_007 PASSED");
    printf("\n");
 }
@@ -506,6 +501,8 @@ TEST(CP_MSG_FDF, D009)
    TEST_ASSERT_EQUAL_UINT8(0,CpMsgGetExtId(&tsCanMsgS));
    TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
    TEST_ASSERT_EQUAL_UINT8(0,CpMsgGetDlc(&tsCanMsgS));
+   UnityPrint("CP_MSG_FDFD_009 PASSED");
+   printf("\n");
 }
 
 
@@ -554,6 +551,8 @@ TEST(CP_MSG_FDF, D010)
                                CpMsgGetStdId(&tsCanMsgS));
       TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
    }
+   UnityPrint("CP_MSG_FDFD_010 PASSED");
+   printf("\n");
 }
 
 
@@ -617,9 +616,9 @@ TEST(CP_MSG_FDF, D011)
    TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
    CpMsgSetStdId(&tsCanMsgS, ubCountS);
    TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
+   UnityPrint("CP_MSG_FDFD_011 PASSED");
+   printf("\n");
 }
-
-
 
 //----------------------------------------------------------------------------//
 // TEST_GROUP_RUNNER()                                                        //
