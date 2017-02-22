@@ -217,7 +217,8 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readCAN(QCanFrame &clFrameR)
    //----------------------------------------------------------------
    // get next message from FIFO
    //
-   ulStatusT = pclPcanBasicP.read(uwPCanChannelP, &tsCanMsgT, &tsTimestampBufferT);
+   ulStatusT = pclPcanBasicP.read(uwPCanChannelP, &tsCanMsgT, 
+                                  &tsTimestampBufferT);
 
    /*
    if (ulStatusT == PCAN_ERROR_OK)
@@ -298,7 +299,7 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::read(QByteArray &clDataR)
    uint32_t          ulMicroSecsT;
    QCanFrame         clCanFrameT;
    QCanFrameError    clErrFrameT;
-   CpTimeStamp       clTimeStampT;
+   QCanTimeStamp     clTimeStampT;
    InterfaceError_e  clRetValueT = eERROR_NONE;
    
    //----------------------------------------------------------------
@@ -335,11 +336,11 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::read(QByteArray &clDataR)
             //
             if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_EXTENDED)
             {
-               clCanFrameT.setFrameFormat(CpFrame::eFORMAT_FD_EXT);
+               clCanFrameT.setFrameFormat(QCanFrame::eFORMAT_FD_EXT);
             }
             else
             {
-               clCanFrameT.setFrameFormat(CpFrame::eFORMAT_FD_STD);
+               clCanFrameT.setFrameFormat(QCanFrame::eFORMAT_FD_STD);
             }
          }
          else
@@ -350,11 +351,11 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::read(QByteArray &clDataR)
             //
             if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_EXTENDED)
             {
-               clCanFrameT.setFrameFormat(CpFrame::eFORMAT_CAN_EXT);
+               clCanFrameT.setFrameFormat(QCanFrame::eFORMAT_CAN_EXT);
             }
             else
             {
-               clCanFrameT.setFrameFormat(CpFrame::eFORMAT_CAN_STD);
+               clCanFrameT.setFrameFormat(QCanFrame::eFORMAT_CAN_STD);
             }
             
             //----------------------------------------
@@ -714,6 +715,8 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slNomBitR
       ulStatusT = pclPcanBasicP.initializeFD(uwPCanChannelP, clTxtBitrateT.data());
       btFdUsedP = true;
 
+      #else
+      ulStatusT = PCAN_ERROR_ILLPARAMVAL;
       #endif
    }
    else
@@ -786,7 +789,7 @@ QCanInterface::InterfaceError_e	QCanInterfacePeak::setMode(const CAN_Mode_e teMo
 //                                                                            //
 //----------------------------------------------------------------------------//
 void QCanInterfacePeak::setupErrorFrame(TPCANStatus ulStatusV, 
-                                        CpFrameError &clFrameR)
+                                        QCanFrameError &clFrameR)
 {
 
    //---------------------------------------------------------

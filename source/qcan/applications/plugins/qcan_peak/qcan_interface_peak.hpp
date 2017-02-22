@@ -91,7 +91,7 @@ private:
 
    bool btFdUsedP;
 
-   void setupErrorFrame(TPCANStatus ulStatusV, CpFrameError &clFrameR);
+   void setupErrorFrame(TPCANStatus ulStatusV, QCanFrameError &clFrameR);
 
 public:
 

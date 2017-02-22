@@ -90,23 +90,19 @@ RESOURCES = qcan_peak.qrc
 INCLUDEPATH  = .
 INCLUDEPATH += ./include
 INCLUDEPATH += ./../../..
-INCLUDEPATH += ./../../../../canpie-fd
+
 
 #---------------------------------------------------------------
 # search path for source files
 #
 VPATH  = .
 VPATH += ./../../..
-VPATH += ./../../../../canpie-fd
 
 
 #---------------------------------------------------------------
 # header files of project
 #
-HEADERS =   qcan_frame_api.hpp      \
-            qcan_frame_error.hpp    \
-            qcan_frame.hpp          \
-            qcan_interface.hpp      \
+HEADERS =   qcan_interface.hpp      \
             qcan_interface_peak.hpp \
             qcan_pcan_basic.hpp     \
             qcan_plugin.hpp         \
@@ -116,13 +112,11 @@ HEADERS =   qcan_frame_api.hpp      \
 #---------------------------------------------------------------
 # source files of project
 #
-SOURCES =   canpie_frame_api.cpp    \
-            canpie_frame_error.cpp  \
-            canpie_frame.cpp        \
-            canpie_timestamp.cpp    \
+SOURCES =   qcan_data.cpp           \
+            qcan_frame.cpp          \
             qcan_frame_api.cpp      \
             qcan_frame_error.cpp    \
-            qcan_frame.cpp          \
+            qcan_timestamp.cpp      \
             qcan_interface_peak.cpp \
             qcan_pcan_basic.cpp     \
             qcan_plugin_peak.cpp
