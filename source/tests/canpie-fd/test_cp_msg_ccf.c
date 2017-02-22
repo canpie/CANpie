@@ -68,7 +68,7 @@
 \*----------------------------------------------------------------------------*/
 TEST_GROUP(CP_MSG_CCF);             // test group name
 static CpCanMsg_ts    tsCanMsgS;    // CAN message
-static CpTime_ts      tsCanTimeS;    // CAN TimeStamp
+//static CpTime_ts      tsCanTimeS;    // CAN TimeStamp
 
 
 /*----------------------------------------------------------------------------*\
@@ -443,7 +443,6 @@ TEST(CP_MSG_CCF, D008)
    CpMsgSetStdId(&tsCanMsgS, 0xE04);
    CpMsgSetExtId(&tsCanMsgS, 0x2000E04);
    CpMsgSetDlc(&tsCanMsgS, 0x07);
-   CpMsgSetData(&tsCanMsgS, 1,0x63);
 
    CpMsgClear(&tsCanMsgS);
 
@@ -451,7 +450,6 @@ TEST(CP_MSG_CCF, D008)
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetExtId(&tsCanMsgS));
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetDlc(&tsCanMsgS));
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetStdId(&tsCanMsgS));
-   TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetData(&tsCanMsgS,1));
 
    //----------------------------------------------------------------
    // @SubTest03
