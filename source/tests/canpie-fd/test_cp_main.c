@@ -17,12 +17,12 @@
 //----------------------------------------------------------------------------//
 static void RunAllTests(void)
 {
-   RUN_TEST_GROUP(CP_CORE);
+ //  RUN_TEST_GROUP(CP_CORE);
 
-   RUN_TEST_GROUP(CP_MSG_CCF);
+ //  RUN_TEST_GROUP(CP_MSG_CCF);
    RUN_TEST_GROUP(CP_MSG_CCM);
-   RUN_TEST_GROUP(CP_MSG_FDF);
-   RUN_TEST_GROUP(CP_MSG_FDM);
+ //  RUN_TEST_GROUP(CP_MSG_FDF);
+//   RUN_TEST_GROUP(CP_MSG_FDM);
 
 
 
