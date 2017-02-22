@@ -45,7 +45,7 @@
 #include "qcan_frame.hpp"
 
 
-using namespace CANpie;
+using namespace QCan;
 
 //-----------------------------------------------------------------------------
 /*!

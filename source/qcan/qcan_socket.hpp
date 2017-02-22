@@ -40,6 +40,8 @@
 #include "qcan_defs.hpp"
 #include "qcan_frame.hpp"
 #include "qcan_frame_api.hpp"
+#include "qcan_frame_error.hpp"
+
 
 
 //-----------------------------------------------------------------------------
@@ -158,7 +160,9 @@ public:
 
    bool  setMode(CAN_Mode_e & teModeR);
 
-
+   bool  read( QByteArray & clFrameDataR, 
+               QCanData::Type_e * pubFrameType = Q_NULLPTR);
+   
    /*!
    ** \param[out] clFrameR       Reference to CAN frame
    ** \return     \c true if CAN frame was read
@@ -170,6 +174,8 @@ public:
    */
    bool  readFrame(QCanFrame & clFrameR);
 
+   bool  write(const QByteArray & clFrameDataR);
+   
    /*!
    ** \param[in]  clFrameR       Reference to CAN frame
    ** \return     \c true if CAN frame was written
@@ -181,13 +187,21 @@ public:
    bool  writeFrame(const QCanFrame & clFrameR);
 
    /*!
-   ** \param[in]  clFrameR       Reference to CAN frame
+   ** \param[in]  clFrameR       Reference to CAN API frame
    ** \return     \c true if CAN frame was written
    **
    ** This is an overloaded function, using QCanFrameApi as parameter.
    */
    bool  writeFrame(const QCanFrameApi & clFrameR);
 
+   /*!
+   ** \param[in]  clFrameR       Reference to CAN error frame
+   ** \return     \c true if CAN frame was written
+   **
+   ** This is an overloaded function, using QCanFrameError as parameter.
+   */
+   bool  writeFrame(const QCanFrameError & clFrameR);
+   
 
 public slots:
 

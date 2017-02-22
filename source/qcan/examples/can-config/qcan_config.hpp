@@ -1,6 +1,6 @@
 //============================================================================//
-// File:          qcan_send.cpp                                               //
-// Description:   Send CAN messages                                           //
+// File:          qcan_config.hpp                                             //
+// Description:   Configure CAN interface                                     //
 //                                                                            //
 // Copyright (C) MicroControl GmbH & Co. KG                                   //
 // 53844 Troisdorf - Germany                                                  //
@@ -31,12 +31,12 @@
 
 #include <QCanSocket>
 
-class QCanSend : public QObject
+class QCanConfig : public QObject
 {
    Q_OBJECT
 
 public:
-   QCanSend(QObject *parent = 0);
+   QCanConfig(QObject *parent = 0);
 
 signals:
    void finished();
@@ -46,7 +46,7 @@ public slots:
 
    void runCmdParser(void);
 
-   void sendFrame(void);
+   void sendCommand(void);
    void socketConnected();
    void socketDisconnected();
    void socketError(QAbstractSocket::SocketError teSocketErrorV);
@@ -60,16 +60,11 @@ private:
    QCanSocket           clCanSocketP;
    uint8_t              ubChannelP;
    
-   QCanFrame            clCanFrameP;
-   uint32_t             ulFrameIdP;
-   uint32_t             ulFrameGapP;
-   uint8_t              ubFrameDlcP;
-   uint8_t              ubFrameFormatP;
-   uint8_t              aubFrameDataP[QCAN_MSG_DATA_MAX];
-   bool                 btIncIdP;
-   bool                 btIncDlcP;
-   bool                 btIncDataP;
-   uint32_t             ulFrameCountP;
+   QCanFrameApi         clCanApiP;
+   int32_t              slNomBitRateP;
+   int32_t              slDatBitRateP;
+   CAN_Mode_e           teCanModeP;
+   bool                 btConfigBitrateP;
 };
 
 

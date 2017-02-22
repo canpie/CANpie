@@ -36,13 +36,10 @@
 ** Include files                                                              **
 **                                                                            **
 \*----------------------------------------------------------------------------*/
-#include "canpie_frame_api.hpp"
-#include "qcan_defs.hpp"
-#include "qcan_frame.hpp"
 
-using namespace CANpie;
+#include "qcan_data.hpp"
 
-
+using namespace QCan;
 
 //-----------------------------------------------------------------------------
 /*!
@@ -51,19 +48,68 @@ using namespace CANpie;
 ** 
 ** This class defines a CAN API frame.
 */
-class QCanFrameApi : public CpFrameApi, private QCanFrame
+class QCanFrameApi :  private QCanData
 {
 public:
   
+   enum ApiFunc_e {
+
+      eAPI_FUNC_NONE   = 0,
+
+      /*! Set bit-rate                                   */
+      eAPI_FUNC_BITRATE,
+
+      /*! Set CAN mode                                   */
+      eAPI_FUNC_CAN_MODE,
+
+      eAPI_FUNC_DRIVER_INIT,
+
+      eAPI_FUNC_DRIVER_RELEASE,
+
+      eAPI_FUNC_HDI,
+
+      eAPI_FUNC_NAME,
+
+      eAPI_FUNC_STATE
+
+   };
+
+
    QCanFrameApi();
    
    
    ~QCanFrameApi();
 
+   bool  bitrate(int32_t & slNomBitRateV, int32_t & slDatBitRateV);
+
+   int32_t  bitrateData(void);
+
+   int32_t  bitrateNominal(void);
+   
+   //bool  hdi(CpHdi_ts & tsHdiR);
+
+   ApiFunc_e function(void);
+
+   bool  name(QString & clNameR);
+
+   CAN_Mode_e  mode(void);
+
+   void setBitrate(int32_t slBitrateV, int32_t slBrsClockV);
+
+   void  setDriverInit();
+
+   void  setDriverRelease();
+
+   void  setMode(CAN_Mode_e teModeV);
+
+   void  setName(QString clNameV);
+
+   //void  setHdi(CpHdi_ts * tsHdiV);
+   
    bool       fromByteArray(const QByteArray & clByteArrayR);
    QByteArray toByteArray() const;
-   QString    toString(const bool & btShowTimeR = false);
-   
+   virtual QString   toString(const bool & btShowTimeR = false);
+
 private:
    
    

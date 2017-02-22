@@ -36,11 +36,10 @@
 ** Include files                                                              **
 **                                                                            **
 \*----------------------------------------------------------------------------*/
-#include "canpie_frame_error.hpp"
-#include "qcan_defs.hpp"
-#include "qcan_frame.hpp"
 
-using namespace CANpie;
+#include "qcan_data.hpp"
+
+using namespace QCan;
 
 //-----------------------------------------------------------------------------
 /*!
@@ -59,10 +58,34 @@ using namespace CANpie;
 ** about the last error type which caused the error condition
 ** (function errorType()).
 */
-class QCanFrameError : public CpFrameError, private QCanFrame
+class QCanFrameError : private QCanData
 {
 public:
    
+
+   enum ErrorType_e {
+
+      /*! no error                                          */
+      eERROR_TYPE_NONE   = 0,
+
+      /*! Bit 0 error occurred                              */
+      eERROR_TYPE_BIT0,
+
+      /*! Bit 1 error occurred                              */
+      eERROR_TYPE_BIT1,
+
+      /*! Stuff error occurred                              */
+      eERROR_TYPE_STUFF,
+
+      /*! Form  error occurred                              */
+      eERROR_TYPE_FORM,
+
+      /*! CRC error occurred                                */
+      eERROR_TYPE_CRC,
+
+      /*! Acknowledgement error occurred                    */
+      eERROR_TYPE_ACK
+   };
 
    /*!
    ** Constructs an empty CAN error frame with a CAN state of
@@ -71,6 +94,88 @@ public:
    QCanFrameError();
    
    ~QCanFrameError();
+
+
+   /*!
+   ** \return     Value of receive error counter
+   ** \see        setErrorCounterReceive()
+   **
+   ** This functions returns the current value of the receive error counter.
+   */
+   uint8_t  errorCounterReceive(void) const;
+
+
+   /*!
+   ** \return     Value of transmit error counter
+   ** \see        setErrorCounterTransmit()
+   **
+   ** This functions returns the current value of the transmit error counter.
+   ** A value of 255 leads to a bus-off condition (CANpie::eCAN_STATE_BUS_OFF).
+   */
+   uint8_t  errorCounterTransmit(void) const;
+
+
+   /*!
+   ** \return     Current error state
+   ** \see        setErrorState()
+   **
+   ** This functions returns the current error state, defined by the
+   ** enumeration CANpie::CAN_State_e.
+   */
+   CAN_State_e             errorState(void) const;
+
+
+   /*!
+   ** \return     Error type
+   ** \see        setErrorType()
+   **
+   ** This functions returns the error type which caused the last error
+   ** condition.
+   */
+   QCanFrameError::ErrorType_e   errorType(void) const;
+
+
+   /*!
+   ** \param[in]  ubErrorCntR    Receive error counter value
+   ** \see        errorCounterReceive()
+   **
+   ** This functions sets the receive error counter. Passing a value
+   ** greater than 127 will set the error state to error passive
+   ** (CANpie::eCAN_STATE_BUS_PASSIVE).
+   */
+   void setErrorCounterReceive(const uint8_t & ubErrorCntR);
+
+
+   /*!
+   ** \param[in]  ubErrorCntR    Transmit error counter value
+   ** \see        errorCounterTransmit()
+   **
+   ** This functions sets the transmit error counter. Passing a value
+   ** greater than 127 will set the error state to error passive
+   ** (CANpie::eCAN_STATE_BUS_PASSIVE). A value of 255 will set the
+   ** error state to bus-off (CANpie::eCAN_STATE_BUS_OFF).
+   */
+   void setErrorCounterTransmit(const uint8_t & ubErrorCntR);
+
+
+   /*!
+   ** \param[in]  ubStateV       Error state value
+   ** \see                       errorState()
+   **
+   ** This functions sets the current error state, defined by the
+   ** enumeration CANpie::CAN_State_e.
+   */
+   void setErrorState(CAN_State_e ubStateV);
+
+
+   /*!
+   ** \param[in]  ubTypeV        Error type value
+   ** \see        errorType()
+   **
+   ** This functions sets the error type which caused the last error
+   ** condition.
+   */
+   void setErrorType(ErrorType_e ubTypeV);
 
    bool       fromByteArray(const QByteArray & clByteArrayR);
    QByteArray toByteArray() const;

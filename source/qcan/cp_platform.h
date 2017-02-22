@@ -86,12 +86,31 @@
 \*----------------------------------------------------------------------------*/
 
 
+/*----------------------------------------------------------------------------*/
+/*!
+** \struct  CpPortEmbedded_s
+** \brief   Port structure for embedded target
+**
+*/
+struct CpPortEmbedded_s {
+
+   /*!   Physical CAN interface number,
+   **    first CAN channel (index) is eCP_CHANNEL_1
+   */
+   uint8_t     ubPhyIf;
+
+   /*!   Private driver information 
+   */
+   uint8_t     ubDrvInfo;
+
+};
+
 /*----------------------------------------------------------------------------*\
 ** Type definitions                                                           **
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-typedef QCanSocket               CpPort_ts;
+typedef struct CpPortEmbedded_s  CpPort_ts;
 
 typedef uint8_t                  CpStatus_tv;
 

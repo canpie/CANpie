@@ -257,6 +257,41 @@ void QCanSocket::onSocketReceive(void)
    framesReceived(ulFrameCountT);
 }
 
+bool QCanSocket::read(QByteArray & clFrameDataR, 
+                      QCanData::Type_e * pubFrameTypeV)
+{
+   bool  btResultT = false;
+
+   if(framesAvailable() > 0)
+   {
+      clFrameDataR = pclTcpSockP->read(QCAN_FRAME_ARRAY_SIZE);
+      if (pubFrameTypeV != Q_NULLPTR)
+      {
+         switch(clFrameDataR.at(0) & 0xE0)
+         {
+            case 0x00:
+               *pubFrameTypeV = QCanData::eTYPE_CAN;
+               break;
+            
+            case 0x40:
+               *pubFrameTypeV = QCanData::eTYPE_API;
+               break;
+            
+            case 0x80:
+               *pubFrameTypeV = QCanData::eTYPE_ERROR;
+               break;
+               
+            default:
+               *pubFrameTypeV = QCanData::eTYPE_UNKNOWN;
+               break;
+         }
+      }
+      btResultT = true;
+   }
+   
+   return (btResultT);
+   
+}
 
 //----------------------------------------------------------------------------//
 // readFrame()                                                                //
@@ -270,8 +305,7 @@ bool QCanSocket::readFrame(QCanFrame & clFrameR)
    if(framesAvailable() > 0)
    {
       clDatagramT = pclTcpSockP->read(QCAN_FRAME_ARRAY_SIZE);
-      clFrameR.fromByteArray(clDatagramT);
-      btResultT = true;
+      btResultT = clFrameR.fromByteArray(clDatagramT);
    }
    return(btResultT);
 }
