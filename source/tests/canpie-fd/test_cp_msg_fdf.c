@@ -52,7 +52,7 @@
 
 //----------------------------------------------------------------------------//
 /*!
-** \file    test_cp_msg_ccf.c
+** \file    test_cp_msg_fdf.c
 ** \brief   CANpie test cases for message functions
 **
 **
@@ -97,7 +97,7 @@ TEST_TEAR_DOWN(CP_MSG_FDF)
 
 //----------------------------------------------------------------------------//
 /*!
-** \brief   CP_MSG_CCF_002
+** \brief   CP_MSG_FDF_001
 **
 ** The cases shall check the correct behaviour of setting and getting a
 ** Identifier (11-bit ClassicCanFormat or 29-bit ExtendedCanFormat) using the
@@ -145,14 +145,14 @@ TEST(CP_MSG_FDF, 001)
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetIdentifier(&tsCanMsgS));
    TEST_ASSERT_TRUE(CpMsgIsFastData(&tsCanMsgS));
    TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
-   UnityPrint("CP_MSG_CCF_001 PASSED");
+   UnityPrint("CP_MSG_FDF_001 PASSED");
    printf("\n");
 }
 
 
 //----------------------------------------------------------------------------//
 /*!
-** \brief   CP_MSG_CCF_002
+** \brief   CP_MSG_FDF_002
 **
 ** The cases shall check the correct behaviour of setting and getting a
 ** Identifier (11-bit for Classic CAN or 29-bit for Extended CAN) using the
@@ -192,30 +192,30 @@ TEST(CP_MSG_FDF, 002)
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FEFF);
    for (ulIdValueT = 0x000; ulIdValueT <= 0x7FF; ulIdValueT++)
-     {
-        CpMsgSetIdentifier(&tsCanMsgS, ulIdValueT);
-        TEST_ASSERT_EQUAL_UINT32(ulIdValueT,
-                                 CpMsgGetIdentifier(&tsCanMsgS));
-        TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
-     }
+   {
+      CpMsgSetIdentifier(&tsCanMsgS, ulIdValueT);
+      TEST_ASSERT_EQUAL_UINT32(ulIdValueT,
+                               CpMsgGetIdentifier(&tsCanMsgS));
+      TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
+   }
 
    //----------------------------------------------------------------
    // @SubTest04
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FEFF);
-   for(ulIdValueT = 0x8000000; ulIdValueT <= 0x1C000000; ulIdValueT += 0x400)
+   for (ulIdValueT = 0x8000000; ulIdValueT <= 0x1C000000; ulIdValueT += 0x400)
    {
       CpMsgSetIdentifier(&tsCanMsgS, ulIdValueT);
       TEST_ASSERT_EQUAL_UINT32(ulIdValueT & CP_MASK_EXT_FRAME,
                                CpMsgGetIdentifier(&tsCanMsgS));
       TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
-    }
+   }
 
    //----------------------------------------------------------------
    // @SubTest05
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FEFF);
-   for(ulIdValueT = 0x1FF00240; ulIdValueT <=0x10000000; ulIdValueT += 0x800)
+   for (ulIdValueT = 0x1FF00240; ulIdValueT <=0x10000000; ulIdValueT += 0x800)
    {
       CpMsgSetIdentifier(&tsCanMsgS, ulIdValueT);
       TEST_ASSERT_EQUAL_UINT32(ulIdValueT & CP_MASK_EXT_FRAME,
@@ -227,21 +227,21 @@ TEST(CP_MSG_FDF, 002)
    // @SubTest07
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FEFF);
-   for(ulIdValueT = 0x30000000; ulIdValueT <=0xE0000000; ulIdValueT += 0x400)
+   for (ulIdValueT = 0x30000000; ulIdValueT <=0xE0000000; ulIdValueT += 0x400)
    {
       CpMsgSetIdentifier(&tsCanMsgS, ulIdValueT);
       TEST_ASSERT_EQUAL_UINT32(ulIdValueT & CP_MASK_EXT_FRAME,
                                CpMsgGetIdentifier(&tsCanMsgS));
       TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
    }
-   UnityPrint("CP_MSG_CCF_002 PASSED");
+   UnityPrint("CP_MSG_FDF_002 PASSED");
    printf("\n");
 }
 
 
 //----------------------------------------------------------------------------//
 /*!
-** \brief   CP_MSG_CCF_003
+** \brief   CP_MSG_FDF_003
 **
 ** The cases shall check the correct behaviour of setting and getting a
 ** Data Length Code in a range of 8-Bit using the CpMsgSetDlc()
@@ -256,7 +256,7 @@ TEST(CP_MSG_FDF, 003)
    // @SubTest01
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FBFF);
-   for(ubDlcT = 0x00; ubDlcT <= 0x0F; ubDlcT++)
+   for (ubDlcT = 0x00; ubDlcT <= 0x0F; ubDlcT++)
    {
       CpMsgSetDlc(&tsCanMsgS, ubDlcT);
       TEST_ASSERT_EQUAL_UINT8(ubDlcT, CpMsgGetDlc(&tsCanMsgS));
@@ -267,19 +267,19 @@ TEST(CP_MSG_FDF, 003)
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FBFF);
    CpMsgSetDlc(&tsCanMsgS, 0x01);
-   for(ubDlcT = 0xFF; ubDlcT > 0x0F; ubDlcT--)
+   for (ubDlcT = 0xFF; ubDlcT > 0x0F; ubDlcT--)
    {
-       CpMsgSetDlc(&tsCanMsgS, ubDlcT);
-       TEST_ASSERT_EQUAL_UINT8(0x01, CpMsgGetDlc(&tsCanMsgS));
+      CpMsgSetDlc(&tsCanMsgS, ubDlcT);
+      TEST_ASSERT_EQUAL_UINT8(0x01, CpMsgGetDlc(&tsCanMsgS));
    }
-   UnityPrint("CP_MSG_CCF_003 PASSED");
+   UnityPrint("CP_MSG_FDF_003 PASSED");
    printf("\n");
 }
 
 
 //----------------------------------------------------------------------------//
 /*!
-** \brief   CP_MSG_CCF_004
+** \brief   CP_MSG_FDF_004
 **
 ** The cases shall check the correct behaviour of setting and getting
 ** the payload by using the CpMsgSetData() and CpMsgGetData() function.
@@ -305,7 +305,7 @@ TEST(CP_MSG_FDF, 004)
    for (ubPosT = 0xFF; ubPosT > 0x3F; ubPosT--)
    {
       CpMsgSetData(&tsCanMsgS, ubPosT, 0x55);
-      TEST_ASSERT_EQUAL_UINT8(0x00, CpMsgGetData(&tsCanMsgS,ubPosT));
+      TEST_ASSERT_EQUAL_UINT8(0x00, CpMsgGetData(&tsCanMsgS, ubPosT));
    }
 
    //----------------------------------------------------------------
@@ -315,14 +315,14 @@ TEST(CP_MSG_FDF, 004)
    {
       TEST_ASSERT_EQUAL_UINT8(0xAA, CpMsgGetData(&tsCanMsgS, ubPosT));
    }
-   UnityPrint("CP_MSG_CCF_004 PASSED");
+   UnityPrint("CP_MSG_FDF_004 PASSED");
    printf("\n");
 }
 
 
 //----------------------------------------------------------------------------//
 /*!
-** \brief   CP_MSG_CCF_005
+** \brief   CP_MSG_FDF_005
 **
 ** The cases shall check the correct behaviour of getting and setting a time-
 ** stamp to a CAN message by using CpMsgSetTime() and CpMsgGetTime() functions.
@@ -349,14 +349,14 @@ TEST(CP_MSG_FDF, 005)
    CpMsgSetTime(&tsCanMsgS, &tsCanTimeS);
    TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulNanoSec);
    TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulSec1970);
-   UnityPrint("CP_MSG_CCF_005 PASSED");
+   UnityPrint("CP_MSG_FDF_005 PASSED");
    printf("\n");
 }
 
 
 //----------------------------------------------------------------------------//
 /*!
-** \brief   CP_MSG_CCF_006
+** \brief   CP_MSG_FDF_006
 **
 ** The cases shall check the correct behaviour of setting the BTR-Bit in a
 ** CanFD Message Frame using the CpMsgSetBitrateSwitch() function.
@@ -392,14 +392,14 @@ TEST(CP_MSG_FDF, 006)
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FEFF);
    TEST_ASSERT_FALSE(CpMsgIsBitrateSwitch(&tsCanMsgS));
-   UnityPrint("CP_MSG_CCF_006 PASSED");
+   UnityPrint("CP_MSG_FDF_006 PASSED");
    printf("\n");
 }
 
 
 //----------------------------------------------------------------------------//
 /*!
-** \brief   CP_MSG_CCF_007
+** \brief   CP_MSG_FDF_007
 **
 ** The cases shall check the correct behaviour of setting and getting the
 ** RTR-Bit in a Can FD Message Frame by using the CpMsgSetRemote() and
@@ -423,14 +423,14 @@ TEST(CP_MSG_FDF, 007)
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FEFF);
    CpMsgSetRemote(&tsCanMsgS);
    TEST_ASSERT_FALSE(CpMsgIsRemote(&tsCanMsgS));
-   UnityPrint("CP_MSG_CCF_006 PASSED");
+   UnityPrint("CP_MSG_FDF_006 PASSED");
    printf("\n");
 }
 
 
 //----------------------------------------------------------------------------//
 /*!
-** \brief   CP_MSG_CCF_008
+** \brief   CP_MSG_FDF_008
 **
 ** The cases shall check the correct behaviour of setting and checking the
 ** overrun behaviour of an Can Message Frame using the CpMsgSetOverrun()
@@ -452,14 +452,14 @@ TEST(CP_MSG_FDF, 008)
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CBFF);
    TEST_ASSERT_FALSE(CpMsgIsOverrun(&tsCanMsgS));
-   UnityPrint("CP_MSG_CCF_007 PASSED");
+   UnityPrint("CP_MSG_FDF_007 PASSED");
    printf("\n");
 }
 
 
 //----------------------------------------------------------------------------//
 /*!
-** \brief   CP_MSG_CCFD_009
+** \brief   CP_MSG_FDFD_009
 **
 ** This test cases shall verify the correct field values of the CAN message
 ** structure CpCanMsg_s using the CpMsgClear() function.
@@ -472,9 +472,9 @@ TEST(CP_MSG_FDF, D009)
    //
    CpMsgClear(&tsCanMsgS);
    TEST_ASSERT_EQUAL_UINT16(0, CpMsgGetStdId(&tsCanMsgS));
-   TEST_ASSERT_EQUAL_UINT32(0,CpMsgGetExtId(&tsCanMsgS));
+   TEST_ASSERT_EQUAL_UINT32(0, CpMsgGetExtId(&tsCanMsgS));
    TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
-   TEST_ASSERT_EQUAL_UINT8(0,CpMsgGetDlc(&tsCanMsgS));
+   TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetDlc(&tsCanMsgS));
 
    //----------------------------------------------------------------
    // @SubTest02
@@ -482,7 +482,7 @@ TEST(CP_MSG_FDF, D009)
    CpMsgSetStdId(&tsCanMsgS, 0xE04);
    CpMsgSetExtId(&tsCanMsgS, 0x2000E04);
    CpMsgSetDlc(&tsCanMsgS, 0x07);
-   CpMsgSetData(&tsCanMsgS, 1,0x63);
+   CpMsgSetData(&tsCanMsgS, 1, 0x63);
 
    CpMsgClear(&tsCanMsgS);
 
@@ -490,7 +490,7 @@ TEST(CP_MSG_FDF, D009)
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetExtId(&tsCanMsgS));
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetDlc(&tsCanMsgS));
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetStdId(&tsCanMsgS));
-   TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetData(&tsCanMsgS,1));
+   TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetData(&tsCanMsgS, 1));
 
    //----------------------------------------------------------------
    // @SubTest03
@@ -498,9 +498,9 @@ TEST(CP_MSG_FDF, D009)
    memset(&tsCanMsgS, 0xFF, sizeof(CpCanMsg_ts));
    CpMsgClear(&tsCanMsgS);
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetStdId(&tsCanMsgS));
-   TEST_ASSERT_EQUAL_UINT8(0,CpMsgGetExtId(&tsCanMsgS));
+   TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetExtId(&tsCanMsgS));
    TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
-   TEST_ASSERT_EQUAL_UINT8(0,CpMsgGetDlc(&tsCanMsgS));
+   TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetDlc(&tsCanMsgS));
    UnityPrint("CP_MSG_FDFD_009 PASSED");
    printf("\n");
 }
@@ -508,7 +508,7 @@ TEST(CP_MSG_FDF, D009)
 
 //----------------------------------------------------------------------------//
 /*!
-** \brief   CP_MSG_CCFD_010
+** \brief   CP_MSG_FDFD_010
 **
 ** The cases shall check the correct behavior of setting and getting a
 ** 11-Bit identifier using the CpMsgSetStdId() and  CpMsgIsExtended() function.
@@ -521,7 +521,7 @@ TEST(CP_MSG_FDF, D010)
    //
    uint16_t uwCountS;
    CpMsgClear(&tsCanMsgS);
-   for(uwCountS= 0x0000; uwCountS <= 0x07FF;uwCountS++)
+   for (uwCountS= 0x0000; uwCountS <= 0x07FF; uwCountS++)
    {
       CpMsgSetStdId(&tsCanMsgS, uwCountS);
       TEST_ASSERT_EQUAL_UINT16(uwCountS, CpMsgGetStdId(&tsCanMsgS));
@@ -532,7 +532,7 @@ TEST(CP_MSG_FDF, D010)
    // @SubTest02
    //
    CpMsgClear(&tsCanMsgS);
-   for(uwCountS = 0x0FF0; uwCountS < 0xFEFF ; uwCountS++)
+   for (uwCountS = 0x0FF0; uwCountS < 0xFEFF ; uwCountS++)
    {
       CpMsgSetStdId(&tsCanMsgS, uwCountS);
       TEST_ASSERT_EQUAL_UINT16(uwCountS & CP_MASK_STD_FRAME,
@@ -544,7 +544,7 @@ TEST(CP_MSG_FDF, D010)
    // @SubTest03
    //
    CpMsgClear(&tsCanMsgS);
-   for(uwCountS = 0xFFFF; uwCountS >= 0xFF00; uwCountS--) //0xF800
+   for (uwCountS = 0xFFFF; uwCountS >= 0xFF00; uwCountS--) //0xF800
    {
       CpMsgSetStdId(&tsCanMsgS, uwCountS);
       TEST_ASSERT_EQUAL_UINT16(uwCountS & CP_MASK_STD_FRAME,
@@ -558,7 +558,7 @@ TEST(CP_MSG_FDF, D010)
 
 //----------------------------------------------------------------------------//
 /*!
-** \brief   CP_MSG_CCFD_011
+** \brief   CP_MSG_FDFD_011
 **
 ** The cases shall check the correct behavior of setting and getting the
 ** extended 29-Bit identifier using the CpMsgSetExtId()and CpMsgGetExtId()
@@ -575,11 +575,11 @@ TEST(CP_MSG_FDF, D011)
    uint16_t uwCountS;
    uint32_t ulCountS;
    CpMsgClear(&tsCanMsgS);
-   for(uwCountS= 0x00; uwCountS<= 0x7FF; uwCountS++)
+   for (uwCountS= 0x00; uwCountS<= 0x7FF; uwCountS++)
    {
       CpMsgSetExtId(&tsCanMsgS, uwCountS);
-      TEST_ASSERT_EQUAL_UINT32(uwCountS,CpMsgGetExtId(&tsCanMsgS));
-      TEST_ASSERT_TRUE( CpMsgIsExtended(&tsCanMsgS));
+      TEST_ASSERT_EQUAL_UINT32(uwCountS, CpMsgGetExtId(&tsCanMsgS));
+      TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
    }
 
    //----------------------------------------------------------------
@@ -587,23 +587,23 @@ TEST(CP_MSG_FDF, D011)
    //
    ulCountS = 0x4000000;
    CpMsgClear(&tsCanMsgS);
-   for(ubCountS= 0; ubCountS<21;ubCountS++)
+   for (ubCountS= 0; ubCountS<21; ubCountS++)
    {
       CpMsgSetExtId(&tsCanMsgS, ulCountS);
-      TEST_ASSERT_EQUAL_UINT32(ulCountS,CpMsgGetExtId(&tsCanMsgS));
+      TEST_ASSERT_EQUAL_UINT32(ulCountS, CpMsgGetExtId(&tsCanMsgS));
       TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
       ulCountS +=0x1000000;
-    }
+   }
 
    //----------------------------------------------------------------
    // @SubTest03
    //
    ulCountS = 0x8000000;
    CpMsgClear(&tsCanMsgS);
-   for(ubCountS= 0; ubCountS<21;ubCountS++)
+   for (ubCountS= 0; ubCountS<21; ubCountS++)
    {
       CpMsgSetExtId(&tsCanMsgS, ulCountS);
-      TEST_ASSERT_EQUAL_UINT32(ulCountS,CpMsgGetExtId(&tsCanMsgS));
+      TEST_ASSERT_EQUAL_UINT32(ulCountS, CpMsgGetExtId(&tsCanMsgS));
       TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
       ulCountS +=0x1000000;
    }
@@ -612,7 +612,7 @@ TEST(CP_MSG_FDF, D011)
    // @SubTest04
    //
    CpMsgSetExtId(&tsCanMsgS, 0xC0000000);
-   TEST_ASSERT_EQUAL_UINT32(0,CpMsgGetExtId(&tsCanMsgS));
+   TEST_ASSERT_EQUAL_UINT32(0, CpMsgGetExtId(&tsCanMsgS));
    TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
    CpMsgSetStdId(&tsCanMsgS, ubCountS);
    TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
