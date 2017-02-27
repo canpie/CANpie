@@ -145,7 +145,7 @@ TEST(CP_MSG_FDF, 001)
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetIdentifier(&tsCanMsgS));
    TEST_ASSERT_TRUE(CpMsgIsFastData(&tsCanMsgS));
    TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
-   UnityPrint("CP_MSG_FDF_001 PASSED");
+   UnityPrint(" CP_MSG_FDF_001: PASSED");
    printf("\n");
 }
 
@@ -234,7 +234,7 @@ TEST(CP_MSG_FDF, 002)
                                CpMsgGetIdentifier(&tsCanMsgS));
       TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
    }
-   UnityPrint("CP_MSG_FDF_002 PASSED");
+   UnityPrint(" CP_MSG_FDF_002: PASSED");
    printf("\n");
 }
 
@@ -272,7 +272,7 @@ TEST(CP_MSG_FDF, 003)
       CpMsgSetDlc(&tsCanMsgS, ubDlcT);
       TEST_ASSERT_EQUAL_UINT8(0x01, CpMsgGetDlc(&tsCanMsgS));
    }
-   UnityPrint("CP_MSG_FDF_003 PASSED");
+   UnityPrint(" CP_MSG_FDF_003: PASSED");
    printf("\n");
 }
 
@@ -315,7 +315,7 @@ TEST(CP_MSG_FDF, 004)
    {
       TEST_ASSERT_EQUAL_UINT8(0xAA, CpMsgGetData(&tsCanMsgS, ubPosT));
    }
-   UnityPrint("CP_MSG_FDF_004 PASSED");
+   UnityPrint(" CP_MSG_FDF_004: PASSED");
    printf("\n");
 }
 
@@ -334,22 +334,22 @@ TEST(CP_MSG_FDF, 005)
    // @SubTest01
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FBFF);
-   tsCanTimeS.ulNanoSec = 5;
-   tsCanTimeS.ulSec1970 = 5;
+   tsCanTimeS.ulNanoSec = 2098;
+   tsCanTimeS.ulSec1970 = 4567;
    CpMsgSetTime(&tsCanMsgS, &tsCanTimeS);
-   TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulNanoSec);
-   TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulSec1970);
+   TEST_ASSERT_EQUAL(2098, (CpMsgGetTime(&tsCanMsgS))->ulNanoSec);
+   TEST_ASSERT_EQUAL(4567, (CpMsgGetTime(&tsCanMsgS))->ulSec1970);
 
    //----------------------------------------------------------------
    // @SubTest02
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FEFF);
-   tsCanTimeS.ulNanoSec = 5;
-   tsCanTimeS.ulSec1970 = 5;
+   tsCanTimeS.ulNanoSec = 8056;
+   tsCanTimeS.ulSec1970 = 5003;
    CpMsgSetTime(&tsCanMsgS, &tsCanTimeS);
-   TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulNanoSec);
-   TEST_ASSERT_EQUAL(5, (CpMsgGetTime(&tsCanMsgS))->ulSec1970);
-   UnityPrint("CP_MSG_FDF_005 PASSED");
+   TEST_ASSERT_EQUAL(8056, (CpMsgGetTime(&tsCanMsgS))->ulNanoSec);
+   TEST_ASSERT_EQUAL(5003, (CpMsgGetTime(&tsCanMsgS))->ulSec1970);
+   UnityPrint(" CP_MSG_FDF_005: PASSED");
    printf("\n");
 }
 
@@ -392,7 +392,7 @@ TEST(CP_MSG_FDF, 006)
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FEFF);
    TEST_ASSERT_FALSE(CpMsgIsBitrateSwitch(&tsCanMsgS));
-   UnityPrint("CP_MSG_FDF_006 PASSED");
+   UnityPrint(" CP_MSG_FDF_006: PASSED");
    printf("\n");
 }
 
@@ -423,7 +423,7 @@ TEST(CP_MSG_FDF, 007)
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FEFF);
    CpMsgSetRemote(&tsCanMsgS);
    TEST_ASSERT_FALSE(CpMsgIsRemote(&tsCanMsgS));
-   UnityPrint("CP_MSG_FDF_006 PASSED");
+   UnityPrint(" CP_MSG_FDF_007: PASSED");
    printf("\n");
 }
 
@@ -452,20 +452,21 @@ TEST(CP_MSG_FDF, 008)
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CBFF);
    TEST_ASSERT_FALSE(CpMsgIsOverrun(&tsCanMsgS));
-   UnityPrint("CP_MSG_FDF_007 PASSED");
+   UnityPrint(" CP_MSG_FDF_008: PASSED");
    printf("\n");
 }
 
 
 //----------------------------------------------------------------------------//
 /*!
-** \brief   CP_MSG_FDFD_009
+** \brief   CP_MSG_FDF_D01
 **
 ** This test cases shall verify the correct field values of the CAN message
 ** structure CpCanMsg_s using the CpMsgClear() function.
+** Test of deprecated functions.
 */
 //----------------------------------------------------------------------------//
-TEST(CP_MSG_FDF, D009)
+TEST(CP_MSG_FDF, D01)
 {
    //----------------------------------------------------------------
    // @SubTest01
@@ -501,20 +502,21 @@ TEST(CP_MSG_FDF, D009)
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetExtId(&tsCanMsgS));
    TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetDlc(&tsCanMsgS));
-   UnityPrint("CP_MSG_FDFD_009 PASSED");
+   UnityPrint(" CP_MSG_FDF_D01: PASSED");
    printf("\n");
 }
 
 
 //----------------------------------------------------------------------------//
 /*!
-** \brief   CP_MSG_FDFD_010
+** \brief   CP_MSG_FDF_D02
 **
 ** The cases shall check the correct behavior of setting and getting a
 ** 11-Bit identifier using the CpMsgSetStdId() and  CpMsgIsExtended() function.
+** Test of deprecated functions.
 */
 //----------------------------------------------------------------------------//
-TEST(CP_MSG_FDF, D010)
+TEST(CP_MSG_FDF, D02)
 {
    //----------------------------------------------------------------
    // @SubTest01
@@ -551,21 +553,22 @@ TEST(CP_MSG_FDF, D010)
                                CpMsgGetStdId(&tsCanMsgS));
       TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
    }
-   UnityPrint("CP_MSG_FDFD_010 PASSED");
+   UnityPrint(" CP_MSG_FDF_D02: PASSED");
    printf("\n");
 }
 
 
 //----------------------------------------------------------------------------//
 /*!
-** \brief   CP_MSG_FDFD_011
+** \brief   CP_MSG_FDF_D03
 **
 ** The cases shall check the correct behavior of setting and getting the
 ** extended 29-Bit identifier using the CpMsgSetExtId()and CpMsgGetExtId()
 ** function.
+** Test of deprecated functions.
 */
 //----------------------------------------------------------------------------//
-TEST(CP_MSG_FDF, D011)
+TEST(CP_MSG_FDF, D03)
 {
 
    //----------------------------------------------------------------
@@ -616,7 +619,7 @@ TEST(CP_MSG_FDF, D011)
    TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
    CpMsgSetStdId(&tsCanMsgS, ubCountS);
    TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
-   UnityPrint("CP_MSG_FDFD_011 PASSED");
+   UnityPrint(" CP_MSG_FDF_D03: PASSED");
    printf("\n");
 }
 
@@ -626,7 +629,7 @@ TEST(CP_MSG_FDF, D011)
 //----------------------------------------------------------------------------//
 TEST_GROUP_RUNNER(CP_MSG_FDF)
 {
-   UnityPrint("*************** RUN  TEST  GROUP  CP_MSG_FDF: ****************");
+   UnityPrint("--- Run test group: CP_MSG_FDF -------------------------------");
    printf("\n");
    RUN_TEST_CASE(CP_MSG_FDF, 001);
    RUN_TEST_CASE(CP_MSG_FDF, 002);
@@ -636,8 +639,8 @@ TEST_GROUP_RUNNER(CP_MSG_FDF)
    RUN_TEST_CASE(CP_MSG_FDF, 006);
    RUN_TEST_CASE(CP_MSG_FDF, 007);
    RUN_TEST_CASE(CP_MSG_FDF, 008);
-   RUN_TEST_CASE(CP_MSG_FDF, D009);
-   RUN_TEST_CASE(CP_MSG_FDF, D010);
-   RUN_TEST_CASE(CP_MSG_FDF, D011);
+   RUN_TEST_CASE(CP_MSG_FDF, D01);
+   RUN_TEST_CASE(CP_MSG_FDF, D02);
+   RUN_TEST_CASE(CP_MSG_FDF, D03);
    printf("\n");
 }
