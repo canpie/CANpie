@@ -311,7 +311,7 @@ void  CpMsgInit(CpCanMsg_ts * ptsCanMsgV, uint8_t ubFormatV)
       //
       ptsCanMsgV->ulIdentifier = 0UL;
       ptsCanMsgV->ubMsgDLC     = (uint8_t) 0;
-      ptsCanMsgV->ubMsgCtrl    = ubFormatV & CP_MSG_FORMAT_MASK;
+      ptsCanMsgV->ubMsgCtrl    = ubFormatV & CP_MASK_MSG_FORMAT;
    }
 }
 
