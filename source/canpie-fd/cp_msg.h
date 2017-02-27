@@ -472,6 +472,9 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, const CpTime_ts * ptsTimeV);
 #define  CpMsgGetStdId(MSG_PTR)                                   \
             (uint16_t)((MSG_PTR)->ulIdentifier)
 
+#define  CpMsgGetTime(MSG_PTR)                                    \
+            (&(MSG_PTR)->tsMsgTime)
+
 #define  CpMsgInit(MSG_PTR, VAL)                                  \
          do {                                                     \
             (MSG_PTR)->ubMsgCtrl = (VAL);                         \
@@ -530,7 +533,8 @@ void  CpMsgSetTime(CpCanMsg_ts * ptsCanMsgV, const CpTime_ts * ptsTimeV);
 
 #define  CpMsgSetRemote(MSG_PTR)                                  \
          do {                                                     \
-            (MSG_PTR)->ubMsgCtrl |= CP_MSG_CTRL_RTR_BIT;          \
+            if (((MSG_PTR)->ubMsgCtrl & CP_MSG_CTRL_FDF_BIT) == 0)\
+            { (MSG_PTR)->ubMsgCtrl |= CP_MSG_CTRL_RTR_BIT; }      \
          } while(0)
 
 #define  CpMsgSetStdId(MSG_PTR, VAL)                              \
