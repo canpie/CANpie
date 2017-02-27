@@ -246,7 +246,7 @@
 /*!
 ** \defgroup CP_VERSION  CANpie version information
 ** 
-** The %CANpie FD version information read dunring run-time via the
+** The %CANpie FD version information read during run-time via the
 ** function CpCoreHDI().
 */
 
@@ -255,7 +255,7 @@
 ** \def  CP_VERSION_MAJOR
 ** \ingroup CP_VERSION
 **
-** This symbol defines if the driver version major value.
+** This symbol defines the driver version major value.
 */
 #define  CP_VERSION_MAJOR           ((uint8_t) 3)
 
@@ -264,7 +264,7 @@
 ** \def  CP_VERSION_MINOR
 ** \ingroup CP_VERSION
 **
-** This symbol defines if the driver version minor value.
+** This symbol defines the driver version minor value.
 */
 #define  CP_VERSION_MINOR           ((uint8_t) 0)
 
@@ -283,7 +283,7 @@
 ** \ingroup CP_MASK
 **
 ** Mask for standard frame (11 bits), used in combination with
-** the CpCanMsg_s::uwStd.
+** the CpCanMsg_s::ulIdentifier.
 */
 #define  CP_MASK_STD_FRAME       ((uint32_t) 0x000007FF)
 
@@ -294,9 +294,21 @@
 ** \ingroup CP_MASK
 **
 ** Mask for extended frame (29 bits), used in combination with
-** the CpCanMsg_s::ulExt.
+** the CpCanMsg_s::ulIdentifier.
 */
 #define  CP_MASK_EXT_FRAME       ((uint32_t) 0x1FFFFFFF)
+
+/*-------------------------------------------------------------------*/
+/*!
+** \def  CP_MASK_MSG_FORMAT
+** \ingroup CP_MASK
+**
+** Mask for message format, used in combination with \c ubMsgCtrl field
+** of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
+** This mask covers #CP_MSG_FORMAT_CBFF, #CP_MSG_FORMAT_CEFF,
+** #CP_MSG_FORMAT_FBFF and #CP_MSG_FORMAT_FEFF control flags.
+*/
+#define  CP_MASK_MSG_FORMAT      ((uint8_t) 0x03)
 
 //-----------------------------------------------------------------------------
 /*!
@@ -415,8 +427,6 @@
 ** CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
 */
 #define  CP_MSG_FORMAT_FEFF      (CP_MSG_CTRL_FDF_BIT | CP_MSG_CTRL_EXT_BIT)
-
-#define  CP_MSG_FORMAT_MASK      ((uint8_t) 0x03)
 
 
 /*-------------------------------------------------------------------*/
@@ -558,7 +568,7 @@ enum CpErr_e {
 /*----------------------------------------------------------------------------*/
 /*!
 ** \enum    CpFifo_e
-** \brief   FIFO Buffer numbers
+** \brief   FIFO direction
 */
 enum CpFifo_e {
    eCP_FIFO_RCV = 0,
@@ -594,12 +604,12 @@ enum CpFifo_e {
 enum CpCallback_e {
 
    /*!
-   ** Message was processed by callback and is not inserted in the FIFO
+   ** Message was processed by callback and should not inserted in the FIFO
    */
    eCP_CALLBACK_PROCESSED = 0,
 
    /*!
-   ** Message was processed by callback and is inserted in the FIFO
+   ** Message was not processed by callback and must be inserted in the FIFO
    */
    eCP_CALLBACK_PUSH_FIFO
 };
@@ -762,18 +772,15 @@ enum CpState_e {
    */
    eCP_STATE_STOPPED  = 0,
 
-
    /*!
    ** CAN controller is in Sleep mode
    */
    eCP_STATE_SLEEPING = 1,
 
-
    /*!
    ** CAN controller is error active
    */
    eCP_STATE_BUS_ACTIVE = 2,
-
 
    /*!
    ** CAN controller is active, warning level is reached
