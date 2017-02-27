@@ -283,7 +283,7 @@
 ** \ingroup CP_MASK
 **
 ** Mask for standard frame (11 bits), used in combination with
-** the CpCanMsg_s::uwStd.
+** the CpCanMsg_s::ulIdentifier.
 */
 #define  CP_MASK_STD_FRAME       ((uint32_t) 0x000007FF)
 
@@ -294,9 +294,23 @@
 ** \ingroup CP_MASK
 **
 ** Mask for extended frame (29 bits), used in combination with
-** the CpCanMsg_s::ulExt.
+** the CpCanMsg_s::ulIdentifier.
 */
 #define  CP_MASK_EXT_FRAME       ((uint32_t) 0x1FFFFFFF)
+
+
+/*-------------------------------------------------------------------*/
+/*!
+** \def  CP_MASK_MSG_FORMAT
+** \ingroup CP_MASK
+**
+** Mask for message format, used in combination with \c ubMsgCtrl field
+** of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
+** This mask covers #CP_MSG_FORMAT_CBFF, #CP_MSG_FORMAT_CEFF,
+** #CP_MSG_FORMAT_FBFF and #CP_MSG_FORMAT_FEFF control flags.
+*/
+#define  CP_MASK_MSG_FORMAT      ((uint8_t) 0x03)
+
 
 //-----------------------------------------------------------------------------
 /*!
@@ -415,8 +429,6 @@
 ** CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
 */
 #define  CP_MSG_FORMAT_FEFF      (CP_MSG_CTRL_FDF_BIT | CP_MSG_CTRL_EXT_BIT)
-
-#define  CP_MSG_FORMAT_MASK      ((uint8_t) 0x03)
 
 
 /*-------------------------------------------------------------------*/
@@ -554,16 +566,6 @@ enum CpErr_e {
    eCP_ERR_NOT_SUPPORTED = 50
 };
 
-
-/*----------------------------------------------------------------------------*/
-/*!
-** \enum    CpFifo_e
-** \brief   FIFO Buffer numbers
-*/
-enum CpFifo_e {
-   eCP_FIFO_RCV = 0,
-   eCP_FIFO_TRM
-};
 
 
 /*----------------------------------------------------------------------------*/
