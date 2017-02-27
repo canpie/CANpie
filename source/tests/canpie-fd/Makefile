@@ -60,7 +60,7 @@ ifeq ($(OS),Windows_NT)
 	SPLINT	= "d:/devtools/splint/splint-3.1.2/bin/splint.exe"
 	ASTYLE	= "D:/devtools/AStyle/bin/AStyle.exe"
 else
-
+	ASTYLE   = astyle
 endif
 
 
@@ -77,6 +77,7 @@ INC_DIR  += -I $(TEST_DIR)
 VPATH =$(INC_DIR:-I= )
 ALL_CFILES = $(wildcard $(TEST_DIR)/*.c)
 ALL_HFILES = $(wildcard $(TEST_DIR)/*.h)
+TEST_FILES = $(wildcard $(CAN_DIR)/*.c $(DEV_DIR)/*.c)
 
 #---------------------------------------------------------------
 # Warning level
@@ -173,7 +174,7 @@ CAN_SRC  = cp_msg.c
 # Device / target CPU source files 
 # 
 #--------------------------------------------------------------------
-DEV_SRC	=	
+DEV_SRC	= device_canfd.c
 
 
 #--------------------------------------------------------------------
@@ -181,13 +182,14 @@ DEV_SRC	=
 # compiled if TEST_OBJS==1
 #--------------------------------------------------------------------
 
-FUNC_SRC 	=	test_cp_main_f.c	\
+FUNC_SRC 	=	test_cp_core.c		\
+					test_cp_main_f.c	\
 					test_cp_msg_ccf.c	\
 					test_cp_msg_fdf.c	\
 					unity_fixture.c	\
 					unity.c
 
-MACRO_SRC =	test_cp_main_m.c	\
+MACRO_SRC   =	test_cp_main_m.c	\
 					test_cp_msg_ccm.c	\
 					test_cp_msg_fdm.c	\
 					unity_fixture.c	\
@@ -241,7 +243,7 @@ msg_macro: $(MACRO_OBJS)
 	@$(CC) $(LFLAGS) -o $(OBJ_DIR)/$(TARGET)_macro $(MACRO_OBJS)	
 		
 check:
-	@splint -f splint.rc $(ALL_CFILES)
+	@splint -f splint.rc $(TEST_FILES)
 
 misra:
 	$(MCC) $(MFLAGS) $(ALL_CFILES)
