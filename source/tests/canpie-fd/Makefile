@@ -167,7 +167,8 @@ MFLAGS 	  	+= -I $(MISRA_DIR)/include
 # CANpie source files 
 #
 #--------------------------------------------------------------------
-CAN_SRC  = cp_msg.c	
+CAN_SRC  = 	cp_msg.c		\
+				cp_fifo.c
 
 
 #--------------------------------------------------------------------
@@ -246,7 +247,7 @@ check:
 	@splint -f splint.rc $(TEST_FILES)
 
 misra:
-	$(MCC) $(MFLAGS) $(ALL_CFILES)
+	$(MCC) $(MFLAGS) $(TEST_FILES)
 show:
 	@echo TARGET_OBJS:
 	@echo $(TARGET_OBJS)
