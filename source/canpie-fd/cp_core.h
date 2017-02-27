@@ -88,7 +88,6 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-#include "canpie.h"
 #include "cp_fifo.h"
 
 //-------------------------------------------------------------------//
@@ -524,9 +523,9 @@ CpStatus_tv CpCoreHDI(const CpPort_ts * ptsPortV, CpHdi_ts * ptsHdiV);
 /*!
 ** \brief   Install callback functions
 ** \param   ptsPortV       Pointer to CAN port structure
-** \param   pfnRcvHandler  Pointer to callback function for receive interrupt
-** \param   pfnTrmHandler  Pointer to callback function for transmit interrupt
-** \param   pfnErrHandler  Pointer to callback function for error interrupt
+** \param   pfnRcvHandlerV  Pointer to callback function for receive interrupt
+** \param   pfnTrmHandlerV  Pointer to callback function for transmit interrupt
+** \param   pfnErrHandlerV  Pointer to callback function for error interrupt
 **
 ** \return  Error code taken from the #CpErr_e enumeration. If no error
 **          occurred, the function will return \c eCP_ERR_NONE.
