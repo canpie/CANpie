@@ -382,7 +382,7 @@ CpStatus_tv CpCoreBufferSetData( const CpPort_ts * ptsPortV,
    }
 
 
-   return (eCP_ERR_NONE);
+   return (tvStatusT);
 }
 
 
@@ -733,7 +733,7 @@ CpStatus_tv CpCoreHDI(const CpPort_ts * ptsPortV, CpHdi_ts * ptsHdiV)
             ptsHdiV->ubVersionMinor = CP_VERSION_MINOR;
 
             ptsHdiV->ubCanFeatures    = 0;
-            ptsHdiV->ubDriverFeatures = 0,
+            ptsHdiV->ubDriverFeatures = 0;
 
             ptsHdiV->ubBufferMax = CP_BUFFER_MAX;
             
