@@ -77,7 +77,7 @@
 \*----------------------------------------------------------------------------*/
 
 #include "compiler.h"
-#include <cp_platform.h>       // Architecture dependent definitions
+#include "cp_platform.h"       // Architecture dependent definitions
 
 
 /*----------------------------------------------------------------------------*\
@@ -567,17 +567,6 @@ enum CpErr_e {
 
 /*----------------------------------------------------------------------------*/
 /*!
-** \enum    CpFifo_e
-** \brief   FIFO direction
-*/
-enum CpFifo_e {
-   eCP_FIFO_RCV = 0,
-   eCP_FIFO_TRM
-};
-
-
-/*----------------------------------------------------------------------------*/
-/*!
 ** \enum    CpCallback_e
 ** \brief   Callback Return Codes
 **
@@ -851,11 +840,11 @@ enum CpErrType_e {
 ** \brief   Buffer definition
 **
 ** The enumeration CpBuffer_e is used to define a message buffer inside a
-** FullCAN controller. The index for the first buffer starts at 1.
+** FullCAN controller. The index for the first buffer starts at 0.
 */
 enum CpBuffer_e {
    /*! Buffer number 1              */
-   eCP_BUFFER_1 = 1,
+   eCP_BUFFER_1 = 0,
 
    /*! Buffer number 2              */
    eCP_BUFFER_2,

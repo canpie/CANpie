@@ -20,6 +20,11 @@
 </tr>
 
 <tr class="odd">
+   <td class="entry" style="width:25%">\ref cp_fifo.h</td>
+   <td class="desc">%CANpie FD FIFO functions</td>
+</tr>
+
+<tr>
    <td class="entry" style="width:25%">\ref cp_msg.h</td>
    <td class="desc">%CANpie FD message access functions</td>
 </tr>

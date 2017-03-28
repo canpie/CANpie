@@ -1,6 +1,6 @@
 //============================================================================//
-// File:          qcan_socket_canpie_v2.hpp                                   //
-// Description:   QCAN classes - CAN socket for CANpie version 2              //
+// File:          cp_platform.h                                               //
+// Description:   CANpie platform configuration                               //
 //                                                                            //
 // Copyright (C) MicroControl GmbH & Co. KG                                   //
 // 53844 Troisdorf - Germany                                                  //
@@ -27,6 +27,20 @@
 //============================================================================//
 
 
+#ifndef  CP_PLATFORM_H_
+#define  CP_PLATFORM_H_
+
+
+
+//-----------------------------------------------------------------------------
+/*!
+** \file    cp_platform.h
+** \brief   CANpie configuration options
+**
+** 
+*/
+
+
 /*----------------------------------------------------------------------------*\
 ** Include files                                                              **
 **                                                                            **
@@ -34,49 +48,74 @@
 
 
 
-#include "qcan_socket.hpp"
-#include "../canpie/version2/cp_core.h"
-#include "../canpie/version2/cp_msg.h"
-
 /*----------------------------------------------------------------------------*\
-** Definitions                                                                **
+** Definitions & Enumerations                                                 **
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-//-----------------------------------------------------------------------------
+
+#define  CP_AUTOBAUD                0
+
+#define  CP_BUFFER_MAX              32
+
+#define  CP_CAN_FD                  1
+
+#define  CP_CAN_MSG_MACRO           0
+
+#define  CP_CAN_MSG_MARKER          1
+
+#define  CP_CAN_MSG_TIME            1
+
+#define  CP_CAN_MSG_USER            1
+
+#define  CP_CHANNEL_MAX             8
+
+#define  CP_SMALL_CODE              0
+
+#define  CP_STATISTIC               1
+
+
+
+/*----------------------------------------------------------------------------*\
+** Structures                                                                 **
+**                                                                            **
+\*----------------------------------------------------------------------------*/
+
+/*----------------------------------------------------------------------------*/
 /*!
-** \class QCanSocketCp2
-** \brief CAN socket for CANpie version 2
-**
+** \struct  CpPortQCan_s
+** \brief   Port structure for QCan target
 **
 */
-class QCanSocketCp2 : public QCanSocket
-{
-   Q_OBJECT
+struct CpPortQCan_s {
 
-public:
-   QCanSocketCp2();
+   /*!   Physical CAN interface number,
+   **    first CAN channel (index) is eCP_CHANNEL_1
+   */
+   uint8_t     ubPhyIf;
 
-   QCanFrame   fromCpMsg(uint8_t ubMsgBufferV);
-   CpCanMsg_ts fromCanFrame(QCanFrame & clCanFrameR);
-
-   //-------------------------------------------------------------------
-   // simulation of CAN message buffer
-   //
-   CpCanMsg_ts atsCanMsgM[CP_BUFFER_MAX];
-   uint32_t    atsAccMaskM[CP_BUFFER_MAX];
-
-
-   //-------------------------------------------------------------------
-   // these pointers store the callback handlers
-   //
-   uint8_t     (* pfnRcvIntHandlerP) (CpCanMsg_ts *, uint8_t);
-   uint8_t     (* pfnTrmIntHandlerP) (CpCanMsg_ts *, uint8_t);
-   uint8_t     (* pfnErrIntHandlerP) (CpState_ts *);
-
-private slots:
-   void  onSocketReceive(void);
-
-private:
+   /*!   Private driver information 
+   */
+   uint8_t     ubDrvInfo;
 
 };
+
+/*----------------------------------------------------------------------------*\
+** Type definitions                                                           **
+**                                                                            **
+\*----------------------------------------------------------------------------*/
+
+typedef struct CpPortQCan_s      CpPort_ts;
+
+typedef uint8_t                  CpStatus_tv;
+
+
+
+
+
+
+
+
+
+#endif   /* CP_PLATFORM_H_   */
+

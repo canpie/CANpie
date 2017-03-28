@@ -254,8 +254,6 @@ bool QCanTimeStamp::operator<=(const QCanTimeStamp & clTimestampR) const
 //----------------------------------------------------------------------------//
 QCanTimeStamp & QCanTimeStamp::operator-=(const QCanTimeStamp & clTimeStampR)
 {
-   uint32_t    ulNanoSecsT = 0;
-   uint32_t    ulSecondsT  = 0;
    
    //----------------------------------------------------------------
    // test is substraction may cause an underflow
@@ -270,6 +268,9 @@ QCanTimeStamp & QCanTimeStamp::operator-=(const QCanTimeStamp & clTimeStampR)
    }
    else
    {
+      uint32_t    ulNanoSecsT = 0;
+      uint32_t    ulSecondsT  = 0;
+      
       if(this->ulNanoSecondsP < clTimeStampR.ulNanoSecondsP)
       {
          ulNanoSecsT = this->ulNanoSecondsP   + 1000000000UL;

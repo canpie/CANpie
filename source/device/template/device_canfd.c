@@ -46,6 +46,11 @@
 \*----------------------------------------------------------------------------*/
 
 
+enum DrvInfo_e {
+   eDRV_INFO_OFF = 0,
+   eDRV_INFO_INIT,
+   eDRV_INFO_ACTIVE
+};
 
 /*----------------------------------------------------------------------------*\
 ** external functions                                                         **
@@ -60,13 +65,15 @@
 \*----------------------------------------------------------------------------*/
 
 
+
 //-------------------------------------------------------------------
 // simulation of CAN message buffer
 //
 static CpCanMsg_ts atsCanMsgS[CP_BUFFER_MAX];
-
 static CpFifo_ts * aptsFifoS[CP_BUFFER_MAX];
+static uint32_t    aulAccMaskS[CP_BUFFER_MAX];
 
+static uint8_t     ubCanModeS;
 
 //-------------------------------------------------------------------
 // these pointers store the callback handlers
@@ -82,36 +89,87 @@ static CpErrHandler_Fn  /*@null@*/  pfnErrHandlerS = CPP_NULL;
 \*----------------------------------------------------------------------------*/
 
 
+static CpStatus_tv CheckParam(const CpPort_ts * ptsPortV, 
+                              const uint8_t ubBufferIdxV,
+                              const uint8_t unReqStateV )
+{
+   CpStatus_tv tvStatusT = eCP_ERR_CHANNEL;
+   
+   //----------------------------------------------------------------
+   // test CAN port
+   //
+   if (ptsPortV != (CpPort_ts *) 0L)
+   {
+      tvStatusT = eCP_ERR_INIT_MISSING;
+      
+      //--------------------------------------------------------
+      // check for initialisation
+      //
+      if (ptsPortV->ubDrvInfo >= unReqStateV)
+      {
+         tvStatusT = eCP_ERR_BUFFER;
+         
+         //------------------------------------------------
+         // check for valid buffer number
+         //
+         if (ubBufferIdxV < CP_BUFFER_MAX)
+         {
+            tvStatusT = eCP_ERR_NONE;
+         }
+      }
+   }
+
+   return (tvStatusT);
+}
+
+
 //----------------------------------------------------------------------------//
 // CpCoreBitrate()                                                            //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreBitrate( CpPort_ts * ptsPortV, int32_t slNomBitRateV,
+CpStatus_tv CpCoreBitrate( const CpPort_ts * ptsPortV, int32_t slNomBitRateV,
                            int32_t slDatBitRateV)
 {
+   CpStatus_tv tvStatusT = eCP_ERR_CHANNEL;
+
    //----------------------------------------------------------------
    // test CAN port
    //
-   #if CP_SMALL_CODE == 0
-   if(ptsPortV == (CpPort_ts *) 0L)
+   if (ptsPortV != (CpPort_ts *) 0L)
    {
-      return(eCP_ERR_CHANNEL);
+      if (ptsPortV->ubDrvInfo > eDRV_INFO_OFF)
+      {
+         tvStatusT = eCP_ERR_NONE;
+         
+         //-----------------------------------------------------
+         // test bit-rate
+         //
+         if ((slNomBitRateV > eCP_BITRATE_1M) || 
+             (slNomBitRateV == eCP_BITRATE_NONE) )
+         {
+            tvStatusT = eCP_ERR_BITRATE;
+         }
+         if ((slDatBitRateV != eCP_BITRATE_NONE) && 
+             (slNomBitRateV > slDatBitRateV) )
+         {
+            tvStatusT = eCP_ERR_BITRATE;
+         }
+         
+         //-----------------------------------------------------
+         // configure the btr register here
+         //
+         if (tvStatusT == eCP_ERR_NONE)
+         {
+            
+         }
+      }
+      else
+      {
+         tvStatusT = eCP_ERR_INIT_MISSING;
+      }
    }
-   #endif
-
-   //----------------------------------------------------------------
-   // test bit-rate
-   //
-   if(slNomBitRateV > eCP_BITRATE_1M)
-   {
-      return (eCP_ERR_BITRATE);
-   }
-   if(slNomBitRateV > slDatBitRateV)
-   {
-      return (eCP_ERR_BITRATE);
-   }
-
-   return (eCP_ERR_NONE);
+   
+   return (tvStatusT);
 }
 
 
@@ -119,113 +177,96 @@ CpStatus_tv CpCoreBitrate( CpPort_ts * ptsPortV, int32_t slNomBitRateV,
 // CpCoreBufferConfig()                                                       //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreBufferConfig( CpPort_ts * ptsPortV,
+CpStatus_tv CpCoreBufferConfig( const CpPort_ts * ptsPortV,
                                 uint8_t   ubBufferIdxV,
                                 uint32_t  ulIdentifierV,
                                 uint32_t  ulAcceptMaskV,
                                 uint8_t   ubFormatV,
                                 uint8_t   ubDirectionV)
 {
+   CpStatus_tv tvStatusT;
+   
    //----------------------------------------------------------------
-   // test CAN port
+   // test parameter ptsPortV and ubBufferIdxV
    //
-   #if CP_SMALL_CODE == 0
-   if(ptsPortV == (CpPort_ts *) 0L)
+   tvStatusT = CheckParam(ptsPortV, ubBufferIdxV, eDRV_INFO_INIT);
+   if (tvStatusT == eCP_ERR_NONE)
    {
-      return(eCP_ERR_CHANNEL);
+      //--------------------------------------------------------
+      // test message format and mask identifier
+      //
+      switch(ubFormatV & CP_MASK_MSG_FORMAT)
+      {
+         case CP_MSG_FORMAT_CBFF:
+         case CP_MSG_FORMAT_FBFF:
+            ulIdentifierV = ulIdentifierV & CP_MASK_STD_FRAME;
+            ulAcceptMaskV = ulAcceptMaskV & CP_MASK_STD_FRAME;
+            break;
+
+         case CP_MSG_FORMAT_CEFF:
+         case CP_MSG_FORMAT_FEFF:
+            ulIdentifierV = ulIdentifierV & CP_MASK_EXT_FRAME;
+            ulAcceptMaskV = ulAcceptMaskV & CP_MASK_EXT_FRAME;
+            break;
+      }      
+
+      switch(ubDirectionV)
+      {
+         case eCP_BUFFER_DIR_RCV:
+            aulAccMaskS[ubBufferIdxV] = ulAcceptMaskV;
+            break;
+
+         case eCP_BUFFER_DIR_TRM:
+
+            break;
+      }
    }
-   #endif
 
-   //----------------------------------------------------------------
-   // check for valid buffer number
-   //
-   if((ubBufferIdxV < eCP_BUFFER_1  ) || (ubBufferIdxV > CP_BUFFER_MAX) )
-   {
-      return(eCP_ERR_BUFFER);
-   }
-
-   //----------------------------------------------------------------
-   // test message format and mask identifier
-   //
-   switch(ubFormatV & CP_MSG_FORMAT_MASK)
-   {
-      case CP_MSG_FORMAT_CBFF:
-         ulIdentifierV = ulIdentifierV & CP_MASK_STD_FRAME;
-         ulAcceptMaskV = ulAcceptMaskV & CP_MASK_STD_FRAME;
-         break;
-
-      case CP_MSG_FORMAT_CEFF:
-         ulIdentifierV = ulIdentifierV & CP_MASK_EXT_FRAME;
-         ulAcceptMaskV = ulAcceptMaskV & CP_MASK_EXT_FRAME;
-         break;
-
-
-   }
-
-   switch(ubDirectionV)
-   {
-      case eCP_BUFFER_DIR_RCV:
-
-         break;
-
-      case eCP_BUFFER_DIR_TRM:
-
-         break;
-   }
-   return (eCP_ERR_NONE);
+   return (tvStatusT);
 }
+
 
 //----------------------------------------------------------------------------//
 // CpCoreBufferGetData()                                                      //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreBufferGetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
+CpStatus_tv CpCoreBufferGetData( const CpPort_ts * ptsPortV, 
+                                 uint8_t   ubBufferIdxV,
                                  uint8_t * pubDestDataV,
                                  uint8_t   ubStartPosV,
                                  uint8_t   ubSizeV)
 {
-   uint8_t  ubCntT;
-
+   CpStatus_tv tvStatusT;
+   uint8_t     ubCntT;
 
    //----------------------------------------------------------------
-   // test CAN port
+   // test parameter ptsPortV and ubBufferIdxV
    //
-   #if CP_SMALL_CODE == 0
-   if(ptsPortV == (CpPort_ts *) 0L)
+   tvStatusT = CheckParam(ptsPortV, ubBufferIdxV, eDRV_INFO_INIT);
+   if (tvStatusT == eCP_ERR_NONE)
    {
-      return(eCP_ERR_CHANNEL);
-   }
-   #endif
-
-   //----------------------------------------------------------------
-   // check for valid buffer number
-   //
-   if((ubBufferIdxV < eCP_BUFFER_1  ) || (ubBufferIdxV > CP_BUFFER_MAX) )
-   {
-      return(eCP_ERR_BUFFER);
-   }
-
-   //----------------------------------------------------------------
-   // test start position and size
-   //
-   #if CP_CAN_FD > 0
-   #else
-   if(ubStartPosV > CP_DATA_SIZE)              return(eCP_ERR_PARAM);
-   if(ubSizeV > 8)                  return(eCP_ERR_PARAM);
-   if((ubStartPosV + ubSizeV) > 8)  return(eCP_ERR_PARAM);
-
-   #endif
-
-   //----------------------------------------------------------------
-   // copy data from simulated CAN buffer
-   //
-   for(ubCntT = ubStartPosV; ubCntT < ubSizeV; ubCntT++)
-   {
-      *pubDestDataV = CpMsgGetData(&atsCanMsgS[ubBufferIdxV - 1], ubCntT);
-      pubDestDataV++;
+      //--------------------------------------------------------
+      // test start position and size
+      //
+      if ( (ubStartPosV + ubSizeV) > CP_DATA_SIZE )
+      {
+         tvStatusT = eCP_ERR_PARAM;
+      }
+      else
+      {
+         //---------------------------------------------------
+         // copy data from simulated CAN buffer
+         //
+         for(ubCntT = ubStartPosV; ubCntT < ubSizeV; ubCntT++)
+         {
+            *pubDestDataV = CpMsgGetData(&atsCanMsgS[ubBufferIdxV], ubCntT);
+            pubDestDataV++;
+         }
+      }
    }
 
-   return (eCP_ERR_NONE);
+
+   return (tvStatusT);
 }
 
 
@@ -233,33 +274,25 @@ CpStatus_tv CpCoreBufferGetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 // CpCoreBufferGetDlc()                                                       //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreBufferGetDlc(  CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
+CpStatus_tv CpCoreBufferGetDlc(  const CpPort_ts * ptsPortV, 
+                                 uint8_t ubBufferIdxV,
                                  uint8_t * pubDlcV)
 {
-   //----------------------------------------------------------------
-   // test CAN port
-   //
-   #if CP_SMALL_CODE == 0
-   if(ptsPortV == (CpPort_ts *) 0L)
-   {
-      return(eCP_ERR_CHANNEL);
-   }
-   #endif
+   CpStatus_tv tvStatusT;
 
    //----------------------------------------------------------------
-   // check for valid buffer number
+   // test parameter ptsPortV and ubBufferIdxV
    //
-   if((ubBufferIdxV < eCP_BUFFER_1  ) || (ubBufferIdxV > CP_BUFFER_MAX) )
+   tvStatusT = CheckParam(ptsPortV, ubBufferIdxV, eDRV_INFO_INIT);
+   if (tvStatusT == eCP_ERR_NONE)
    {
-      return(eCP_ERR_BUFFER);
+      //----------------------------------------------------------------
+      // read DLC from simulated CAN buffer
+      //
+      *pubDlcV = atsCanMsgS[ubBufferIdxV].ubMsgDLC;      
    }
 
-   //----------------------------------------------------------------
-   // read DLC from simulated CAN buffer
-   //
-   *pubDlcV = atsCanMsgS[ubBufferIdxV - 1].ubMsgDLC;
-
-   return (eCP_ERR_NONE);
+   return (tvStatusT);
 }
 
 
@@ -268,29 +301,22 @@ CpStatus_tv CpCoreBufferGetDlc(  CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 // CpCoreBufferRelease()                                                      //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreBufferRelease( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
+CpStatus_tv CpCoreBufferRelease( const CpPort_ts * ptsPortV, 
+                                 uint8_t ubBufferIdxV)
 {
-   //----------------------------------------------------------------
-   // test CAN port
-   //
-   #if CP_SMALL_CODE == 0
-   if(ptsPortV == (CpPort_ts *) 0L)
-   {
-      return(eCP_ERR_CHANNEL);
-   }
-   #endif
-
+   CpStatus_tv tvStatusT;
 
    //----------------------------------------------------------------
-   // check for valid buffer number
+   // test parameter ptsPortV and ubBufferIdxV
    //
-   if((ubBufferIdxV < eCP_BUFFER_1  ) || (ubBufferIdxV > CP_BUFFER_MAX) )
+   tvStatusT = CheckParam(ptsPortV, ubBufferIdxV, eDRV_INFO_INIT);
+   if (tvStatusT == eCP_ERR_NONE)
    {
-      return(eCP_ERR_BUFFER);
+      
    }
 
 
-   return (eCP_ERR_NONE);
+   return (tvStatusT);
 }
 
 
@@ -298,29 +324,21 @@ CpStatus_tv CpCoreBufferRelease( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 // CpCoreBufferSend()                                                         //
 // send message out of the CAN controller                                     //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreBufferSend(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
+CpStatus_tv CpCoreBufferSend(const CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 {
-   //----------------------------------------------------------------
-   // test CAN port
-   //
-   #if CP_SMALL_CODE == 0
-   if(ptsPortV == (CpPort_ts *) 0L)
-   {
-      return(eCP_ERR_CHANNEL);
-   }
-   #endif
+   CpStatus_tv tvStatusT;
 
    //----------------------------------------------------------------
-   // check for valid buffer number
+   // test parameter ptsPortV and ubBufferIdxV
    //
-   if((ubBufferIdxV < eCP_BUFFER_1  ) || (ubBufferIdxV > CP_BUFFER_MAX) )
+   tvStatusT = CheckParam(ptsPortV, ubBufferIdxV, eDRV_INFO_INIT);
+   if (tvStatusT == eCP_ERR_NONE)
    {
-      return(eCP_ERR_BUFFER);
+      
    }
 
 
-
-   return (eCP_ERR_NONE);
+   return (tvStatusT);
 }
 
 
@@ -328,42 +346,43 @@ CpStatus_tv CpCoreBufferSend(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 // CpCoreBufferSetData()                                                      //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreBufferSetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
-      uint8_t * pubSrcDataV,
-      uint8_t   ubStartPosV,
-      uint8_t   ubSizeV)
+CpStatus_tv CpCoreBufferSetData( const CpPort_ts * ptsPortV, 
+                                 uint8_t ubBufferIdxV,
+                                 uint8_t * pubSrcDataV,
+                                 uint8_t   ubStartPosV,
+                                 uint8_t   ubSizeV)
 {
-   uint8_t  ubCntT;
+   CpStatus_tv tvStatusT;
+   uint8_t     ubCntT;
 
    //----------------------------------------------------------------
-   // test CAN port
+   // test parameter ptsPortV and ubBufferIdxV
    //
-   #if CP_SMALL_CODE == 0
-   if(ptsPortV == (CpPort_ts *) 0L)
+   tvStatusT = CheckParam(ptsPortV, ubBufferIdxV, eDRV_INFO_INIT);
+   if (tvStatusT == eCP_ERR_NONE)
    {
-      return(eCP_ERR_CHANNEL);
-   }
-   #endif
-
-
-   //----------------------------------------------------------------
-   // check for valid buffer number
-   //
-   if((ubBufferIdxV < eCP_BUFFER_1  ) || (ubBufferIdxV > CP_BUFFER_MAX) )
-   {
-      return(eCP_ERR_BUFFER);
-   }
-
-   //----------------------------------------------------------------
-   // copy data to simulated CAN buffer
-   //
-   for(ubCntT = ubStartPosV; ubCntT < ubSizeV; ubCntT++)
-   {
-      CpMsgSetData(&atsCanMsgS[ubBufferIdxV - 1], ubCntT, *pubSrcDataV);
-      pubSrcDataV++;
+      //--------------------------------------------------------
+      // test start position and size
+      //
+      if ( (ubStartPosV + ubSizeV) > CP_DATA_SIZE )
+      {
+         tvStatusT = eCP_ERR_PARAM;
+      }
+      else
+      {
+         //---------------------------------------------------
+         // copy data from simulated CAN buffer
+         //
+         for(ubCntT = ubStartPosV; ubCntT < ubSizeV; ubCntT++)
+         {
+            CpMsgSetData(&atsCanMsgS[ubBufferIdxV], ubCntT, *pubSrcDataV);
+            pubSrcDataV++;
+         }
+      }
    }
 
-   return (eCP_ERR_NONE);
+
+   return (tvStatusT);
 }
 
 
@@ -371,34 +390,25 @@ CpStatus_tv CpCoreBufferSetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 // CpCoreBufferSetDlc()                                                       //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreBufferSetDlc(  CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
+CpStatus_tv CpCoreBufferSetDlc(  const CpPort_ts * ptsPortV, 
+                                 uint8_t ubBufferIdxV,
                                  uint8_t ubDlcV)
 {
-   //----------------------------------------------------------------
-   // test CAN port
-   //
-   #if CP_SMALL_CODE == 0
-   if(ptsPortV == (CpPort_ts *) 0L)
-   {
-      return(eCP_ERR_CHANNEL);
-   }
-   #endif
-
+   CpStatus_tv tvStatusT;
 
    //----------------------------------------------------------------
-   // check for valid buffer number
+   // test parameter ptsPortV and ubBufferIdxV
    //
-   if((ubBufferIdxV < eCP_BUFFER_1  ) || (ubBufferIdxV > CP_BUFFER_MAX) )
+   tvStatusT = CheckParam(ptsPortV, ubBufferIdxV, eDRV_INFO_INIT);
+   if (tvStatusT == eCP_ERR_NONE)
    {
-      return(eCP_ERR_BUFFER);
+      //--------------------------------------------------------
+      // write DLC to simulated CAN buffer
+      //
+      atsCanMsgS[ubBufferIdxV].ubMsgDLC = ubDlcV;    
    }
 
-   //----------------------------------------------------------------
-   // write DLC to simulated CAN buffer
-   //
-   atsCanMsgS[ubBufferIdxV - 1].ubMsgDLC = ubDlcV;
-
-   return (eCP_ERR_NONE);
+   return (tvStatusT);
 }
 
 
@@ -407,57 +417,63 @@ CpStatus_tv CpCoreBufferSetDlc(  CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 // CpCoreCanMode()                                                            //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV)
+CpStatus_tv CpCoreCanMode(const CpPort_ts * ptsPortV, uint8_t ubModeV)
 {
-   uint8_t  ubStatusT;
+   CpStatus_tv tvStatusT = eCP_ERR_CHANNEL;
 
    //----------------------------------------------------------------
    // test CAN port
    //
-   #if CP_SMALL_CODE == 0
-   if(ptsPortV == (CpPort_ts *) 0L)
+   if (ptsPortV != (CpPort_ts *) 0L)
    {
-      return(eCP_ERR_CHANNEL);
+      if (ptsPortV->ubDrvInfo > eDRV_INFO_OFF)
+      {
+         tvStatusT = eCP_ERR_NONE;
+         
+         //-----------------------------------------------------
+         // switch CAN controller into mode "ubModeV"
+         //
+         switch(ubModeV)
+         {
+            //---------------------------------------------
+            // Stop the CAN controller (passive on the bus)
+            //
+            case eCP_MODE_STOP:
+               ubCanModeS = ubModeV;
+               break;
+
+            //---------------------------------------------
+            // Start the CAN controller (active on the bus)
+            //
+            case eCP_MODE_START:
+               ubCanModeS = ubModeV;
+               break;
+
+            //--------------------------------------------------------
+            // Start the CAN controller (Listen-Only)
+            //
+            case eCP_MODE_LISTEN_ONLY:
+               ubCanModeS = ubModeV;
+               break;
+
+            //--------------------------------------------------------
+            // Operate in self-test mode
+            //
+            case eCP_MODE_SELF_TEST:
+               ubCanModeS = ubModeV;
+               break;
+               
+            //--------------------------------------------------------
+            // Other modes are not supported
+            //
+            default:
+               tvStatusT = eCP_ERR_NOT_SUPPORTED;
+               break;
+         }
+      }
    }
-   #endif
 
-
-   //----------------------------------------------------------------
-   // switch CAN controller into mode "ubModeV"
-   //
-   switch(ubModeV)
-   {
-      //--------------------------------------------------------
-      // Stop the CAN controller (passive on the bus)
-      //
-      case eCP_MODE_STOP:
-         ubStatusT = eCP_ERR_NONE;
-         break;
-
-      //--------------------------------------------------------
-      // Start the CAN controller (active on the bus)
-      //
-      case eCP_MODE_START:
-         ubStatusT = eCP_ERR_NONE;
-         break;
-
-      //--------------------------------------------------------
-      // Start the CAN controller (Listen-Only)
-      //
-      case eCP_MODE_LISTEN_ONLY:
-         ubStatusT = eCP_ERR_NONE;
-         break;
-
-      //--------------------------------------------------------
-      // Other modes are not supported
-      //
-      default:
-         ubStatusT = eCP_ERR_NOT_SUPPORTED;
-         break;
-   }
-
-
-   return(ubStatusT);
+   return(tvStatusT);
 }
 
 
@@ -466,26 +482,29 @@ CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV)
 // CpCoreCanState()                                                           //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreCanState(CpPort_ts * ptsPortV, CpState_ts * ptsStateV)
+CpStatus_tv CpCoreCanState(const CpPort_ts * ptsPortV, CpState_ts * ptsStateV)
 {
+   CpStatus_tv tvStatusT = eCP_ERR_CHANNEL;
+
    //----------------------------------------------------------------
    // test CAN port
    //
-   #if CP_SMALL_CODE == 0
-   if(ptsPortV == (CpPort_ts *) 0L)
+   if (ptsPortV != (CpPort_ts *) 0L)
    {
-      return(eCP_ERR_CHANNEL);
+      if (ptsPortV->ubDrvInfo > eDRV_INFO_OFF)
+      {
+         tvStatusT = eCP_ERR_NONE;
+
+         //-----------------------------------------------------
+         // get current error counter
+         //
+         ptsStateV->ubCanTrmErrCnt = 0;
+         ptsStateV->ubCanRcvErrCnt = 0;
+
+      }
    }
-   #endif
 
-
-   //----------------------------------------------------------------
-   // get current error counter
-   //
-   ptsStateV->ubCanTrmErrCnt = 0;
-   ptsStateV->ubCanRcvErrCnt = 0;
-
-   return(eCP_ERR_NONE);
+   return(tvStatusT);
 }
 
 
@@ -496,18 +515,49 @@ CpStatus_tv CpCoreCanState(CpPort_ts * ptsPortV, CpState_ts * ptsStateV)
 CpStatus_tv CpCoreDriverInit( uint8_t ubPhyIfV, CpPort_ts * ptsPortV,
                               uint8_t CPP_PARM_UNUSED(ubConfigV) )
 {
-
-   if(ubPhyIfV != eCP_CHANNEL_1)
+   CpStatus_tv tvStatusT = eCP_ERR_CHANNEL;
+   
+   //----------------------------------------------------------------
+   // test physical CAN channel 
+   //
+   if (ubPhyIfV == eCP_CHANNEL_1)
    {
-      return(eCP_ERR_CHANNEL);
+   
+      //--------------------------------------------------------
+      // test CAN port
+      //
+      if (ptsPortV != (CpPort_ts *) 0L)
+      {
+         if (ptsPortV->ubDrvInfo == eDRV_INFO_OFF)
+         {
+            ptsPortV->ubPhyIf   = eCP_CHANNEL_1;
+            ptsPortV->ubDrvInfo = eDRV_INFO_INIT;
+            
+            //----------------------------------------------
+            // todo: hardware initialisation
+            //
+            
+            tvStatusT = eCP_ERR_NONE;
+         }
+         else
+         {
+            //---------------------------------------------
+            // already initialised
+            //
+            tvStatusT = eCP_ERR_INIT_FAIL;
+         }
+      }
+      else
+      {
+         //-----------------------------------------------------
+         // parameter ptsPortV is not correct
+         //
+         tvStatusT = eCP_ERR_PARAM;
+      }
+      
    }
 
-   if(ptsPortV != (CpPort_ts *) 0L)
-   {
-
-   }
-
-   return(eCP_ERR_NONE);
+   return(tvStatusT);
 }
 
 
@@ -517,11 +567,24 @@ CpStatus_tv CpCoreDriverInit( uint8_t ubPhyIfV, CpPort_ts * ptsPortV,
 //----------------------------------------------------------------------------//
 CpStatus_tv CpCoreDriverRelease(CpPort_ts * ptsPortV)
 {
-   CpStatus_tv tvStatusT;
+   CpStatus_tv tvStatusT = eCP_ERR_CHANNEL;
 
-   tvStatusT = CpCoreCanMode(ptsPortV, eCP_MODE_STOP);
-
-
+   //----------------------------------------------------------------
+   // test CAN port
+   //
+   if (ptsPortV != (CpPort_ts *) 0L)
+   {
+      if (ptsPortV->ubDrvInfo > eDRV_INFO_OFF)
+      {
+         tvStatusT = CpCoreCanMode(ptsPortV, eCP_MODE_STOP);
+         ptsPortV->ubDrvInfo = eDRV_INFO_OFF;
+      }
+      else
+      {
+         tvStatusT = eCP_ERR_INIT_MISSING;
+      }
+   }
+   
    return (tvStatusT);
 }
 
@@ -530,32 +593,28 @@ CpStatus_tv CpCoreDriverRelease(CpPort_ts * ptsPortV)
 // CpCoreFifoConfig()                                                         //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreFifoConfig(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
+CpStatus_tv CpCoreFifoConfig(const CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
                              CpFifo_ts * ptsFifoV)
 {
-   //----------------------------------------------------------------
-   // test CAN port
-   //
-   #if CP_SMALL_CODE == 0
-   if(ptsPortV == (CpPort_ts *) 0L)
-   {
-      return(eCP_ERR_CHANNEL);
-   }
-   #endif
+   CpStatus_tv tvStatusT;
 
    //----------------------------------------------------------------
-   // check for valid buffer number
+   // test parameter ptsPortV and ubBufferIdxV
    //
-   if((ubBufferIdxV < eCP_BUFFER_1  ) || (ubBufferIdxV > CP_BUFFER_MAX) )
+   tvStatusT = CheckParam(ptsPortV, ubBufferIdxV, eDRV_INFO_INIT);
+   if (tvStatusT == eCP_ERR_NONE)
    {
-      return(eCP_ERR_BUFFER);
+      if(ptsFifoV != (CpFifo_ts *) 0)
+      {
+         aptsFifoS[ubBufferIdxV] = ptsFifoV;
+      }
+      else
+      {
+         tvStatusT = eCP_ERR_FIFO_PARM;
+      }
    }
 
-   if(ptsFifoV != 0)
-   {
-      aptsFifoS[ubBufferIdxV - 1] = ptsFifoV;
-   }
-   return(eCP_ERR_NONE);
+   return(tvStatusT);
 }
 
 
@@ -563,38 +622,33 @@ CpStatus_tv CpCoreFifoConfig(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 // CpCoreFifoRead()                                                           //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreFifoRead(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
+CpStatus_tv CpCoreFifoRead(const CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
                            CpCanMsg_ts * ptsCanMsgV,
                            uint32_t * pulBufferSizeV)
 {
+   CpFifo_ts * ptsFifoT;
+   CpStatus_tv tvStatusT;
 
    //----------------------------------------------------------------
-   // test CAN port
+   // test parameter ptsPortV and ubBufferIdxV
    //
-   #if CP_SMALL_CODE == 0
-   if(ptsPortV == (CpPort_ts *) 0L)
+   tvStatusT = CheckParam(ptsPortV, ubBufferIdxV, eDRV_INFO_INIT);
+   if (tvStatusT == eCP_ERR_NONE)
    {
-      return(eCP_ERR_CHANNEL);
-   }
-   #endif
-
-   //----------------------------------------------------------------
-   // check for valid buffer number
-   //
-   if((ubBufferIdxV < eCP_BUFFER_1  ) || (ubBufferIdxV > CP_BUFFER_MAX) )
-   {
-      return(eCP_ERR_BUFFER);
-   }
-
-   if(pulBufferSizeV != (uint32_t *) 0L)
-   {
-      if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
+      if(pulBufferSizeV != (uint32_t *) 0L)
       {
-
+         if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
+         {
+            ptsFifoT = aptsFifoS[ubBufferIdxV];
+            if (CpFifoIsEmpty(ptsFifoT))
+            {
+               
+            }
+         }
       }
    }
 
-   return(eCP_ERR_NONE);
+   return(tvStatusT);
 }
 
 
@@ -602,27 +656,20 @@ CpStatus_tv CpCoreFifoRead(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 // CpCoreFifoRelease()                                                        //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreFifoRelease(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
+CpStatus_tv CpCoreFifoRelease(const CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 {
-   //----------------------------------------------------------------
-   // test CAN port
-   //
-   #if CP_SMALL_CODE == 0
-   if(ptsPortV == (CpPort_ts *) 0L)
-   {
-      return(eCP_ERR_CHANNEL);
-   }
-   #endif
+   CpStatus_tv tvStatusT;
 
    //----------------------------------------------------------------
-   // check for valid buffer number
+   // test parameter ptsPortV and ubBufferIdxV
    //
-   if((ubBufferIdxV < eCP_BUFFER_1  ) || (ubBufferIdxV > CP_BUFFER_MAX) )
+   tvStatusT = CheckParam(ptsPortV, ubBufferIdxV, eDRV_INFO_INIT);
+   if (tvStatusT == eCP_ERR_NONE)
    {
-      return(eCP_ERR_BUFFER);
+      
    }
 
-   return(eCP_ERR_NONE);
+   return(tvStatusT);
 }
 
 
@@ -630,38 +677,33 @@ CpStatus_tv CpCoreFifoRelease(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 // CpCoreFifoWrite()                                                          //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreFifoWrite(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
+CpStatus_tv CpCoreFifoWrite( const CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
                              CpCanMsg_ts * ptsCanMsgV,
                              uint32_t * pulBufferSizeV)
 {
-   //----------------------------------------------------------------
-   // test CAN port
-   //
-   #if CP_SMALL_CODE == 0
-   if(ptsPortV == (CpPort_ts *) 0L)
-   {
-      return(eCP_ERR_CHANNEL);
-   }
-   #endif
+   CpFifo_ts * ptsFifoT;
+   CpStatus_tv tvStatusT;
 
    //----------------------------------------------------------------
-   // check for valid buffer number
+   // test parameter ptsPortV and ubBufferIdxV
    //
-   if((ubBufferIdxV < eCP_BUFFER_1  ) || (ubBufferIdxV > CP_BUFFER_MAX) )
+   tvStatusT = CheckParam(ptsPortV, ubBufferIdxV, eDRV_INFO_INIT);
+   if (tvStatusT == eCP_ERR_NONE)
    {
-      return(eCP_ERR_BUFFER);
+      if(pulBufferSizeV != (uint32_t *) 0L)
+       {
+          if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
+          {
+             ptsFifoT = aptsFifoS[ubBufferIdxV];
+             if (CpFifoIsFull(ptsFifoT))
+             {
+                
+             }
+          }
+       }      
    }
 
-   if(pulBufferSizeV != (uint32_t *) 0L)
-   {
-      if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
-      {
-
-      }
-
-   }
-
-   return(eCP_ERR_NONE);
+   return(tvStatusT);
 }
 
 
@@ -669,29 +711,42 @@ CpStatus_tv CpCoreFifoWrite(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 // CpCoreHDI()                                                                //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreHDI(CpPort_ts * ptsPortV, CpHdi_ts * ptsHdiV)
+CpStatus_tv CpCoreHDI(const CpPort_ts * ptsPortV, CpHdi_ts * ptsHdiV)
 {
+   CpStatus_tv tvStatusT = eCP_ERR_CHANNEL;
+
    //----------------------------------------------------------------
    // test CAN port
    //
-   #if CP_SMALL_CODE == 0
-   if(ptsPortV == (CpPort_ts *) 0L)
+   if (ptsPortV != (CpPort_ts *) 0L)
    {
-      return(eCP_ERR_CHANNEL);
+      if (ptsPortV->ubDrvInfo > eDRV_INFO_OFF)
+      {
+         tvStatusT = eCP_ERR_NONE;
+         
+         if(ptsHdiV != (CpHdi_ts *) 0)
+         {
+            //--------------------------------------------------
+            // get version number
+            //
+            ptsHdiV->ubVersionMajor = CP_VERSION_MAJOR;
+            ptsHdiV->ubVersionMinor = CP_VERSION_MINOR;
+
+            ptsHdiV->ubCanFeatures    = 0;
+            ptsHdiV->ubDriverFeatures = 0;
+
+            ptsHdiV->ubBufferMax = CP_BUFFER_MAX;
+            
+         }
+         else
+         {
+            tvStatusT = eCP_ERR_PARAM;
+         }
+      }
    }
-   #endif
+   
 
-   //----------------------------------------------------------------
-   // get version number
-   //
-   ptsHdiV->ubVersionMajor = CP_VERSION_MAJOR;
-   ptsHdiV->ubVersionMinor = CP_VERSION_MINOR;
-
-   ptsHdiV->ubCanFeatures = 0;
-   ptsHdiV->ubDriverFeatures = 0,
-
-   ptsHdiV->ubBufferMax = CP_BUFFER_MAX;
-   return(eCP_ERR_NONE);
+   return(tvStatusT);
 }
 
 
@@ -699,30 +754,34 @@ CpStatus_tv CpCoreHDI(CpPort_ts * ptsPortV, CpHdi_ts * ptsHdiV)
 // CpCoreIntFunctions()                                                       //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreIntFunctions(CpPort_ts * ptsPortV,
+CpStatus_tv CpCoreIntFunctions(const CpPort_ts * ptsPortV,
                                CpRcvHandler_Fn pfnRcvHandlerV,
                                CpTrmHandler_Fn pfnTrmHandlerV,
                                CpErrHandler_Fn pfnErrHandlerV )
 {
+   CpStatus_tv tvStatusT = eCP_ERR_CHANNEL;
+
    //----------------------------------------------------------------
    // test CAN port
    //
-   #if CP_SMALL_CODE == 0
-   if(ptsPortV == (CpPort_ts *) 0L)
+   if (ptsPortV != (CpPort_ts *) 0L)
    {
-      return(eCP_ERR_CHANNEL);
+      if (ptsPortV->ubDrvInfo > eDRV_INFO_OFF)
+      {
+         tvStatusT = eCP_ERR_NONE;
+         
+         //-----------------------------------------------------
+         // store the new callbacks
+         //
+         pfnRcvHandlerS = pfnRcvHandlerV;
+         pfnTrmHandlerS = pfnTrmHandlerV;
+         pfnErrHandlerS = pfnErrHandlerV;
+      }
    }
-   #endif
-
-   //----------------------------------------------------------------
-   // store the new callbacks
-   //
-   pfnRcvHandlerS = pfnRcvHandlerV;
-   pfnTrmHandlerS = pfnTrmHandlerV;
-   pfnErrHandlerS = pfnErrHandlerV;
 
 
-   return (eCP_ERR_NONE);
+
+   return(tvStatusT);
 }
 
 
@@ -730,22 +789,29 @@ CpStatus_tv CpCoreIntFunctions(CpPort_ts * ptsPortV,
 // CpCoreStatistic()                                                          //
 // return statistical information                                             //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreStatistic(CpPort_ts * ptsPortV, CpStatistic_ts * ptsStatsV)
+CpStatus_tv CpCoreStatistic(const CpPort_ts * ptsPortV, 
+                            CpStatistic_ts * ptsStatsV)
 {
+   CpStatus_tv tvStatusT = eCP_ERR_CHANNEL;
+
    //----------------------------------------------------------------
    // test CAN port
    //
-   #if CP_SMALL_CODE == 0
-   if(ptsPortV == (CpPort_ts *) 0L)
+   if (ptsPortV != (CpPort_ts *) 0L)
    {
-      return(eCP_ERR_CHANNEL);
+      if (ptsPortV->ubDrvInfo > eDRV_INFO_OFF)
+      {
+         tvStatusT = eCP_ERR_NONE;
+
+         ptsStatsV->ulErrMsgCount = 0;
+         ptsStatsV->ulRcvMsgCount = 0;
+         ptsStatsV->ulTrmMsgCount = 0;
+
+      }
+      
    }
-   #endif
 
-   ptsStatsV->ulErrMsgCount = 0;
-   ptsStatsV->ulRcvMsgCount = 0;
-   ptsStatsV->ulTrmMsgCount = 0;
 
-   return(eCP_ERR_NONE);
+   return(tvStatusT);
 }
 

@@ -1,35 +1,32 @@
-//****************************************************************************//
-// File:          device_can.c                                                //
-// Description:   CANpie Core functions template                              //
-// Author:        Uwe Koppe                                                   //
-// e-mail:        koppe@microcontrol.net                                      //
+//============================================================================//
+// File:          qcan_socket_canpie.cpp                                      //
+// Description:   QCAN classes - CAN socket for CANpie version 2              //
 //                                                                            //
 // Copyright (C) MicroControl GmbH & Co. KG                                   //
-// Lindlaustr. 2c                                                             //
-// 53844 Troisdorf                                                            //
-// Germany                                                                    //
-// Tel: +49-2241-25659-0                                                      //
-// Fax: +49-2241-25659-11                                                     //
+// 53844 Troisdorf - Germany                                                  //
+// www.microcontrol.net                                                       //
 //                                                                            //
-// The copyright to the computer program(s) herein is the property of         //
-// MicroControl GmbH & Co. KG, Germany. The program(s) may be used            //
-// and/or copied only with the written permission of MicroControl GmbH &      //
-// Co. KG or in accordance with the terms and conditions stipulated in        //
-// the agreement/contract under which the program(s) have been supplied.      //
 //----------------------------------------------------------------------------//
+// Redistribution and use in source and binary forms, with or without         //
+// modification, are permitted provided that the following conditions         //
+// are met:                                                                   //
+// 1. Redistributions of source code must retain the above copyright          //
+//    notice, this list of conditions, the following disclaimer and           //
+//    the referenced file 'LICENSE'.                                          //
+// 2. Redistributions in binary form must reproduce the above copyright       //
+//    notice, this list of conditions and the following disclaimer in the     //
+//    documentation and/or other materials provided with the distribution.    //
+// 3. Neither the name of MicroControl nor the names of its contributors      //
+//    may be used to endorse or promote products derived from this software   //
+//    without specific prior written permission.                              //
 //                                                                            //
-// Date        History                                                        //
-// ----------  -------------------------------------------------------------- //
-// 08.02.2013  Initial version                                                //
+// Provided that this notice is retained in full, this software may be        //
+// distributed under the terms of the GNU Lesser General Public License       //
+// ("LGPL") version 3 as distributed in the 'LICENSE' file.                   //
 //                                                                            //
-//                                                                            //
-//****************************************************************************//
+//============================================================================//
 
 
-//------------------------------------------------------------------------------
-// SVN  $Date: 2014-12-06 16:42:14 +0100 (Sa, 06 Dez 2014) $
-// SVN  $Rev: 6365 $ --- $Author: koppe $
-//------------------------------------------------------------------------------
 
 
 /*----------------------------------------------------------------------------*\
@@ -44,7 +41,7 @@
 
 #include "qcan_frame_api.hpp"
 #include "qcan_frame_error.hpp"
-#include "qcan_socket_canpie_v2.hpp"
+#include "qcan_socket_canpie.hpp"
 
 
 /*----------------------------------------------------------------------------*\
@@ -79,7 +76,7 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-static QCanSocketCp2  aclCanSockListS[QCAN_NETWORK_MAX];
+static QCanSocketCp  aclCanSockListS[QCAN_NETWORK_MAX];
 
 
 
@@ -145,7 +142,7 @@ CpStatus_tv CpCoreAutobaud(CpPort_ts * ptsPortV,
 CpStatus_tv CpCoreBaudrate(CpPort_ts * ptsPortV, uint8_t ubBaudSelV)
 {
    QCanFrameApi      clFrameT;
-   QCanSocketCp2 *   pclSockT;
+   QCanSocketCp *   pclSockT;
    int32_t           slBitrateT;
 
    //----------------------------------------------------------------
@@ -214,7 +211,7 @@ CpStatus_tv CpCoreBaudrate(CpPort_ts * ptsPortV, uint8_t ubBaudSelV)
 CpStatus_tv CpCoreBufferAccMask( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
                                  uint32_t ulAccMaskV)
 {
-   QCanSocketCp2 *   pclSockT;
+   QCanSocketCp *   pclSockT;
 
    //----------------------------------------------------------------
    // get access to socket
@@ -253,7 +250,7 @@ CpStatus_tv CpCoreBufferGetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
                                  uint8_t * pubDataV)
 {
    uint8_t           ubCntT;
-   QCanSocketCp2 *   pclSockT;
+   QCanSocketCp *   pclSockT;
 
    //----------------------------------------------------------------
    // get access to socket
@@ -296,7 +293,7 @@ CpStatus_tv CpCoreBufferGetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 CpStatus_tv CpCoreBufferGetDlc(  CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
                                  uint8_t * pubDlcV)
 {
-   QCanSocketCp2 *   pclSockT;
+   QCanSocketCp *   pclSockT;
 
    //----------------------------------------------------------------
    // get access to socket
@@ -334,7 +331,7 @@ CpStatus_tv CpCoreBufferGetDlc(  CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 CpStatus_tv CpCoreBufferInit( CpPort_ts * ptsPortV, CpCanMsg_ts * ptsCanMsgV,
                               uint8_t ubBufferIdxV, uint8_t ubDirectionV)
 {
-   QCanSocketCp2 *   pclSockT;
+   QCanSocketCp *   pclSockT;
 
    //----------------------------------------------------------------
    // get access to socket
@@ -395,7 +392,7 @@ CpStatus_tv CpCoreBufferInit( CpPort_ts * ptsPortV, CpCanMsg_ts * ptsCanMsgV,
 //----------------------------------------------------------------------------//
 CpStatus_tv CpCoreBufferRelease( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 {
-   QCanSocketCp2 *   pclSockT;
+   QCanSocketCp *   pclSockT;
 
    //----------------------------------------------------------------
    // get access to socket
@@ -434,7 +431,7 @@ CpStatus_tv CpCoreBufferRelease( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 CpStatus_tv CpCoreBufferSend(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 {
    QCanFrame         clFrameT;
-   QCanSocketCp2 *   pclSockT;
+   QCanSocketCp *   pclSockT;
 
    //----------------------------------------------------------------
    // get access to socket
@@ -490,7 +487,7 @@ CpStatus_tv CpCoreBufferSetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
                                  uint8_t * pubDataV)
 {
    uint8_t           ubCntT;
-   QCanSocketCp2 *   pclSockT;
+   QCanSocketCp *   pclSockT;
 
    //----------------------------------------------------------------
    // get access to socket
@@ -532,7 +529,7 @@ CpStatus_tv CpCoreBufferSetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 CpStatus_tv CpCoreBufferSetDlc(  CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
                                  uint8_t ubDlcV)
 {
-   QCanSocketCp2 *   pclSockT;
+   QCanSocketCp *   pclSockT;
 
    //----------------------------------------------------------------
    // get access to socket
@@ -569,7 +566,7 @@ CpStatus_tv CpCoreBufferSetDlc(  CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 CpStatus_tv CpCoreBufferTransmit(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
                                  CpCanMsg_ts * ptsCanMsgV)
 {
-   QCanSocketCp2 *   pclSockT;
+   QCanSocketCp *   pclSockT;
    QCanFrame         clFrameT;
 
 
@@ -638,7 +635,7 @@ CpStatus_tv CpCoreBufferTransmit(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV)
 {
    QCanFrameApi      clFrameT;
-   QCanSocketCp2 *   pclSockT;
+   QCanSocketCp *   pclSockT;
 
    //----------------------------------------------------------------
    // debug information
@@ -746,7 +743,7 @@ CpStatus_tv CpCoreCanState(CpPort_ts * ptsPortV, CpState_ts * ptsStateV)
 //----------------------------------------------------------------------------//
 CpStatus_tv CpCoreDriverInit(uint8_t ubPhyIfV, CpPort_ts * ptsPortV)
 {
-   QCanSocketCp2 *   pclSockT;
+   QCanSocketCp *   pclSockT;
 
    //----------------------------------------------------------------
    // debug information
@@ -818,7 +815,7 @@ CpStatus_tv CpCoreIntFunctions(CpPort_ts * ptsPortV,
                         uint8_t (* pfnTrmHandler)(CpCanMsg_ts *, uint8_t),
                         uint8_t (* pfnErrHandler)(CpState_ts *) )
 {
-   QCanSocketCp2 *   pclSockT;
+   QCanSocketCp *   pclSockT;
 
    //----------------------------------------------------------------
    // get access to socket
@@ -880,7 +877,7 @@ CpStatus_tv CpCoreStatistic(CpPort_ts * ptsPortV, CpStatistic_ts * ptsStatsV)
    return(CpErr_OK);
 }
 
-QCanSocketCp2::QCanSocketCp2()
+QCanSocketCp::QCanSocketCp()
 {
    pfnRcvIntHandlerP = 0;
    pfnTrmIntHandlerP = 0;
@@ -891,7 +888,7 @@ QCanSocketCp2::QCanSocketCp2()
 // fromCpMsg()                                                                //
 // message conversion                                                         //
 //----------------------------------------------------------------------------//
-QCanFrame QCanSocketCp2::fromCpMsg(uint8_t ubMsgBufferV)
+QCanFrame QCanSocketCp::fromCpMsg(uint8_t ubMsgBufferV)
 {
    QCanFrame      clCanFrameT;
    CpCanMsg_ts *  ptsCanMsgT;
@@ -922,7 +919,7 @@ QCanFrame QCanSocketCp2::fromCpMsg(uint8_t ubMsgBufferV)
 // onSocketReceive()                                                          //
 // receive CAN message                                                        //
 //----------------------------------------------------------------------------//
-void QCanSocketCp2::onSocketReceive()
+void QCanSocketCp::onSocketReceive()
 {
    QCanFrame   clFrameT;
    CpCanMsg_ts    tsCanMsgT;
@@ -1016,7 +1013,7 @@ void QCanSocketCp2::onSocketReceive()
 // fromCanFrame()                                                             //
 // message conversion                                                         //
 //----------------------------------------------------------------------------//
-CpCanMsg_ts QCanSocketCp2::fromCanFrame(QCanFrame & clCanFrameR)
+CpCanMsg_ts QCanSocketCp::fromCanFrame(QCanFrame & clCanFrameR)
 {
    CpCanMsg_ts    tsCanMsgT;
    uint8_t        ubDataCntT;

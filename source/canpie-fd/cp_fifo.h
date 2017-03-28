@@ -37,6 +37,10 @@
 ** \file    cp_fifo.h
 ** \brief   Definitions and prototypes for FIFO implementation
 **
+** A CAN message FIFO can be assigned to every message message buffer
+** by calling CpCoreFifoConfig(). This file defines the structure of 
+** a CAN message FIFO (CpFifo_s) and inline functions to access the
+** FIFO.
 */
 
 /*----------------------------------------------------------------------------*\
@@ -44,10 +48,17 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
+#include "canpie.h"
+
 /*----------------------------------------------------------------------------*\
 ** Definitions                                                                **
 **                                                                            **
 \*----------------------------------------------------------------------------*/
+
+#ifndef CP_FIFO_MACRO
+#define CP_FIFO_MACRO   0
+#endif
+
 
 /*----------------------------------------------------------------------------*\
 ** Structures                                                                 **
@@ -57,10 +68,9 @@
 /*----------------------------------------------------------------------------*/
 /*!
 ** \struct  CpFifo_s
-** \brief   This structure holds administration variables of a FIFO.
+** \brief   Administration variables of a CAN message FIFO
 **
-** Opposite to this structure FIFO macros can be used to manage the
-** FIFO access.
+** This structure is initialised by CpFifoInit().
 */
 struct CpFifo_s {
    /*! Index where the last data has been written to
@@ -75,6 +85,9 @@ struct CpFifo_s {
    */
    uint32_t  ulIndexMax;
 
+   /*!
+   ** Pointer to CAN message buffer
+   */
    CpCanMsg_ts * ptsCanMsg;
 };
 /*!
@@ -83,130 +96,164 @@ struct CpFifo_s {
 typedef struct CpFifo_s CpFifo_ts;
 
 /*----------------------------------------------------------------------------*\
-** Macros                                                                     **
+** Function prototypes                                                        **
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
 /*!
-** \def     CpFifoDataInPtr(FIFO_PTR)
-** \return  Pointer to next empty FIFO element.
+** \brief   Get next free entry from FIFO
+** \param   ptsFifoV - Pointer to CAN message FIFO
+** \return  Pointer to CAN message
 **
-** Value ctrl have to be a (static) variable from type
-** of McFifoCtrl_ts structure. Value pdata is pointer to the FIFO array.
+** This function returns a pointer to the next free CAN message entry
+** inside the FIFO. Please make sure to call CpFifoIsFull() in advance. 
+** After writing to the FIFO the index has to adjusted by calling
+** CpFifoIncIn(), like shown in this code example:  
 **
 ** \code
 **
 ** static CpFifo_ts  tsCanFifoS;
-** CpCanMsg_ts *     ptsCanMsgT
+** CpCanMsg_ts *     ptsCanNewMsgT;
+** CpCanMsg_ts *     ptsCanInEntryT;
+** 
 **
 **
 ** if (!(CpFifoIsFull(&tsCanFifoS)))
 ** {
-**    ptsCanMsgT = CpFifoDataInPtr(&tsCanFifoS);
+**    ptsCanInEntryT = CpFifoDataInPtr(&tsCanFifoS);
 **
-**    memcpy(ptsFifoInEntryT, ptsFifoNewEntryT, sizeof(CpCanMsg_ts));
+**    memcpy(ptsCanInEntryT, ptsCanNewMsgT, sizeof(CpCanMsg_ts));
 **
 **    CpFifoIncIn(&tsCanFifoS);
 ** }
 ** \endcode
 */
-#define  CpFifoDataInPtr(FIFO_PTR)                            \
-            (((FIFO_PTR)->ptsCanMsg) + ((FIFO_PTR)->ulIndexIn))
+CpCanMsg_ts * CpFifoDataInPtr(CpFifo_ts * ptsFifoV);
 
 
 /*!
-** \def     CpFifoDataOutPtr(FIFO_PTR)
-** \brief   This macro returns pointer to next FIFO out element.
+** \brief   Get first element of FIFO
+** \param   ptsFifoV - Pointer to CAN message FIFO
+** \return  Pointer to CAN message
 **
-** Value ctrl have to be a (static) variable from type
-** of McFifoCtrl_ts structure. Value pdata is pointer to the FIFO array.
+** This function returns a pointer to the first CAN message entry
+** inside the FIFO. Please make sure to call CpFifoIsEmpty() in advance. 
+** After reading from the FIFO the index has to adjusted by calling
+** CpFifoIncOut(), like shown in this code example:  
 **
 ** \code
-** UserFifoEntry_ts * ptsFifoOutEntryT;
 **
-** if (!(MC_FIFO_EMPTY(tsFifoCntrlS)))
+** static CpFifo_ts  tsCanFifoS;
+** CpCanMsg_ts *     ptsCanNewMsgT;
+** CpCanMsg_ts *     ptsCanOutEntryT;
+** 
+**
+**
+** if (!(CpFifoIsEmpty(&tsCanFifoS)))
 ** {
-**    ptsFifoOutEntryT = MC_FIFO_DATA_OUT_PTR(tsFifoCntrlS,&atsFifoDataS[0]);
+**    ptsCanOutEntryT = CpFifoDataOutPtr(&tsCanFifoS);
 **
-**    memcpy(ptsUserDataT, ptsFifoOutEntryT, sizeof(UserFifoEntry_ts));
+**    memcpy(ptsCanNewMsgT, ptsCanOutEntryT, sizeof(CpCanMsg_ts));
 **
-**    // handle ptsUserDataT data from FIFO
-**    ...
-**
-**    MC_FIFO_INC_OUT(tsFifoCntrlS);
+**    CpFifoIncout(&tsCanFifoS);
 ** }
 ** \endcode
 */
+CpCanMsg_ts * CpFifoDataOutPtr(CpFifo_ts * ptsFifoV);
+
+
+/*!
+** \brief   Increment data in pointer
+** \param   ptsFifoV - Pointer to CAN message FIFO
+**
+** This function increments the CpFifo_ts::ulIndexIn element of the
+** CAN message FIFO.  
+*/
+void CpFifoIncIn(CpFifo_ts * ptsFifoV);
+
+
+/*!
+** \brief   Increment data out pointer
+** \param   ptsFifoV - Pointer to CAN message FIFO
+**
+** This function increments the CpFifo_ts::ulIndexOut element of the
+** CAN message FIFO.  
+*/
+void CpFifoIncOut(CpFifo_ts * ptsFifoV);
+
+
+/*!
+** \brief   Initialise CAN message FIFO
+** \param   ptsFifoV - Pointer to CAN message FIFO
+** \param   ptsCanMsgV - Pointer to array of CAN messages
+** \param   ulSizeV - Size if CAN message array
+** 
+** This function initialises a CA message FIFO. The paramter 
+** \a ptsCanMsgV points to an array of CpCanMsg_ts elements.
+** The number of messages which can be stored inside the array
+** is determined by the paramter \a ulSizeV.
+**
+** Here is an example for initialisation of a CAN message FIFO:
+** \code
+** ...
+** #define NUMBER_OF_FIFO_ENTRIES   20
+** static CpFifo_ts     tsCanFifoS;
+** static CpCanMsg_ts   atsCanMsgS[NUMBER_OF_FIFO_ENTRIES];
+** 
+** CpFifoInit(&tsCanFifoS, &atsCanMsgS, NUMBER_OF_FIFO_ENTRIES);
+**
+** \endcode
+**
+*/
+void CpFifoInit(CpFifo_ts * ptsFifoV, CpCanMsg_ts * ptsCanMsgV, 
+                uint32_t ulSizeV);
+
+
+/*!
+** \brief   Test for FIFO empty
+** \param   ptsFifoV - Pointer to CAN message FIFO
+** \return  true if FIFO is empty, otherwise false
+**
+** The function returns \a true if the FIFO is empty, otherwise it will
+** return \a false. 
+*/
+bool_t CpFifoIsEmpty(CpFifo_ts * ptsFifoV);
+
+
+
+/*!
+** \brief   Test for FIFO full
+** \param   ptsFifoV - Pointer to CAN message FIFO
+** \return  true if FIFO is full, otherwise false
+**
+** The function returns \a true if the FIFO is full, otherwise it will
+** return \a false. 
+**
+*/
+bool_t CpFifoIsFull(CpFifo_ts * ptsFifoV);
+
+
+
+//-------------------------------------------------------------------//
+// Macros for CpFifoXXX() commands                                   //
+//-------------------------------------------------------------------//
+#if   CP_FIFO_MACRO == 1
+
+#define  CpFifoDataInPtr(FIFO_PTR)                            \
+            (((FIFO_PTR)->ptsCanMsg) + ((FIFO_PTR)->ulIndexIn))
+
 #define  CpFifoDataOutPtr(FIFO_PTR) \
       (((FIFO_PTR)->ptsCanMsg) + ((FIFO_PTR)->ulIndexOut))
 
 
-/*!
-** \def     CpFifoIsEmpty(ctrl)
-** \return  1 if FIFO is empty, otherwise 0
-**
-** Value x have to be a (static) variable from type of
-** McFifoCtrl_ts structure.
-** e.g :
-** \code
-** uint32_t * pulFifoElementT;
-** ...
-** if (MC_FIFO_EMPTY(tsMcFifoCtrlS))
-** {
-**    return CpErr_FIFO_EMPTY;
-** }
-**
-** // access to next data of FIFO
-** pulFifoElementT = (uint32_t *) MC_FIFO_DATA_OUT_PTR(tsMcFifoCtrlS);
-**
-** Dummy = *pulFifoElementT;
-** ...
-** MC_FIFO_INC_OUT(tsMcFifoCtrlS);
-** \endcode
-*/
 #define  CpFifoIsEmpty(FIFO_PTR) \
    (((FIFO_PTR)->ulIndexIn == (FIFO_PTR)->ulIndexOut) ? 1 : 0)
 
-
-
-/*!
-** \def     CpFifoIsFull(FIFO_PTR)
-** \return  1 if FIFO is full, otherwise 0
-**
-** Value ctrl have to be a (static) variable from type of
-** McFifoCtrl_ts structure.
-** e.g :
-** \code
-** uint32_t * pulFifoElementT;
-** ...
-** if (MC_FIFO_FULL(tsMcFifoCtrlS))
-** {
-**    return CpErr_FIFO_FULL;
-** }
-**
-** // access to data of FIFO
-** pulFifoElementT = (uint32_t *) MC_FIFO_DATA_IN_PTR(tsMcFifoCtrlS);
-**
-** *pulFifoElementT = Dummy;
-** ...
-** MC_FIFO_INC_IN(tsMcFifoCtrlS);
-** \endcode
-**
-*/
 #define  CpFifoIsFull(FIFO_PTR)                                            \
             ( (((FIFO_PTR)->ulIndexIn+1 == (FIFO_PTR)->ulIndexOut) ||       \
               (((FIFO_PTR)->ulIndexOut  == 0) &&                             \
                ((FIFO_PTR)->ulIndexIn+1 == (FIFO_PTR)->ulIndexMax) )) ? 1 : 0)
 
-
-
-/*!
-** \def     CpFifoIncIn(ctrl)
-** \brief   This macro have to be execute when data was written to the FIFO.
-**
-** Value ctrl have to be a (static) variable from type of
-** McFifoCtrl_ts structure.
-*/
 #define  CpFifoIncIn(FIFO_PTR)                                       \
          do {                                                        \
             (FIFO_PTR)->ulIndexIn++;                                 \
@@ -216,14 +263,6 @@ typedef struct CpFifo_s CpFifo_ts;
             }                                                        \
          } while (0)
 
-
-/*!
-** \def     CpFifoIncOut(ctrl)
-** \brief   This macro have to be execute when data was read from the FIFO.
-**
-** Value ctrl have to be a (static) variable from type of
-** McFifoCtrl_ts structure.
-*/
 #define  CpFifoIncOut(FIFO_PTR)                                      \
          do {                                                        \
             (FIFO_PTR)->ulIndexOut++;                                \
@@ -233,31 +272,6 @@ typedef struct CpFifo_s CpFifo_ts;
             }                                                        \
          } while (0)
 
-
-/*!
-** \def     CpFifoInit(ctrl,size)
-** \brief   Initialise FIFO.
-**
-** Value ctrl have to be a (static) variable from type of a McFifoCtrl_ts.
-** Value size gives number of entries the FIFO contains.
-**
-** Here is an example for initialisation of FIFO:
-** \code
-** ...
-** // define example FIFO
-** #define NUMBER_OF_FIFO_ENTRIES   20
-** static McFifoCtrl_ts tsMcFifoCtrlS;
-** static uint32_t      aulUserFifoDataS[NUMBER_OF_FIFO_ENTRIES]; // can be an array of struct
-** ...
-** // initialise example FIFO
-** MC_FIFO_INIT(tsMcFifoCtrlS,NUMBER_OF_FIFO_ENTRIES);
-**
-** \endcode
-**
-** \attention It is important that NUMBER_OF_FIFO_ENTRIES value that was
-** used for atsUserFifoDataS declaration is the same as value
-** that is used with MC_FIFO_INIT();
-*/
 #define  CpFifoInit(FIFO_PTR, MSG_PTR, SIZE)                         \
          do {                                                        \
             (FIFO_PTR)->ulIndexIn  = 0;                              \
@@ -265,12 +279,8 @@ typedef struct CpFifo_s CpFifo_ts;
             (FIFO_PTR)->ulIndexMax = (SIZE);                         \
             (FIFO_PTR)->ptsCanMsg  = (MSG_PTR);                      \
          } while (0)
+#endif
 
 
-
-/*----------------------------------------------------------------------------*\
-** Function prototypes                                                        **
-**                                                                            **
-\*----------------------------------------------------------------------------*/
 
 #endif   // CP_FIFO_H_

@@ -594,9 +594,12 @@ void  CpMsgSetRemote(CpCanMsg_ts * ptsCanMsgV)
    //----------------------------------------------------------------
    // check for valid pointer
    //
-   if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   if (ptsCanMsgV != (CpCanMsg_ts *) 0L)
    {
-      ptsCanMsgV->ubMsgCtrl |= CP_MSG_CTRL_RTR_BIT;
+      if ((ptsCanMsgV->ubMsgCtrl & CP_MSG_CTRL_FDF_BIT) == 0)
+      {
+         ptsCanMsgV->ubMsgCtrl |= CP_MSG_CTRL_RTR_BIT;
+      }
    }
 }
 

@@ -1,5 +1,5 @@
 //============================================================================//
-// File:          qcan_socket_canpie_v2.hpp                                   //
+// File:          qcan_socket_canpie.hpp                                      //
 // Description:   QCAN classes - CAN socket for CANpie version 2              //
 //                                                                            //
 // Copyright (C) MicroControl GmbH & Co. KG                                   //
@@ -34,10 +34,9 @@
 
 
 
-#include "../canpie/canpie-fd/cp_core.h"
-#include "../canpie/canpie-fd/cp_msg.h"
 #include "qcan_socket.hpp"
-
+#include "../../canpie/cp_core.h"
+#include "../../canpie/cp_msg.h"
 
 /*----------------------------------------------------------------------------*\
 ** Definitions                                                                **
@@ -46,17 +45,17 @@
 
 //-----------------------------------------------------------------------------
 /*!
-** \class QCanSocketCp3
-** \brief CAN socket for CANpie version 3
+** \class QCanSocketCp
+** \brief CAN socket for CANpie version 2
 **
 **
 */
-class QCanSocketCp3 : public QCanSocket
+class QCanSocketCp : public QCanSocket
 {
    Q_OBJECT
 
 public:
-   QCanSocketCp3();
+   QCanSocketCp();
 
    QCanFrame   fromCpMsg(uint8_t ubMsgBufferV);
    CpCanMsg_ts fromCanFrame(QCanFrame & clCanFrameR);

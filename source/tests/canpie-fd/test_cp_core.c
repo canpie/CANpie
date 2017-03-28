@@ -1,34 +1,33 @@
 //============================================================================//
-// File:          com_test_mgr.c                                              //
-// Description:   Unit tests for CANopen Master MGR module                    //
-// Author:        Uwe Koppe                                                   //
-// e-mail:        koppe@microcontrol.net                                      //
+// File:          test_cp_core.c                                              //
+// Description:   Unit tests for CANpie core functions                        //
 //                                                                            //
 // Copyright (C) MicroControl GmbH & Co. KG                                   //
-// Junkersring 23                                                             //
-// 53844 Troisdorf                                                            //
-// Germany                                                                    //
-// Tel: +49-2241-25659-0                                                      //
-// Fax: +49-2241-25659-11                                                     //
+// 53844 Troisdorf - Germany                                                  //
+// www.microcontrol.net                                                       //
 //                                                                            //
-// The copyright to the computer program(s) herein is the property of         //
-// MicroControl GmbH & Co. KG, Germany. The program(s) may be used            //
-// and/or copied only with the written permission of MicroControl GmbH &      //
-// Co. KG or in accordance with the terms and conditions stipulated in        //
-// the agreement/contract under which the program(s) have been supplied.      //
 //----------------------------------------------------------------------------//
+// Redistribution and use in source and binary forms, with or without         //
+// modification, are permitted provided that the following conditions         //
+// are met:                                                                   //
+// 1. Redistributions of source code must retain the above copyright          //
+//    notice, this list of conditions, the following disclaimer and           //
+//    the referenced file 'LICENSE'.                                          //
+// 2. Redistributions in binary form must reproduce the above copyright       //
+//    notice, this list of conditions and the following disclaimer in the     //
+//    documentation and/or other materials provided with the distribution.    //
+// 3. Neither the name of MicroControl nor the names of its contributors      //
+//    may be used to endorse or promote products derived from this software   //
+//    without specific prior written permission.                              //
 //                                                                            //
-// Date        History                                                        //
-// ----------  -------------------------------------------------------------- //
-// 05.10.2015  Initial version                                                //
+// Provided that this notice is retained in full, this software may be        //
+// distributed under the terms of the GNU Lesser General Public License       //
+// ("LGPL") version 3 as distributed in the 'LICENSE' file.                   //
 //                                                                            //
 //============================================================================//
 
 
-//------------------------------------------------------------------------------
-// SVN  $Date: 2015-10-17 18:16:40 +0200 (Sa, 17 Okt 2015) $
-// SVN  $Rev: 7160 $ --- $Author: koppe $
-//------------------------------------------------------------------------------
+
 
 
 /*----------------------------------------------------------------------------*\
@@ -39,6 +38,8 @@
 #include "cp_core.h"
 #include "unity_fixture.h"
 
+#include <string.h>
+
 /*----------------------------------------------------------------------------*\
 ** Variables of module                                                        **
 **                                                                            **
@@ -46,6 +47,7 @@
 
 TEST_GROUP(CP_CORE);     // test group name
 
+static    CpPort_ts      tsPortS;
 
 /*----------------------------------------------------------------------------*\
 ** Function implementations                                                   **
@@ -59,7 +61,15 @@ TEST_GROUP(CP_CORE);     // test group name
 //----------------------------------------------------------------------------//
 TEST_SETUP(CP_CORE)
 {
-
+   CpStatus_tv    tvResultT;
+   
+   memset(&tsPortS, 0, sizeof(CpPort_ts));
+   
+   //----------------------------------------------------------------
+   // valid initialisation
+   //
+   tvResultT = CpCoreDriverInit(eCP_CHANNEL_1, &tsPortS, 0);
+   TEST_ASSERT_EQUAL(tvResultT, eCP_ERR_NONE);
 }
 
 //----------------------------------------------------------------------------//
@@ -68,7 +78,13 @@ TEST_SETUP(CP_CORE)
 //----------------------------------------------------------------------------//
 TEST_TEAR_DOWN(CP_CORE)
 {
-
+   CpStatus_tv    tvResultT;
+   
+   //----------------------------------------------------------------
+   // valid release
+   //
+   tvResultT = CpCoreDriverRelease(&tsPortS);
+   TEST_ASSERT_EQUAL(tvResultT, eCP_ERR_NONE);
 }
 
 //----------------------------------------------------------------------------//
@@ -78,34 +94,29 @@ TEST_TEAR_DOWN(CP_CORE)
 TEST(CP_CORE, 001)
 {
    CpStatus_tv    tvResultT;
-   CpPort_ts      tsPortT;
 
-   //----------------------------------------------------------------
-   // valid initialisation
-   //
-   tvResultT = CpCoreDriverInit( eCP_CHANNEL_1, &tsPortT, 0);
-   TEST_ASSERT_EQUAL(tvResultT, eCP_ERR_NONE);
 
-   tvResultT = CpCoreDriverRelease(&tsPortT);
+   tvResultT = CpCoreDriverRelease(&tsPortS);
    TEST_ASSERT_EQUAL(tvResultT, eCP_ERR_NONE);
 
 
    //----------------------------------------------------------------
    // init two times initialisation
    //
-   tvResultT = CpCoreDriverInit( eCP_CHANNEL_1, &tsPortT, 0);
+   tvResultT = CpCoreDriverInit(eCP_CHANNEL_1, &tsPortS, 0);
    TEST_ASSERT_EQUAL(eCP_ERR_NONE, tvResultT);
 
-   tvResultT = CpCoreDriverInit( eCP_CHANNEL_1, &tsPortT, 0);
+   tvResultT = CpCoreDriverInit(eCP_CHANNEL_1, &tsPortS, 0);
    TEST_ASSERT_EQUAL(eCP_ERR_INIT_FAIL, tvResultT);
 
-   tvResultT = CpCoreDriverRelease(&tsPortT);
-   TEST_ASSERT_EQUAL(tvResultT, eCP_ERR_NONE);
+
 
    //----------------------------------------------------------------
    // release two times
    //
 
+   UnityPrint("CP_CORE_001: PASSED");
+   printf("\n");
 }
 
 
@@ -116,26 +127,71 @@ TEST(CP_CORE, 001)
 TEST(CP_CORE, 002)
 {
    CpStatus_tv    tvResultT;
-   CpPort_ts      tsPortT;
 
-   //----------------------------------------------------------------
-   // valid initialisation
-   //
-   tvResultT = CpCoreDriverInit( eCP_CHANNEL_1, &tsPortT, 0);
-   TEST_ASSERT_EQUAL(tvResultT, eCP_ERR_NONE);
 
-   tvResultT = CpCoreDriverRelease(&tsPortT);
+   tvResultT = CpCoreDriverRelease(&tsPortS);
    TEST_ASSERT_EQUAL(tvResultT, eCP_ERR_NONE);
 
 
    //----------------------------------------------------------------
    // calling functions without valid initialisation
    //
-   tvResultT = CpCoreBitrate(tsPortT, eCP_BITRATE_500K, eCP_BITRATE_NONE);
+   tvResultT = CpCoreBitrate(&tsPortS, eCP_BITRATE_500K, eCP_BITRATE_NONE);
    TEST_ASSERT_EQUAL(eCP_ERR_INIT_MISSING, tvResultT);
 
+   UnityPrint("CP_CORE_002: PASSED");
+   printf("\n");
 
 }
+
+
+//----------------------------------------------------------------------------//
+// Test case CP_CORE_003                                                      //
+// test bit-rate setting                                                      //
+//----------------------------------------------------------------------------//
+TEST(CP_CORE, 003)
+{
+   CpStatus_tv    tvResultT;
+
+
+
+   //----------------------------------------------------------------
+   // set in-valid bit-rate
+   //
+   tvResultT = CpCoreBitrate(&tsPortS, eCP_BITRATE_NONE, eCP_BITRATE_NONE);
+   TEST_ASSERT_EQUAL(eCP_ERR_BITRATE, tvResultT);
+
+   tvResultT = CpCoreBitrate(&tsPortS, eCP_BITRATE_MAX + 1, eCP_BITRATE_NONE);
+   TEST_ASSERT_EQUAL(eCP_ERR_BITRATE, tvResultT);
+
+   UnityPrint("CP_CORE_003: PASSED");
+   printf("\n");
+
+}
+
+
+//----------------------------------------------------------------------------//
+// Test case CP_CORE_004                                                      //
+// test mode setting                                                          //
+//----------------------------------------------------------------------------//
+TEST(CP_CORE, 004)
+{
+   CpStatus_tv    tvResultT;
+
+
+
+   //----------------------------------------------------------------
+   // calling functions without valid initialisation
+   //
+   tvResultT = CpCoreBitrate(&tsPortS, eCP_BITRATE_500K, eCP_BITRATE_NONE);
+   TEST_ASSERT_EQUAL(eCP_ERR_NONE, tvResultT);
+
+
+   UnityPrint("CP_CORE_004: PASSED");
+   printf("\n");
+
+}
+
 
 //----------------------------------------------------------------------------//
 // TEST_GROUP_RUNNER()                                                        //
@@ -143,12 +199,13 @@ TEST(CP_CORE, 002)
 //----------------------------------------------------------------------------//
 TEST_GROUP_RUNNER(CP_CORE)
 {
-   //printf("Run test group CP_MSG_FDM ...\n");
-
-   UnityPrint("Run test group CP_CORE");
+   UnityPrint("--- Run test group: CP_CORE ----------------------------------");
    printf("\n");
+
    RUN_TEST_CASE(CP_CORE, 001);
    RUN_TEST_CASE(CP_CORE, 002);
+   RUN_TEST_CASE(CP_CORE, 003);
+   RUN_TEST_CASE(CP_CORE, 004);
    printf("\n");
 
 }
