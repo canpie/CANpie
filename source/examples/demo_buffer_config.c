@@ -35,13 +35,13 @@
 // DemoReceiveBufferConfiguration()                                           //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void DemoReceiveBufferConfiguration(CpPort_ts * ptsPortV)
+void DemoReceiveBufferConfiguration(CpPort_ts * ptsCanPortV)
 {
    //----------------------------------------------------------------
    // set message buffer 2 as receive buffer for classic CAN frame
    // with Standard Identifier 211h
    //
-   CpCoreBufferConfig(ptsPortV, 
+   CpCoreBufferConfig(ptsCanPortV, 
                       eCP_BUFFER_2,
                       (uint32_t) 0x211,
                       CP_MASK_STD_FRAME,
@@ -52,7 +52,7 @@ void DemoReceiveBufferConfiguration(CpPort_ts * ptsPortV)
    // set message buffer 3 as receive buffer for classic CAN frame
    // with Extended Identifier 18EEFF00h
    //
-   CpCoreBufferConfig(ptsPortV, 
+   CpCoreBufferConfig(ptsCanPortV, 
                       eCP_BUFFER_3,
                       (uint32_t) 0x18EEFF00,
                       CP_MASK_EXT_FRAME,
@@ -66,17 +66,17 @@ void DemoReceiveBufferConfiguration(CpPort_ts * ptsPortV)
 // DemoTransmitBufferConfiguration()                                          //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void DemoTransmitBufferConfiguration(CpPort_ts * ptsPortV)
+void DemoTransmitBufferConfiguration(CpPort_ts * ptsCanPortV)
 {
    //----------------------------------------------------------------
    // set message buffer 1 as transmit buffer for classic CAN frame
    // with Standard Identifier 123h, DLC = 4
    //
-   CpCoreBufferConfig(ptsPortV, eCP_BUFFER_1,
+   CpCoreBufferConfig(ptsCanPortV, eCP_BUFFER_1,
                       (uint32_t) 0x123,
                       CP_MASK_STD_FRAME,
                       CP_MSG_FORMAT_CBFF,
                       eCP_BUFFER_DIR_TRM);
    
-   CpCoreBufferSetDlc(ptsPortV, eCP_BUFFER_1, 4);
+   CpCoreBufferSetDlc(ptsCanPortV, eCP_BUFFER_1, 4);
 }
