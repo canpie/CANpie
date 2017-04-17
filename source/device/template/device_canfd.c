@@ -127,7 +127,7 @@ static CpStatus_tv CheckParam(const CpPort_ts * ptsPortV,
 // CpCoreBitrate()                                                            //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreBitrate( const CpPort_ts * ptsPortV, int32_t slNomBitRateV,
+CpStatus_tv CpCoreBitrate( CpPort_ts * ptsPortV, int32_t slNomBitRateV,
                            int32_t slDatBitRateV)
 {
    CpStatus_tv tvStatusT = eCP_ERR_CHANNEL;
@@ -177,7 +177,7 @@ CpStatus_tv CpCoreBitrate( const CpPort_ts * ptsPortV, int32_t slNomBitRateV,
 // CpCoreBufferConfig()                                                       //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreBufferConfig( const CpPort_ts * ptsPortV,
+CpStatus_tv CpCoreBufferConfig( CpPort_ts * ptsPortV,
                                 uint8_t   ubBufferIdxV,
                                 uint32_t  ulIdentifierV,
                                 uint32_t  ulAcceptMaskV,
@@ -230,7 +230,7 @@ CpStatus_tv CpCoreBufferConfig( const CpPort_ts * ptsPortV,
 // CpCoreBufferGetData()                                                      //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreBufferGetData( const CpPort_ts * ptsPortV, 
+CpStatus_tv CpCoreBufferGetData( CpPort_ts * ptsPortV, 
                                  uint8_t   ubBufferIdxV,
                                  uint8_t * pubDestDataV,
                                  uint8_t   ubStartPosV,
@@ -274,7 +274,7 @@ CpStatus_tv CpCoreBufferGetData( const CpPort_ts * ptsPortV,
 // CpCoreBufferGetDlc()                                                       //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreBufferGetDlc(  const CpPort_ts * ptsPortV, 
+CpStatus_tv CpCoreBufferGetDlc(  CpPort_ts * ptsPortV, 
                                  uint8_t ubBufferIdxV,
                                  uint8_t * pubDlcV)
 {
@@ -301,7 +301,7 @@ CpStatus_tv CpCoreBufferGetDlc(  const CpPort_ts * ptsPortV,
 // CpCoreBufferRelease()                                                      //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreBufferRelease( const CpPort_ts * ptsPortV, 
+CpStatus_tv CpCoreBufferRelease( CpPort_ts * ptsPortV, 
                                  uint8_t ubBufferIdxV)
 {
    CpStatus_tv tvStatusT;
@@ -324,7 +324,7 @@ CpStatus_tv CpCoreBufferRelease( const CpPort_ts * ptsPortV,
 // CpCoreBufferSend()                                                         //
 // send message out of the CAN controller                                     //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreBufferSend(const CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
+CpStatus_tv CpCoreBufferSend( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 {
    CpStatus_tv tvStatusT;
 
@@ -346,7 +346,7 @@ CpStatus_tv CpCoreBufferSend(const CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 // CpCoreBufferSetData()                                                      //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreBufferSetData( const CpPort_ts * ptsPortV, 
+CpStatus_tv CpCoreBufferSetData( CpPort_ts * ptsPortV, 
                                  uint8_t ubBufferIdxV,
                                  uint8_t * pubSrcDataV,
                                  uint8_t   ubStartPosV,
@@ -390,7 +390,7 @@ CpStatus_tv CpCoreBufferSetData( const CpPort_ts * ptsPortV,
 // CpCoreBufferSetDlc()                                                       //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreBufferSetDlc(  const CpPort_ts * ptsPortV, 
+CpStatus_tv CpCoreBufferSetDlc(  CpPort_ts * ptsPortV, 
                                  uint8_t ubBufferIdxV,
                                  uint8_t ubDlcV)
 {
@@ -417,7 +417,7 @@ CpStatus_tv CpCoreBufferSetDlc(  const CpPort_ts * ptsPortV,
 // CpCoreCanMode()                                                            //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreCanMode(const CpPort_ts * ptsPortV, uint8_t ubModeV)
+CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV)
 {
    CpStatus_tv tvStatusT = eCP_ERR_CHANNEL;
 
@@ -482,7 +482,7 @@ CpStatus_tv CpCoreCanMode(const CpPort_ts * ptsPortV, uint8_t ubModeV)
 // CpCoreCanState()                                                           //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreCanState(const CpPort_ts * ptsPortV, CpState_ts * ptsStateV)
+CpStatus_tv CpCoreCanState(CpPort_ts * ptsPortV, CpState_ts * ptsStateV)
 {
    CpStatus_tv tvStatusT = eCP_ERR_CHANNEL;
 
@@ -593,7 +593,7 @@ CpStatus_tv CpCoreDriverRelease(CpPort_ts * ptsPortV)
 // CpCoreFifoConfig()                                                         //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreFifoConfig(const CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
+CpStatus_tv CpCoreFifoConfig(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
                              CpFifo_ts * ptsFifoV)
 {
    CpStatus_tv tvStatusT;
@@ -610,7 +610,7 @@ CpStatus_tv CpCoreFifoConfig(const CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
       }
       else
       {
-         tvStatusT = eCP_ERR_FIFO_PARM;
+         tvStatusT = eCP_ERR_FIFO_PARAM;
       }
    }
 
@@ -622,7 +622,7 @@ CpStatus_tv CpCoreFifoConfig(const CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 // CpCoreFifoRead()                                                           //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreFifoRead(const CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
+CpStatus_tv CpCoreFifoRead(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
                            CpCanMsg_ts * ptsCanMsgV,
                            uint32_t * pulBufferSizeV)
 {
@@ -656,7 +656,7 @@ CpStatus_tv CpCoreFifoRead(const CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 // CpCoreFifoRelease()                                                        //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreFifoRelease(const CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
+CpStatus_tv CpCoreFifoRelease(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 {
    CpStatus_tv tvStatusT;
 
@@ -677,7 +677,7 @@ CpStatus_tv CpCoreFifoRelease(const CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 // CpCoreFifoWrite()                                                          //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreFifoWrite( const CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
+CpStatus_tv CpCoreFifoWrite( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
                              CpCanMsg_ts * ptsCanMsgV,
                              uint32_t * pulBufferSizeV)
 {
@@ -711,7 +711,7 @@ CpStatus_tv CpCoreFifoWrite( const CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 // CpCoreHDI()                                                                //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreHDI(const CpPort_ts * ptsPortV, CpHdi_ts * ptsHdiV)
+CpStatus_tv CpCoreHDI(CpPort_ts * ptsPortV, CpHdi_ts * ptsHdiV)
 {
    CpStatus_tv tvStatusT = eCP_ERR_CHANNEL;
 
@@ -754,7 +754,7 @@ CpStatus_tv CpCoreHDI(const CpPort_ts * ptsPortV, CpHdi_ts * ptsHdiV)
 // CpCoreIntFunctions()                                                       //
 //                                                                            //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreIntFunctions(const CpPort_ts * ptsPortV,
+CpStatus_tv CpCoreIntFunctions(CpPort_ts * ptsPortV,
                                CpRcvHandler_Fn pfnRcvHandlerV,
                                CpTrmHandler_Fn pfnTrmHandlerV,
                                CpErrHandler_Fn pfnErrHandlerV )
@@ -789,7 +789,7 @@ CpStatus_tv CpCoreIntFunctions(const CpPort_ts * ptsPortV,
 // CpCoreStatistic()                                                          //
 // return statistical information                                             //
 //----------------------------------------------------------------------------//
-CpStatus_tv CpCoreStatistic(const CpPort_ts * ptsPortV, 
+CpStatus_tv CpCoreStatistic(CpPort_ts * ptsPortV, 
                             CpStatistic_ts * ptsStatsV)
 {
    CpStatus_tv tvStatusT = eCP_ERR_CHANNEL;
