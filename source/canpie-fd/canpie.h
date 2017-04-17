@@ -257,7 +257,7 @@
 **
 ** This symbol defines if the driver version major value.
 */
-#define  CP_VERSION_MAJOR           ((uint8_t) 3)
+#define  CP_VERSION_MAJOR           3
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -266,7 +266,7 @@
 **
 ** This symbol defines if the driver version minor value.
 */
-#define  CP_VERSION_MINOR           ((uint8_t) 0)
+#define  CP_VERSION_MINOR           0
 
 
 //-----------------------------------------------------------------------------
@@ -490,7 +490,7 @@ enum CpErr_e {
 
    /*!   Receive buffer overrun (07dec / 07hex)
    */
-   eCP_ERR_OVERRUN = 7,
+   eCP_ERR_RCV_OVERRUN = 7,
 
    /*!   Transmit buffer is full (08dec / 08hex)
    */
@@ -526,7 +526,7 @@ enum CpErr_e {
 
    /*!   Parameter of FIFO function is out of range (24dec / 18hex)
    */
-   eCP_ERR_FIFO_PARM = 24,
+   eCP_ERR_FIFO_PARAM = 24,
 
    /*!   Controller is in error passive (30dec / 1Ehex)
    */
@@ -668,11 +668,28 @@ enum CpBitrate_e {
    eCP_BITRATE_1M = 8,
 
    /*!
+   ** bit-rate 2 MBit/s (ISO CAN FD, data phase)
+   */
+   eCP_BITRATE_2M = 10,
+
+   /*!
+   ** bit-rate 4 MBit/s (ISO CAN FD, data phase)
+   */
+   eCP_BITRATE_4M = 11,
+   
+   /*!
+   ** bit-rate 5 MBit/s (ISO CAN FD, data phase)
+   */
+   eCP_BITRATE_5M = 12,
+
+   /*!
    ** Use automatic bit-rate detection
+   ** \internal Do not change the value of this enumerator in order
+   **           to keep compatibility. 
    */
    eCP_BITRATE_AUTO = 9,
 
-   eCP_BITRATE_MAX = eCP_BITRATE_AUTO
+   eCP_BITRATE_MAX = eCP_BITRATE_AUTO,
 };
 
 
@@ -728,25 +745,31 @@ enum CpChannel_e {
 ** order to change the state of the CAN controller.
 */
 enum CpMode_e {
-   /*!   Set controller in Stop mode (no reception / transmission possible)
+   /*!   Set controller in 'Initialization' mode (no reception or 
+   **    transmission possible)
    */
-   eCP_MODE_STOP = 0,
+   eCP_MODE_INIT = 0,
+   
+   eCP_MODE_STOP = 0,         // deprecated definition
 
-   /*!   Set controller into normal operation
+   
+   /*!   Set controller into 'Operation' mode
    */
-   eCP_MODE_START,
+   eCP_MODE_OPERATION = 1,
+   
+   eCP_MODE_START = 1,        // deprecated definition
 
-   /*!   Set controller into listen-only mode
+   /*!   Set controller into 'Listen-only' mode
    */
-   eCP_MODE_LISTEN_ONLY,
+   eCP_MODE_LISTEN_ONLY = 2,
 
-   /*!   Set controller into sleep (power-down) mode
+   /*!   Set controller into 'Sleep' (power-down) mode
    */
-   eCP_MODE_SLEEP,
+   eCP_MODE_SLEEP = 3,
 
-   /*!   Set controller into self-test mode
+   /*!   Set controller into 'Self-test' mode
    */
-   eCP_MODE_SELF_TEST
+   eCP_MODE_SELF_TEST = 4
 
 };
 
@@ -762,7 +785,9 @@ enum CpState_e {
    /*!
    ** CAN controller is in stopped mode
    */
-   eCP_STATE_STOPPED  = 0,
+   eCP_STATE_INIT = 0,
+   
+   eCP_STATE_STOPPED  = 0,    // deprecated definition
 
 
    /*!
