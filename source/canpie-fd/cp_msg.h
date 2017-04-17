@@ -147,10 +147,10 @@ void  CpMsgClrRemote(CpCanMsg_ts * ptsCanMsgV);
 ** \return  Value of data at position ubPosV
 **
 ** This functions retrieves the data of a CAN message. The parameter
-** \a ubPosV must be within the range 0 .. 7 for classic CAN frames. For
+** \c ubPosV must be within the range 0 .. 7 for Classical CAN frames. For
 ** ISO CAN FD frames the valid range is 0 .. 63. Please note that the
 ** macro implementation does not check the value range of the parameter 
-** \a ubPosV.
+** \c ubPosV.
 */
 uint8_t  CpMsgGetData(const CpCanMsg_ts * ptsCanMsgV, uint8_t ubPosV);
 
@@ -328,7 +328,8 @@ void     CpMsgSetBitrateSwitch(CpCanMsg_ts * ptsCanMsgV);
 ** \param   ubValueV    Value of data byte in CAN message
 **
 ** This function sets the data in a CAN message. The parameter
-** \c ubPosV must be within the range 0 .. 7. Please note that the
+** \c ubPosV must be within the range 0 .. 7 for Classical CAN frames. For
+** ISO CAN FD frames the valid range is 0 .. 63. Please note that the
 ** macro implementation does not check the value range of the parameter 
 ** \c ubPosV.
 */
