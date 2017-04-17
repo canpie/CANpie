@@ -1,0 +1,13 @@
+//-----------------------------------------------------------------------------
+/*!
+** \page page.ex_fifo    demo_buffer_fifo.c
+
+<hr>
+\include demo_buffer_fifo.c
+
+<p>
+<br>
+<br>
+<br>
+
+*/

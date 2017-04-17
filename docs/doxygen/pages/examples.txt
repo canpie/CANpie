@@ -13,6 +13,12 @@ Example code is located inside the directory \a source/examples.
    <td class="desc">Example for buffer configuration</td>
 </tr>
 
+<tr>
+   <td class="entry" style="width:25%">
+   \ref page.ex_fifo</td>
+   <td class="desc">Example for FIFO configuration</td>
+</tr>
+
 </table>
 </div>
 
