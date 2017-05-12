@@ -183,7 +183,7 @@ QString QCanInterfacePeak::name()
 // read()                                                                     //
 //                                                                            //
 //----------------------------------------------------------------------------//
-QCanInterface::InterfaceError_e  QCanInterfacePeak::read(QCanFrame &clFrameR)
+QCanInterface::InterfaceError_e  QCanInterfacePeak::read(QByteArray &clDataR)
 {
    if (!pclPcanBasicP.isAvailable())
    {
@@ -196,101 +196,18 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::read(QCanFrame &clFrameR)
    #if QCAN_SUPPORT_CAN_FD > 0
    if (btFdUsedP == true)
    {
-      return readFD(clFrameR);
+      return readFD(clDataR);
    }
    #endif
 
-   return readCAN(clFrameR);
+   return readCAN(clDataR);
 }
 
 //----------------------------------------------------------------------------//
 // readCAN()                                                                  //
 //                                                                            //
 //----------------------------------------------------------------------------//
-QCanInterface::InterfaceError_e  QCanInterfacePeak::readCAN(QCanFrame &clFrameR)
-{
-   TPCANStatus    ulStatusT;
-   uint8_t        ubByteCntrT;
-   TPCANMsg       tsCanMsgT;
-   TPCANTimestamp tsTimestampBufferT;
-
-   //----------------------------------------------------------------
-   // get next message from FIFO
-   //
-   ulStatusT = pclPcanBasicP.read(uwPCanChannelP, &tsCanMsgT, 
-                                  &tsTimestampBufferT);
-
-   /*
-   if (ulStatusT == PCAN_ERROR_OK)
-   {
-      //--------------------------------------------------------
-      // handle data depending on type
-      //
-      if ((tsCanMsgT.MSGTYPE == PCAN_MESSAGE_STANDARD) ||
-          ((tsCanMsgT.MSGTYPE & (PCAN_MESSAGE_RTR | PCAN_MESSAGE_EXTENDED)) != 0))
-      {
-         //---------------------------------------------
-         // copy all values to QCanFrame structure
-         //
-         if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_EXTENDED)
-         {
-            clFrameR.setFrameType(QCanFrame::eTYPE_CAN_EXT);
-         }
-         else
-         {
-            clFrameR.setFrameType(QCanFrame::eTYPE_CAN_STD);
-         }
-         clFrameR.setIdentifier(tsCanMsgT.ID);
-
-         if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_RTR)
-         {
-            clFrameR.setRemote(true);
-         }
-         else
-         {
-            clFrameR.setRemote(false);
-         }
-
-         clFrameR.setDlc(tsCanMsgT.LEN);
-
-         for (ubByteCntrT = 0; ubByteCntrT < clFrameR.dataSize(); ubByteCntrT++)
-         {
-            clFrameR.setData(ubByteCntrT, tsCanMsgT.DATA[ubByteCntrT]);
-         }
-
-         clStatisticP.ulRcvCount++;
-
-      } else if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_STATUS)
-      {
-         qDebug() << "PCAN_MESSAGE_STATUS Message Type [hex]:" << QString::number(tsCanMsgT.MSGTYPE,16);
-      } else
-      {
-         qDebug() << "UNKNOWN Message Type [hex]:" << QString::number(tsCanMsgT.MSGTYPE,16);
-      }
-
-      return eERROR_NONE;
-   }
-
-
-   else if ((ulStatusT & (TPCANStatus)PCAN_ERROR_ANYBUSERR) != 0)
-   {
-      setupErroFrame(ulStatusT, clFrameR);
-
-      return eERROR_NONE;
-   }
-
-
-   else if (ulStatusT != (TPCANStatus)PCAN_ERROR_QRCVEMPTY)
-   {
-      qWarning() << "Fail to call CAN_Read():" + QString::number(ulStatusT,16);
-      return eERROR_DEVICE;
-   }
-   */
-   
-   return eERROR_FIFO_RCV_EMPTY;
-}
-
-QCanInterface::InterfaceError_e  QCanInterfacePeak::read(QByteArray &clDataR)
+QCanInterface::InterfaceError_e  QCanInterfacePeak::readCAN(QByteArray &clDataR)
 {
    TPCANStatus       ulStatusT;
    uint8_t           ubCntT;
@@ -322,53 +239,29 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::read(QByteArray &clDataR)
          //------------------------------------------------
          // this is a status message
          //
+         clRetValueT = eERROR_FIFO_RCV_EMPTY;
       }
       else
       {
          //------------------------------------------------
-         // this is a CAN message
+         // Classical CAN frame with standard or
+         // extended identifier
          //
-         if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_FD)
+         if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_EXTENDED)
          {
-            //----------------------------------------
-            // ISO CAN FD frame with standard or
-            // extended identifier
-            //
-            if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_EXTENDED)
-            {
-               clCanFrameT.setFrameFormat(QCanFrame::eFORMAT_FD_EXT);
-            }
-            else
-            {
-               clCanFrameT.setFrameFormat(QCanFrame::eFORMAT_FD_STD);
-            }
+            clCanFrameT.setFrameFormat(QCanFrame::eFORMAT_CAN_EXT);
          }
          else
          {
-            //----------------------------------------
-            // Classical CAN frame with standard or
-            // extended identifier
-            //
-            if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_EXTENDED)
-            {
-               clCanFrameT.setFrameFormat(QCanFrame::eFORMAT_CAN_EXT);
-            }
-            else
-            {
-               clCanFrameT.setFrameFormat(QCanFrame::eFORMAT_CAN_STD);
-            }
+            clCanFrameT.setFrameFormat(QCanFrame::eFORMAT_CAN_STD);
+         }
             
-            //----------------------------------------
-            // Classical CAN remote frame 
-            //
-            if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_RTR)
-            {
-               clCanFrameT.setRemote(true);
-            }
-            else
-            {
-               clCanFrameT.setRemote(false);
-            }
+         //------------------------------------------------
+         // Classical CAN remote frame
+         //
+         if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_RTR)
+         {
+            clCanFrameT.setRemote(true);
          }
          
          //------------------------------------------------
@@ -414,7 +307,7 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::read(QByteArray &clDataR)
    else
    {
       //--------------------------------------------------------
-      // this is an error
+      // test for bus error
       //
       if ((ulStatusT & (TPCANStatus)PCAN_ERROR_ANYBUSERR) > 0)
       {
@@ -423,6 +316,14 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::read(QByteArray &clDataR)
          // copy the error frame to a byte array 
          //
          clDataR = clErrFrameT.toByteArray();
+      }
+
+      //--------------------------------------------------------
+      // the receive queue is empty
+      //
+      else if (ulStatusT == PCAN_ERROR_QRCVEMPTY)
+      {
+         clRetValueT = eERROR_FIFO_RCV_EMPTY;
       }
       else
       {
@@ -439,93 +340,170 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::read(QByteArray &clDataR)
 //                                                                            //
 //----------------------------------------------------------------------------//
 #if QCAN_SUPPORT_CAN_FD > 0
-QCanInterface::InterfaceError_e  QCanInterfacePeak::readFD(QCanFrame &clFrameR)
+QCanInterface::InterfaceError_e  QCanInterfacePeak::readFD(QByteArray &clDataR)
 {
-   TPCANStatus    ulStatusT;
-   uint8_t        ubByteCntrT;
-   TPCANMsgFD     tsCanMsgFdT;
-   TPCANTimestampFD tsTimestampBufferFdT;
+   TPCANStatus       ulStatusT;
+   uint8_t           ubCntT;
+   TPCANMsgFD        tsCanMsgT;
+   TPCANTimestampFD  tsCanTimeStampT;
+   uint32_t          ulMicroSecsT;
+   QCanFrame         clCanFrameT;
+   QCanFrameError    clErrFrameT;
+   QCanTimeStamp     clTimeStampT;
+   InterfaceError_e  clRetValueT = eERROR_NONE;
 
    //----------------------------------------------------------------
    // get next message from FIFO
    //
-   ulStatusT = pclPcanBasicP.readFD(uwPCanChannelP, &tsCanMsgFdT, &tsTimestampBufferFdT);
+   ulStatusT = pclPcanBasicP.readFD(uwPCanChannelP, &tsCanMsgT,
+                                    &tsCanTimeStampT);
 
+
+   //----------------------------------------------------------------
+   // read message structure
+   //
    if (ulStatusT == PCAN_ERROR_OK)
    {
       //--------------------------------------------------------
       // handle data depending on type
       //
-      if (tsCanMsgFdT.MSGTYPE & PCAN_MESSAGE_FD)
+      if((tsCanMsgT.MSGTYPE & PCAN_MESSAGE_STATUS) > 0)
       {
-         //---------------------------------------------
-         // copy all values to QCanFrame structure
+         //------------------------------------------------
+         // this is a status message
          //
-         if (tsCanMsgFdT.MSGTYPE & PCAN_MESSAGE_EXTENDED)
+         clRetValueT = eERROR_FIFO_RCV_EMPTY;
+      }
+      else
+      {
+         //------------------------------------------------
+         // this is a CAN message
+         //
+         if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_FD)
          {
-            clFrameR.setFrameType(QCanFrame::eTYPE_FD_EXT);
+            //----------------------------------------
+            // ISO CAN FD frame with standard or
+            // extended identifier
+            //
+            if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_EXTENDED)
+            {
+               clCanFrameT.setFrameFormat(QCanFrame::eFORMAT_FD_EXT);
+            }
+            else
+            {
+               clCanFrameT.setFrameFormat(QCanFrame::eFORMAT_FD_STD);
+            }
+
+            //----------------------------------------
+            // Test for BRS bit
+            //
+            if (tsCanMsgFdT.MSGTYPE & PCAN_MESSAGE_BRS)
+            {
+               clCanFrameT.setBitrateSwitch();
+            }
+
+            //----------------------------------------
+            // Test for ESI bit
+            //
+            if (tsCanMsgFdT.MSGTYPE & PCAN_MESSAGE_ESI)
+            {
+               clCanFrameT.setErrorStateIndicator();
+            }
          }
          else
          {
-            clFrameR.setFrameType(QCanFrame::eTYPE_FD_STD);
-         }
-         clFrameR.setIdentifier(tsCanMsgFdT.ID);
+            //----------------------------------------
+            // Classical CAN frame with standard or
+            // extended identifier
+            //
+            if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_EXTENDED)
+            {
+               clCanFrameT.setFrameFormat(QCanFrame::eFORMAT_CAN_EXT);
+            }
+            else
+            {
+               clCanFrameT.setFrameFormat(QCanFrame::eFORMAT_CAN_STD);
+            }
 
-         if (tsCanMsgFdT.MSGTYPE & PCAN_MESSAGE_RTR)
-         {
-            clFrameR.setRemote(true);
-         } else
-         {
-            clFrameR.setRemote(false);
-         }
-
-         if (tsCanMsgFdT.MSGTYPE & PCAN_MESSAGE_BRS)
-         {
-            //! \todo Set BRS Flag of the QCanFrame
-         } else
-         {
-            //! \todo Clear BRS Flag of the QCanFrame
-         }
-
-         clFrameR.setDlc(tsCanMsgFdT.DLC);
-
-         for (ubByteCntrT = 0; ubByteCntrT < clFrameR.dataSize(); ubByteCntrT++)
-         {
-            clFrameR.setData(ubByteCntrT, tsCanMsgFdT.DATA[ubByteCntrT]);
+            //----------------------------------------
+            // Classical CAN remote frame
+            //
+            if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_RTR)
+            {
+               clCanFrameT.setRemote();
+            }
          }
 
+         //------------------------------------------------
+         // copy the identifier
+         //
+         clCanFrameT.setIdentifier(tsCanMsgT.ID);
+
+         //------------------------------------------------
+         // copy the DLC
+         //
+         clCanFrameT.setDlc(tsCanMsgT.DLC);
+
+         //------------------------------------------------
+         // copy the data
+         //
+         for (ubCntT = 0; ubCntT < clCanFrameT.dataSize(); ubCntT++)
+         {
+            clCanFrameT.setData(ubCntT, tsCanMsgT.DATA[ubCntT]);
+         }
+
+         //------------------------------------------------
+         // copy the time-stamp
+         // the value is a multiple of 1 us and has a
+         // total time span of 4294,9 secs
+         //
+         /*
+         ulMicroSecsT = tsCanTimeStampT.millis * 1000;
+         ulMicroSecsT = ulMicroSecsT + tsCanTimeStampT.micros;
+         clTimeStampT.fromMicroSeconds(ulMicroSecsT);
+
+         clCanFrameT.setTimeStamp(clTimeStampT);
+         */
+
+         //------------------------------------------------
+         // increase statistic counter
+         //
          clStatisticP.ulRcvCount++;
 
-      } else if (tsCanMsgFdT.MSGTYPE & PCAN_MESSAGE_ESI)
+         //------------------------------------------------
+         // copy the CAN frame to a byte array for transfer
+         //
+         clDataR = clCanFrameT.toByteArray();
+      }
+   }
+   else
+   {
+      //--------------------------------------------------------
+      // test for bus error
+      //
+      if ((ulStatusT & (TPCANStatus)PCAN_ERROR_ANYBUSERR) > 0)
       {
-         qDebug() << "PCAN_MESSAGE_ESI Message Type [hex]:" << QString::number(tsCanMsgFdT.MSGTYPE,16);
-
-      } else if (tsCanMsgFdT.MSGTYPE & PCAN_MESSAGE_STATUS)
-      {
-         qDebug() << "PCAN_MESSAGE_STATUS Message Type [hex]:" << QString::number(tsCanMsgFdT.MSGTYPE,16);
-      } else
-      {
-         qDebug() << "UNKNOWN Message Type [hex]:" << QString::number(tsCanMsgFdT.MSGTYPE,16);
+         setupErrorFrame(ulStatusT, clErrFrameT);
+         //------------------------------------------------
+         // copy the error frame to a byte array
+         //
+         clDataR = clErrFrameT.toByteArray();
       }
 
-      return eERROR_NONE;
-   }
-   
-   else if ((ulStatusT & (TPCANStatus)PCAN_ERROR_ANYBUSERR) != 0)
-   {
-      setupErroFrame(ulStatusT, clFrameR);
-
-      return eERROR_NONE;
-   }
-   
-   else if (ulStatusT != (TPCANStatus)PCAN_ERROR_QRCVEMPTY)
-   {
-      qWarning() << "Fail to call CAN_ReadFD():" << QString::number(ulStatusT,16);
-      return eERROR_DEVICE;
+      //--------------------------------------------------------
+      // the receive queue is empty
+      //
+      else if (ulStatusT == PCAN_ERROR_QRCVEMPTY)
+      {
+         clRetValueT = eERROR_FIFO_RCV_EMPTY;
+      }
+      else
+      {
+         clRetValueT = eERROR_DEVICE;
+      }
    }
 
-   return eERROR_FIFO_RCV_EMPTY;
-
+   return (clRetValueT);
 }
 #endif
 
