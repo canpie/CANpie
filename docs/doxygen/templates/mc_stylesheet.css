@@ -684,8 +684,9 @@ dl.reflist dd {
 }
 
 .paramname {
-	color: #602020;
-	white-space: nowrap;
+   color: #1e4f94;
+   white-space: nowrap;
+   font-weight: normal;
 }
 .paramname em {
 	font-style: normal;
@@ -700,7 +701,7 @@ dl.reflist dd {
 }       
 
 .params .paramname, .retval .paramname {
-        font-weight: bold;
+        font-weight: normal;
         vertical-align: top;
 }
         

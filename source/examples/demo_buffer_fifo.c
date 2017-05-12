@@ -1,6 +1,6 @@
 //============================================================================//
-// File:          demo_buffer_config.c                                        //
-// Description:   Example for CANpie message buffer configuration             //
+// File:          demo_buffer_fifo.c                                          //
+// Description:   Example for CANpie FIFO configuration                       //
 //                                                                            //
 // Copyright (C) MicroControl GmbH & Co. KG                                   //
 // 53844 Troisdorf - Germany                                                  //
@@ -31,52 +31,45 @@
 #include "cp_msg.h"
 
 
+#define  FIFO_RCV_SIZE  32
+
+static CpFifo_ts        tsFifoRcvS;
+static CpCanMsg_ts      atsCanMsgRcvS[FIFO_RCV_SIZE];
+
 //----------------------------------------------------------------------------//
-// DemoReceiveBufferConfiguration()                                           //
+// DemoFifoConfig()                                                           //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void DemoReceiveBufferConfiguration(CpPort_ts * ptsCanPortV)
+void DemoFifoConfig(CpPort_ts * ptsCanPortV)
 {
-   //----------------------------------------------------------------
-   // set message buffer 2 as receive buffer for classic CAN frame
-   // with Standard Identifier 211h
+   //------------------------------------------------------
+   // set message buffer 2 as receive buffer for classic
+   // CAN frame with identifier 180h .. 18Fh
    //
-   CpCoreBufferConfig(ptsCanPortV, 
-                      eCP_BUFFER_2,
-                      (uint32_t) 0x211,
-                      CP_MASK_STD_FRAME,
+   CpCoreBufferConfig(ptsCanPortV, eCP_BUFFER_2,
+                      (uint32_t) 0x180,
+                      (uint32_t) 0x7F0,   // mask
                       CP_MSG_FORMAT_CBFF,
                       eCP_BUFFER_DIR_RCV);
 
-   //----------------------------------------------------------------
-   // set message buffer 3 as receive buffer for classic CAN frame
-   // with Extended Identifier 18EEFF00h
-   //
-   CpCoreBufferConfig(ptsCanPortV, 
-                      eCP_BUFFER_3,
-                      (uint32_t) 0x18EEFF00,
-                      CP_MASK_EXT_FRAME,
-                      CP_MSG_FORMAT_CEFF,
-                      eCP_BUFFER_DIR_RCV);
-
+   CpFifoInit(&tsFifoRcvS, &atsCanMsgRcvS[0], FIFO_RCV_SIZE); 
+   CpCoreFifoConfig(ptsCanPortV, eCP_BUFFER_2, &tsFifoRcvS);
 }
 
 
 //----------------------------------------------------------------------------//
-// DemoTransmitBufferConfiguration()                                          //
+// DemoFifoRead()                                                             //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void DemoTransmitBufferConfiguration(CpPort_ts * ptsCanPortV)
+void DemoFifoRead(CpPort_ts * ptsCanPortV)
 {
-   //----------------------------------------------------------------
-   // set message buffer 1 as transmit buffer for classic CAN frame
-   // with Standard Identifier 123h, DLC = 4
+   CpCanMsg_ts  tsCanMsgReadT;
+   uint32_t     ulMsgCntT;
+   //------------------------------------------------------
+   // try to read one CAN message
    //
-   CpCoreBufferConfig(ptsCanPortV, eCP_BUFFER_1,
-                      (uint32_t) 0x123,
-                      CP_MASK_STD_FRAME,
-                      CP_MSG_FORMAT_CBFF,
-                      eCP_BUFFER_DIR_TRM);
-   
-   CpCoreBufferSetDlc(ptsCanPortV, eCP_BUFFER_1, 4);
+   ulMsgCntT = 1;
+   CpCoreFifoRead(ptsCanPortV, eCP_BUFFER_2,
+                  &tsCanMsgReadT,
+                  &ulMsgCntT);
 }
