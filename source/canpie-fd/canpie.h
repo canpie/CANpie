@@ -689,7 +689,7 @@ enum CpBitrate_e {
    */
    eCP_BITRATE_AUTO = 9,
 
-   eCP_BITRATE_MAX = eCP_BITRATE_AUTO,
+   eCP_BITRATE_MAX = eCP_BITRATE_AUTO
 };
 
 
