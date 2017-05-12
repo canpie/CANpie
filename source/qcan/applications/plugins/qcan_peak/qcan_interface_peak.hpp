@@ -61,7 +61,7 @@ private:
     *
     * Read CAN message from peak USB device
     */
-   InterfaceError_e  readCAN(QCanFrame &clFrameR);
+   InterfaceError_e  readCAN(QByteArray &clDataR);
 
    /*!
     * \brief readFD
@@ -71,7 +71,7 @@ private:
     *
     * Read CAN FD message from peak USB device
     */
-   InterfaceError_e  readFD(QCanFrame &clFrameR);
+   InterfaceError_e  readFD(QByteArray &clDataR);
 
    /*!
     * \brief ubChannelP
@@ -109,8 +109,6 @@ public:
    QString           name(void) Q_DECL_OVERRIDE;
 
    InterfaceError_e  read( QByteArray &clDataR) Q_DECL_OVERRIDE;
-   
-   InterfaceError_e  read( QCanFrame &clFrameR) Q_DECL_OVERRIDE;
    
    InterfaceError_e  setBitrate( int32_t slBitrateV,
                                  int32_t slBrsClockV) Q_DECL_OVERRIDE;
