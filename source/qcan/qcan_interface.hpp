@@ -156,8 +156,6 @@ public:
    ** eERROR_FIFO_RCV_EMPTY. On success the function returns eERROR_NONE.
    **
    */
-   virtual InterfaceError_e   read( QCanFrame &clFrameR) = 0;
-
    virtual InterfaceError_e   read( QByteArray &clDataR) = 0;
    
    /*!
