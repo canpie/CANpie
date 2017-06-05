@@ -3,6 +3,7 @@
 
 
 #include <QDateTime>
+#include <QFile>
 #include <QObject>
 #include <QMainWindow>
 #include <QTextBrowser>
@@ -51,7 +52,7 @@ private slots:
 private:
    QDateTime      clTimeP;
    QString        clLogMessageP;
-   QString        aclLogFileP[QCAN_NETWORK_MAX];
+   QFile *        apclLogFileP[QCAN_NETWORK_MAX];
    LogLevel_e     ateLogLevelP[QCAN_NETWORK_MAX];
    CAN_Channel_e  teCanChannelP;
    QMainWindow  * pclLogWindowP;

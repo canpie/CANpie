@@ -28,6 +28,8 @@ QCanServerLogger::QCanServerLogger()
    QString  clTabLabelT;
    for (uint8_t ubLogNumT = 0; ubLogNumT < QCAN_NETWORK_MAX; ubLogNumT++)
    {
+      apclLogFileP[ubLogNumT] = Q_NULLPTR;
+
       apclLogTextP[ubLogNumT] = new QTextBrowser();
       apclLogTextP[ubLogNumT]->setFont(clFontT);
       clTabLabelT = QString(" CAN &%1 ").arg(ubLogNumT + 1);
@@ -39,6 +41,7 @@ QCanServerLogger::QCanServerLogger()
 
       pclLogTabP->addTab(apclLogTextP[ubLogNumT], clTabLabelT);
       setLogLevel((CAN_Channel_e) (ubLogNumT + 1), eLOG_LEVEL_NOTICE);
+
    }
    //----------------------------------------------------------------
    // the tab widget is the central widget, the initial log widget
@@ -51,6 +54,15 @@ QCanServerLogger::QCanServerLogger()
 
 QCanServerLogger::~QCanServerLogger()
 {
+   for (uint8_t ubLogNumT = 0; ubLogNumT < QCAN_NETWORK_MAX; ubLogNumT++)
+   {
+      if (apclLogFileP[ubLogNumT] != Q_NULLPTR)
+      {
+         qDebug() << "close log file " << ubLogNumT;
+         apclLogFileP[ubLogNumT]->flush();
+         apclLogFileP[ubLogNumT]->close();
+      }
+   }
    delete pclLogTabP;
    delete pclLogWindowP;
 }
@@ -88,6 +100,13 @@ void QCanServerLogger::appendMessage(const CAN_Channel_e ubChannelV,
          clLogMessageP += clLogMessageV;
 
          apclLogTextP[ubChannelV - 1]->append(clLogMessageP);
+
+         if ((apclLogFileP[ubChannelV - 1]) != Q_NULLPTR)
+         {
+            apclLogFileP[ubChannelV - 1]->write(clLogMessageP.toLatin1());
+            qDebug() << "write data to file";
+
+         }
       }
    }
 }
@@ -128,9 +147,16 @@ void QCanServerLogger::onClearLog(void)
 //----------------------------------------------------------------------------//
 void QCanServerLogger::onSetLogFile(void)
 {
-   QString fileName = QFileDialog::getSaveFileName(Q_NULLPTR, tr("Save File"),
+   QString clFileNameT;
+
+   clFileNameT = QFileDialog::getSaveFileName(Q_NULLPTR, tr("Save File"),
                               "~/untitled.log",
                               tr("Log file (*.log)"));
+
+   if(clFileNameT.isEmpty() == false)
+   {
+      setFileName(teCanChannelP, clFileNameT);
+   }
 }
 
 
@@ -242,10 +268,44 @@ void QCanServerLogger::onShowLogMenu(const QPoint &pos)
 bool QCanServerLogger::setFileName(const CAN_Channel_e ubChannelV,
                                    QString fileName)
 {
+   QFile *  pclLogFileT;
+
+
    if ((ubChannelV >= eCAN_CHANNEL_1) && (ubChannelV <= QCAN_NETWORK_MAX))
    {
+      if ((apclLogFileP[teCanChannelP - 1]) == Q_NULLPTR)
+      {
+         apclLogFileP[teCanChannelP - 1] = new QFile();
+      }
+      else
+      {
+         //-----------------------------------------------------
+         // make sure the file is closed in case it was used
+         // before
+         //
+         apclLogFileP[teCanChannelP - 1]->close();
+      }
 
+
+      pclLogFileT = apclLogFileP[teCanChannelP - 1];
+
+
+      //--------------------------------------------------------
+      // open the new file in rw mode for text files, existing
+      // contents is truncated
+      //
+      pclLogFileT->setFileName(fileName);
+      pclLogFileT->open(QIODevice::ReadWrite | QIODevice::Truncate | QIODevice::Text);
+
+      //--------------------------------------------------------
+      // write existing log data to the file
+      //
+      pclLogFileT->write(apclLogTextP[teCanChannelP - 1]->toPlainText().toLatin1());
+      qDebug() << "write data to file";
+      return true;
    }
+
+   return false;
 }
 
 void QCanServerLogger::setLogLevel(const CAN_Channel_e ubChannelV,
