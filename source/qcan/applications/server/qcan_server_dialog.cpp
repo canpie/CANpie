@@ -172,7 +172,7 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    //----------------------------------------------------------------
    // load settings
    //
-   pclSettingsP = new QSettings( QSettings::IniFormat,//QSettings::NativeFormat,
+   pclSettingsP = new QSettings( QSettings::NativeFormat,
                                  QSettings::UserScope,
                                  "microcontrol.net",
                                  "CANpieServer");
@@ -187,16 +187,12 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    pclCanServerP->setDispatcherTime(pclSettingsP->value("dispatchTime",
                                                          20).toInt());
    pclSettingsP->endGroup();
-   pclLoggerP->appendMessage(eCAN_CHANNEL_1,
-                                  "Server settings done", eLOG_LEVEL_INFO);
 
    //-----------------------------------------------------------
    // settings for network
    //
    for(ubNetworkIdxT = 0; ubNetworkIdxT < QCAN_NETWORK_MAX; ubNetworkIdxT++)
    {
-      pclLoggerP->appendMessage((CAN_Channel_e) (ubNetworkIdxT + 1),
-                                "Read settings", eLOG_LEVEL_INFO);
       pclNetworkT = pclCanServerP->network(ubNetworkIdxT);
       pclLoggerP->addLoggingSource(pclNetworkT);
       clNetNameT  = "CAN_" + QString("%1").arg(ubNetworkIdxT+1);
@@ -223,9 +219,6 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
 
       pclSettingsP->endGroup();
 
-      pclLoggerP->appendMessage((CAN_Channel_e) (ubNetworkIdxT + 1),
-                                "Read done", eLOG_LEVEL_INFO);
-
    }
 
 
@@ -246,15 +239,11 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    // show CAN channel 1 as default and update user interface
    //
    slLastNetworkIndexP = 0;
-   pclLoggerP->appendMessage(eCAN_CHANNEL_1,
-                                  "Update UI", eLOG_LEVEL_INFO);
 
    ui.pclTabConfigM->setCurrentIndex(0);
    pclTbxNetworkP->setCurrentIndex(0);
    this->updateUI(0);
 
-   pclLoggerP->appendMessage(eCAN_CHANNEL_1,
-                                  "Constructor done", eLOG_LEVEL_INFO);
 }
 
 
@@ -305,6 +294,7 @@ QCanServerDialog::~QCanServerDialog()
    pclSettingsP->endGroup();
 
    delete(pclSettingsP);
+   delete(pclLoggerP);
 }
 
 
