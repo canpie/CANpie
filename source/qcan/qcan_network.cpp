@@ -79,6 +79,7 @@ QCanNetwork::QCanNetwork(QObject * pclParentV,
    // each network has a unique network number, starting with 1
    //
    ubNetIdP++;
+   ubIdP = ubNetIdP;
 
    pclInterfaceP.clear();
 
@@ -109,6 +110,10 @@ QCanNetwork::QCanNetwork(QObject * pclParentV,
    ulCntFrameCanP = 0;
    ulCntFrameErrP = 0;
    ulCntBitCurP   = 0;
+   ulCntBitMaxP   = 100;
+
+   ulFramePerSecMaxP = 0;
+   ulFrameCntSaveP   = 0;
 
    //----------------------------------------------------------------
    // setup timing values
@@ -118,10 +123,17 @@ QCanNetwork::QCanNetwork(QObject * pclParentV,
    ulStatisticTickP = ulStatisticTimeP / ulDispatchTimeP;
 
 
+   btNetworkEnabledP     = false;
+   btErrorFramesEnabledP = false;
+   btListenOnlyEnabledP  = false;
+   btFastDataEnabledP    = false;
+
    //----------------------------------------------------------------
    // setup default bit-rate
    //
-   setBitrate(eCAN_BITRATE_500K, -1);
+   slNomBitRateP = eCAN_BITRATE_NONE;
+   slDatBitRateP = eCAN_BITRATE_NONE;
+
 }
 
 
@@ -159,14 +171,29 @@ bool QCanNetwork::addInterface(QCanInterface * pclCanIfV)
       //
       if(pclCanIfV->connect() == QCanInterface::eERROR_NONE)
       {
-         qDebug() << "addInterface() using bit-rate" << slNomBitRateP << slDatBitRateP;
-         if(pclCanIfV->setBitrate(slNomBitRateP, slDatBitRateP) == QCanInterface::eERROR_NONE)
+         if (pclCanIfV->setBitrate(slNomBitRateP, slDatBitRateP) == QCanInterface::eERROR_NONE)
          {
             if (pclCanIfV->setMode(eCAN_MODE_START) == QCanInterface::eERROR_NONE)
             {
                pclInterfaceP = pclCanIfV;
                btResultT = true;
+
+               addLogMessage(CAN_Channel_e (id()),
+                             "Add CAN interface " + pclInterfaceP->name(),
+                             eLOG_LEVEL_NOTICE);
             }
+            else
+            {
+               addLogMessage(CAN_Channel_e (id()),
+                             "Failed to start CAN interface " + pclInterfaceP->name(),
+                             eLOG_LEVEL_WARN);
+            }
+         }
+         else
+         {
+            addLogMessage(CAN_Channel_e (id()),
+                          "Failed to initialise CAN interface " + pclInterfaceP->name(),
+                          eLOG_LEVEL_WARN);
          }
       }
 
@@ -174,6 +201,36 @@ bool QCanNetwork::addInterface(QCanInterface * pclCanIfV)
    return (btResultT);
 }
 
+
+QString QCanNetwork::dataBitrateString(void)
+{
+   QString  clDatBitRateT;
+
+   switch (slDatBitRateP)
+   {
+      case eCAN_BITRATE_1M:
+         clDatBitRateT = "1 MBit/s";
+         break;
+
+      case eCAN_BITRATE_2M:
+         clDatBitRateT = "2 MBit/s";
+         break;
+
+      case eCAN_BITRATE_4M:
+         clDatBitRateT = "4 MBit/s";
+         break;
+
+      case eCAN_BITRATE_5M:
+         clDatBitRateT = "5 MBit/s";
+         break;
+
+      default:
+         clDatBitRateT = "None";
+         break;
+   }
+   return (clDatBitRateT);
+
+}
 
 //----------------------------------------------------------------------------//
 // hasErrorFramesSupport()                                                    //
@@ -446,6 +503,59 @@ QHostAddress QCanNetwork::serverAddress(void)
    return (pclTcpSrvP->serverAddress());
 }
 
+//----------------------------------------------------------------------------//
+// nominalBitrate()                                                           //
+// return nominal bit-rate as QString value                                   //
+//----------------------------------------------------------------------------//
+QString QCanNetwork::nominalBitrateString(void)
+{
+   QString  clNomBitRateT;
+
+   switch (slNomBitRateP)
+   {
+      case eCAN_BITRATE_10K:
+         clNomBitRateT = "10 kBit/s";
+         break;
+
+      case eCAN_BITRATE_20K:
+         clNomBitRateT = "20 kBit/s";
+         break;
+
+      case eCAN_BITRATE_50K:
+         clNomBitRateT = "50 kBit/s";
+         break;
+
+      case eCAN_BITRATE_100K:
+         clNomBitRateT = "100 kBit/s";
+         break;
+
+      case eCAN_BITRATE_125K:
+         clNomBitRateT = "125 kBit/s";
+         break;
+
+      case eCAN_BITRATE_250K:
+         clNomBitRateT = "250 kBit/s";
+         break;
+
+      case eCAN_BITRATE_500K:
+         clNomBitRateT = "500 kBit/s";
+         break;
+
+      case eCAN_BITRATE_800K:
+         clNomBitRateT = "800 kBit/s";
+         break;
+
+      case eCAN_BITRATE_1M:
+         clNomBitRateT = "1 MBit/s";
+         break;
+
+      default:
+         clNomBitRateT = "None";
+         break;
+   }
+   return (clNomBitRateT);
+}
+
 
 //----------------------------------------------------------------------------//
 // onSocketConnect()                                                          //
@@ -465,8 +575,13 @@ void QCanNetwork::onSocketConnect(void)
    pclTcpSockListP->append(pclSocketT);
    clTcpSockMutexP.unlock();
 
-   qDebug() << "QCanNetwork::onSocketConnect()" << pclTcpSockListP->size() << "open sockets";
-   qDebug() << "Socket" << pclSocketT;
+   //----------------------------------------------------------------
+   // Prepare log message and send it
+   //
+   QString clSockOpenT = QString("total open: %1").arg(pclTcpSockListP->size());
+   emit addLogMessage(CAN_Channel_e (id()),
+                      "Socket connected, " + clSockOpenT,
+                      eLOG_LEVEL_NOTICE);
 
    //----------------------------------------------------------------
    // Add a slot that handles the disconnection of the socket
@@ -514,8 +629,13 @@ void QCanNetwork::onSocketDisconnect(void)
    }
    clTcpSockMutexP.unlock();
 
-   qDebug() << "QCanNetwork::onSocketDisconnect()" << pclTcpSockListP->size() << "open sockets";
-
+   //----------------------------------------------------------------
+   // Prepare log message and send it
+   //
+   QString clSockOpenT = QString("total open: %1").arg(pclTcpSockListP->size());
+   emit addLogMessage(CAN_Channel_e (id()),
+                      "Socket disconnect, " + clSockOpenT,
+                      eLOG_LEVEL_NOTICE);
 }
 
 
@@ -530,11 +650,11 @@ void QCanNetwork::onTimerEvent(void)
    uint32_t       ulFrameCntT;
    uint32_t       ulFrameMaxT;
    uint32_t       ulMsgPerSecT;
-   uint32_t       ulMsgBitCntT;
+   //uint32_t       ulMsgBitCntT;
    QTcpSocket *   pclSockT;
    QCanFrame      clCanFrameT;
    QByteArray     clSockDataT;
-
+   static uint32_t   ulTimerLogT = 0;
 
    //----------------------------------------------------------------
    // lock socket list
@@ -684,7 +804,18 @@ void QCanNetwork::onTimerEvent(void)
       ulFrameCntSaveP = ulCntFrameCanP;
    }
 
-   clDispatchTmrP.singleShot(ulDispatchTimeP, this, SLOT(onTimerEvent()));
+   if (btNetworkEnabledP)
+   {
+      clDispatchTmrP.singleShot(ulDispatchTimeP, this, SLOT(onTimerEvent()));
+   }
+
+   ulTimerLogT++;
+   if (ulTimerLogT > 999)
+   {
+      ulTimerLogT = 0;
+      addLogMessage(CAN_Channel_e (id()),
+                    "Timer event ", eLOG_LEVEL_DEBUG);
+   }
 }
 
 
@@ -696,6 +827,10 @@ void QCanNetwork::removeInterface(void)
 {
    if(pclInterfaceP.isNull() == false)
    {
+      addLogMessage(CAN_Channel_e (id()),
+                    "Remove CAN interface " + pclInterfaceP->name(),
+                    eLOG_LEVEL_NOTICE);
+
       if (pclInterfaceP->connected())
       {
          pclInterfaceP->disconnect();
@@ -736,6 +871,24 @@ void QCanNetwork::setBitrate(int32_t slNomBitRateV, int32_t slDatBitRateV)
       pclInterfaceP->setBitrate(slNomBitRateP, slDatBitRateP);
       pclInterfaceP->setMode(eCAN_MODE_START);
    }
+
+   //----------------------------------------------------------------
+   // show log message
+   //
+   if (btFastDataEnabledP)
+   {
+      addLogMessage(CAN_Channel_e (id()),
+                    "Set bit-rate " + nominalBitrateString(),
+                    eLOG_LEVEL_NOTICE);
+   }
+   else
+   {
+      addLogMessage(CAN_Channel_e (id()),
+                    "Set nominal bit-rate " + nominalBitrateString() +
+                    " and data bit-rate " + dataBitrateString(),
+                    eLOG_LEVEL_NOTICE);
+   }
+
    //----------------------------------------------------------------
    // configure bit-counter for bus-load calculation
    //
@@ -835,7 +988,12 @@ void QCanNetwork::setNetworkEnabled(bool btEnableV)
 
       if(!pclTcpSrvP->listen(clTcpHostAddrP, uwTcpPortP))
       {
-         qDebug() << "QCanNetwork(): can not listen to " << clNetNameP;
+         btNetworkEnabledP =  false;
+
+         addLogMessage(CAN_Channel_e (id()),
+                       "Failed to open server ", eLOG_LEVEL_ERROR);
+
+         return;
       }
 
       //--------------------------------------------------------
@@ -857,6 +1015,13 @@ void QCanNetwork::setNetworkEnabled(bool btEnableV)
       //
       btNetworkEnabledP =  true;
 
+      //--------------------------------------------------------
+      // send log message
+      //
+      addLogMessage(CAN_Channel_e (id()),
+                    "Open server ", eLOG_LEVEL_NOTICE);
+
+
    }
    else
    {
@@ -875,13 +1040,18 @@ void QCanNetwork::setNetworkEnabled(bool btEnableV)
       //--------------------------------------------------------
       // close TCP server
       //
-      qDebug() << "Close server";
       pclTcpSrvP->close();
 
       //--------------------------------------------------------
       // set flag for further operations
       //
       btNetworkEnabledP =  false;
+
+      //--------------------------------------------------------
+      // send log message
+      //
+      addLogMessage(CAN_Channel_e (id()),
+                    "Close server ", eLOG_LEVEL_NOTICE);
 
    }
 

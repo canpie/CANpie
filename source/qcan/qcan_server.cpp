@@ -66,6 +66,8 @@ QCanServer::QCanServer( QObject * pclParentV,
    //
    this->setParent(pclParentV);
 
+   ulDispatchTimeP = 10;
+
    //----------------------------------------------------------------
    // create CAN networks
    //
@@ -114,7 +116,6 @@ QCanNetwork * QCanServer::network(uint8_t ubNetworkIdxV)
 void QCanServer::setServerAddress(QHostAddress clHostAddressV)
 {
    QCanNetwork *  pclNetworkT;
-   bool           btNetworkStateT;
 
    clServerAddressP = clHostAddressV;
 
@@ -123,27 +124,24 @@ void QCanServer::setServerAddress(QHostAddress clHostAddressV)
       pclNetworkT = network(ubNetCntT);
 
       //-------------------------------------------------------------
-      // check current state of network and disable it here
+      // check current state of network
       //
       if(pclNetworkT->isNetworkEnabled() == true)
       {
+         //-----------------------------------------------------
+         // assign new host address
+         //
          pclNetworkT->setNetworkEnabled(false);
-         btNetworkStateT = true;
+         pclNetworkT->setServerAddress(clHostAddressV);
+         pclNetworkT->setNetworkEnabled(true);
       }
       else
       {
-         btNetworkStateT = true;
+         //-----------------------------------------------------
+         // assign new host address
+         //
+         pclNetworkT->setServerAddress(clHostAddressV);
       }
-
-      //-------------------------------------------------------------
-      // assign new host address
-      //
-      pclNetworkT->setServerAddress(clHostAddressV);
-
-      //-------------------------------------------------------------
-      // set network to old state
-      //
-      pclNetworkT->setNetworkEnabled(btNetworkStateT);
    }
 }
 
