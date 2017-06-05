@@ -25,19 +25,17 @@ public:
     ** allow to send log messages */
    void addLoggingSource(QObject *sender);
 
+   bool isHidden(void);
 
    /** set the name of the log file */
-   bool setFileName(QString fileName);
+   bool setFileName(const CAN_Channel_e ubChannelV, QString fileName);
 
    /** set minimum log level that goes to a file */
-   void setLogLevel( LogLevel_e teLogLevelV);
+   void setLogLevel(const CAN_Channel_e ubChannelV, LogLevel_e teLogLevelV);
 
    void show(void);
 
    void hide(void);
-
-signals:
-   void  showLogMessage(const QString & clLogMessageV);
 
 public slots:
    void appendMessage(const CAN_Channel_e ubChannelV,
@@ -45,11 +43,17 @@ public slots:
                       LogLevel_e teLogLevelV = eLOG_LEVEL_INFO);
 
 private slots:
+   void onChangeLogLevel(QAction * pclActionV);
+   void onClearLog(void);
+   void onSetLogFile(void);
+   void onShowLogMenu(const QPoint &pos);
 
 private:
    QDateTime      clTimeP;
    QString        clLogMessageP;
-   LogLevel_e     teLogLevelP;
+   QString        aclLogFileP[QCAN_NETWORK_MAX];
+   LogLevel_e     ateLogLevelP[QCAN_NETWORK_MAX];
+   CAN_Channel_e  teCanChannelP;
    QMainWindow  * pclLogWindowP;
    QTabWidget   * pclLogTabP;
    QTextBrowser * apclLogTextP[QCAN_NETWORK_MAX];
