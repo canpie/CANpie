@@ -78,6 +78,17 @@ FORMS   =  ./forms/ServerConfig.ui
 
 
 #---------------------------------------------------------------
+# Translation files and commands for building .qm files
+#
+TRANSLATIONS = ./translations/server_de.ts
+
+QMAKE_EXTRA_COMPILERS += lrelease
+lrelease.input         = TRANSLATIONS
+lrelease.output        = ./translations/${QMAKE_FILE_BASE}.qm
+lrelease.commands      = $$[QT_INSTALL_BINS]/lrelease ${QMAKE_FILE_IN} -qm ./translations/${QMAKE_FILE_BASE}.qm
+lrelease.CONFIG       += no_link target_predeps
+
+#---------------------------------------------------------------
 # resource collection files 
 #
 RESOURCES = server.qrc
@@ -124,6 +135,8 @@ SOURCES =   qcan_interface_widget.cpp  \
             qcan_server_dialog.cpp     \
             qcan_server_logger.cpp     \
             server_main.cpp
+
+
 
 #---------------------------------------------------------------
 # OS specific settings 
