@@ -60,47 +60,62 @@ namespace QCan {
       /*!
       ** bit-rate 20 kBit/sec
       */
-      eCAN_BITRATE_20K,
+      eCAN_BITRATE_20K = 1,
 
       /*!
       ** bit-rate 50 kBit/sec
       */
-      eCAN_BITRATE_50K,
+      eCAN_BITRATE_50K = 2,
 
       /*!
       ** bit-rate 100 kBit/sec
       */
-      eCAN_BITRATE_100K,
+      eCAN_BITRATE_100K = 3,
 
       /*!
       ** bit-rate 125 kBit/sec
       */
-      eCAN_BITRATE_125K,
+      eCAN_BITRATE_125K = 4,
 
       /*!
       ** bit-rate 250 kBit/sec
       */
-      eCAN_BITRATE_250K,
+      eCAN_BITRATE_250K = 5,
 
       /*!
       ** bit-rate 500 kBit/sec
       */
-      eCAN_BITRATE_500K,
+      eCAN_BITRATE_500K = 6,
 
       /*!
       ** bit-rate 800 kBit/sec
       */
-      eCAN_BITRATE_800K,
+      eCAN_BITRATE_800K = 7,
 
       /*!
       ** bit-rate 1 MBit/sec
       */
-      eCAN_BITRATE_1M,
+      eCAN_BITRATE_1M = 8,
+
+      /*!
+      ** bit-rate 2 MBit/s (ISO CAN FD, data phase)
+      */
+      eCAN_BITRATE_2M = 10,
+
+      /*!
+      ** bit-rate 4 MBit/s (ISO CAN FD, data phase)
+      */
+      eCAN_BITRATE_4M = 11,
+
+      /*!
+      ** bit-rate 5 MBit/s (ISO CAN FD, data phase)
+      */
+      eCAN_BITRATE_5M = 12,
 
       /*!
       ** Use automatic bit-rate detection
       */
-      eCAN_BITRATE_AUTO
+      eCAN_BITRATE_AUTO = 9
    };
 
    enum CAN_Channel_e {
@@ -184,6 +199,14 @@ namespace QCan {
       /*!   Set controller into Sleep mode
       */
       eCAN_MODE_SLEEP
+   };
+
+   enum LogLevel_e {
+      eLOG_LEVEL_INFO = 0,
+      eLOG_LEVEL_NOTICE,
+      eLOG_LEVEL_WARN,
+      eLOG_LEVEL_ERROR,
+      eLOG_LEVEL_DEBUG
    };
 }
 

@@ -101,12 +101,14 @@ public:
 	*/
 	bool addInterface(QCanInterface * pclCanIfV);
 
+	inline int32_t  bitrate(void)          {  return (slNomBitRateP);    };
+
    /*!
    ** \return     Bit-rate value for Nominal Bit Timing
    ** \see        setBitrate()
    **
-   ** This function returns the current bit-rate of the CAN network.
-   ** For <b>classic CAN</b>, the return value defines the bit-rate for the
+   ** This function returns the nominal bit-rate of the CAN network.
+   ** For <b>classical CAN</b>, the return value defines the bit-rate for the
    ** complete frame.
    ** For <b>CAN FD</b> the return value defines the bit-rate for
    ** the arbitration phase.
@@ -114,11 +116,44 @@ public:
    ** If no bit-rate is configured, the function will return
    ** CANpie::eCAN_BITRATE_NONE.
    */
-	inline int32_t  bitrate(void)          {  return (slNomBitRateP);    };
-
 	inline int32_t  nominalBitrate(void)   {  return (slNomBitRateP);    };
 
+   /*!
+   ** \return     Bit-rate value for Nominal Bit Timing
+   **
+   ** This function returns the nominal bit-rate of the CAN network as
+   ** QString.
+   ** <p>
+   ** If no bit-rate is configured, the function will return
+   ** "None".
+   */
+	QString nominalBitrateString(void);
+
+   /*!
+   ** \return     Bit-rate value for Data Bit Timing
+   ** \see        setBitrate()
+   **
+   ** This function returns the data bit-rate of the CAN network.
+   ** For <b>classical CAN</b>, the return value is always
+   ** CANpie::eCAN_BITRATE_NONE
+   ** For <b>CAN FD</b> the return value defines the bit-rate for
+   ** the data phase.
+   ** <p>
+   ** If no bit-rate is configured, the function will return
+   ** CANpie::eCAN_BITRATE_NONE.
+   */
 	inline int32_t  dataBitrate(void)      {  return (slDatBitRateP);    };
+
+   /*!
+   ** \return     Bit-rate value for Data Bit Timing
+   **
+   ** This function returns the data bit-rate of the CAN network as
+   ** QString.
+   ** <p>
+   ** If no bit-rate is configured, the function will return
+   ** "None".
+   */
+	QString dataBitrateString(void);
 
    /*!
    ** \return     Current dispatcher time
@@ -134,6 +169,8 @@ public:
    bool hasFastDataSupport(void);
 
    bool hasListenOnlySupport(void);
+
+   inline uint8_t    id(void)       {return (ubIdP);                 };
 
    bool isErrorFramesEnabled(void)  {return (btErrorFramesEnabledP); };
 
@@ -219,6 +256,9 @@ public:
    bool setServerAddress(QHostAddress clHostAddressV);
 
 signals:
+   void addLogMessage(const CAN_Channel_e & ubChannelR,
+                      const QString & clMessageR, LogLevel_e teLogLevelV);
+
    /*!
    ** \param[in]  ulFrameTotalV  Total number of frames
    **
@@ -280,9 +320,11 @@ private:
 
 
    //----------------------------------------------------------------
-   // unique network ID
+   // unique network ID, ubNetIdP is used to manage a unique id
+   // for all networks, ubIdP holds the id of the current instance
    //
    static uint8_t          ubNetIdP;
+   uint8_t                 ubIdP;
 
    //----------------------------------------------------------------
    // unique network name

@@ -19,7 +19,7 @@
 	<key>CFBundleName</key>
 	<string>CANpieServer</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>© 2016, MicroControl GmbH &amp; Co. KG</string>
+	<string>© 2017, MicroControl GmbH &amp; Co. KG</string>
 	<key>CFBundleShortVersionString</key>
 	<string>@SHORT_VERSION@</string>
 	<key>CFBundleVersion</key>

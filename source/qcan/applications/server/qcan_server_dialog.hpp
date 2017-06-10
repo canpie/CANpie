@@ -12,7 +12,11 @@
 
 #include "ui_ServerConfig.h"
 #include "qcan_server.hpp"
+#include "qcan_server_logger.hpp"
 #include "qcan_interface_widget.hpp"
+
+using namespace QCan;
+
 
 class QCanServerDialog : public QDialog
 {
@@ -50,6 +54,8 @@ private slots:
    void onServerConfAddress(int slIndexV);
    void onServerConfTime(int slValueV);
 
+   void onLoggingWindow(void);
+
 private:
    void     createActions(void);
    void     createTrayIcon(void);
@@ -59,7 +65,8 @@ private:
    void     updateUI(uint8_t ubNetworkIdxV);
 
    Ui_ServerConfig         ui;
-   QAction *               pclActionCnfgP;
+   QAction *               pclActionConfigP;
+   QAction *               pclActionLoggingP;
    QAction *               pclActionQuitP;
 
    QSystemTrayIcon *       pclIconTrayP;
@@ -72,6 +79,7 @@ private:
 
    QToolBox *              pclTbxNetworkP;
    QCanInterfaceWidget *   apclCanIfWidgetP[QCAN_NETWORK_MAX];
+   QCanServerLogger *      pclLoggerP;
 
 };
 

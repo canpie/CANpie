@@ -33,34 +33,60 @@ TARGET = CANpieServer
 #
 DESTDIR = ../../../../bin
 
+MOC_DIR = ../../../../objs
+
 #--------------------------------------------------------------------
 # Objects directory
 #
-OBJECTS_DIR = ./objs/
+OBJECTS_DIR = ../../../../objs
 
 #---------------------------------------------------------------
 # project configuration and compiler options
 #
-CONFIG += debug release
+CONFIG += debug 
 CONFIG += warn_on
 CONFIG += C++11
 CONFIG += silent
 
+
 #---------------------------------------------------------------
 # version of the application
 #
-VERSION = 0.82.1
+VERSION_MAJOR = 0
+VERSION_MINOR = 83
+VERSION_BUILD = 1
+
+
+#---------------------------------------------------------------
+# Target version
+#
+VERSION = $${VERSION_MAJOR}.$${VERSION_MINOR}.$${VERSION_BUILD}
+
 
 #---------------------------------------------------------------
 # definitions for preprocessor
 #
-DEFINES =  
+DEFINES += "VERSION_MAJOR=$$VERSION_MAJOR"\
+           "VERSION_MINOR=$$VERSION_MINOR"\
+           "VERSION_BUILD=$$VERSION_BUILD"
+
 
 #---------------------------------------------------------------
 # UI files
 #
 FORMS   =  ./forms/ServerConfig.ui
 
+
+#---------------------------------------------------------------
+# Translation files and commands for building .qm files
+#
+TRANSLATIONS = ./translations/server_de.ts
+
+QMAKE_EXTRA_COMPILERS += lrelease
+lrelease.input         = TRANSLATIONS
+lrelease.output        = ./translations/${QMAKE_FILE_BASE}.qm
+lrelease.commands      = $$[QT_INSTALL_BINS]/lrelease ${QMAKE_FILE_IN} -qm ./translations/${QMAKE_FILE_BASE}.qm
+lrelease.CONFIG       += no_link target_predeps
 
 #---------------------------------------------------------------
 # resource collection files 
@@ -91,7 +117,8 @@ HEADERS =   qcan_interface_widget.hpp  \
             qcan_interface.hpp         \
             qcan_network.hpp           \
             qcan_server.hpp            \
-            qcan_server_dialog.hpp
+            qcan_server_dialog.hpp     \
+            qcan_server_logger.hpp
                 
             
 #---------------------------------------------------------------
@@ -106,7 +133,10 @@ SOURCES =   qcan_interface_widget.cpp  \
             qcan_network.cpp           \
             qcan_server.cpp            \
             qcan_server_dialog.cpp     \
+            qcan_server_logger.cpp     \
             server_main.cpp
+
+
 
 #---------------------------------------------------------------
 # OS specific settings 

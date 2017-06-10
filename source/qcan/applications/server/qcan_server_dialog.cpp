@@ -36,6 +36,7 @@
 
 #include <QDebug>
 #include <QDir>
+#include <QString>
 
 
 /*----------------------------------------------------------------------------*\
@@ -62,6 +63,7 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    QCanNetwork *  pclNetworkT;
    QString        clNetNameT;
 
+
    //----------------------------------------------------------------
    // create CAN networks
    //
@@ -72,6 +74,19 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    // setup the user interface
    //
    ui.setupUi(this);
+
+   //----------------------------------------------------------------
+   // update version number in info tab
+   //
+   QString clVersionT = "CANpie Server Version ";
+   clVersionT += QString("%1.%2.").arg(VERSION_MAJOR).arg(VERSION_MINOR);
+   clVersionT += QString("%1").arg(VERSION_BUILD);
+   ui.pclLblInfoVersionM->setText(clVersionT);
+
+   //----------------------------------------------------------------
+   // add logging
+   //
+   pclLoggerP = new QCanServerLogger();
 
    //----------------------------------------------------------------
    // hide CAN server port
@@ -137,6 +152,12 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
             this, SLOT(onNetworkShowLoad(uint8_t, uint32_t)) );
 
    //----------------------------------------------------------------
+   // connect signals / slots for logging
+   //
+   connect(pclLoggerP, SIGNAL(showLogMessage(const QString &)),
+           this, SLOT(onMessageLogging(const QString &)));
+
+   //----------------------------------------------------------------
    // Intialise interface widgets for CAN interface selection
    //
    for(ubNetworkIdxT = 0; ubNetworkIdxT < QCAN_NETWORK_MAX; ubNetworkIdxT++)
@@ -154,38 +175,7 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    pclSettingsP = new QSettings( QSettings::NativeFormat,
                                  QSettings::UserScope,
                                  "microcontrol.net",
-                                 "QCANserver");
-
-   //-----------------------------------------------------------
-   // settings for network
-   //
-   for(ubNetworkIdxT = 0; ubNetworkIdxT < QCAN_NETWORK_MAX; ubNetworkIdxT++)
-   {
-      pclNetworkT = pclCanServerP->network(ubNetworkIdxT);
-      clNetNameT  = "CAN " + QString("%1").arg(ubNetworkIdxT+1);
-      pclSettingsP->beginGroup(clNetNameT);
-
-      pclNetworkT->setBitrate(pclSettingsP->value("bitrateNom",
-                                 eCAN_BITRATE_500K).toInt(),
-                              pclSettingsP->value("bitrateDat",
-                                    eCAN_BITRATE_NONE).toInt());
-
-      pclNetworkT->setNetworkEnabled(pclSettingsP->value("enable",
-                                 0).toBool());
-
-      pclNetworkT->setErrorFramesEnabled(pclSettingsP->value("errorFrame",
-                                 0).toBool());
-
-      pclNetworkT->setFastDataEnabled(pclSettingsP->value("canFD",
-                                 0).toBool());
-
-      pclNetworkT->setListenOnlyEnabled(pclSettingsP->value("listenOnly",
-                                 0).toBool());
-
-      apclCanIfWidgetP[ubNetworkIdxT]->setInterface(pclSettingsP->value("interface"+QString::number(ubNetworkIdxT),"").toString());
-
-      pclSettingsP->endGroup();
-   }
+                                 "CANpieServer");
 
    //-----------------------------------------------------------
    // settings for server
@@ -197,6 +187,40 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    pclCanServerP->setDispatcherTime(pclSettingsP->value("dispatchTime",
                                                          20).toInt());
    pclSettingsP->endGroup();
+
+   //-----------------------------------------------------------
+   // settings for network
+   //
+   for(ubNetworkIdxT = 0; ubNetworkIdxT < QCAN_NETWORK_MAX; ubNetworkIdxT++)
+   {
+      pclNetworkT = pclCanServerP->network(ubNetworkIdxT);
+      pclLoggerP->addLoggingSource(pclNetworkT);
+      clNetNameT  = "CAN_" + QString("%1").arg(ubNetworkIdxT+1);
+      pclSettingsP->beginGroup(clNetNameT);
+
+      pclNetworkT->setNetworkEnabled(pclSettingsP->value("enable",
+                                     0).toBool());
+
+      pclNetworkT->setErrorFramesEnabled(pclSettingsP->value("errorFrame",
+                                     0).toBool());
+
+      pclNetworkT->setFastDataEnabled(pclSettingsP->value("canFD",
+                                     0).toBool());
+
+      pclNetworkT->setListenOnlyEnabled(pclSettingsP->value("listenOnly",
+                                     0).toBool());
+
+      pclNetworkT->setBitrate(pclSettingsP->value("bitrateNom",
+                              eCAN_BITRATE_500K).toInt(),
+                              pclSettingsP->value("bitrateDat",
+                              eCAN_BITRATE_NONE).toInt());
+
+      apclCanIfWidgetP[ubNetworkIdxT]->setInterface(pclSettingsP->value("interface"+QString::number(ubNetworkIdxT),"").toString());
+
+      pclSettingsP->endGroup();
+
+   }
+
 
    //----------------------------------------------------------------
    // create actions and tray icon in system tray
@@ -215,9 +239,11 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    // show CAN channel 1 as default and update user interface
    //
    slLastNetworkIndexP = 0;
+
    ui.pclTabConfigM->setCurrentIndex(0);
    pclTbxNetworkP->setCurrentIndex(0);
    this->updateUI(0);
+
 }
 
 
@@ -242,7 +268,7 @@ QCanServerDialog::~QCanServerDialog()
       // settings for network
       //
       pclNetworkT = pclCanServerP->network(ubNetworkIdxT);
-      clNetNameT  = "CAN " + QString("%1").arg(ubNetworkIdxT+1);
+      clNetNameT  = "CAN_" + QString("%1").arg(ubNetworkIdxT+1);
       pclSettingsP->beginGroup(clNetNameT);
       pclSettingsP->setValue("bitrateNom", pclNetworkT->nominalBitrate());
       pclSettingsP->setValue("bitrateDat", pclNetworkT->dataBitrate());
@@ -268,6 +294,7 @@ QCanServerDialog::~QCanServerDialog()
    pclSettingsP->endGroup();
 
    delete(pclSettingsP);
+   delete(pclLoggerP);
 }
 
 
@@ -277,9 +304,13 @@ QCanServerDialog::~QCanServerDialog()
 //----------------------------------------------------------------------------//
 void QCanServerDialog::createActions(void)
 {
-   pclActionCnfgP = new QAction(tr("&Configuration ..."), this);
-   connect(pclActionCnfgP, &QAction::triggered, this, &QWidget::showNormal);
+   pclActionConfigP = new QAction(tr("&Configuration ..."), this);
+   connect(pclActionConfigP, &QAction::triggered, this, &QWidget::showNormal);
 
+   pclActionLoggingP = new QAction(this);
+   pclActionLoggingP->setShortcut(Qt::CTRL | Qt::Key_L);
+   connect(pclActionLoggingP, SIGNAL(triggered()), this, SLOT(onLoggingWindow()));
+   this->addAction(pclActionLoggingP);
 
    pclActionQuitP = new QAction(tr("&Quit"), this);
    connect(pclActionQuitP, &QAction::triggered, qApp, &QCoreApplication::quit);
@@ -293,7 +324,8 @@ void QCanServerDialog::createActions(void)
 void QCanServerDialog::createTrayIcon(void)
 {
    pclMenuTrayP = new QMenu(this);
-   pclMenuTrayP->addAction(pclActionCnfgP);
+   pclMenuTrayP->addAction(pclActionConfigP);
+
    pclMenuTrayP->addSeparator();
    pclMenuTrayP->addAction(pclActionQuitP);
 
@@ -340,6 +372,22 @@ void QCanServerDialog::onInterfaceChange( uint8_t ubIdxV,
       }
    }
 
+}
+
+void QCanServerDialog::onLoggingWindow(void)
+{
+   pclLoggerP->show();
+
+   /*
+   if (pclLoggerP->isHidden())
+   {
+      pclLoggerP->show();
+   }
+   else
+   {
+      pclLoggerP->hide();
+   }
+   */
 }
 
 
