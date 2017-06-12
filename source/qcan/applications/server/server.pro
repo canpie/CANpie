@@ -80,12 +80,12 @@ FORMS   =  ./forms/ServerConfig.ui
 #---------------------------------------------------------------
 # Translation files and commands for building .qm files
 #
-TRANSLATIONS = ./translations/server_de.ts
+TRANSLATIONS = $$files($$PWD/translations/*.ts)
 
 QMAKE_EXTRA_COMPILERS += lrelease
 lrelease.input         = TRANSLATIONS
-lrelease.output        = ./translations/${QMAKE_FILE_BASE}.qm
-lrelease.commands      = $$[QT_INSTALL_BINS]/lrelease ${QMAKE_FILE_IN} -qm ./translations/${QMAKE_FILE_BASE}.qm
+lrelease.output        = $$PWD/translations/${QMAKE_FILE_BASE}.qm
+lrelease.commands      = $$[QT_INSTALL_BINS]/lrelease ${QMAKE_FILE_IN} -qm $$PWD/translations/${QMAKE_FILE_BASE}.qm
 lrelease.CONFIG       += no_link target_predeps
 
 #---------------------------------------------------------------
