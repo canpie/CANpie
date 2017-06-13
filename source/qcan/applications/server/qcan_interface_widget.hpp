@@ -21,7 +21,7 @@ class QCanInterfaceWidget : public QWidget
 public:
 
    #define QCAN_IF_VCAN_NAME "Virtual CAN bus"
-   #define QCAN_IF_VCAN_ICON ":images/network-vcan.png"
+   #define QCAN_IF_VCAN_ICON ":images/mc_network_vcan_256.png"
 
    QCanInterfaceWidget(uint8_t ubIdxV);
 
