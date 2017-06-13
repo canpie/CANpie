@@ -2,8 +2,8 @@
   <qresource prefix="/">
     <file>fonts/SourceCodePro-Medium.ttf</file>
     <file>images/canpie_fd_logo.png</file>
-    <file>images/network-icon.png</file>
-    <file>images/network-vcan.png</file>
+    <file>images/mc_network_256.png</file>
+    <file>images/mc_network_vcan_256.png</file>
     <file>translations/server_de.qm</file>
   </qresource>
 </RCC>
