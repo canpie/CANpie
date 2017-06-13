@@ -38,6 +38,7 @@ public:
 
    void hide(void);
 
+   LogLevel_e logLevel(const CAN_Channel_e ubChannelV);
 public slots:
    void appendMessage(const CAN_Channel_e ubChannelV,
                       const QString & clLogMessageV,

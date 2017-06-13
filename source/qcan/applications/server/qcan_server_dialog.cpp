@@ -151,11 +151,12 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    connect(pclNetworkT, SIGNAL(showLoad(uint8_t, uint32_t)),
             this, SLOT(onNetworkShowLoad(uint8_t, uint32_t)) );
 
-   //----------------------------------------------------------------
-   // connect signals / slots for logging
-   //
-   connect(pclLoggerP, SIGNAL(showLogMessage(const QString &)),
-           this, SLOT(onMessageLogging(const QString &)));
+//    no showLogMessage signal available
+//   //----------------------------------------------------------------
+//   // connect signals / slots for logging
+//   //
+//   connect(pclLoggerP, SIGNAL(showLogMessage(const QString &)),
+//           this, SLOT(onMessageLogging(const QString &)));
 
    //----------------------------------------------------------------
    // Intialise interface widgets for CAN interface selection
@@ -198,6 +199,11 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
       clNetNameT  = "CAN_" + QString("%1").arg(ubNetworkIdxT+1);
       pclSettingsP->beginGroup(clNetNameT);
 
+      pclLoggerP->setLogLevel((CAN_Channel_e)(ubNetworkIdxT + 1),
+                              (LogLevel_e) pclSettingsP->value("loglevel", eLOG_LEVEL_INFO).toInt());
+
+      qDebug() << "Load iterface enable status:" << pclSettingsP->value("enable",0).toBool();
+
       pclNetworkT->setNetworkEnabled(pclSettingsP->value("enable",
                                      0).toBool());
 
@@ -215,6 +221,7 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
                               pclSettingsP->value("bitrateDat",
                               eCAN_BITRATE_NONE).toInt());
 
+      qDebug() << "Load iterface: " << pclSettingsP->value("interface"+QString::number(ubNetworkIdxT),"").toString() << "of Channel" << QString::number(ubNetworkIdxT+1,10);
       apclCanIfWidgetP[ubNetworkIdxT]->setInterface(pclSettingsP->value("interface"+QString::number(ubNetworkIdxT),"").toString());
 
       pclSettingsP->endGroup();
@@ -239,7 +246,6 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    // show CAN channel 1 as default and update user interface
    //
    slLastNetworkIndexP = 0;
-
    ui.pclTabConfigM->setCurrentIndex(0);
    pclTbxNetworkP->setCurrentIndex(0);
    this->updateUI(0);
@@ -276,6 +282,7 @@ QCanServerDialog::~QCanServerDialog()
       pclSettingsP->setValue("errorFrame", pclNetworkT->isErrorFramesEnabled());
       pclSettingsP->setValue("canFD",      pclNetworkT->isFastDataEnabled());
       pclSettingsP->setValue("listenOnly", pclNetworkT->isListenOnlyEnabled());
+      pclSettingsP->setValue("loglevel",   pclLoggerP->logLevel((CAN_Channel_e)(ubNetworkIdxT+1)));
 
       pclSettingsP->setValue("interface"+QString::number(ubNetworkIdxT), 
                               apclCanIfWidgetP[ubNetworkIdxT]->name());

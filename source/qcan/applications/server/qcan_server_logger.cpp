@@ -122,6 +122,23 @@ bool QCanServerLogger::isHidden(void)
 }
 
 
+LogLevel_e QCanServerLogger::logLevel(const CAN_Channel_e ubChannelV)
+{
+   LogLevel_e teLevelT = eLOG_LEVEL_INFO;
+
+   if ((ubChannelV >= eCAN_CHANNEL_1) && (ubChannelV <= QCAN_NETWORK_MAX))
+   {
+      teLevelT = ateLogLevelP[ubChannelV - 1];
+
+      qDebug() << "GET LOG LEVEL" << QString::number(teLevelT,10)<<" of Channel "<< QString::number(ubChannelV,10);
+   } else
+   {
+      qDebug() << "-------------FAIL TO GET LOG LEVEL...";
+   }
+
+   return teLevelT;
+}
+
 //----------------------------------------------------------------------------//
 // onChangeLogLevel()                                                         //
 // change log level for all CAN chennels                                      //
@@ -311,6 +328,8 @@ bool QCanServerLogger::setFileName(const CAN_Channel_e ubChannelV,
 void QCanServerLogger::setLogLevel(const CAN_Channel_e ubChannelV,
                                    LogLevel_e teLogLevelV)
 {
+   qDebug() << "SET LOG LEVEL" << QString::number(teLogLevelV,10)<<" of Channel "<< QString::number(ubChannelV,10);
+
    if ((ubChannelV >= eCAN_CHANNEL_1) && (ubChannelV <= QCAN_NETWORK_MAX))
    {
       ateLogLevelP[ubChannelV - 1] = teLogLevelV;
