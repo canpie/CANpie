@@ -652,7 +652,7 @@ void QCanServerDialog::setupNetworks(void)
 //----------------------------------------------------------------------------//
 void QCanServerDialog::setIcon(void)
 {
-    QIcon clIconT = QIcon(":images/network-icon.png");
+    QIcon clIconT = QIcon(":images/mc_network_256.png");
 
     pclIconTrayP->setIcon(clIconT);
     pclIconTrayP->setToolTip("CAN network configuration");

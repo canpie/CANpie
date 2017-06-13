@@ -176,7 +176,7 @@ macx {
    #--------------------------------------------------
    # Icon for application
    #
-   ICON = ./images/server.icns
+   ICON = ./images/canpie_server.icns
 }
 
 win32 {
