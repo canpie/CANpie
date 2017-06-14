@@ -231,22 +231,26 @@ void QCanInterfaceWidget::paintEvent(QPaintEvent * pclEventV)
 QString QCanInterfaceWidget::name()
 {
    QString clNameT = QString(QCAN_IF_VCAN_NAME);
-
-   qDebug() << "QCanInterfaceWidget::name() name...";
+   bool    btIfConnectedT = false;
 
    if (pclQCanInterfaceP != NULL)
    {
-      if (pclQCanInterfaceP->connect() == QCanInterface::eERROR_NONE)
+      // store previous state of connection
+      if (pclQCanInterfaceP->connected())
       {
-         clNameT = pclQCanInterfaceP->name();
+         btIfConnectedT = true;
+      }
 
-         if (pclQCanInterfaceP->disconnect() != QCanInterface::eERROR_NONE)
-         {
-            qWarning() << "QCanInterfaceWidget::name() WARNING: Fail to disconnect interface!";
-         }
-      } else
+      if (!btIfConnectedT)
       {
-         qWarning() << "QCanInterfaceWidget::name() WARNING: Fail to connect interface!";
+         pclQCanInterfaceP->connect();
+      }
+
+      clNameT = pclQCanInterfaceP->name();
+
+      if (!btIfConnectedT)
+      {
+         pclQCanInterfaceP->disconnect();
       }
    }
 
