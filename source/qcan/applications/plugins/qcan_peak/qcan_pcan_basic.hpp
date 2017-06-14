@@ -35,7 +35,7 @@
 #include <windows.h>
 #include "PCANBasic.h"
 #define  DRV_CALLBACK_TYPE       WINAPI
-#define  QCAN_SUPPORT_CAN_FD     1
+#define  QCAN_SUPPORT_CAN_FD     0
 #define  QCAN_PEAKLIB            "PCANBasic.dll"
 #endif
 
@@ -73,7 +73,7 @@ private:
    // Type definitions of PCANBasic.dll taken from PCANBasic.h
    // (Last Change 24.04.2015)
    //
-   typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_Initialize_tf)     (TPCANHandle uwChannelV, TPCANBaudrate uwBtr0Btr1V, TPCANType ubHwTypeV, DWORD ulIOPortV, WORD uwInterruptV);
+   typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_Initialize_tf)     (TPCANHandle uwChannelV, TPCANBaudrate uwBtr0Btr1V);
    #if QCAN_SUPPORT_CAN_FD > 0
    typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_InitializeFD_tf)   (TPCANHandle uwChannelV, TPCANBitrateFD pszBitrateFDV);
    #endif
@@ -130,7 +130,7 @@ public:
    QString formatedError(TPCANStatus tvErrorV);
 
    // PCAN Basic access functions
-   TPCANStatus initialize     (TPCANHandle uwChannelV, TPCANBaudrate uwBtr0Btr1V, TPCANType ubHwTypeV, DWORD ulIOPortV, WORD uwInterruptV);
+   TPCANStatus initialize     (TPCANHandle uwChannelV, TPCANBaudrate uwBtr0Btr1V);
    #if QCAN_SUPPORT_CAN_FD > 0
    TPCANStatus initializeFD   (TPCANHandle uwChannelV, TPCANBitrateFD pszBitrateFDV);
    #endif

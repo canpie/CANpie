@@ -21,5 +21,7 @@ TEMPLATE = subdirs
 #---------------------------------------------------------------
 # list of sub directories
 #
-SUBDIRS  =  ./qcan_ixxat \
-            ./qcan_peak
+SUBDIRS  =  ./qcan_peak
+
+
+#./qcan_ixxat \
