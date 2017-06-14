@@ -117,30 +117,33 @@ void QCanServer::setServerAddress(QHostAddress clHostAddressV)
 {
    QCanNetwork *  pclNetworkT;
 
-   clServerAddressP = clHostAddressV;
-
-   for(uint8_t ubNetCntT = 0; ubNetCntT < maximumNetwork(); ubNetCntT++)
+   if (!clHostAddressV.isEqual(clServerAddressP))
    {
-      pclNetworkT = network(ubNetCntT);
+      clServerAddressP = clHostAddressV;
 
-      //-------------------------------------------------------------
-      // check current state of network
-      //
-      if(pclNetworkT->isNetworkEnabled() == true)
+      for(uint8_t ubNetCntT = 0; ubNetCntT < maximumNetwork(); ubNetCntT++)
       {
-         //-----------------------------------------------------
-         // assign new host address
+         pclNetworkT = network(ubNetCntT);
+
+         //-------------------------------------------------------------
+         // check current state of network
          //
-         pclNetworkT->setNetworkEnabled(false);
-         pclNetworkT->setServerAddress(clHostAddressV);
-         pclNetworkT->setNetworkEnabled(true);
-      }
-      else
-      {
-         //-----------------------------------------------------
-         // assign new host address
-         //
-         pclNetworkT->setServerAddress(clHostAddressV);
+         if(pclNetworkT->isNetworkEnabled() == true)
+         {
+            //-----------------------------------------------------
+            // assign new host address
+            //
+            pclNetworkT->setNetworkEnabled(false);
+            pclNetworkT->setServerAddress(clHostAddressV);
+            pclNetworkT->setNetworkEnabled(true);
+         }
+         else
+         {
+            //-----------------------------------------------------
+            // assign new host address
+            //
+            pclNetworkT->setServerAddress(clHostAddressV);
+         }
       }
    }
 }
