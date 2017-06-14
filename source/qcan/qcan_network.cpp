@@ -103,6 +103,9 @@ QCanNetwork::QCanNetwork(QObject * pclParentV,
    clTcpHostAddrP = QHostAddress(QHostAddress::Any);
    uwTcpPortP = uwPortV;
 
+   // set initial error state of an interface
+   clLastErrorP.setErrorState(eCAN_STATE_STOPPED);
+
    //----------------------------------------------------------------
    // clear statistic
    //
@@ -470,6 +473,7 @@ bool  QCanNetwork::handleErrFrame(int32_t & slSockSrcR,
    int32_t        slSockIdxT;
    bool           btResultT = false;
    QTcpSocket *   pclSockS;
+   QCanFrameError clErrFrameT;
 
    //----------------------------------------------------------------
    // check all open sockets and write CAN frame
@@ -492,6 +496,54 @@ bool  QCanNetwork::handleErrFrame(int32_t & slSockSrcR,
    //
    if((slSockSrcR == QCAN_SOCKET_CAN_IF) || (btResultT == true))
    {
+
+      clErrFrameT.fromByteArray(clSockDataR);
+
+      if (clLastErrorP.errorState() != clErrFrameT.errorState())
+      {
+         switch (clErrFrameT.errorState())
+         {
+            case eCAN_STATE_STOPPED :
+               addLogMessage(CAN_Channel_e (id()),
+                             "State changes to STOPPED", eLOG_LEVEL_NOTICE);
+               break;
+
+            case eCAN_STATE_SLEEPING :
+               addLogMessage(CAN_Channel_e (id()),
+                             "State changes to SLEEPING", eLOG_LEVEL_NOTICE);
+
+               break;
+
+            case eCAN_STATE_BUS_ACTIVE :
+               addLogMessage(CAN_Channel_e (id()),
+                             "State changes to BUS ACTIVE", eLOG_LEVEL_NOTICE);
+               break;
+
+            case eCAN_STATE_BUS_WARN :
+               addLogMessage(CAN_Channel_e (id()),
+                             "State changes to BUS WARN with error type " + QString::number(clErrFrameT.errorType(),16) + "h", eLOG_LEVEL_WARN);
+               break;
+
+            case eCAN_STATE_BUS_PASSIVE :
+               addLogMessage(CAN_Channel_e (id()),
+                             "State changes to BUS PASSIVE with error type " + QString::number(clErrFrameT.errorType(),16) + "h", eLOG_LEVEL_WARN);
+               break;
+
+            case eCAN_STATE_BUS_OFF :
+               addLogMessage(CAN_Channel_e (id()),
+                             "State changes to BUS OFF with error type " + QString::number(clErrFrameT.errorType(),16) + "h", eLOG_LEVEL_WARN);
+               break;
+
+            default :
+               addLogMessage(CAN_Channel_e (id()),
+                             "State changes to unknown error " + QString::number(clErrFrameT.errorState(),16) + " with error type " + QString::number(clErrFrameT.errorType(),16) + "h", eLOG_LEVEL_ERROR);
+               break;
+         }
+
+
+         clLastErrorP.setErrorState(clErrFrameT.errorState());
+      }
+
       ulCntFrameErrP++;
    }
    return(btResultT);
@@ -675,6 +727,8 @@ void QCanNetwork::onTimerEvent(void)
             // handle API frames
             //
             case QCanData::eTYPE_API:
+               addLogMessage(CAN_Channel_e (id()),
+                             "Read eTYPE_API frame type " + QString::number(frameType(clSockDataT),16) + "h", eLOG_LEVEL_DEBUG);
                handleApiFrame(slSockIdxT, clSockDataT);
                break;
                
@@ -696,7 +750,8 @@ void QCanNetwork::onTimerEvent(void)
             // nothing we can handle
             //
             default:
-               
+               addLogMessage(CAN_Channel_e (id()),
+                             "Read unknown frame type " + QString::number(frameType(clSockDataT),16) + "h", eLOG_LEVEL_DEBUG);
                break;
          }
       }
@@ -750,7 +805,6 @@ void QCanNetwork::onTimerEvent(void)
                break;         
                
             default:
-               
                break;
          }
       }
@@ -1066,6 +1120,8 @@ bool QCanNetwork::setServerAddress(QHostAddress clHostAddressV)
 {
    bool  btResultT = false;
 
+   addLogMessage(CAN_Channel_e (id()),
+                 QString("Set server address to " + clHostAddressV.toString()), eLOG_LEVEL_DEBUG);
    //----------------------------------------------------------------
    // host address can only be changed when network is disabled
    //
