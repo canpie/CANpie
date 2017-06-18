@@ -161,7 +161,7 @@ uint8_t QCanPluginPeak::interfaceCount()
 
       } else
       {
-         // Device with given PCAN Channel value is not available
+         // Device with given PCAN Channel value is not available or is ocupied
 
          //------------------------------------------------
          // if this channel is in atsQCanIfPeakP
@@ -175,7 +175,7 @@ uint8_t QCanPluginPeak::interfaceCount()
                           QString::number(ubCntrT) <<
                           "with channel value" <<
                           QString::number(atsQCanIfPeakP.at(ubCntrT).uwPCanChannel,16) <<
-                          "[hex].";
+                          "[hex] from available list.";
 
                atsQCanIfPeakP.removeAt(ubCntrT);
                break;

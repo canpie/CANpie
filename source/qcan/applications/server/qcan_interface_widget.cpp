@@ -174,17 +174,17 @@ bool QCanInterfaceWidget::loadPlugin()
             pclQCanPluginT = qobject_cast<QCanPlugin *>(pclPluginT);
             if (pclQCanPluginT)
             {
-               qInfo() << "loadPlugin(): found" << clPluginPathP.absoluteFilePath(clFileNameT) << "plugin, which contains" << QString::number(pclQCanPluginT->interfaceCount()) << " interfaces.";
+               qInfo() << "QCanInterfaceWidget::loadPlugin() INFO: found" << clPluginPathP.absoluteFilePath(clFileNameT) << "plugin, which contains" << QString::number(pclQCanPluginT->interfaceCount()) << " interfaces.";
 
                apclQCanPluginP.append(pclQCanPluginT);
             }
          } else
          {
-            qWarning() << "loadPlugin(): plugin" << clPluginPathP.absoluteFilePath(clFileNameT) << "could NOT be loaded or the root component object could NOT be instantiated!";
+            qWarning() << "QCanInterfaceWidget::loadPlugin() WARNING: plugin" << clPluginPathP.absoluteFilePath(clFileNameT) << "could NOT be loaded or the root component object could NOT be instantiated!";
          }
       } else
       {
-         qWarning() << "loadPlugin(): plugin" << clPluginPathP.absoluteFilePath(clFileNameT) << "is NOT a library!";
+         qWarning() << "QCanInterfaceWidget::loadPlugin() WARNING: plugin" << clPluginPathP.absoluteFilePath(clFileNameT) << "is NOT a library!";
       }
    }
 
@@ -197,7 +197,7 @@ bool QCanInterfaceWidget::loadPlugin()
       return false;
    }
 
-   qInfo() << "loadPlugin(): found" << QString::number(apclQCanPluginP.length(),10) << "available plugins.";
+   qInfo() << "QCanInterfaceWidget::loadPlugin() INFO: found" << QString::number(apclQCanPluginP.length(),10) << "available plugins.";
 
    return true;
 }
@@ -230,16 +230,31 @@ void QCanInterfaceWidget::paintEvent(QPaintEvent * pclEventV)
 //----------------------------------------------------------------------------//
 QString QCanInterfaceWidget::name()
 {
+   QString clNameT = QString(QCAN_IF_VCAN_NAME);
+   bool    btIfConnectedT = false;
+
    if (pclQCanInterfaceP != NULL)
    {
-      pclQCanInterfaceP->connect();
-      QString clNameT = pclQCanInterfaceP->name();
-      pclQCanInterfaceP->disconnect();
+      // store previous state of connection
+      if (pclQCanInterfaceP->connected())
+      {
+         btIfConnectedT = true;
+      }
 
-      return clNameT;
+      if (!btIfConnectedT)
+      {
+         pclQCanInterfaceP->connect();
+      }
+
+      clNameT = pclQCanInterfaceP->name();
+
+      if (!btIfConnectedT)
+      {
+         pclQCanInterfaceP->disconnect();
+      }
    }
 
-   return QString(QCAN_IF_VCAN_NAME);
+   return clNameT;
 }
 
 //----------------------------------------------------------------------------//

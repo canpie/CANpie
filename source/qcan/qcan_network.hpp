@@ -338,6 +338,8 @@ private:
    uint16_t                uwTcpPortP;
    QMutex                  clTcpSockMutexP;
 
+   QCanFrameError          clLastErrorP;
+
    //----------------------------------------------------------------
    // Frame dispatcher time
    //

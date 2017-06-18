@@ -38,63 +38,67 @@ QCanPcanBasic::QCanPcanBasic()
    clCanLibP.setFileName(QCAN_PEAKLIB);
 
    if (!clCanLibP.load()) {
-       qCritical() << "QCanPeakUsb(): Failed to load the library:" << qPrintable(clCanLibP.fileName());
+       qCritical() << "QCanPcanBasic(): Failed to load the library:" << qPrintable(clCanLibP.fileName());
    }
 
-   //----------------------------------------------------------------
-   // Loads API functions
-   //
-   pfnCAN_InitializeP = (QCanPcanBasic::CAN_Initialize_tf) clCanLibP.resolve("CAN_Initialize");
-   #if QCAN_SUPPORT_CAN_FD > 0
-   pfnCAN_InitializeFDP = (QCanPcanBasic::CAN_InitializeFD_tf) clCanLibP.resolve("CAN_InitializeFD");
-   #endif
-   pfnCAN_UninitializeP = (QCanPcanBasic::CAN_Uninitialize_tf)clCanLibP.resolve("CAN_Uninitialize");
-   pfnCAN_ResetP = (QCanPcanBasic::CAN_Reset_tf)clCanLibP.resolve("CAN_Reset");
-   pfnCAN_GetStatusP = (QCanPcanBasic::CAN_GetStatus_tf)clCanLibP.resolve("CAN_GetStatus");
-   pfnCAN_ReadP = (QCanPcanBasic::CAN_Read_tf)clCanLibP.resolve("CAN_Read");
-   #if QCAN_SUPPORT_CAN_FD > 0
-   pfnCAN_ReadFDP = (QCanPcanBasic::CAN_ReadFD_tf)clCanLibP.resolve("CAN_ReadFD");
-   #endif
-   pfnCAN_WriteP = (QCanPcanBasic::CAN_Write_tf)clCanLibP.resolve("CAN_Write");
-   #if QCAN_SUPPORT_CAN_FD > 0
-   pfnCAN_WriteFDP = (QCanPcanBasic::CAN_WriteFD_tf)clCanLibP.resolve("CAN_WriteFD");
-   #endif
-   pfnCAN_FilterMessagesP = (QCanPcanBasic::CAN_FilterMessages_tf)clCanLibP.resolve("CAN_FilterMessages");
-   pfnCAN_GetValueP = (QCanPcanBasic::CAN_GetValue_tf)clCanLibP.resolve("CAN_GetValue");
-   pfnCAN_SetValueP = (QCanPcanBasic::CAN_SetValue_tf)clCanLibP.resolve("CAN_SetValue");
-   pfnCAN_GetErrorTextP = (QCanPcanBasic::CAN_GetErrorText_tf)clCanLibP.resolve("CAN_GetErrorText");
-
-
-   //----------------------------------------------------------------
-   // check for success
-   //
-   btLibFuncLoadP =  pfnCAN_InitializeP &&
-                     #if QCAN_SUPPORT_CAN_FD > 0
-                     pfnCAN_InitializeFDP &&
-                     #endif
-                     pfnCAN_UninitializeP &&
-                     pfnCAN_ResetP &&
-                     pfnCAN_GetStatusP &&
-                     pfnCAN_ReadP  &&
-                     pfnCAN_WriteP &&
-                     #if QCAN_SUPPORT_CAN_FD > 0
-                     pfnCAN_FilterMessagesP &&
-                     pfnCAN_ReadFDP &&
-                     pfnCAN_WriteFDP &&
-                     #endif
-                     pfnCAN_GetValueP &&
-                     pfnCAN_SetValueP &&
-                     pfnCAN_GetErrorTextP;
-
-   //----------------------------------------------------------------
-   // If the API was not loaded (Wrong version), an error message is shown.
-   //
-   if (!btLibFuncLoadP)
+   else
    {
-      qCritical() << "QCanPcanBasic::QCanPcanBasic() CRITICAL: Fail to load some library functions!";
-   }
+      //----------------------------------------------------------------
+      // Loads API functions
+      //
+      pfnCAN_InitializeP = (QCanPcanBasic::CAN_Initialize_tf) clCanLibP.resolve("CAN_Initialize");
+      #if QCAN_SUPPORT_CAN_FD > 0
+      pfnCAN_InitializeFDP = (QCanPcanBasic::CAN_InitializeFD_tf) clCanLibP.resolve("CAN_InitializeFD");
+      #endif
+      pfnCAN_UninitializeP = (QCanPcanBasic::CAN_Uninitialize_tf)clCanLibP.resolve("CAN_Uninitialize");
+      pfnCAN_ResetP = (QCanPcanBasic::CAN_Reset_tf)clCanLibP.resolve("CAN_Reset");
+      pfnCAN_GetStatusP = (QCanPcanBasic::CAN_GetStatus_tf)clCanLibP.resolve("CAN_GetStatus");
+      pfnCAN_ReadP = (QCanPcanBasic::CAN_Read_tf)clCanLibP.resolve("CAN_Read");
+      #if QCAN_SUPPORT_CAN_FD > 0
+      pfnCAN_ReadFDP = (QCanPcanBasic::CAN_ReadFD_tf)clCanLibP.resolve("CAN_ReadFD");
+      #endif
+      pfnCAN_WriteP = (QCanPcanBasic::CAN_Write_tf)clCanLibP.resolve("CAN_Write");
+      #if QCAN_SUPPORT_CAN_FD > 0
+      pfnCAN_WriteFDP = (QCanPcanBasic::CAN_WriteFD_tf)clCanLibP.resolve("CAN_WriteFD");
+      #endif
+      pfnCAN_FilterMessagesP = (QCanPcanBasic::CAN_FilterMessages_tf)clCanLibP.resolve("CAN_FilterMessages");
+      pfnCAN_GetValueP = (QCanPcanBasic::CAN_GetValue_tf)clCanLibP.resolve("CAN_GetValue");
+      pfnCAN_SetValueP = (QCanPcanBasic::CAN_SetValue_tf)clCanLibP.resolve("CAN_SetValue");
+      pfnCAN_GetErrorTextP = (QCanPcanBasic::CAN_GetErrorText_tf)clCanLibP.resolve("CAN_GetErrorText");
 
-   qInfo() << "QCanPcanBasic::QCanPcanBasic() INFO: All library functions succesfully loaded!";
+
+      //----------------------------------------------------------------
+      // check for success
+      //
+      btLibFuncLoadP =  pfnCAN_InitializeP &&
+                        #if QCAN_SUPPORT_CAN_FD > 0
+                        pfnCAN_InitializeFDP &&
+                        #endif
+                        pfnCAN_UninitializeP &&
+                        pfnCAN_ResetP &&
+                        pfnCAN_GetStatusP &&
+                        pfnCAN_ReadP  &&
+                        pfnCAN_WriteP &&
+                        #if QCAN_SUPPORT_CAN_FD > 0
+                        pfnCAN_FilterMessagesP &&
+                        pfnCAN_ReadFDP &&
+                        pfnCAN_WriteFDP &&
+                        #endif
+                        pfnCAN_GetValueP &&
+                        pfnCAN_SetValueP &&
+                        pfnCAN_GetErrorTextP;
+
+      //----------------------------------------------------------------
+      // If the API was not loaded (Wrong version), an error message is shown.
+      //
+      if (!btLibFuncLoadP)
+      {
+         qCritical() << "QCanPcanBasic::QCanPcanBasic() CRITICAL: Fail to load some library functions!";
+      } else
+      {
+         qInfo() << "QCanPcanBasic::QCanPcanBasic() INFO: All library functions succesfully loaded!";
+      }
+   }
 }
 
 //----------------------------------------------------------------------------//
@@ -105,16 +109,29 @@ QCanPcanBasic::~QCanPcanBasic()
 {
    qDebug() << "QCanPcanBasic::~QCanPcanBasic()";
 
-   btLibFuncLoadP = false;
-
-   //------------------------------------------------------------------
-   // Unload library and remove all API functions
+   //----------------------------------------------------------------
+   // Unload library
    //
    if (clCanLibP.isLoaded())
    {
+      //--------------------------------------------------------
+      // release all devices
+      //
+      if (isAvailable())
+      {
+         unInitialize(PCAN_NONEBUS);
+         btLibFuncLoadP = false;
+      }
+
+      //--------------------------------------------------------
+      // unload library
+      //
       clCanLibP.unload();
    }
 
+   //----------------------------------------------------------------
+   // remove all API functions
+   //
    pfnCAN_InitializeP = NULL;
    pfnCAN_UninitializeP = NULL;
    pfnCAN_ResetP = NULL;
@@ -173,9 +190,9 @@ QString QCanPcanBasic::formatedError(TPCANStatus tvErrorV)
 }
 
 
-TPCANStatus QCanPcanBasic::initialize     (TPCANHandle uwChannelV, TPCANBaudrate uwBtr0Btr1V, TPCANType ubHwTypeV, DWORD ulIOPortV, WORD uwInterruptV)
+TPCANStatus QCanPcanBasic::initialize     (TPCANHandle uwChannelV, TPCANBaudrate uwBtr0Btr1V)
 {
-   return pfnCAN_InitializeP(uwChannelV, uwBtr0Btr1V, ubHwTypeV, ulIOPortV, uwInterruptV);
+   return pfnCAN_InitializeP(uwChannelV, uwBtr0Btr1V);
 }
 
 

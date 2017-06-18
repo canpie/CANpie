@@ -246,7 +246,7 @@
 /*!
 ** \defgroup CP_VERSION  CANpie version information
 ** 
-** The %CANpie FD version information read dunring run-time via the
+** The %CANpie FD version information read during run-time via the
 ** function CpCoreHDI().
 */
 
@@ -255,7 +255,7 @@
 ** \def  CP_VERSION_MAJOR
 ** \ingroup CP_VERSION
 **
-** This symbol defines if the driver version major value.
+** This symbol defines the driver version major value.
 */
 #define  CP_VERSION_MAJOR           3
 
@@ -264,7 +264,7 @@
 ** \def  CP_VERSION_MINOR
 ** \ingroup CP_VERSION
 **
-** This symbol defines if the driver version minor value.
+** This symbol defines the driver version minor value.
 */
 #define  CP_VERSION_MINOR           0
 
@@ -298,7 +298,6 @@
 */
 #define  CP_MASK_EXT_FRAME       ((uint32_t) 0x1FFFFFFF)
 
-
 /*-------------------------------------------------------------------*/
 /*!
 ** \def  CP_MASK_MSG_FORMAT
@@ -310,7 +309,6 @@
 ** #CP_MSG_FORMAT_FBFF and #CP_MSG_FORMAT_FEFF control flags.
 */
 #define  CP_MASK_MSG_FORMAT      ((uint8_t) 0x03)
-
 
 //-----------------------------------------------------------------------------
 /*!
@@ -567,7 +565,6 @@ enum CpErr_e {
 };
 
 
-
 /*----------------------------------------------------------------------------*/
 /*!
 ** \enum    CpCallback_e
@@ -596,12 +593,12 @@ enum CpErr_e {
 enum CpCallback_e {
 
    /*!
-   ** Message was processed by callback and is not inserted in the FIFO
+   ** Message was processed by callback and should not inserted in the FIFO
    */
    eCP_CALLBACK_PROCESSED = 0,
 
    /*!
-   ** Message was processed by callback and is inserted in the FIFO
+   ** Message was not processed by callback and must be inserted in the FIFO
    */
    eCP_CALLBACK_PUSH_FIFO
 };
@@ -789,18 +786,15 @@ enum CpState_e {
    
    eCP_STATE_STOPPED  = 0,    // deprecated definition
 
-
    /*!
    ** CAN controller is in Sleep mode
    */
    eCP_STATE_SLEEPING = 1,
 
-
    /*!
    ** CAN controller is error active
    */
    eCP_STATE_BUS_ACTIVE = 2,
-
 
    /*!
    ** CAN controller is active, warning level is reached
