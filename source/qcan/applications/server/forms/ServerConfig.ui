@@ -32,8 +32,11 @@
    <string>Dialog</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../server.qrc">
+   <iconset>
     <normaloff>:/images/network-icon.png</normaloff>:/images/network-icon.png</iconset>
+  </property>
+  <property name="locale">
+   <locale language="English" country="UnitedStates"/>
   </property>
   <widget class="QPushButton" name="pclBtnCloseM">
    <property name="geometry">
@@ -74,7 +77,7 @@
       </rect>
      </property>
      <property name="title">
-      <string>CAN network configuration</string>
+      <string>CAN configuration</string>
      </property>
      <widget class="QComboBox" name="pclCbbNetNomBitrateM">
       <property name="geometry">
@@ -85,51 +88,6 @@
         <height>26</height>
        </rect>
       </property>
-      <item>
-       <property name="text">
-        <string>10 kBit/s</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>20 kBit/s</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>50 kBit/s</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>100 kBit/s</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>125 kBit/s</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>250 kBit/s</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>500 kBit/s</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>800 kBit/s</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>1 MBit/s</string>
-       </property>
-      </item>
      </widget>
      <widget class="QLabel" name="pclLblNetNomBitrateM">
       <property name="geometry">
@@ -239,26 +197,6 @@
         <height>26</height>
        </rect>
       </property>
-      <item>
-       <property name="text">
-        <string>N/A</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>1 MBit/s</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>2 MBit/s</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>4 MBit/s</string>
-       </property>
-      </item>
      </widget>
     </widget>
     <widget class="QGroupBox" name="pclGrpNetworkStatM">
@@ -271,7 +209,7 @@
       </rect>
      </property>
      <property name="title">
-      <string>CAN network statistics</string>
+      <string>CAN statistics</string>
      </property>
      <widget class="QProgressBar" name="pclPgbStatLoadM">
       <property name="enabled">
@@ -347,7 +285,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>0</string>
+       <string notr="true">0</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -363,7 +301,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>0</string>
+       <string notr="true">0</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -379,7 +317,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>0</string>
+       <string notr="true">0</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -547,7 +485,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>CANpie Server Version 0.82</string>
+      <string notr="true">CANpie Server Version 0.82</string>
      </property>
     </widget>
    </widget>
