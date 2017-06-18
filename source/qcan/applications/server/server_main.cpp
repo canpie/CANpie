@@ -27,15 +27,10 @@ int main(int argc, char *argv[])
    //
    QTranslator clQtTranslatorT;
 
-   qDebug() << QLocale();
-   QLocale sniffi;
-   
-   qDebug() << sniffi.uiLanguages();
    if (clQtTranslatorT.load(QLocale(), 
        QLatin1String("server"), 
        QLatin1String("_"), QLatin1String(":/translations")))
    {
-      qDebug() << "load translations";
       clAppT.installTranslator(&clQtTranslatorT);
    }
    
