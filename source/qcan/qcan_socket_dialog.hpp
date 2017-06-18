@@ -1,128 +1,142 @@
-/********************************************************************************
-** Form generated from reading UI file 'qcan_socket_dialog.ui'
-**
-** Created by: Qt User Interface Compiler version 5.6.0
-**
-** WARNING! All changes made in this file will be lost when recompiling UI file!
-********************************************************************************/
+//============================================================================//
+// File:          qcan_socket_dialog.hpp                                      //
+// Description:   QCAN classes - CAN socket dialog                            //
+//                                                                            //
+// Copyright (C) MicroControl GmbH & Co. KG                                   //
+// 53844 Troisdorf - Germany                                                  //
+// www.microcontrol.net                                                       //
+//                                                                            //
+//----------------------------------------------------------------------------//
+// Redistribution and use in source and binary forms, with or without         //
+// modification, are permitted provided that the following conditions         //
+// are met:                                                                   //
+// 1. Redistributions of source code must retain the above copyright          //
+//    notice, this list of conditions, the following disclaimer and           //
+//    the referenced file 'LICENSE'.                                          //
+// 2. Redistributions in binary form must reproduce the above copyright       //
+//    notice, this list of conditions and the following disclaimer in the     //
+//    documentation and/or other materials provided with the distribution.    //
+// 3. Neither the name of MicroControl nor the names of its contributors      //
+//    may be used to endorse or promote products derived from this software   //
+//    without specific prior written permission.                              //
+//                                                                            //
+// Provided that this notice is retained in full, this software may be        //
+// distributed under the terms of the GNU Lesser General Public License       //
+// ("LGPL") version 3 as distributed in the 'LICENSE' file.                   //
+//                                                                            //
+//============================================================================//
 
-#ifndef QCAN_SOCKET_DIALOG_H
-#define QCAN_SOCKET_DIALOG_H
 
-#include <QtCore/QVariant>
-#include <QtWidgets/QAction>
-#include <QtWidgets/QApplication>
-#include <QtWidgets/QButtonGroup>
-#include <QtWidgets/QComboBox>
+#ifndef QCAN_SOCKET_DIALOG_HPP_
+#define QCAN_SOCKET_DIALOG_HPP_
+
+#include <QtCore/QPointer>
+#include <QtCore/QTimer>
+#include <QtNetwork/QHostAddress>
 #include <QtWidgets/QDialog>
-#include <QtWidgets/QDialogButtonBox>
-#include <QtWidgets/QGroupBox>
-#include <QtWidgets/QHeaderView>
-#include <QtWidgets/QLabel>
-#include <QtWidgets/QLineEdit>
 
-QT_BEGIN_NAMESPACE
+#include "qcan_socket.hpp"
 
-class Ui_QCanSocketDialog
+class QCanSocketDialogPrivate;
+
+//-----------------------------------------------------------------------------
+/*!
+** \class QCanSocketDialog
+** \brief CAN socket dialog
+**
+** The QCanSocketDialog class provides a dialog for connection to an existing 
+** QCanNetwork. The dialog creates a new QCanSocket and tries to connect
+** after show() is called. It is possible to setup the desired CAN channel
+** by calling setChannel() is advance. Also the %CANpie server host address
+** can be configured by calling setHostAddress().
+** <p>
+** The status of the connection is displayed after the <b>CAN details</b>
+** label. 
+** \image html qcan_socket_dialog.png "QCanSocketDialog"
+**
+*/
+class QCanSocketDialog : public QDialog
 {
+   Q_OBJECT
+
 public:
-    QDialogButtonBox *pclButtonBox;
-    QGroupBox *pclGroupBoxM;
-    QLabel *pclLblHostM;
-    QLabel *pclLblCanChannelM;
-    QLabel *pclLblCanDetailM;
-    QLabel *pclLblHostAddressM;
-    QComboBox *pclCbxCanChannelM;
-    QLineEdit *pclEdtHostAddressM;
-    QComboBox *pclCbxHostM;
-    QLabel *pclLblCanInfoM;
+   
+   /*!
+   ** \param[in]  pclParentV     Pointer to QWidget parent class
+   **
+   ** Create a new CAN socket dialog.
+   */
+   QCanSocketDialog(QWidget *pclParentV, Qt::WindowFlags f);
 
-    void setupUi(QDialog *QCanSocketDialog)
-    {
-        if (QCanSocketDialog->objectName().isEmpty())
-            QCanSocketDialog->setObjectName(QStringLiteral("QCanSocketDialog"));
-        QCanSocketDialog->resize(380, 251);
-        pclButtonBox = new QDialogButtonBox(QCanSocketDialog);
-        pclButtonBox->setObjectName(QStringLiteral("pclButtonBox"));
-        pclButtonBox->setGeometry(QRect(10, 210, 361, 32));
-        pclButtonBox->setOrientation(Qt::Horizontal);
-        pclButtonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
-        pclGroupBoxM = new QGroupBox(QCanSocketDialog);
-        pclGroupBoxM->setObjectName(QStringLiteral("pclGroupBoxM"));
-        pclGroupBoxM->setGeometry(QRect(10, 10, 361, 191));
-        pclLblHostM = new QLabel(pclGroupBoxM);
-        pclLblHostM->setObjectName(QStringLiteral("pclLblHostM"));
-        pclLblHostM->setGeometry(QRect(10, 10, 140, 20));
-        pclLblHostM->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-        pclLblCanChannelM = new QLabel(pclGroupBoxM);
-        pclLblCanChannelM->setObjectName(QStringLiteral("pclLblCanChannelM"));
-        pclLblCanChannelM->setGeometry(QRect(10, 70, 140, 20));
-        pclLblCanChannelM->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-        pclLblCanDetailM = new QLabel(pclGroupBoxM);
-        pclLblCanDetailM->setObjectName(QStringLiteral("pclLblCanDetailM"));
-        pclLblCanDetailM->setGeometry(QRect(10, 100, 140, 20));
-        pclLblCanDetailM->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-        pclLblHostAddressM = new QLabel(pclGroupBoxM);
-        pclLblHostAddressM->setObjectName(QStringLiteral("pclLblHostAddressM"));
-        pclLblHostAddressM->setGeometry(QRect(10, 40, 140, 20));
-        pclLblHostAddressM->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-        pclCbxCanChannelM = new QComboBox(pclGroupBoxM);
-        pclCbxCanChannelM->setObjectName(QStringLiteral("pclCbxCanChannelM"));
-        pclCbxCanChannelM->setGeometry(QRect(170, 70, 150, 26));
-        pclEdtHostAddressM = new QLineEdit(pclGroupBoxM);
-        pclEdtHostAddressM->setObjectName(QStringLiteral("pclEdtHostAddressM"));
-        pclEdtHostAddressM->setGeometry(QRect(170, 42, 145, 21));
-        QFont font;
-        font.setFamily(QStringLiteral("Courier"));
-        pclEdtHostAddressM->setFont(font);
-        pclEdtHostAddressM->setAlignment(Qt::AlignCenter);
-        pclCbxHostM = new QComboBox(pclGroupBoxM);
-        pclCbxHostM->setObjectName(QStringLiteral("pclCbxHostM"));
-        pclCbxHostM->setGeometry(QRect(170, 10, 150, 26));
-        pclLblCanInfoM = new QLabel(pclGroupBoxM);
-        pclLblCanInfoM->setObjectName(QStringLiteral("pclLblCanInfoM"));
-        pclLblCanInfoM->setGeometry(QRect(170, 102, 148, 60));
-        pclLblCanInfoM->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop);
-        QWidget::setTabOrder(pclCbxHostM, pclEdtHostAddressM);
-        QWidget::setTabOrder(pclEdtHostAddressM, pclCbxCanChannelM);
+   /*!
+   ** \param[in]  pclParentV     Pointer to QWidget parent class
+   **
+   ** Create a new CAN socket dialog.
+   */
+   QCanSocketDialog(QWidget * pclParentV = Q_NULLPTR,
+                    const QString &caption = QString());
 
-        retranslateUi(QCanSocketDialog);
-        QObject::connect(pclButtonBox, SIGNAL(accepted()), QCanSocketDialog, SLOT(accept()));
-        QObject::connect(pclButtonBox, SIGNAL(rejected()), QCanSocketDialog, SLOT(reject()));
+   ~QCanSocketDialog();
+   
+   QHostAddress   peerAddress() const;
+   
+   /*!
+   ** \param[in]  clHostAddressV Server host address
+   **
+   ** Setup the %CANpie server host address which should be displayed as
+   ** default before the show() method is called.
+   */
+   void           setHostAddress(const QHostAddress clHostAddressV);
+   
+   /*!
+   ** \param[in]  teChannelV     CAN channel number
+   **
+   ** Setup the CAN channel number which should be displayed as
+   ** default before the show() method is called.
+   */
+   void           setChannel(const CAN_Channel_e teChannelV);
 
-        QMetaObject::connectSlotsByName(QCanSocketDialog);
-    } // setupUi
+   void           setSocket(QCanSocket * pclSocketV);
 
-    void retranslateUi(QDialog *QCanSocketDialog)
-    {
-        QCanSocketDialog->setWindowTitle(QApplication::translate("QCanSocketDialog", "Connect to CAN interface", 0));
-        pclGroupBoxM->setTitle(QString());
-        pclLblHostM->setText(QApplication::translate("QCanSocketDialog", "Connect to:", 0));
-        pclLblCanChannelM->setText(QApplication::translate("QCanSocketDialog", "CAN channel:", 0));
-        pclLblCanDetailM->setText(QApplication::translate("QCanSocketDialog", "CAN details:", 0));
-        pclLblHostAddressM->setText(QApplication::translate("QCanSocketDialog", "IPv4-Address:", 0));
-        pclCbxCanChannelM->clear();
-        pclCbxCanChannelM->insertItems(0, QStringList()
-         << QApplication::translate("QCanSocketDialog", "CAN 1", 0)
-         << QApplication::translate("QCanSocketDialog", "CAN 2", 0)
-         << QApplication::translate("QCanSocketDialog", "CAN 3", 0)
-         << QApplication::translate("QCanSocketDialog", "CAN 4", 0)
-        );
-        pclEdtHostAddressM->setInputMask(QApplication::translate("QCanSocketDialog", "000.000.000.000", 0));
-        pclCbxHostM->clear();
-        pclCbxHostM->insertItems(0, QStringList()
-         << QApplication::translate("QCanSocketDialog", "Local host", 0)
-         << QApplication::translate("QCanSocketDialog", "Remote server", 0)
-        );
-        pclLblCanInfoM->setText(QApplication::translate("QCanSocketDialog", "CAN details", 0));
-    } // retranslateUi
+   /*!
+   ** Show CAN socket dialog.
+   */
+   void           show(void);
+   
+   QCanSocket     socket(void) const;
+   
+Q_SIGNALS:
+   /*!
+   ** \param[in]  pclSocketV   Pointer to socket
+   **
+   ** This signal is emitted when the dialog window is closed using the
+   ** OK button.
+   */
+   void           socketSelected(QCanSocket * pclSocketV);
+   
+   
+protected:
+   virtual void   done(int slResultV);
+   virtual void   accept(void);
+   
+private Q_SLOTS:
+   void           onHostChanged(int slIndexV);
+   void           onChannelChanged(int slIndexV);
+   void           onConnectionTimer(void);
+   void           onSocketConnected(void);
+   void           onSocketDisconnected(void);
+   void           onSocketError(QAbstractSocket::SocketError teSocketErrorV);
 
+private:
+   QCanSocketDialogPrivate *  pclWidgetP;
+   QPointer<QCanSocket>       pclSocketP;
+   QTimer *                   pclTimerP;
+
+   void           connect(void);
+   void           connectSlots(void);
+   void           disconnectSlots(void);
+   
 };
 
-namespace Ui {
-    class QCanSocketDialog: public Ui_QCanSocketDialog {};
-} // namespace Ui
 
-QT_END_NAMESPACE
-
-#endif // QCAN_SOCKET_DIALOG_H
+#endif // QCAN_SOCKET_DIALOG_HPP_
