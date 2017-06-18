@@ -45,77 +45,89 @@
 */
 namespace QCan {
 
+   /*!
+   ** \enum CAN_Bitrate_e
+   ** 
+   ** The enumeration CAN_Bitrate_e defines commonly used
+   ** bit-rates. The pre-defined value range is limited to
+   ** a value of eCAN_BITRATE_MAX. 
+   */
    enum CAN_Bitrate_e {
 
       /*!
       ** No bit-rate defined
       */
-      eCAN_BITRATE_NONE = -1,
+      eCAN_BITRATE_NONE = -1,//!< eCAN_BITRATE_NONE
 
       /*!
       ** bit-rate 10 kBit/sec
       */
-      eCAN_BITRATE_10K = 0,
+      eCAN_BITRATE_10K = 0,  //!< eCAN_BITRATE_10K
 
       /*!
       ** bit-rate 20 kBit/sec
       */
-      eCAN_BITRATE_20K = 1,
+      eCAN_BITRATE_20K = 1,  //!< eCAN_BITRATE_20K
 
       /*!
       ** bit-rate 50 kBit/sec
       */
-      eCAN_BITRATE_50K = 2,
+      eCAN_BITRATE_50K = 2,  //!< eCAN_BITRATE_50K
 
       /*!
       ** bit-rate 100 kBit/sec
       */
-      eCAN_BITRATE_100K = 3,
+      eCAN_BITRATE_100K = 3, //!< eCAN_BITRATE_100K
 
       /*!
       ** bit-rate 125 kBit/sec
       */
-      eCAN_BITRATE_125K = 4,
+      eCAN_BITRATE_125K = 4, //!< eCAN_BITRATE_125K
 
       /*!
       ** bit-rate 250 kBit/sec
       */
-      eCAN_BITRATE_250K = 5,
+      eCAN_BITRATE_250K = 5, //!< eCAN_BITRATE_250K
 
       /*!
       ** bit-rate 500 kBit/sec
       */
-      eCAN_BITRATE_500K = 6,
+      eCAN_BITRATE_500K = 6, //!< eCAN_BITRATE_500K
 
       /*!
       ** bit-rate 800 kBit/sec
       */
-      eCAN_BITRATE_800K = 7,
+      eCAN_BITRATE_800K = 7, //!< eCAN_BITRATE_800K
 
       /*!
       ** bit-rate 1 MBit/sec
       */
-      eCAN_BITRATE_1M = 8,
+      eCAN_BITRATE_1M = 8,   //!< eCAN_BITRATE_1M
 
       /*!
       ** bit-rate 2 MBit/s (ISO CAN FD, data phase)
       */
-      eCAN_BITRATE_2M = 10,
+      eCAN_BITRATE_2M = 10,  //!< eCAN_BITRATE_2M
 
       /*!
       ** bit-rate 4 MBit/s (ISO CAN FD, data phase)
       */
-      eCAN_BITRATE_4M = 11,
+      eCAN_BITRATE_4M = 11,  //!< eCAN_BITRATE_4M
 
       /*!
       ** bit-rate 5 MBit/s (ISO CAN FD, data phase)
       */
-      eCAN_BITRATE_5M = 12,
+      eCAN_BITRATE_5M = 12,   //!< eCAN_BITRATE_5M
 
       /*!
       ** Use automatic bit-rate detection
       */
-      eCAN_BITRATE_AUTO = 9
+      eCAN_BITRATE_AUTO = 9,  //!< eCAN_BITRATE_AUTO
+      
+      /*!
+      ** Pre-defined bit-rate maximum
+      */
+      eCAN_BITRATE_MAX = 9999 //!< eCAN_BITRATE_MAX
    };
 
    enum CAN_Channel_e {
