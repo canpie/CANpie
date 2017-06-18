@@ -885,10 +885,24 @@ void QCanInterfacePeak::setupErrorFrame(TPCANStatus ulStatusV,
 //----------------------------------------------------------------------------//
 CAN_State_e	QCanInterfacePeak::state()
 {
-   //! \todo
-
-   return eCAN_STATE_BUS_ACTIVE;
+   CAN_State_e teCanStateT;
+   
+   TPCANStatus ulStatusT = pclPcanBasicP.getStatus(uwPCanChannelP);
+   if ( (ulStatusT & PCAN_ERROR_BUSPASSIVE) > 0)
+   {
+      teCanStateT = eCAN_STATE_BUS_PASSIVE;
+   }
+   else if ( (ulStatusT & PCAN_ERROR_BUSOFF) > 0)
+   {
+      teCanStateT = eCAN_STATE_BUS_OFF;
+   }
+   else
+   {
+      teCanStateT = eCAN_STATE_BUS_ACTIVE;
+   }
+   return (teCanStateT);
 }
+
 
 //----------------------------------------------------------------------------//
 // statistic()                                                                //
