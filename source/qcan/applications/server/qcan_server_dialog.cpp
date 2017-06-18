@@ -69,7 +69,8 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    //
    setupNetworks();
 
-
+   setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint );
+   
    //----------------------------------------------------------------
    // setup the user interface
    //
@@ -108,6 +109,30 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
                               ("CAN " + QString::number(ubNetworkIdxT+1,10)));
    }
 
+   //----------------------------------------------------------------
+   // create values for nominal bit-rate
+   //
+   ui.pclCbbNetNomBitrateM->clear();
+   ui.pclCbbNetNomBitrateM->addItem("10 kBit/s" , (int32_t)   10000);
+   ui.pclCbbNetNomBitrateM->addItem("20 kBit/s" , (int32_t)   20000);
+   ui.pclCbbNetNomBitrateM->addItem("50 kBit/s" , (int32_t)   50000);
+   ui.pclCbbNetNomBitrateM->addItem("100 kBit/s", (int32_t)  100000);
+   ui.pclCbbNetNomBitrateM->addItem("125 kBit/s", (int32_t)  125000);
+   ui.pclCbbNetNomBitrateM->addItem("250 kBit/s", (int32_t)  250000);
+   ui.pclCbbNetNomBitrateM->addItem("500 kBit/s", (int32_t)  500000);
+   ui.pclCbbNetNomBitrateM->addItem("800 kBit/s", (int32_t)  800000);
+   ui.pclCbbNetNomBitrateM->addItem("1 MBit/s"  , (int32_t) 1000000);
+   
+   //----------------------------------------------------------------
+   // create values for data bit-rate
+   //
+   ui.pclCbbNetDatBitrateM->clear();
+   ui.pclCbbNetDatBitrateM->addItem("None"      , (int32_t) eCAN_BITRATE_NONE);
+   ui.pclCbbNetDatBitrateM->addItem("1 MBit/s"  , (int32_t) 1000000);
+   ui.pclCbbNetDatBitrateM->addItem("2 MBit/s"  , (int32_t) 2000000);
+   ui.pclCbbNetDatBitrateM->addItem("4 MBit/s"  , (int32_t) 4000000);
+   ui.pclCbbNetDatBitrateM->addItem("5 MBit/s"  , (int32_t) 5000000);
+   
    //----------------------------------------------------------------
    // connect widgets of dialog
    //
@@ -151,12 +176,6 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    connect(pclNetworkT, SIGNAL(showLoad(uint8_t, uint32_t)),
             this, SLOT(onNetworkShowLoad(uint8_t, uint32_t)) );
 
-//    no showLogMessage signal available
-//   //----------------------------------------------------------------
-//   // connect signals / slots for logging
-//   //
-//   connect(pclLoggerP, SIGNAL(showLogMessage(const QString &)),
-//           this, SLOT(onMessageLogging(const QString &)));
 
    //----------------------------------------------------------------
    // Intialise interface widgets for CAN interface selection
@@ -217,12 +236,13 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
                                      0).toBool());
 
       pclNetworkT->setBitrate(pclSettingsP->value("bitrateNom",
-                              eCAN_BITRATE_500K).toInt(),
+                              500000).toInt(),
                               pclSettingsP->value("bitrateDat",
                               eCAN_BITRATE_NONE).toInt());
 
-      qDebug() << "Load iterface: " << pclSettingsP->value("interface"+QString::number(ubNetworkIdxT),"").toString() << "of Channel" << QString::number(ubNetworkIdxT+1,10);
-      apclCanIfWidgetP[ubNetworkIdxT]->setInterface(pclSettingsP->value("interface"+QString::number(ubNetworkIdxT),"").toString());
+      apclCanIfWidgetP[ubNetworkIdxT]->setInterface(
+            pclSettingsP->value("interface" + 
+                                QString::number(ubNetworkIdxT),"").toString());
 
       pclSettingsP->endGroup();
 
@@ -246,6 +266,7 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    // show CAN channel 1 as default and update user interface
    //
    slLastNetworkIndexP = 0;
+
    ui.pclTabConfigM->setCurrentIndex(0);
    pclTbxNetworkP->setCurrentIndex(0);
    this->updateUI(0);
@@ -384,17 +405,6 @@ void QCanServerDialog::onInterfaceChange( uint8_t ubIdxV,
 void QCanServerDialog::onLoggingWindow(void)
 {
    pclLoggerP->show();
-
-   /*
-   if (pclLoggerP->isHidden())
-   {
-      pclLoggerP->show();
-   }
-   else
-   {
-      pclLoggerP->hide();
-   }
-   */
 }
 
 
@@ -451,36 +461,13 @@ void QCanServerDialog::onNetworkChange(int slIndexV)
 void QCanServerDialog::onNetworkConfBitrateDat(int slBitrateSelV)
 {
    QCanNetwork *  pclNetworkT;
-   int32_t        slBitrateT;
 
-   qDebug() << "Change data bit-rate" << slBitrateSelV;
-   switch(slBitrateSelV)
-   {
-      case 0:
-         slBitrateT = eCAN_BITRATE_NONE;
-         break;
-
-      case 1:
-         slBitrateT = 1000000;
-         break;
-
-      case 2:
-         slBitrateT = 2000000;
-         break;
-
-      case 3:
-         slBitrateT = 4000000;
-         break;
-
-      default:
-         slBitrateT = eCAN_BITRATE_NONE;
-         break;
-
-   }
    pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
    if(pclNetworkT != Q_NULLPTR)
    {
-      pclNetworkT->setBitrate(pclNetworkT->nominalBitrate(), slBitrateT);
+      slBitrateSelV = ui.pclCbbNetDatBitrateM->currentData().toInt();
+      qDebug() << "Change data bit-rate" << slBitrateSelV;
+      pclNetworkT->setBitrate(pclNetworkT->nominalBitrate(), slBitrateSelV);
    }
 }
 
@@ -493,10 +480,11 @@ void QCanServerDialog::onNetworkConfBitrateNom(int slBitrateSelV)
 {
    QCanNetwork * pclNetworkT;
 
-   qDebug() << "Change nominal bit-rate" << slBitrateSelV;
    pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
    if(pclNetworkT != Q_NULLPTR)
    {
+      slBitrateSelV = ui.pclCbbNetNomBitrateM->currentData().toInt();
+      qDebug() << "Change nominal bit-rate" << slBitrateSelV;
       pclNetworkT->setBitrate(slBitrateSelV, pclNetworkT->dataBitrate());
    }
 }
@@ -659,10 +647,10 @@ void QCanServerDialog::setupNetworks(void)
 //----------------------------------------------------------------------------//
 void QCanServerDialog::setIcon(void)
 {
-    QIcon clIconT = QIcon(":images/mc_network_256.png");
+    QIcon clIconT = QIcon(":images/canpie_server_512.png");
 
     pclIconTrayP->setIcon(clIconT);
-    pclIconTrayP->setToolTip("CAN network configuration");
+    pclIconTrayP->setToolTip("CANpie Server");
 }
 
 
@@ -746,34 +734,13 @@ void QCanServerDialog::updateUI(uint8_t ubNetworkIdxV)
       //--------------------------------------------------------
       // show current nominal bit-rate
       //
-      ui.pclCbbNetNomBitrateM->setCurrentIndex(pclNetworkT->nominalBitrate());
-      int32_t slDatBitRateSelT = 0;
-      switch(pclNetworkT->dataBitrate())
-      {
-         case eCAN_BITRATE_NONE:
-            slDatBitRateSelT = 0;
-            break;
-
-         case 1000000:
-            slDatBitRateSelT = 1;
-            break;
-
-         case 2000000:
-            slDatBitRateSelT = 2;
-            break;
-
-         case 4000000:
-            slDatBitRateSelT = 3;
-            break;
-
-         case 5000000:
-            slDatBitRateSelT = 4;
-            break;
-
-         default:
-            slDatBitRateSelT = 0;
-            break;
-      }
+      qDebug() << "Nom. bit-rate" << pclNetworkT->nominalBitrate();
+      int32_t slNomBitRateSelT = ui.pclCbbNetNomBitrateM->findData(pclNetworkT->nominalBitrate());
+      qDebug() << "Nom. bit-rate index" << slNomBitRateSelT;
+      ui.pclCbbNetNomBitrateM->setCurrentIndex(slNomBitRateSelT);
+      
+      
+      int32_t slDatBitRateSelT = ui.pclCbbNetDatBitrateM->findData(pclNetworkT->dataBitrate());
       ui.pclCbbNetDatBitrateM->setCurrentIndex(slDatBitRateSelT);
       
    }
