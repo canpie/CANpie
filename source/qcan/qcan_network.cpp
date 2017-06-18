@@ -57,6 +57,82 @@
 \*----------------------------------------------------------------------------*/
 uint8_t  QCanNetwork::ubNetIdP = 0;
 
+static uint32_t   aulDlc2Bitlength[] = { 0,  8,  16,  24,  32,  40,  48,  56, 
+                                        64, 96, 128, 160, 192, 256, 384, 512  };
+
+/*----------------------------------------------------------------------------*\
+** Static functions                                                           **
+**                                                                            **
+\*----------------------------------------------------------------------------*/
+
+
+//----------------------------------------------------------------------------//
+// getBitrate()                                                               //
+// The functions converts the enumeration value CAN_Bitrate_e to a value      //                                                                 
+// using the unit [bit/s]                                                     //                      
+//----------------------------------------------------------------------------//
+static int32_t getBitrate(int32_t slPreDefValueV)
+{
+   int32_t slBitrateT;
+   
+   switch (slPreDefValueV)
+   {
+      case eCAN_BITRATE_10K:
+         slBitrateT = 10000;
+         break;
+         
+      case eCAN_BITRATE_20K:
+         slBitrateT = 20000;
+         break;
+      
+      case eCAN_BITRATE_50K:
+         slBitrateT = 50000;
+         break;
+         
+      case eCAN_BITRATE_100K:
+         slBitrateT = 100000;
+         break;
+         
+      case eCAN_BITRATE_125K:
+         slBitrateT = 125000;
+         break;
+         
+      case eCAN_BITRATE_250K:
+         slBitrateT = 250000;
+         break;
+         
+      case eCAN_BITRATE_500K:
+         slBitrateT = 500000;
+         break;
+         
+      case eCAN_BITRATE_800K:
+         slBitrateT = 800000;
+         break;
+
+      case eCAN_BITRATE_1M:
+         slBitrateT = 1000000;
+         break;
+         
+      case eCAN_BITRATE_2M:
+         slBitrateT = 2000000;
+         break;
+         
+      case eCAN_BITRATE_4M:
+         slBitrateT = 4000000;
+         break;
+
+      case eCAN_BITRATE_5M:
+         slBitrateT = 5000000;
+         break;
+
+      default:
+         slBitrateT = eCAN_BITRATE_NONE;
+         break;
+   }
+   
+   return (slBitrateT);
+}
+
 /*----------------------------------------------------------------------------*\
 ** Class methods                                                              **
 **                                                                            **
@@ -113,7 +189,6 @@ QCanNetwork::QCanNetwork(QObject * pclParentV,
    ulCntFrameCanP = 0;
    ulCntFrameErrP = 0;
    ulCntBitCurP   = 0;
-   ulCntBitMaxP   = 100;
 
    ulFramePerSecMaxP = 0;
    ulFrameCntSaveP   = 0;
@@ -137,6 +212,7 @@ QCanNetwork::QCanNetwork(QObject * pclParentV,
    slNomBitRateP = eCAN_BITRATE_NONE;
    slDatBitRateP = eCAN_BITRATE_NONE;
 
+   teCanStateP   = eCAN_STATE_STOPPED;
 }
 
 
@@ -209,28 +285,29 @@ QString QCanNetwork::dataBitrateString(void)
 {
    QString  clDatBitRateT;
 
-   switch (slDatBitRateP)
+   if (slDatBitRateP == eCAN_BITRATE_NONE)
    {
-      case eCAN_BITRATE_1M:
-         clDatBitRateT = "1 MBit/s";
-         break;
-
-      case eCAN_BITRATE_2M:
-         clDatBitRateT = "2 MBit/s";
-         break;
-
-      case eCAN_BITRATE_4M:
-         clDatBitRateT = "4 MBit/s";
-         break;
-
-      case eCAN_BITRATE_5M:
-         clDatBitRateT = "5 MBit/s";
-         break;
-
-      default:
-         clDatBitRateT = "None";
-         break;
+      clDatBitRateT = "None";
    }
+   else
+   {
+      if (slDatBitRateP < 1000000)
+      {
+         //------------------------------------------------
+         // print values < 1000000 in kBit/s
+         //
+         clDatBitRateT = QString("%1 kBit/s").arg(slDatBitRateP / 1000);
+      }
+      else
+      {
+         //------------------------------------------------
+         // print values >= 1000000 in MBit/s
+         //
+         clDatBitRateT = QString("%1 MBit/s").arg(slDatBitRateP / 1000000);
+      }
+   }
+   
+   
    return (clDatBitRateT);
 
 }
@@ -331,6 +408,64 @@ bool QCanNetwork::hasListenOnlySupport(void)
    return(btResultT);
 }
 
+
+//----------------------------------------------------------------------------//
+// frameSize()                                                                //
+//                                                                            //
+//----------------------------------------------------------------------------//
+uint32_t QCanNetwork::frameSize(const QByteArray & clSockDataR)
+{
+   uint32_t ulBitCountT = 0;
+   
+   //----------------------------------------------------------------
+   // test for CAN data frame
+   //
+   if ((clSockDataR.at(0) & 0xE0) == 0x00)
+   {
+      //--------------------------------------------------------
+      // check the DLC value and convert to the number of
+      // data bits inside this frame
+      //
+      ulBitCountT = aulDlc2Bitlength[(clSockDataR.at(4) & 0x0F)];
+
+      //--------------------------------------------------------
+      // add the number of bits for the protocol header, 
+      // including possible stuff bits
+      //
+      switch (clSockDataR.at(5) & 0x03)
+      {
+         //------------------------------------------------
+         // classical CAN, Standard Frame
+         //
+         case 0:
+            ulBitCountT = ulBitCountT + 66;
+            break;
+
+         //------------------------------------------------
+         // classical CAN, Extended Frame
+         //
+         case 1:
+            ulBitCountT = ulBitCountT + 90;
+            break;
+
+         //------------------------------------------------
+         // CAN FD, Standard Frame
+         //
+         case 2:
+            ulBitCountT = ulBitCountT + 66;
+            break;
+
+         //------------------------------------------------
+         // CAN FD, Extended Frame
+         //
+         case 3:
+            ulBitCountT = ulBitCountT + 90;
+            break;
+      }
+   }
+   
+   return (ulBitCountT);
+}
 
 //----------------------------------------------------------------------------//
 // frameType()                                                                //
@@ -458,6 +593,7 @@ bool  QCanNetwork::handleCanFrame(int32_t & slSockSrcR,
    if((slSockSrcR == QCAN_SOCKET_CAN_IF) || (btResultT == true))
    {
       ulCntFrameCanP++;
+      ulCntBitCurP = ulCntBitCurP + frameSize(clSockDataR);
    }
    return(btResultT);
 }
@@ -563,48 +699,28 @@ QString QCanNetwork::nominalBitrateString(void)
 {
    QString  clNomBitRateT;
 
-   switch (slNomBitRateP)
+   if (slNomBitRateP == eCAN_BITRATE_NONE)
    {
-      case eCAN_BITRATE_10K:
-         clNomBitRateT = "10 kBit/s";
-         break;
-
-      case eCAN_BITRATE_20K:
-         clNomBitRateT = "20 kBit/s";
-         break;
-
-      case eCAN_BITRATE_50K:
-         clNomBitRateT = "50 kBit/s";
-         break;
-
-      case eCAN_BITRATE_100K:
-         clNomBitRateT = "100 kBit/s";
-         break;
-
-      case eCAN_BITRATE_125K:
-         clNomBitRateT = "125 kBit/s";
-         break;
-
-      case eCAN_BITRATE_250K:
-         clNomBitRateT = "250 kBit/s";
-         break;
-
-      case eCAN_BITRATE_500K:
-         clNomBitRateT = "500 kBit/s";
-         break;
-
-      case eCAN_BITRATE_800K:
-         clNomBitRateT = "800 kBit/s";
-         break;
-
-      case eCAN_BITRATE_1M:
-         clNomBitRateT = "1 MBit/s";
-         break;
-
-      default:
-         clNomBitRateT = "None";
-         break;
+      clNomBitRateT = "None";
    }
+   else
+   {
+      if (slNomBitRateP < 1000000)
+      {
+         //------------------------------------------------
+         // print values < 1000000 in kBit/s
+         //
+         clNomBitRateT = QString("%1 kBit/s").arg(slNomBitRateP / 1000);
+      }
+      else
+      {
+         //------------------------------------------------
+         // print values >= 1000000 in MBit/s
+         //
+         clNomBitRateT = QString("%1 MBit/s").arg(slNomBitRateP / 1000000);
+      }
+   }
+
    return (clNomBitRateT);
 }
 
@@ -702,7 +818,6 @@ void QCanNetwork::onTimerEvent(void)
    uint32_t       ulFrameCntT;
    uint32_t       ulFrameMaxT;
    uint32_t       ulMsgPerSecT;
-   //uint32_t       ulMsgBitCntT;
    QTcpSocket *   pclSockT;
    QCanFrame      clCanFrameT;
    QByteArray     clSockDataT;
@@ -713,13 +828,18 @@ void QCanNetwork::onTimerEvent(void)
    //
    clTcpSockMutexP.lock();
 
+   if (clTimeStartP.isNull())
+   {
+      clTimeStartP = QDateTime::currentDateTime();
+   }
+   
    //----------------------------------------------------------------
    // read messages from active CAN interface
    //
    if(pclInterfaceP.isNull() == false)
    {
       slSockIdxT = QCAN_SOCKET_CAN_IF;
-      while(pclInterfaceP->read(clSockDataT) == QCanInterface::eERROR_NONE)
+      while(pclInterfaceP->read(clSockDataT) != QCanInterface::eERROR_FIFO_RCV_EMPTY)
       {
          switch(frameType(clSockDataT))
          {
@@ -755,6 +875,8 @@ void QCanNetwork::onTimerEvent(void)
                break;
          }
       }
+      
+      teCanStateP = pclInterfaceP->state();
    }
 
    //----------------------------------------------------------------
@@ -805,12 +927,59 @@ void QCanNetwork::onTimerEvent(void)
                break;         
                
             default:
+               
                break;
          }
       }
    }
    clTcpSockMutexP.unlock();
 
+   clTimeStopP = QDateTime::currentDateTime();
+   uint32_t ulTimeDiffT = clTimeStartP.msecsTo(clTimeStopP);
+   if (ulTimeDiffT > 1000)
+   {
+      //--------------------------------------------------------
+      // signal current counter values
+      //
+      showApiFrames(ulCntFrameApiP);
+      showCanFrames(ulCntFrameCanP);
+      showErrFrames(ulCntFrameErrP);
+      
+      //--------------------------------------------------------
+      // calculate messages per second
+      //
+      ulMsgPerSecT = ulCntFrameCanP - ulFrameCntSaveP;
+
+      //--------------------------------------------------------
+      // calculate bus load
+      //
+      ulCntBitCurP = ulCntBitCurP * 100;
+      ulCntBitCurP = ulCntBitCurP / slNomBitRateP;
+      if(ulCntBitCurP > 100)
+      {
+         ulCntBitCurP = 100;
+      }
+
+      qDebug() << "CAN state" << teCanStateP;
+      
+      //--------------------------------------------------------
+      // signal bus load and msg/sec
+      //
+      showLoad((uint8_t) ulCntBitCurP, ulMsgPerSecT);
+      ulCntBitCurP = 0;
+
+      //--------------------------------------------------------
+      // store actual frame counter value
+      //
+      ulFrameCntSaveP = ulCntFrameCanP;
+      
+      //--------------------------------------------------------
+      // set new value for start time
+      //
+      clTimeStartP = QDateTime::currentDateTime();
+   }
+   
+   /*
    //----------------------------------------------------------------
    // signal current statistic values
    //
@@ -857,7 +1026,8 @@ void QCanNetwork::onTimerEvent(void)
       //
       ulFrameCntSaveP = ulCntFrameCanP;
    }
-
+   */
+   
    if (btNetworkEnabledP)
    {
       clDispatchTmrP.singleShot(ulDispatchTimeP, this, SLOT(onTimerEvent()));
@@ -901,65 +1071,74 @@ void QCanNetwork::removeInterface(void)
 void QCanNetwork::setBitrate(int32_t slNomBitRateV, int32_t slDatBitRateV)
 {
    //----------------------------------------------------------------
-   // Store new bit-rates:
-   // If there is no CAN FD support, the data bit rate will be set
-   // to eCAN_BITRATE_NONE
+   // test for pre-defined values from enumeration CAN_Bitrate_e
+   // first and convert them in "real" bit-rate values
    //
-   slNomBitRateP  = slNomBitRateV;
-   if(btFastDataEnabledP)
+   if (slNomBitRateV < eCAN_BITRATE_MAX)
    {
-      slDatBitRateP  = slDatBitRateV;
-   }
-   else
-   {
-      slDatBitRateP  = eCAN_BITRATE_NONE;
+      slNomBitRateV = getBitrate(slNomBitRateV);
    }
 
+   if (slDatBitRateV < eCAN_BITRATE_MAX)
+   {
+      slDatBitRateV = getBitrate(slDatBitRateV);
+   }
+   
+   qDebug() << "QCanNetwork::setBitrate()" << slNomBitRateV << slDatBitRateV;
+   
    //----------------------------------------------------------------
-   // If there is an active CAN interface, configure the
-   // new bit-rate
+   // test if the new values differ from the currently stored
+   // values
    //
-   if(!pclInterfaceP.isNull())
+   if ( (slNomBitRateV != slNomBitRateP) || (slDatBitRateP != slDatBitRateV) )
    {
-      pclInterfaceP->setMode(eCAN_MODE_STOP);
-      pclInterfaceP->setBitrate(slNomBitRateP, slDatBitRateP);
-      pclInterfaceP->setMode(eCAN_MODE_START);
+      //--------------------------------------------------------
+      // Store new bit-rates:
+      // If there is no CAN FD support, the data bit-rate will 
+      // be set to eCAN_BITRATE_NONE
+      //
+      slNomBitRateP  = slNomBitRateV;
+      if(btFastDataEnabledP)
+      {
+         slDatBitRateP  = slDatBitRateV;
+      }
+      else
+      {
+         slDatBitRateP  = eCAN_BITRATE_NONE;
+      }
+      
+      //--------------------------------------------------------
+      // If there is an active CAN interface, configure the
+      // new bit-rate
+      //
+      if(!pclInterfaceP.isNull())
+      {
+         pclInterfaceP->setMode(eCAN_MODE_STOP);
+         pclInterfaceP->setBitrate(slNomBitRateP, slDatBitRateP);
+         pclInterfaceP->setMode(eCAN_MODE_START);
+      }
+
+      //--------------------------------------------------------
+      // show log message
+      //
+      if (btFastDataEnabledP)
+      {
+         addLogMessage(CAN_Channel_e (id()),
+                       "Set bit-rate " + nominalBitrateString(),
+                       eLOG_LEVEL_NOTICE);
+      }
+      else
+      {
+         addLogMessage(CAN_Channel_e (id()),
+                       "Set nominal bit-rate " + nominalBitrateString() +
+                       " and data bit-rate " + dataBitrateString(),
+                       eLOG_LEVEL_NOTICE);
+      }
    }
 
-   //----------------------------------------------------------------
-   // show log message
-   //
-   if (btFastDataEnabledP)
-   {
-      addLogMessage(CAN_Channel_e (id()),
-                    "Set bit-rate " + nominalBitrateString(),
-                    eLOG_LEVEL_NOTICE);
-   }
-   else
-   {
-      addLogMessage(CAN_Channel_e (id()),
-                    "Set nominal bit-rate " + nominalBitrateString() +
-                    " and data bit-rate " + dataBitrateString(),
-                    eLOG_LEVEL_NOTICE);
-   }
 
-   //----------------------------------------------------------------
-   // configure bit-counter for bus-load calculation
-   //
-   switch(slNomBitRateV)
-   {
-      case eCAN_BITRATE_125K:
-         ulCntBitMaxP = 125000;
-         break;
-         
-      case eCAN_BITRATE_250K:
-         ulCntBitMaxP = 250000;
-         break;
 
-      case eCAN_BITRATE_500K:
-         ulCntBitMaxP = 500000;
-         break;
-   }
+
 }
 
 
