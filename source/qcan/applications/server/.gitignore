@@ -3,5 +3,6 @@
 /.qmake.stash
 /Makefile*
 /moc_*.cpp
-/ui_*.h
 /qrc_*.cpp
+/translations/*.qm
+/ui_*.h
