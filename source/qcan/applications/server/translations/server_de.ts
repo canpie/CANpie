@@ -12,12 +12,12 @@
 <context>
     <name>QCanServerDialog</name>
     <message>
-        <location filename="../qcan_server_dialog.cpp" line="307"/>
+        <location filename="../qcan_server_dialog.cpp" line="335"/>
         <source>&amp;Configuration ...</source>
         <translation>&amp;Konfiguration ...</translation>
     </message>
     <message>
-        <location filename="../qcan_server_dialog.cpp" line="315"/>
+        <location filename="../qcan_server_dialog.cpp" line="343"/>
         <source>&amp;Quit</source>
         <translation>&amp;Beenden</translation>
     </message>
@@ -25,77 +25,77 @@
 <context>
     <name>QCanServerLogger</name>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="152"/>
+        <location filename="../qcan_server_logger.cpp" line="167"/>
         <source>Save File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="154"/>
+        <location filename="../qcan_server_logger.cpp" line="169"/>
         <source>Log file (*.log)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="193"/>
+        <location filename="../qcan_server_logger.cpp" line="208"/>
         <source>Clear all</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="209"/>
+        <location filename="../qcan_server_logger.cpp" line="224"/>
         <source>Log to file ..</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="215"/>
+        <location filename="../qcan_server_logger.cpp" line="230"/>
         <source>Log level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="217"/>
+        <location filename="../qcan_server_logger.cpp" line="232"/>
         <source>Info</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="225"/>
+        <location filename="../qcan_server_logger.cpp" line="240"/>
         <source>Notice</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="233"/>
+        <location filename="../qcan_server_logger.cpp" line="248"/>
         <source>Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="241"/>
+        <location filename="../qcan_server_logger.cpp" line="256"/>
         <source>Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="249"/>
+        <location filename="../qcan_server_logger.cpp" line="264"/>
         <source>Debug</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="323"/>
+        <location filename="../qcan_server_logger.cpp" line="340"/>
         <source>Set log level: Info</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="327"/>
+        <location filename="../qcan_server_logger.cpp" line="344"/>
         <source>Set log level: Notice</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="331"/>
+        <location filename="../qcan_server_logger.cpp" line="348"/>
         <source>Set log level: Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="335"/>
+        <location filename="../qcan_server_logger.cpp" line="352"/>
         <source>Set log level: Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="339"/>
+        <location filename="../qcan_server_logger.cpp" line="356"/>
         <source>Set log level: Debug</source>
         <translation type="unfinished"></translation>
     </message>
@@ -105,7 +105,7 @@
     <message>
         <location filename="../forms/ServerConfig.ui" line="32"/>
         <source>Dialog</source>
-        <translation type="unfinished"></translation>
+        <translation>Dialog</translation>
     </message>
     <message>
         <location filename="../forms/ServerConfig.ui" line="51"/>
@@ -118,172 +118,99 @@
         <translation>Netzwerk Konfiguration</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="80"/>
-        <source>CAN network configuration</source>
-        <translation>CAN Netzwerk Konfiguration</translation>
-    </message>
-    <message>
-        <location filename="../forms/ServerConfig.ui" line="93"/>
-        <source>10 kBit/s</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../forms/ServerConfig.ui" line="98"/>
-        <source>20 kBit/s</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../forms/ServerConfig.ui" line="103"/>
-        <source>50 kBit/s</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../forms/ServerConfig.ui" line="108"/>
-        <source>100 kBit/s</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../forms/ServerConfig.ui" line="113"/>
-        <source>125 kBit/s</source>
-        <translation type="unfinished"></translation>
+        <location filename="../forms/ServerConfig.ui" line="102"/>
+        <source>Nominal Bit-rate</source>
+        <translation>Nominale Bitrate</translation>
     </message>
     <message>
         <location filename="../forms/ServerConfig.ui" line="118"/>
-        <source>250 kBit/s</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../forms/ServerConfig.ui" line="123"/>
-        <source>500 kBit/s</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../forms/ServerConfig.ui" line="128"/>
-        <source>800 kBit/s</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../forms/ServerConfig.ui" line="133"/>
-        <location filename="../forms/ServerConfig.ui" line="252"/>
-        <source>1 MBit/s</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../forms/ServerConfig.ui" line="147"/>
-        <source>Nominal Bit-rate</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../forms/ServerConfig.ui" line="163"/>
         <source>Enable network</source>
-        <translation type="unfinished"></translation>
+        <translation>Netzwerk aktivieren</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="179"/>
+        <location filename="../forms/ServerConfig.ui" line="134"/>
         <source>Error frames</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="195"/>
+        <location filename="../forms/ServerConfig.ui" line="150"/>
         <source>CAN-FD support</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="211"/>
+        <location filename="../forms/ServerConfig.ui" line="166"/>
         <source>Listen-only</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="227"/>
+        <location filename="../forms/ServerConfig.ui" line="182"/>
         <source>Data Bit-rate</source>
-        <translation type="unfinished"></translation>
+        <translation>Daten Bitrate</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="247"/>
-        <source>N/A</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../forms/ServerConfig.ui" line="257"/>
-        <source>2 MBit/s</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../forms/ServerConfig.ui" line="262"/>
-        <source>4 MBit/s</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../forms/ServerConfig.ui" line="277"/>
-        <source>CAN network statistics</source>
-        <translation>CAN Netzwerk Statistik</translation>
-    </message>
-    <message>
-        <location filename="../forms/ServerConfig.ui" line="305"/>
+        <location filename="../forms/ServerConfig.ui" line="240"/>
         <source>Messages / sec:</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Botschaften / sec:</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="321"/>
+        <location filename="../forms/ServerConfig.ui" line="256"/>
         <source>Error frames:</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler:</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="337"/>
+        <location filename="../forms/ServerConfig.ui" line="272"/>
         <source>CAN frames:</source>
-        <translation type="unfinished"></translation>
+        <translation>CAN Botschaften:</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="353"/>
-        <location filename="../forms/ServerConfig.ui" line="369"/>
-        <location filename="../forms/ServerConfig.ui" line="385"/>
-        <source>0</source>
-        <translation type="unfinished"></translation>
+        <location filename="../forms/ServerConfig.ui" line="80"/>
+        <source>CAN configuration</source>
+        <translation>CAN Konfiguration</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="408"/>
+        <location filename="../forms/ServerConfig.ui" line="212"/>
+        <source>CAN statistics</source>
+        <translation>CAN Statistik</translation>
+    </message>
+    <message>
+        <location filename="../forms/ServerConfig.ui" line="343"/>
         <source>Server configuration</source>
-        <translation type="unfinished"></translation>
+        <translation>Server Konfiguration</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="423"/>
+        <location filename="../forms/ServerConfig.ui" line="358"/>
         <source>CAN server port</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="439"/>
+        <location filename="../forms/ServerConfig.ui" line="374"/>
         <source>Message dispatch time</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="455"/>
+        <location filename="../forms/ServerConfig.ui" line="390"/>
         <source> ms</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="493"/>
+        <location filename="../forms/ServerConfig.ui" line="428"/>
         <source>CAN server host</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="510"/>
+        <location filename="../forms/ServerConfig.ui" line="445"/>
         <source>Local only</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="515"/>
+        <location filename="../forms/ServerConfig.ui" line="450"/>
         <source>Network</source>
         <translation>Netzwerk</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="522"/>
+        <location filename="../forms/ServerConfig.ui" line="457"/>
         <source>Information</source>
         <translation>Version</translation>
-    </message>
-    <message>
-        <location filename="../forms/ServerConfig.ui" line="553"/>
-        <source>CANpie Server Version 0.82</source>
-        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>
