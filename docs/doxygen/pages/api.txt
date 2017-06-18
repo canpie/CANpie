@@ -37,31 +37,36 @@
 <h2>Programming in C++</h2>
 
 The %CANpie FD API provides classes for manipulation of CAN frames.
-The base classes do not rely on any C++ library and have the prefix 
-<b>Cp</b>. The following table gives an overview. 
+The classes are using the <a href="https://doc.qt.io">
+Qt Library</a> and have the prefix <b>QCan</b>. The following table 
+gives an overview. 
 
 <div class="function" style="width:800px">
 <table class="function" style="width:800px">
 
 <tr class="odd">
-   <td class="entry" style="width:25%">\ref CpFrame</td>
-   <td class="desc">Base class of a CAN frame, covering both classic
-   CAN frames and CAN FD frames.</td>
+   <td class="entry" style="width:25%">\ref QCanData</td>
+   <td class="desc">Base class for CAN data structure.</td>
 </tr>
 
 <tr>
-   <td class="entry" style="width:25%">\ref CpFrameApi</td>
-   <td class="desc">Class defining an API frame</td>
+   <td class="entry" style="width:25%">\ref QCanFrameApi</td>
+   <td class="desc">Class defining an API frame, derived from QCanData.</td>
 </tr>
 
 <tr class="odd">
-   <td class="entry" style="width:25%">\ref CpFrameError</td>
-   <td class="desc">Class defining a CAN error frame</td>
+   <td class="entry" style="width:25%">\ref QCanFrameError</td>
+   <td class="desc">Class defining a CAN error frame, derived from QCanData.</td>
 </tr>
 
 <tr>
-   <td class="entry" style="width:25%">\ref CpTimeStamp</td>
-   <td class="desc">Time-stamp with a resolution of 1 nanosecond</td>
+   <td class="entry" style="width:25%">\ref QCanFrame</td>
+   <td class="desc">Class defining a CAN data frame, derived from QCanData.</td>
+</tr>
+
+<tr class="odd">
+   <td class="entry" style="width:25%">\ref QCanTimeStamp</td>
+   <td class="desc">Time-stamp with a resolution of 1 nanosecond.</td>
 </tr>
 
 </table>
@@ -69,7 +74,7 @@ The base classes do not rely on any C++ library and have the prefix
 
 
 <p>
-Derived classes are using the <a href="https://doc.qt.io">
+The following classes  classes are using the <a href="https://doc.qt.io">
 Qt Library</a> and have the prefix <b>QCan</b>.
 
 
@@ -77,38 +82,28 @@ Qt Library</a> and have the prefix <b>QCan</b>.
 <table class="function" style="width:800px">
 
 <tr class="odd">
-   <td class="entry" style="width:25%">\ref QCanFrame</td>
-   <td class="desc">CAN frame with Qt extensions, derived from CpFrame</td>
-</tr>
-
-<tr>
-   <td class="entry" style="width:25%">\ref QCanFrameApi</td>
-   <td class="desc">Class defining an API frame, derived from CpFrameApi</td>
-</tr>
-
-<tr class="odd">
-   <td class="entry" style="width:25%">\ref QCanFrameError</td>
-   <td class="desc">Class defining a CAN error frame, derived from CpFrameError</td>
-</tr>
-
-<tr>
    <td class="entry" style="width:25%">\ref QCanInterface</td>
    <td class="desc">Class defining a physical CAN interface</td>
 </tr>
 
-<tr class="odd">
+<tr>
    <td class="entry" style="width:25%">\ref QCanNetwork</td>
    <td class="desc">Class defining a CAN network</td>
 </tr>
 
-<tr>
+<tr class="odd">
    <td class="entry" style="width:25%">\ref QCanPlugin</td>
    <td class="desc">Class for a CAN plugin, used by the QCanServer</td>
 </tr>
 
-<tr class="odd">
+<tr>
    <td class="entry" style="width:25%">\ref QCanServer</td>
    <td class="desc">%CANpie server class, managing multiple CAN networks</td>
+</tr>
+
+<tr class="odd">
+   <td class="entry" style="width:25%">\ref QCanSocketDialog</td>
+   <td class="desc">Dialog for QCanSocket class</td>
 </tr>
 
 <tr>
