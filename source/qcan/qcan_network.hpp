@@ -40,6 +40,7 @@
 #include <QMutex>
 #include <QPointer>
 #include <QTimer>
+#include <QDateTime>
 
 #include "qcan_frame.hpp"
 #include "qcan_frame_api.hpp"
@@ -204,13 +205,14 @@ public:
    /*!
    ** \param[in]  slNomBitRateV  Nominal Bit-rate value
    ** \param[in]  slDatBitRateV  Data Bit-rate value
-   ** \see        bitrate()
+   ** \see        dataBitrate(), nominalBitrate()
+   ** 
    **
-   ** This function sets the bit-rate for the CAN network. For <b>classic CAN</b>,
-   ** the parameter \c slBitrateV defines the bit-rate for the complete frame,
-   ** the parameter \c slBrsClockV is not evaluated in that case.
-   ** For <b>CAN FD</b> the parameter \c slBitrateV defines the bit-rate for
-   ** the arbitration phase, the parameter \c slBrsClockV defines the
+   ** This function sets the bit-rate for the CAN network. For <b>Classical 
+   ** CAN</b>, the parameter \c slBitrateV defines the bit-rate for the 
+   ** complete frame, the parameter \c slBrsClockV is not evaluated in that 
+   ** case. For <b>CAN FD</b> the parameter \c slBitrateV defines the bit-rate 
+   ** for the arbitration phase, the parameter \c slBrsClockV defines the
    ** bit-rate for the data phase.
    ** <p>
    ** For selection of predefined bit-rates the value can be taken from
@@ -314,6 +316,12 @@ private:
 
    QCanData::Type_e  frameType(const QByteArray & clSockDataR);
    
+   //----------------------------------------------------------------
+   // returns number of bits inside a data frame for static
+   // calculations
+   //
+   uint32_t          frameSize(const QByteArray & clSockDataR);
+   
    bool  handleApiFrame(int32_t & slSockSrcR, QByteArray & clSockDataR);
    bool  handleCanFrame(int32_t & slSockSrcR, QByteArray & clSockDataR);
    bool  handleErrFrame(int32_t & slSockSrcR, QByteArray & clSockDataR);
@@ -347,11 +355,15 @@ private:
    uint32_t                ulDispatchTimeP;
 
    //----------------------------------------------------------------
-   // bit-rate settings
+   // bit-rate settings: the variables hold the bit-rate in
+   // bit/s, if no bit-rate is configured the value is
+   // eCAN_BITRATE_NONE 
    //
    int32_t                 slNomBitRateP;
    int32_t                 slDatBitRateP;
 
+   CAN_State_e             teCanStateP;
+   
    //----------------------------------------------------------------
    // statistic frame counter
    //
@@ -368,6 +380,9 @@ private:
    //----------------------------------------------------------------
    // statistic timing
    //
+   QDateTime               clTimeStartP;
+   QDateTime               clTimeStopP;
+   
    uint32_t                ulStatisticTickP;
    uint32_t                ulStatisticTimeP;
    uint32_t                ulFramePerSecMaxP;
