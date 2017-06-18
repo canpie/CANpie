@@ -960,7 +960,7 @@ void QCanNetwork::onTimerEvent(void)
          ulCntBitCurP = 100;
       }
 
-      qDebug() << "CAN state" << teCanStateP;
+      // qDebug() << "CAN state" << teCanStateP;
       
       //--------------------------------------------------------
       // signal bus load and msg/sec
