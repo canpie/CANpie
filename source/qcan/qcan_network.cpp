@@ -657,22 +657,32 @@ bool  QCanNetwork::handleErrFrame(int32_t & slSockSrcR,
 
             case eCAN_STATE_BUS_WARN :
                addLogMessage(CAN_Channel_e (id()),
-                             "State changes to BUS WARN with error type " + QString::number(clErrFrameT.errorType(),16) + "h", eLOG_LEVEL_WARN);
+                             "State changes to BUS WARN with error type " +
+                             QString::number(clErrFrameT.errorType(),16) + "h",
+                             eLOG_LEVEL_WARN);
                break;
 
             case eCAN_STATE_BUS_PASSIVE :
                addLogMessage(CAN_Channel_e (id()),
-                             "State changes to BUS PASSIVE with error type " + QString::number(clErrFrameT.errorType(),16) + "h", eLOG_LEVEL_WARN);
+                             "State changes to BUS PASSIVE with error type " +
+                             QString::number(clErrFrameT.errorType(),16) + "h",
+                             eLOG_LEVEL_WARN);
                break;
 
             case eCAN_STATE_BUS_OFF :
                addLogMessage(CAN_Channel_e (id()),
-                             "State changes to BUS OFF with error type " + QString::number(clErrFrameT.errorType(),16) + "h", eLOG_LEVEL_WARN);
+                             "State changes to BUS OFF with error type " +
+                             QString::number(clErrFrameT.errorType(),16) + "h",
+                             eLOG_LEVEL_WARN);
                break;
 
             default :
                addLogMessage(CAN_Channel_e (id()),
-                             "State changes to unknown error " + QString::number(clErrFrameT.errorState(),16) + " with error type " + QString::number(clErrFrameT.errorType(),16) + "h", eLOG_LEVEL_ERROR);
+                             "State changes to unknown error " +
+                             QString::number(clErrFrameT.errorState(),16) +
+                             " with error type " +
+                             QString::number(clErrFrameT.errorType(),16) + "h",
+                             eLOG_LEVEL_ERROR);
                break;
          }
 
