@@ -69,7 +69,7 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    //
    setupNetworks();
 
-   setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint );
+   // setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint );
    
    //----------------------------------------------------------------
    // setup the user interface
