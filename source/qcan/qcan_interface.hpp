@@ -43,6 +43,8 @@
 #include <stdint.h>
 #include "qcan_defs.hpp"
 #include "qcan_frame.hpp"
+#include "qcan_frame_api.hpp"
+#include "qcan_frame_error.hpp"
 
 
 using namespace QCan;
