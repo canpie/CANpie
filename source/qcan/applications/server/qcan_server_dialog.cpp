@@ -163,6 +163,9 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    connect(ui.pclSpnSrvTimeM, SIGNAL(valueChanged(int)),
            this, SLOT(onServerConfTime(int)));
 
+   connect(ui.pclBtnStatResetM, SIGNAL(clicked(bool)),
+           this, SLOT(onNetworkReset(bool)));
+
    //----------------------------------------------------------------
    // connect default signals / slots for statistic
    //
@@ -175,6 +178,9 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
 
    connect(pclNetworkT, SIGNAL(showLoad(uint8_t, uint32_t)),
             this, SLOT(onNetworkShowLoad(uint8_t, uint32_t)) );
+
+   connect(pclNetworkT, SIGNAL(showState(CAN_State_e)),
+            this, SLOT(onNetworkShowState(CAN_State_e)) );
 
 
    //----------------------------------------------------------------
@@ -219,9 +225,8 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
       pclSettingsP->beginGroup(clNetNameT);
 
       pclLoggerP->setLogLevel((CAN_Channel_e)(ubNetworkIdxT + 1),
-                              (LogLevel_e) pclSettingsP->value("loglevel", eLOG_LEVEL_INFO).toInt());
-
-      qDebug() << "Load iterface enable status:" << pclSettingsP->value("enable",0).toBool();
+                              (LogLevel_e) pclSettingsP->value("loglevel",
+                                                eLOG_LEVEL_INFO).toInt());
 
       pclNetworkT->setNetworkEnabled(pclSettingsP->value("enable",
                                      0).toBool());
@@ -568,6 +573,20 @@ void QCanServerDialog::onNetworkConfListenOnly(bool btEnableV)
 }
 
 
+void QCanServerDialog::onNetworkReset(bool btCheckedV)
+{
+   Q_UNUSED(btCheckedV);
+   QCanNetwork * pclNetworkT;
+
+   pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
+   if(pclNetworkT != Q_NULLPTR)
+   {
+      pclNetworkT->reset();
+   }
+   ui.pclBtnStatResetM->setEnabled(false);
+}
+
+
 //----------------------------------------------------------------------------//
 // onNetworkShowCanFrames()                                                   //
 //                                                                            //
@@ -575,6 +594,10 @@ void QCanServerDialog::onNetworkConfListenOnly(bool btEnableV)
 void QCanServerDialog::onNetworkShowCanFrames(uint32_t ulFrameCntV)
 {
    ui.pclCntStatCanM->setText(QString("%1").arg(ulFrameCntV));
+   if (ulFrameCntV > 0)
+   {
+      ui.pclBtnStatResetM->setEnabled(true);
+   }
 }
 
 //----------------------------------------------------------------------------//
@@ -584,6 +607,10 @@ void QCanServerDialog::onNetworkShowCanFrames(uint32_t ulFrameCntV)
 void QCanServerDialog::onNetworkShowErrFrames(uint32_t ulFrameCntV)
 {
    ui.pclCntStatErrM->setText(QString("%1").arg(ulFrameCntV));
+   if (ulFrameCntV > 0)
+   {
+      ui.pclBtnStatResetM->setEnabled(true);
+   }
 }
 
 
@@ -595,6 +622,36 @@ void QCanServerDialog::onNetworkShowLoad(uint8_t ubLoadV, uint32_t ulMsgPerSecV)
 {
    ui.pclCntStatMsgM->setText(QString("%1").arg(ulMsgPerSecV));
    ui.pclPgbStatLoadM->setValue(ubLoadV);
+}
+
+void QCanServerDialog::onNetworkShowState(CAN_State_e teStateV)
+{
+   switch(teStateV)
+   {
+      case eCAN_STATE_STOPPED:
+         ui.pclTxtStatBusM->setText(tr("Stopped"));
+         break;
+
+      case eCAN_STATE_SLEEPING:
+         ui.pclTxtStatBusM->setText(tr("Sleeping"));
+         break;
+
+      case eCAN_STATE_BUS_ACTIVE:
+         ui.pclTxtStatBusM->setText(tr("Error active"));
+         break;
+
+      case eCAN_STATE_BUS_WARN:
+         ui.pclTxtStatBusM->setText(tr("Warning"));
+         break;
+
+      case eCAN_STATE_BUS_PASSIVE:
+         ui.pclTxtStatBusM->setText(tr("Error passive"));
+         break;
+
+      case eCAN_STATE_BUS_OFF:
+         ui.pclTxtStatBusM->setText(tr("Bus-off"));
+         break;
+   }
 }
 
 
@@ -734,15 +791,43 @@ void QCanServerDialog::updateUI(uint8_t ubNetworkIdxV)
       //--------------------------------------------------------
       // show current nominal bit-rate
       //
-      qDebug() << "Nom. bit-rate" << pclNetworkT->nominalBitrate();
       int32_t slNomBitRateSelT = ui.pclCbbNetNomBitrateM->findData(pclNetworkT->nominalBitrate());
-      qDebug() << "Nom. bit-rate index" << slNomBitRateSelT;
       ui.pclCbbNetNomBitrateM->setCurrentIndex(slNomBitRateSelT);
       
-      
+      //--------------------------------------------------------
+      // show current data bit-rate
+      //
       int32_t slDatBitRateSelT = ui.pclCbbNetDatBitrateM->findData(pclNetworkT->dataBitrate());
       ui.pclCbbNetDatBitrateM->setCurrentIndex(slDatBitRateSelT);
-      
+
+
+      //--------------------------------------------------------
+      // Bus load and Messages/s are set to 0 by default
+      //
+      ui.pclCntStatMsgM->setText("0");
+      ui.pclPgbStatLoadM->setValue(0);
+
+
+      //--------------------------------------------------------
+      // the reset button disabled by default, it is enabled
+      // by onNetworkShowCanFrames() or onNetworkShowErrFrames()
+      //
+      ui.pclBtnStatResetM->setEnabled(false);
+
+      //--------------------------------------------------------
+      // Update value for CAN messages
+      //
+      onNetworkShowCanFrames(pclNetworkT->frameCount());
+
+      //--------------------------------------------------------
+      // Update value for Error messages
+      //
+      onNetworkShowErrFrames(pclNetworkT->frameCountError());
+
+      //--------------------------------------------------------
+      // show current CAN bus status
+      //
+      onNetworkShowState(pclNetworkT->state());
    }
 
    //----------------------------------------------------------------

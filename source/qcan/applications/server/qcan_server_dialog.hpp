@@ -41,6 +41,8 @@ public slots:
    void onNetworkShowCanFrames(uint32_t ulFrameCntV);
    void onNetworkShowErrFrames(uint32_t ulFrameCntV);
    void onNetworkShowLoad(uint8_t ubLoadV, uint32_t ulMsgPerSecV);
+   void onNetworkShowState(CAN_State_e teStateV);
+
 
 private slots:
    void onNetworkChange(int slIndexV);
@@ -50,6 +52,7 @@ private slots:
    void onNetworkConfEnable(bool btEnableV);
    void onNetworkConfErrorFrames(bool btEnableV);
    void onNetworkConfListenOnly(bool btEnableV);
+   void onNetworkReset(bool btCheckedV);
    
    void onServerConfAddress(int slIndexV);
    void onServerConfTime(int slValueV);
