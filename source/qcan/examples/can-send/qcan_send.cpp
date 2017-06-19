@@ -1,6 +1,6 @@
 //============================================================================//
-// File:          qcan_dump.cpp                                               //
-// Description:   Dump CAN messages                                           //
+// File:          qcan_send.cpp                                               //
+// Description:   Send CAN messages                                           //
 //                                                                            //
 // Copyright (C) MicroControl GmbH & Co. KG                                   //
 // 53844 Troisdorf - Germany                                                  //
@@ -41,21 +41,38 @@ int main(int argc, char *argv[])
 {
    QCoreApplication clAppT(argc, argv);
    QCoreApplication::setApplicationName("can-send");
-   QCoreApplication::setApplicationVersion("1.0");
+   
+   //----------------------------------------------------------------
+   // get application version (defined in .pro file)
+   //
+   QString clVersionT;
+   clVersionT += QString("%1.%2.").arg(VERSION_MAJOR).arg(VERSION_MINOR);
+   clVersionT += QString("%1").arg(VERSION_BUILD);
+   QCoreApplication::setApplicationVersion(clVersionT);
 
 
+   //----------------------------------------------------------------
    // create the main class
-     QCanSend myMain;
+   //
+   QCanSend clMainT;
 
-     // connect up the signals
-     QObject::connect(&myMain, SIGNAL(finished()),
-              &clAppT, SLOT(quit()));
-     QObject::connect(&clAppT, SIGNAL(aboutToQuit()),
-              &myMain, SLOT(aboutToQuitApp()));
+   
+   //----------------------------------------------------------------
+   // connect the signals
+   //
+   QObject::connect(&clMainT, SIGNAL(finished()),
+                    &clAppT, SLOT(quit()));
+   
+   QObject::connect(&clAppT, SIGNAL(aboutToQuit()),
+                    &clMainT, SLOT(aboutToQuitApp()));
 
-     // This code will start the messaging engine in QT and in
-     // 10ms it will start the execution in the MainClass.run routine;
-   QTimer::singleShot(10, &myMain, SLOT(runCmdParser()));
+   
+   //----------------------------------------------------------------
+   // This code will start the messaging engine in QT and in 10 ms 
+   // it will start the execution in the clMainT.runCmdParser() 
+   // routine.
+   //
+   QTimer::singleShot(10, &clMainT, SLOT(runCmdParser()));
 
    clAppT.exec();
 }
