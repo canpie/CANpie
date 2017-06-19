@@ -165,6 +165,10 @@ public:
    */
 	uint32_t dispatcherTime(void)    {return (ulDispatchTimeP); };
 
+	uint32_t frameCount(void)        { return (ulCntFrameCanP); };
+
+	uint32_t frameCountError(void)   { return (ulCntFrameErrP); };
+
    bool hasErrorFramesSupport(void);
 
    bool hasFastDataSupport(void);
@@ -257,6 +261,8 @@ public:
 
    bool setServerAddress(QHostAddress clHostAddressV);
 
+   inline CAN_State_e state(void) { return (teCanStateP);   };
+
 signals:
    void addLogMessage(const CAN_Channel_e & ubChannelR,
                       const QString & clMessageR, LogLevel_e teLogLevelV);
@@ -294,6 +300,9 @@ signals:
    ** denotes the bus load in percent (value range 0 .. 100).
    */
    void  showLoad(uint8_t ubLoadV, uint32_t ulMsgPerSecV);
+
+   void  showState(CAN_State_e teStateV);
+
 
 private slots:
    /*!
@@ -346,8 +355,6 @@ private:
    uint16_t                uwTcpPortP;
    QMutex                  clTcpSockMutexP;
 
-   QCanFrameError          clLastErrorP;
-
    //----------------------------------------------------------------
    // Frame dispatcher time
    //
@@ -362,6 +369,9 @@ private:
    int32_t                 slNomBitRateP;
    int32_t                 slDatBitRateP;
 
+   //----------------------------------------------------------------
+   // status of CAN bus
+   //
    CAN_State_e             teCanStateP;
    
    //----------------------------------------------------------------
@@ -374,7 +384,6 @@ private:
    //----------------------------------------------------------------
    // statistic bit counter
    //
-   uint32_t                ulCntBitMaxP;
    uint32_t                ulCntBitCurP;
 
    //----------------------------------------------------------------

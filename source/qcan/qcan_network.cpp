@@ -179,8 +179,6 @@ QCanNetwork::QCanNetwork(QObject * pclParentV,
    clTcpHostAddrP = QHostAddress(QHostAddress::Any);
    uwTcpPortP = uwPortV;
 
-   // set initial error state of an interface
-   clLastErrorP.setErrorState(eCAN_STATE_STOPPED);
 
    //----------------------------------------------------------------
    // clear statistic
@@ -212,6 +210,9 @@ QCanNetwork::QCanNetwork(QObject * pclParentV,
    slNomBitRateP = eCAN_BITRATE_NONE;
    slDatBitRateP = eCAN_BITRATE_NONE;
 
+   //----------------------------------------------------------------
+   // set initial error state of an interface
+   //
    teCanStateP   = eCAN_STATE_STOPPED;
 }
 
@@ -635,7 +636,7 @@ bool  QCanNetwork::handleErrFrame(int32_t & slSockSrcR,
 
       clErrFrameT.fromByteArray(clSockDataR);
 
-      if (clLastErrorP.errorState() != clErrFrameT.errorState())
+      if (teCanStateP != clErrFrameT.errorState())
       {
          switch (clErrFrameT.errorState())
          {
@@ -687,7 +688,7 @@ bool  QCanNetwork::handleErrFrame(int32_t & slSockSrcR,
          }
 
 
-         clLastErrorP.setErrorState(clErrFrameT.errorState());
+         teCanStateP = clErrFrameT.errorState();
       }
 
       ulCntFrameErrP++;
@@ -700,6 +701,19 @@ QHostAddress QCanNetwork::serverAddress(void)
 {
    return (pclTcpSrvP->serverAddress());
 }
+
+void QCanNetwork::reset(void)
+{
+   ulCntFrameApiP = 0;
+   ulCntFrameCanP = 0;
+   ulCntFrameErrP = 0;
+   ulCntBitCurP   = 0;
+
+   ulFramePerSecMaxP = 0;
+   ulFrameCntSaveP   = 0;
+   teCanStateP   = eCAN_STATE_STOPPED;
+}
+
 
 //----------------------------------------------------------------------------//
 // nominalBitrate()                                                           //
@@ -858,7 +872,9 @@ void QCanNetwork::onTimerEvent(void)
             //
             case QCanData::eTYPE_API:
                addLogMessage(CAN_Channel_e (id()),
-                             "Read eTYPE_API frame type " + QString::number(frameType(clSockDataT),16) + "h", eLOG_LEVEL_DEBUG);
+                             "Read eTYPE_API frame type " +
+                             QString::number(frameType(clSockDataT),16) + "h",
+                             eLOG_LEVEL_DEBUG);
                handleApiFrame(slSockIdxT, clSockDataT);
                break;
                
@@ -881,7 +897,9 @@ void QCanNetwork::onTimerEvent(void)
             //
             default:
                addLogMessage(CAN_Channel_e (id()),
-                             "Read unknown frame type " + QString::number(frameType(clSockDataT),16) + "h", eLOG_LEVEL_DEBUG);
+                             "Read unknown frame type " +
+                             QString::number(frameType(clSockDataT),16) + "h",
+                             eLOG_LEVEL_DEBUG);
                break;
          }
       }
@@ -983,60 +1001,15 @@ void QCanNetwork::onTimerEvent(void)
       //
       ulFrameCntSaveP = ulCntFrameCanP;
       
+
+      showState(teCanStateP);
+
       //--------------------------------------------------------
       // set new value for start time
       //
       clTimeStartP = QDateTime::currentDateTime();
    }
    
-   /*
-   //----------------------------------------------------------------
-   // signal current statistic values
-   //
-   if(ulStatisticTickP > 0)
-   {
-      ulStatisticTickP--;
-   }
-   else
-   {
-      //--------------------------------------------------------
-      // reload tick value
-      //
-      ulStatisticTickP = ulStatisticTimeP / ulDispatchTimeP;
-
-      //--------------------------------------------------------
-      // signal current counter values
-      //
-      showApiFrames(ulCntFrameApiP);
-      showCanFrames(ulCntFrameCanP);
-      showErrFrames(ulCntFrameErrP);
-
-      //--------------------------------------------------------
-      // calculate messages per second
-      //
-      ulMsgPerSecT = ulCntFrameCanP - ulFrameCntSaveP;
-
-      //--------------------------------------------------------
-      // calculate bus load
-      //
-      ulCntBitCurP = ulCntBitCurP * 100;
-      ulCntBitCurP = ulCntBitCurP / ulCntBitMaxP;
-      if(ulCntBitCurP > 100)
-      {
-         ulCntBitCurP = 100;
-      }
-      //--------------------------------------------------------
-      // signal bus load and msg/sec
-      //
-      showLoad((uint8_t) ulCntBitCurP, ulMsgPerSecT);
-      ulCntBitCurP = 0;
-
-      //--------------------------------------------------------
-      // store actual frame counter value
-      //
-      ulFrameCntSaveP = ulCntFrameCanP;
-   }
-   */
    
    if (btNetworkEnabledP)
    {
