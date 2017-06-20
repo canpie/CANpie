@@ -89,7 +89,7 @@ private:
     */
    uint16_t uwCanChannelP = 0;
 
-//   bool     btLibFuncLoadP = false;
+   CAN_Mode_e teCanModeP;
 
    struct Bitrate_s {
       uint8_t ubBtr0;
@@ -102,16 +102,28 @@ private:
     */
    QCanStatistic_ts clStatisticP;
 
+   /*!
+    * \brief ubChannelP
+    * This value holds channel number of interface
+    */
    uint8_t ubChannelP;
 
+   /*!
+    * \brief btConnectedP
+    */
    bool     btConnectedP = false;
 
+   bool     btFdUsedP;
+
+   bool     btMsgAndErrPendingP;
    VCIDEVICEINFO clDevInfoP;
 
    //----------------------------------------------------------------
    // Reference to the static PCAN Basic lib
    //
    QCanIxxatVci &pclIxxatVciP = QCanIxxatVci::getInstance();
+
+   void setupErrorFrame(uint8_t ubStatusV, uint8_t ubErrorV, QCanFrameError &clFrameR);
 
 public:
 
@@ -128,14 +140,14 @@ public:
 
    QString           name(void) Q_DECL_OVERRIDE;
 
-   InterfaceError_e  read( QCanFrame &clFrameR) Q_DECL_OVERRIDE;
+   InterfaceError_e  read( QByteArray &clDataR) Q_DECL_OVERRIDE;
+
+   InterfaceError_e  reset(void) Q_DECL_OVERRIDE;
 
    InterfaceError_e  setBitrate( int32_t slBitrateV,
                                  int32_t slBrsClockV) Q_DECL_OVERRIDE;
 
    InterfaceError_e  setMode( const CAN_Mode_e teModeV) Q_DECL_OVERRIDE;
-
-   CAN_State_e state(void) Q_DECL_OVERRIDE;
 
    InterfaceError_e  statistic(QCanStatistic_ts &clStatisticR) Q_DECL_OVERRIDE;
 
