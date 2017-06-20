@@ -34,7 +34,6 @@
 #include <QLibrary>
 #include <QCanInterface>
 #include <QIcon>
-#include "qcan_frame_error.hpp"
 #include "qcan_pcan_basic.hpp"
 
 
@@ -78,6 +77,8 @@ private:
     * This value holds channel number of interface
     */
    uint16_t uwPCanChannelP;
+   uint16_t uwPCanBitrateP;
+   CAN_Mode_e teCanModeP;
 
    //----------------------------------------------------------------
    // Reference to the static PCAN Basic lib
@@ -109,13 +110,13 @@ public:
    QString           name(void) Q_DECL_OVERRIDE;
 
    InterfaceError_e  read( QByteArray &clDataR) Q_DECL_OVERRIDE;
-   
+
+   InterfaceError_e  reset(void) Q_DECL_OVERRIDE;
+
    InterfaceError_e  setBitrate( int32_t slBitrateV,
                                  int32_t slBrsClockV) Q_DECL_OVERRIDE;
 
    InterfaceError_e  setMode( const CAN_Mode_e teModeV) Q_DECL_OVERRIDE;
-
-   CAN_State_e state(void) Q_DECL_OVERRIDE;
 
    InterfaceError_e  statistic(QCanStatistic_ts &clStatisticR) Q_DECL_OVERRIDE;
 
