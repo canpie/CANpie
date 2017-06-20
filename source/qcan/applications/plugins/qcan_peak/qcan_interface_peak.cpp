@@ -44,7 +44,8 @@ QCanInterfacePeak::QCanInterfacePeak(uint16_t uwPCanChannelV)
    // setup PCAN Channel of this interface
    //
    uwPCanChannelP = uwPCanChannelV;
-//   qInfo() << "QCanInterfacePeak::QCanInterfacePeak() INFO: New instance of PCAN Basic interface on channel" << QString::number(uwPCanChannelV,16) << "[hex]";
+   uwPCanBitrateP = PCAN_BAUD_500K; // initial value
+   teCanModeP = eCAN_MODE_STOP;
 
    btConnectedP = false;
    btFdUsedP = false;
@@ -127,7 +128,7 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::connect(void)
          //-------------------------------------------------
          // initialise selected channel it again
          //
-         tsStatusT = pclPcanBasicP.initialize(uwPCanChannelP, PCAN_BAUD_500K);
+         tsStatusT = pclPcanBasicP.initialize(uwPCanChannelP, uwPCanBitrateP);
          if (tsStatusT != PCAN_ERROR_OK)
          {
             qWarning() << QString("QCanInterfacePeak::connect(0x" +QString::number(uwPCanChannelP,16)+")") << "fail with error:" << pclPcanBasicP.formatedError(tsStatusT);
@@ -590,6 +591,52 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFD(QByteArray &clDataR)
 
 
 //----------------------------------------------------------------------------//
+// reset()                                                                    //
+//                                                                            //
+//----------------------------------------------------------------------------//
+QCanInterface::InterfaceError_e  QCanInterfacePeak::reset()
+{
+   //----------------------------------------------------------------
+   // check lib is available
+   //
+   if (!pclPcanBasicP.isAvailable())
+   {
+      return eERROR_LIBRARY;
+   }
+
+   //----------------------------------------------------------------
+   // reset statistic values
+   //
+   clStatisticP.ulErrCount = 0;
+   clStatisticP.ulRcvCount = 0;
+   clStatisticP.ulTrmCount = 0;
+
+   //----------------------------------------------------------------
+   // reset device
+   //
+   if (pclPcanBasicP.reset(uwPCanChannelP) != PCAN_ERROR_OK)
+   {
+      return eERROR_DEVICE;
+   }
+
+   //----------------------------------------------------------------
+   // perform a hardware reset only if
+   // it hase been initialised before
+   //
+   if (btConnectedP)
+   {
+      pclPcanBasicP.unInitialize(uwPCanChannelP);
+
+      if (pclPcanBasicP.initialize(uwPCanChannelP, uwPCanBitrateP) != PCAN_ERROR_OK)
+      {
+         return eERROR_DEVICE;
+      }
+   }
+
+   return setMode(teCanModeP);
+}
+
+//----------------------------------------------------------------------------//
 // setBitrate()                                                               //
 //                                                                            //
 //----------------------------------------------------------------------------//
@@ -755,7 +802,7 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slNomBitR
    }
 
    //----------------------------------------------------------------
-   // perform initalisation CAN Interface
+   // perform releasing of CAN Interface
    //
    pclPcanBasicP.unInitialize(uwPCanChannelP);
 
@@ -780,8 +827,9 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slNomBitR
    }
    else
    {
-      qDebug() << QString("QCanInterfacePeak::setBitrate(0x" +QString::number(uwPCanChannelP,16)+")") << " : Standard Mode";
-      ulStatusT = pclPcanBasicP.initialize(uwPCanChannelP, uwBtr0Btr1T);
+      uwPCanBitrateP = uwBtr0Btr1T;
+      qDebug() << QString("QCanInterfacePeak::setBitrate(0x" +QString::number(uwPCanChannelP,16)+  ", " + QString::number(uwPCanBitrateP,10)+ ")") << " : Standard Mode";
+      ulStatusT = pclPcanBasicP.initialize(uwPCanChannelP, uwPCanBitrateP);
       btFdUsedP = false;
    }
 
@@ -803,12 +851,15 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slNomBitR
 //----------------------------------------------------------------------------//
 QCanInterface::InterfaceError_e	QCanInterfacePeak::setMode(const CAN_Mode_e teModeV)
 {
+   uint8_t ubValueBufT;
+
+   //----------------------------------------------------------------
+   // check lib is available
+   //
    if (!pclPcanBasicP.isAvailable())
    {
       return eERROR_LIBRARY;
    }
-
-   uint8_t ubValueBufT;
 
    //----------------------------------------------------------------
    // select mode
@@ -825,14 +876,15 @@ QCanInterface::InterfaceError_e	QCanInterfacePeak::setMode(const CAN_Mode_e teMo
          clStatisticP.ulTrmCount = 0;
 
          ubValueBufT = 1;
-         if (pclPcanBasicP.setValue(uwPCanChannelP,PCAN_BUSOFF_AUTORESET,&ubValueBufT,sizeof(ubValueBufT)))
+         if (pclPcanBasicP.setValue(uwPCanChannelP, PCAN_BUSOFF_AUTORESET,&ubValueBufT,sizeof(ubValueBufT)))
          {
             qWarning() << "WARNING: Fail to set AutoReset of Device!";
          }
+         teCanModeP = eCAN_MODE_START;
          break;
 
       case eCAN_MODE_STOP :
-
+         teCanModeP = eCAN_MODE_STOP;
          break;
 
       default :
@@ -876,39 +928,6 @@ void QCanInterfacePeak::setupErrorFrame(TPCANStatus ulStatusV,
          break;
    }
 
-}
-
-
-//----------------------------------------------------------------------------//
-// state()                                                                    //
-//                                                                            //
-//----------------------------------------------------------------------------//
-CAN_State_e	QCanInterfacePeak::state()
-{
-   CAN_State_e teCanStateT;
-   TPCANStatus ulStatusT = pclPcanBasicP.getStatus(uwPCanChannelP);
-
-   switch (ulStatusT)
-   {
-      case PCAN_ERROR_BUSLIGHT :
-         teCanStateT = eCAN_STATE_BUS_WARN;
-         break;
-      case PCAN_ERROR_BUSWARNING :
-         teCanStateT = eCAN_STATE_BUS_WARN;
-         break;
-      case PCAN_ERROR_BUSPASSIVE :
-         teCanStateT = eCAN_STATE_BUS_PASSIVE;
-         break;
-      case PCAN_ERROR_BUSOFF :
-         teCanStateT = eCAN_STATE_BUS_OFF;
-         break;
-
-      default :
-         teCanStateT = eCAN_STATE_BUS_ACTIVE;
-         break;
-   }
-
-   return (teCanStateT);
 }
 
 
