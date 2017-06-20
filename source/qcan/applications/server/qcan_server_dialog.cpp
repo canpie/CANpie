@@ -163,7 +163,7 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    connect(ui.pclSpnSrvTimeM, SIGNAL(valueChanged(int)),
            this, SLOT(onServerConfTime(int)));
 
-   connect(ui.pclBtnStatResetM, SIGNAL(clicked(bool)),
+   connect(ui.pclBtnStatusResetM, SIGNAL(clicked(bool)),
            this, SLOT(onNetworkReset(bool)));
 
    //----------------------------------------------------------------
@@ -583,7 +583,7 @@ void QCanServerDialog::onNetworkReset(bool btCheckedV)
    {
       pclNetworkT->reset();
    }
-   ui.pclBtnStatResetM->setEnabled(false);
+   ui.pclBtnStatusResetM->setEnabled(false);
 }
 
 
@@ -596,7 +596,7 @@ void QCanServerDialog::onNetworkShowCanFrames(uint32_t ulFrameCntV)
    ui.pclCntStatCanM->setText(QString("%1").arg(ulFrameCntV));
    if (ulFrameCntV > 0)
    {
-      ui.pclBtnStatResetM->setEnabled(true);
+      ui.pclBtnStatusResetM->setEnabled(true);
    }
 }
 
@@ -609,7 +609,7 @@ void QCanServerDialog::onNetworkShowErrFrames(uint32_t ulFrameCntV)
    ui.pclCntStatErrM->setText(QString("%1").arg(ulFrameCntV));
    if (ulFrameCntV > 0)
    {
-      ui.pclBtnStatResetM->setEnabled(true);
+      ui.pclBtnStatusResetM->setEnabled(true);
    }
 }
 
@@ -626,30 +626,35 @@ void QCanServerDialog::onNetworkShowLoad(uint8_t ubLoadV, uint32_t ulMsgPerSecV)
 
 void QCanServerDialog::onNetworkShowState(CAN_State_e teStateV)
 {
+   ui.pclTxtStatusBusM->setStyleSheet("QLabel { color : black; }");
    switch(teStateV)
    {
       case eCAN_STATE_STOPPED:
-         ui.pclTxtStatBusM->setText(tr("Stopped"));
+         ui.pclTxtStatusBusM->setText(tr("Stopped"));
          break;
 
       case eCAN_STATE_SLEEPING:
-         ui.pclTxtStatBusM->setText(tr("Sleeping"));
+         ui.pclTxtStatusBusM->setText(tr("Sleeping"));
          break;
 
       case eCAN_STATE_BUS_ACTIVE:
-         ui.pclTxtStatBusM->setText(tr("Error active"));
+         ui.pclTxtStatusBusM->setStyleSheet("QLabel { color : green; }");
+         ui.pclTxtStatusBusM->setText(tr("OK (error active)"));
          break;
 
       case eCAN_STATE_BUS_WARN:
-         ui.pclTxtStatBusM->setText(tr("Warning"));
+         ui.pclTxtStatusBusM->setStyleSheet("QLabel { color : yellow; }");
+         ui.pclTxtStatusBusM->setText(tr("Warning"));
          break;
 
       case eCAN_STATE_BUS_PASSIVE:
-         ui.pclTxtStatBusM->setText(tr("Error passive"));
+         ui.pclTxtStatusBusM->setStyleSheet("QLabel { color : yellow; }");
+         ui.pclTxtStatusBusM->setText(tr("Error passive"));
          break;
 
       case eCAN_STATE_BUS_OFF:
-         ui.pclTxtStatBusM->setText(tr("Bus-off"));
+         ui.pclTxtStatusBusM->setStyleSheet("QLabel { color : red; }");
+         ui.pclTxtStatusBusM->setText(tr("Bus-off"));
          break;
    }
 }
@@ -812,7 +817,7 @@ void QCanServerDialog::updateUI(uint8_t ubNetworkIdxV)
       // the reset button disabled by default, it is enabled
       // by onNetworkShowCanFrames() or onNetworkShowErrFrames()
       //
-      ui.pclBtnStatResetM->setEnabled(false);
+      ui.pclBtnStatusResetM->setEnabled(false);
 
       //--------------------------------------------------------
       // Update value for CAN messages
