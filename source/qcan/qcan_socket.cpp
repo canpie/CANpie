@@ -365,3 +365,24 @@ bool QCanSocket::writeFrame(const QCanFrameApi & clFrameR)
    return(btResultT);
 }
 
+//----------------------------------------------------------------------------//
+// writeFrame()                                                               //
+//                                                                            //
+//----------------------------------------------------------------------------//
+bool QCanSocket::writeFrame(const QCanFrameError & clFrameR)
+{
+   bool  btResultT = false;
+
+   if(btIsConnectedP == true)
+   {
+      QByteArray  clDatagramT = clFrameR.toByteArray();
+      if(pclTcpSockP->write(clDatagramT) == QCAN_FRAME_ARRAY_SIZE)
+      {
+         pclTcpSockP->flush();
+         btResultT = true;
+      }
+   }
+
+   return(btResultT);
+}
+
