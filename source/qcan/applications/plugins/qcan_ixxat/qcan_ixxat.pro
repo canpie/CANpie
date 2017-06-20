@@ -43,7 +43,12 @@ TARGET   = $$qtLibraryTarget(QCanIxxat)
 #---------------------------------------------------------------
 # directory for target file
 #
-DESTDIR  = ../../../../../bin/plugins
+macx {
+   DESTDIR = ../../../../../bin/CANpieServer.app/Contents/Plugins
+}
+win32 {
+   DESTDIR = ../../../../../bin/plugins
+}
 
 #---------------------------------------------------------------
 # Objects directory
@@ -54,7 +59,6 @@ OBJECTS_DIR = ./objs/
 # project configuration and compiler options
 #
 CONFIG += debug
-CONFIG += release
 CONFIG += plugin
 CONFIG += warn_on
 CONFIG += C++11
@@ -86,22 +90,19 @@ RESOURCES = qcan_ixxat.qrc
 INCLUDEPATH  = .
 INCLUDEPATH += ./include
 INCLUDEPATH += ./../../..
-INCLUDEPATH += ./../../../../canpie-fd
+
 
 #---------------------------------------------------------------
 # search path for source files
 #
 VPATH  = .
 VPATH += ./../../..
-VPATH += ./../../../../canpie-fd
+
 
 #---------------------------------------------------------------
 # header files of project
 #
-HEADERS =   qcan_frame_api.hpp      \
-            qcan_frame_error.hpp    \
-            qcan_frame.hpp          \
-            qcan_interface.hpp      \
+HEADERS =   qcan_interface.hpp      \
             qcan_interface_ixxat.hpp\
             qcan_ixxat_vci.hpp      \
             qcan_plugin.hpp         \
@@ -111,13 +112,11 @@ HEADERS =   qcan_frame_api.hpp      \
 #---------------------------------------------------------------
 # source files of project
 #
-SOURCES =   canpie_frame_api.cpp    \
-            canpie_frame_error.cpp  \
-            canpie_frame.cpp        \
-            canpie_timestamp.cpp    \
+SOURCES =   qcan_data.cpp           \
+            qcan_frame.cpp          \
             qcan_frame_api.cpp      \
             qcan_frame_error.cpp    \
-            qcan_frame.cpp          \
+            qcan_timestamp.cpp      \
             qcan_interface_ixxat.cpp\
             qcan_ixxat_vci.cpp      \
             qcan_plugin_ixxat.cpp

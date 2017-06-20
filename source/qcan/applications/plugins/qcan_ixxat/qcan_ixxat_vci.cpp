@@ -52,6 +52,9 @@ QCanIxxatVci::QCanIxxatVci()
    clCanLibP.setFileName(QCAN_IXXATLIB);
    btLibFuncLoadP = false;
 
+   //----------------------------------------------------------------
+   // try to load library
+   //
    if (!clCanLibP.load()) {
        qCritical() << "QCanIxxatVci::QCanIxxatVci() Failed to load the library";
    }
@@ -59,130 +62,135 @@ QCanIxxatVci::QCanIxxatVci()
    //----------------------------------------------------------------
    // Loads API functions
    //
-   pfnVciEnumDeviceOpenP = (vciEnumDeviceOpen_tf) clCanLibP.resolve("vciEnumDeviceOpen");
-   pfnVciEnumDeviceCloseP = (vciEnumDeviceClose_tf) clCanLibP.resolve("vciEnumDeviceClose");
-   pfnVciEnumDeviceNextP = (vciEnumDeviceNext_tf) clCanLibP.resolve("vciEnumDeviceNext");
-   pfnVciEnumDeviceResetP = (vciEnumDeviceReset_tf) clCanLibP.resolve("vciEnumDeviceReset");
-   pfnVciEnumDeviceWaitEventP = (vciEnumDeviceWaitEvent_tf) clCanLibP.resolve("vciEnumDeviceWaitEvent");
-   pfnVciFindDeviceByHwidP = (vciFindDeviceByHwid_tf) clCanLibP.resolve("vciFindDeviceByHwid");
-   pfnVciFindDeviceByClassP = (vciFindDeviceByClass_tf) clCanLibP.resolve("vciFindDeviceByClass");
-   pfnVciSelectDeviceDlgP = (vciSelectDeviceDlg_tf) clCanLibP.resolve("vciSelectDeviceDlg");
-   pfnVciFormatErrorP = (vciFormatError_tf) clCanLibP.resolve("vciFormatError");
-
-   pfnVciDeviceOpenP = (vciDeviceOpen_tf) clCanLibP.resolve("vciDeviceOpen");
-   pfnVciDeviceOpenDlgP = (vciDeviceOpenDlg_tf) clCanLibP.resolve("vciDeviceOpenDlg");
-   pfnVciDeviceCloseP = (vciDeviceClose_tf) clCanLibP.resolve("vciDeviceClose");
-   pfnVciDeviceGetInfoP = (vciDeviceGetInfo_tf) clCanLibP.resolve("vciDeviceGetInfo");
-   pfnVciDeviceGetCapsP = (vciDeviceGetCaps_tf) clCanLibP.resolve("vciDeviceGetCaps");
-
-   pfnCanControlOpenP = (canControlOpen_tf) clCanLibP.resolve("canControlOpen");
-   pfnCanControlCloseP = (canControlClose_tf) clCanLibP.resolve("canControlClose");
-   pfnCanControlGetCapsP = (canControlGetCaps_tf) clCanLibP.resolve("canControlGetCaps");
-   pfnCanControlGetStatusP = (canControlGetStatus_tf) clCanLibP.resolve("canControlGetStatus");
-   pfnCanControlDetectBitrateP = (canControlDetectBitrate_tf) clCanLibP.resolve("canControlDetectBitrate");
-   pfnCanControlInitializeP = (canControlInitialize_tf) clCanLibP.resolve("canControlInitialize");
-   pfnCanControlResetP = (canControlReset_tf) clCanLibP.resolve("canControlReset");
-   pfnCanControlStartP = (canControlStart_tf) clCanLibP.resolve("canControlStart");
-   pfnCanControlSetAccFilterP = (canControlSetAccFilter_tf) clCanLibP.resolve("canControlSetAccFilter");
-   pfnCanControlAddFilterIdsP = (canControlAddFilterIds_tf) clCanLibP.resolve("canControlAddFilterIds");
-   pfnCanControlRemFilterIdsP = (canControlRemFilterIds_tf) clCanLibP.resolve("canControlRemFilterIds");
-
-   pfnCanChannelOpenP = (canChannelOpen_tf) clCanLibP.resolve("canChannelOpen");
-   pfnCanChannelCloseP = (canChannelClose_tf) clCanLibP.resolve("canChannelClose");
-   pfnCanChannelGetCapsP = (canChannelGetCaps_tf) clCanLibP.resolve("canChannelGetCaps");
-   pfnCanChannelGetStatusP = (canChannelGetStatus_tf) clCanLibP.resolve("canChannelGetStatus");
-   pfnCanChannelInitializeP = (canChannelInitialize_tf) clCanLibP.resolve("canChannelInitialize");
-   pfnCanChannelActivateP = (canChannelActivate_tf) clCanLibP.resolve("canChannelActivate");
-   pfnCanChannelPeekMessageP = (canChannelPeekMessage_tf) clCanLibP.resolve("canChannelPeekMessage");
-   pfnCanChannelPostMessageP = (canChannelPostMessage_tf) clCanLibP.resolve("canChannelPostMessage");
-   pfnCanChannelWaitRxEventP = (canChannelWaitRxEvent_tf) clCanLibP.resolve("canChannelWaitRxEvent");
-   pfnCanChannelWaitTxEventP = (canChannelWaitTxEvent_tf) clCanLibP.resolve("canChannelWaitTxEvent");
-   pfnCanChannelReadMessageP = (canChannelReadMessage_tf) clCanLibP.resolve("canChannelReadMessage");
-   pfnCanChannelSendMessageP = (canChannelSendMessage_tf) clCanLibP.resolve("canChannelSendMessage");
-   pfnCanChannelPeekMultipleMessagesP = (canChannelPeekMultipleMessages_tf) clCanLibP.resolve("canChannelPeekMultipleMessages");
-   pfnCanChannelPostMultipleMessagesP = (canChannelPostMultipleMessages_tf) clCanLibP.resolve("canChannelPostMultipleMessages");
-   pfnCanChannelReadMultipleMessagesP = (canChannelReadMultipleMessages_tf) clCanLibP.resolve("canChannelReadMultipleMessages");
-   pfnCanChannelSendMultipleMessagesP = (canChannelSendMultipleMessages_tf) clCanLibP.resolve("canChannelSendMultipleMessages");
-
-   pfnCanSchedulerOpenP = (canSchedulerOpen_tf) clCanLibP.resolve("canSchedulerOpen");
-   pfnCanSchedulerCloseP = (canSchedulerClose_tf) clCanLibP.resolve("canSchedulerClose");
-   pfnCanSchedulerGetCapsP = (canSchedulerGetCaps_tf) clCanLibP.resolve("canSchedulerGetCaps");
-   pfnCanSchedulerGetStatusP = (canSchedulerGetStatus_tf) clCanLibP.resolve("canSchedulerGetStatus");
-   pfnCanSchedulerActivateP = (canSchedulerActivate_tf) clCanLibP.resolve("canSchedulerActivate");
-   pfnCanSchedulerResetP = (canSchedulerReset_tf) clCanLibP.resolve("canSchedulerReset");
-   pfnCanSchedulerAddMessageP = (canSchedulerAddMessage_tf) clCanLibP.resolve("canSchedulerAddMessage");
-   pfnCanSchedulerRemMessageP = (canSchedulerRemMessage_tf) clCanLibP.resolve("canSchedulerRemMessage");
-   pfnCanSchedulerStartMessageP = (canSchedulerStartMessage_tf) clCanLibP.resolve("canSchedulerStartMessage");
-   pfnCanSchedulerStopMessageP = (canSchedulerStopMessage_tf) clCanLibP.resolve("canSchedulerStopMessage");
-
-   //----------------------------------------------------------------
-   // check for success
-   //
-   btLibFuncLoadP = (pfnVciEnumDeviceOpenP &&
-                     pfnVciEnumDeviceCloseP &&
-                     pfnVciEnumDeviceNextP &&
-                     pfnVciEnumDeviceResetP &&
-                     pfnVciEnumDeviceWaitEventP &&
-                     pfnVciFindDeviceByHwidP &&
-                     pfnVciFindDeviceByClassP &&
-                     pfnVciSelectDeviceDlgP &&
-                     pfnVciFormatErrorP &&
-
-                     pfnVciDeviceOpenP &&
-                     pfnVciDeviceOpenDlgP &&
-                     pfnVciDeviceCloseP &&
-                     pfnVciDeviceGetInfoP &&
-                     pfnVciDeviceGetCapsP &&
-
-                     pfnCanControlOpenP &&
-                     pfnCanControlCloseP &&
-                     pfnCanControlGetCapsP &&
-                     pfnCanControlGetStatusP &&
-                     pfnCanControlDetectBitrateP &&
-                     pfnCanControlInitializeP &&
-                     pfnCanControlResetP &&
-                     pfnCanControlStartP &&
-                     pfnCanControlSetAccFilterP &&
-                     pfnCanControlAddFilterIdsP &&
-                     pfnCanControlRemFilterIdsP &&
-
-                     pfnCanChannelOpenP &&
-                     pfnCanChannelCloseP &&
-                     pfnCanChannelGetCapsP &&
-                     pfnCanChannelGetStatusP &&
-                     pfnCanChannelInitializeP &&
-                     pfnCanChannelActivateP &&
-                     pfnCanChannelPeekMessageP &&
-                     pfnCanChannelPostMessageP &&
-                     pfnCanChannelWaitRxEventP &&
-                     pfnCanChannelWaitTxEventP &&
-                     pfnCanChannelReadMessageP &&
-                     pfnCanChannelSendMessageP &&
-                     pfnCanChannelPeekMultipleMessagesP &&
-                     pfnCanChannelPostMultipleMessagesP &&
-                     pfnCanChannelReadMultipleMessagesP &&
-                     pfnCanChannelSendMultipleMessagesP &&
-
-                     pfnCanSchedulerOpenP &&
-                     pfnCanSchedulerCloseP &&
-                     pfnCanSchedulerGetCapsP &&
-                     pfnCanSchedulerGetStatusP &&
-                     pfnCanSchedulerActivateP &&
-                     pfnCanSchedulerResetP &&
-                     pfnCanSchedulerAddMessageP &&
-                     pfnCanSchedulerRemMessageP &&
-                     pfnCanSchedulerStartMessageP &&
-                     pfnCanSchedulerStopMessageP);
-
-   //----------------------------------------------------------------
-   // If the API was not loaded (Wrong version), an error message is shown.
-   //
-   if (!btLibFuncLoadP)
+   else
    {
-      qCritical() << "ERROR: DLL functions could not be loaded!";
-   }
 
-   qInfo() << "SUCCESS: All DLL functions could be loaded!";
+      pfnVciEnumDeviceOpenP = (vciEnumDeviceOpen_tf) clCanLibP.resolve("vciEnumDeviceOpen");
+      pfnVciEnumDeviceCloseP = (vciEnumDeviceClose_tf) clCanLibP.resolve("vciEnumDeviceClose");
+      pfnVciEnumDeviceNextP = (vciEnumDeviceNext_tf) clCanLibP.resolve("vciEnumDeviceNext");
+      pfnVciEnumDeviceResetP = (vciEnumDeviceReset_tf) clCanLibP.resolve("vciEnumDeviceReset");
+      pfnVciEnumDeviceWaitEventP = (vciEnumDeviceWaitEvent_tf) clCanLibP.resolve("vciEnumDeviceWaitEvent");
+      pfnVciFindDeviceByHwidP = (vciFindDeviceByHwid_tf) clCanLibP.resolve("vciFindDeviceByHwid");
+      pfnVciFindDeviceByClassP = (vciFindDeviceByClass_tf) clCanLibP.resolve("vciFindDeviceByClass");
+      pfnVciSelectDeviceDlgP = (vciSelectDeviceDlg_tf) clCanLibP.resolve("vciSelectDeviceDlg");
+      pfnVciFormatErrorP = (vciFormatError_tf) clCanLibP.resolve("vciFormatError");
+
+      pfnVciDeviceOpenP = (vciDeviceOpen_tf) clCanLibP.resolve("vciDeviceOpen");
+      pfnVciDeviceOpenDlgP = (vciDeviceOpenDlg_tf) clCanLibP.resolve("vciDeviceOpenDlg");
+      pfnVciDeviceCloseP = (vciDeviceClose_tf) clCanLibP.resolve("vciDeviceClose");
+      pfnVciDeviceGetInfoP = (vciDeviceGetInfo_tf) clCanLibP.resolve("vciDeviceGetInfo");
+      pfnVciDeviceGetCapsP = (vciDeviceGetCaps_tf) clCanLibP.resolve("vciDeviceGetCaps");
+
+      pfnCanControlOpenP = (canControlOpen_tf) clCanLibP.resolve("canControlOpen");
+      pfnCanControlCloseP = (canControlClose_tf) clCanLibP.resolve("canControlClose");
+      pfnCanControlGetCapsP = (canControlGetCaps_tf) clCanLibP.resolve("canControlGetCaps");
+      pfnCanControlGetStatusP = (canControlGetStatus_tf) clCanLibP.resolve("canControlGetStatus");
+      pfnCanControlDetectBitrateP = (canControlDetectBitrate_tf) clCanLibP.resolve("canControlDetectBitrate");
+      pfnCanControlInitializeP = (canControlInitialize_tf) clCanLibP.resolve("canControlInitialize");
+      pfnCanControlResetP = (canControlReset_tf) clCanLibP.resolve("canControlReset");
+      pfnCanControlStartP = (canControlStart_tf) clCanLibP.resolve("canControlStart");
+      pfnCanControlSetAccFilterP = (canControlSetAccFilter_tf) clCanLibP.resolve("canControlSetAccFilter");
+      pfnCanControlAddFilterIdsP = (canControlAddFilterIds_tf) clCanLibP.resolve("canControlAddFilterIds");
+      pfnCanControlRemFilterIdsP = (canControlRemFilterIds_tf) clCanLibP.resolve("canControlRemFilterIds");
+
+      pfnCanChannelOpenP = (canChannelOpen_tf) clCanLibP.resolve("canChannelOpen");
+      pfnCanChannelCloseP = (canChannelClose_tf) clCanLibP.resolve("canChannelClose");
+      pfnCanChannelGetCapsP = (canChannelGetCaps_tf) clCanLibP.resolve("canChannelGetCaps");
+      pfnCanChannelGetStatusP = (canChannelGetStatus_tf) clCanLibP.resolve("canChannelGetStatus");
+      pfnCanChannelInitializeP = (canChannelInitialize_tf) clCanLibP.resolve("canChannelInitialize");
+      pfnCanChannelActivateP = (canChannelActivate_tf) clCanLibP.resolve("canChannelActivate");
+      pfnCanChannelPeekMessageP = (canChannelPeekMessage_tf) clCanLibP.resolve("canChannelPeekMessage");
+      pfnCanChannelPostMessageP = (canChannelPostMessage_tf) clCanLibP.resolve("canChannelPostMessage");
+      pfnCanChannelWaitRxEventP = (canChannelWaitRxEvent_tf) clCanLibP.resolve("canChannelWaitRxEvent");
+      pfnCanChannelWaitTxEventP = (canChannelWaitTxEvent_tf) clCanLibP.resolve("canChannelWaitTxEvent");
+      pfnCanChannelReadMessageP = (canChannelReadMessage_tf) clCanLibP.resolve("canChannelReadMessage");
+      pfnCanChannelSendMessageP = (canChannelSendMessage_tf) clCanLibP.resolve("canChannelSendMessage");
+      pfnCanChannelPeekMultipleMessagesP = (canChannelPeekMultipleMessages_tf) clCanLibP.resolve("canChannelPeekMultipleMessages");
+      pfnCanChannelPostMultipleMessagesP = (canChannelPostMultipleMessages_tf) clCanLibP.resolve("canChannelPostMultipleMessages");
+      pfnCanChannelReadMultipleMessagesP = (canChannelReadMultipleMessages_tf) clCanLibP.resolve("canChannelReadMultipleMessages");
+      pfnCanChannelSendMultipleMessagesP = (canChannelSendMultipleMessages_tf) clCanLibP.resolve("canChannelSendMultipleMessages");
+
+      pfnCanSchedulerOpenP = (canSchedulerOpen_tf) clCanLibP.resolve("canSchedulerOpen");
+      pfnCanSchedulerCloseP = (canSchedulerClose_tf) clCanLibP.resolve("canSchedulerClose");
+      pfnCanSchedulerGetCapsP = (canSchedulerGetCaps_tf) clCanLibP.resolve("canSchedulerGetCaps");
+      pfnCanSchedulerGetStatusP = (canSchedulerGetStatus_tf) clCanLibP.resolve("canSchedulerGetStatus");
+      pfnCanSchedulerActivateP = (canSchedulerActivate_tf) clCanLibP.resolve("canSchedulerActivate");
+      pfnCanSchedulerResetP = (canSchedulerReset_tf) clCanLibP.resolve("canSchedulerReset");
+      pfnCanSchedulerAddMessageP = (canSchedulerAddMessage_tf) clCanLibP.resolve("canSchedulerAddMessage");
+      pfnCanSchedulerRemMessageP = (canSchedulerRemMessage_tf) clCanLibP.resolve("canSchedulerRemMessage");
+      pfnCanSchedulerStartMessageP = (canSchedulerStartMessage_tf) clCanLibP.resolve("canSchedulerStartMessage");
+      pfnCanSchedulerStopMessageP = (canSchedulerStopMessage_tf) clCanLibP.resolve("canSchedulerStopMessage");
+
+      //----------------------------------------------------------------
+      // check for success
+      //
+      btLibFuncLoadP = (pfnVciEnumDeviceOpenP &&
+                        pfnVciEnumDeviceCloseP &&
+                        pfnVciEnumDeviceNextP &&
+                        pfnVciEnumDeviceResetP &&
+                        pfnVciEnumDeviceWaitEventP &&
+                        pfnVciFindDeviceByHwidP &&
+                        pfnVciFindDeviceByClassP &&
+                        pfnVciSelectDeviceDlgP &&
+                        pfnVciFormatErrorP &&
+
+                        pfnVciDeviceOpenP &&
+                        pfnVciDeviceOpenDlgP &&
+                        pfnVciDeviceCloseP &&
+                        pfnVciDeviceGetInfoP &&
+                        pfnVciDeviceGetCapsP &&
+
+                        pfnCanControlOpenP &&
+                        pfnCanControlCloseP &&
+                        pfnCanControlGetCapsP &&
+                        pfnCanControlGetStatusP &&
+                        pfnCanControlDetectBitrateP &&
+                        pfnCanControlInitializeP &&
+                        pfnCanControlResetP &&
+                        pfnCanControlStartP &&
+                        pfnCanControlSetAccFilterP &&
+                        pfnCanControlAddFilterIdsP &&
+                        pfnCanControlRemFilterIdsP &&
+
+                        pfnCanChannelOpenP &&
+                        pfnCanChannelCloseP &&
+                        pfnCanChannelGetCapsP &&
+                        pfnCanChannelGetStatusP &&
+                        pfnCanChannelInitializeP &&
+                        pfnCanChannelActivateP &&
+                        pfnCanChannelPeekMessageP &&
+                        pfnCanChannelPostMessageP &&
+                        pfnCanChannelWaitRxEventP &&
+                        pfnCanChannelWaitTxEventP &&
+                        pfnCanChannelReadMessageP &&
+                        pfnCanChannelSendMessageP &&
+                        pfnCanChannelPeekMultipleMessagesP &&
+                        pfnCanChannelPostMultipleMessagesP &&
+                        pfnCanChannelReadMultipleMessagesP &&
+                        pfnCanChannelSendMultipleMessagesP &&
+
+                        pfnCanSchedulerOpenP &&
+                        pfnCanSchedulerCloseP &&
+                        pfnCanSchedulerGetCapsP &&
+                        pfnCanSchedulerGetStatusP &&
+                        pfnCanSchedulerActivateP &&
+                        pfnCanSchedulerResetP &&
+                        pfnCanSchedulerAddMessageP &&
+                        pfnCanSchedulerRemMessageP &&
+                        pfnCanSchedulerStartMessageP &&
+                        pfnCanSchedulerStopMessageP);
+
+      //--------------------------------------------------------
+      // If the API was not loaded (wrong version),
+      //
+      if (!btLibFuncLoadP)
+      {
+         qCritical() << "ERROR: DLL functions could not be loaded!";
+      } else
+      {
+         qInfo() << "SUCCESS: All DLL functions could be loaded!";
+      }
+   }
 }
 
 //----------------------------------------------------------------------------//

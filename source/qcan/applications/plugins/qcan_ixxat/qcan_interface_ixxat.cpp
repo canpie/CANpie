@@ -48,14 +48,21 @@
 //----------------------------------------------------------------------------//
 QCanInterfaceIxxat::QCanInterfaceIxxat(VCIDEVICEINFO clDevInfoV)
 {
-   qDebug() << "QCanInterfaceIxxat::QCanInterfaceIxxat()";
-
    if (!pclIxxatVciP.isAvailable())
    {
       qCritical() << "QCanInterfaceIxxat(): IXXAT library is not available!";
    }
 
    clDevInfoP = clDevInfoV;
+   btConnectedP = false;
+   btFdUsedP = false;
+   teCanModeP = eCAN_MODE_STOP;
+   btMsgAndErrPendingP = false;
+
+   // reset pointer
+   vdCanInterfaceP = NULL;
+   vdCanControlP = NULL;
+   vdCanChannelP = NULL;
 }
 
 //----------------------------------------------------------------------------//
@@ -64,7 +71,16 @@ QCanInterfaceIxxat::QCanInterfaceIxxat(VCIDEVICEINFO clDevInfoV)
 //----------------------------------------------------------------------------//
 QCanInterfaceIxxat::~QCanInterfaceIxxat()
 {
-
+   if (pclIxxatVciP.isAvailable())
+   {
+      if (btConnectedP == true)
+      {
+         if (vdCanInterfaceP != NULL)
+         {
+            pclIxxatVciP.pfnVciDeviceCloseP(vdCanInterfaceP);
+         }
+      }
+   }
 }
 
 //----------------------------------------------------------------------------//
@@ -73,18 +89,33 @@ QCanInterfaceIxxat::~QCanInterfaceIxxat()
 //----------------------------------------------------------------------------//
 QCanInterface::InterfaceError_e QCanInterfaceIxxat::connect()
 {
+   InterfaceError_e teStatusT = eERROR_NONE;
+
+   //----------------------------------------------------------------
+   // check library is available
+   //
+   if (pclIxxatVciP.isAvailable() != true)
+   {
+      teStatusT = eERROR_LIBRARY;
+   }
+
    //----------------------------------------------------------------
    // try to open a device
    //
-   if (pclIxxatVciP.pfnVciDeviceOpenP(clDevInfoP.VciObjectId,&vdCanInterfaceP) != VCI_OK)
+   if (pclIxxatVciP.pfnVciDeviceOpenP(clDevInfoP.VciObjectId, &vdCanInterfaceP) != VCI_OK)
    {
-      qWarning() << tr("WARNING: Fail to open a device interface!");
-      return eERROR_DEVICE;
+      teStatusT = eERROR_DEVICE;
    }
 
-   btConnectedP = true;
+   //----------------------------------------------------------------
+   // successfully open
+   //
+   else
+   {
+      btConnectedP = true;
+   }
 
-   return eERROR_NONE;
+   return teStatusT;
 }
 
 //----------------------------------------------------------------------------//
@@ -103,16 +134,52 @@ bool QCanInterfaceIxxat::connected()
 //----------------------------------------------------------------------------//
 QCanInterface::InterfaceError_e QCanInterfaceIxxat::disconnect()
 {
-   HRESULT slStatusT;
-   slStatusT = pclIxxatVciP.pfnVciDeviceCloseP(vdCanInterfaceP);
-   if (slStatusT != VCI_OK)
+   qDebug() << "QCanInterfaceIxxat::disconnect()";
+   InterfaceError_e teStatusT = eERROR_NONE;
+
+   //----------------------------------------------------------------
+   // check library is available
+   //
+   if (pclIxxatVciP.isAvailable() != true)
    {
-      qDebug() << "Fail to disconnect the device";
+      teStatusT = eERROR_LIBRARY;
    }
 
-   btConnectedP = false;
+   //----------------------------------------------------------------
+   // check library is connected
+   //
+   else if (btConnectedP != true)
+   {
+      teStatusT = eERROR_DEVICE;
+   }
 
-   return eERROR_NONE;
+   //----------------------------------------------------------------
+   // check interface pointer is valid
+   //
+   else if (vdCanInterfaceP == NULL)
+   {
+      teStatusT = eERROR_DEVICE;
+   }
+
+   //----------------------------------------------------------------
+   // close
+   //
+   else if (pclIxxatVciP.pfnVciDeviceCloseP(vdCanInterfaceP) != VCI_OK)
+   {
+      qDebug() << "Fail to disconnect the device";
+      teStatusT = eERROR_DEVICE;
+   }
+
+   //----------------------------------------------------------------
+   // reset handler in case of success
+   //
+   else
+   {
+      vdCanInterfaceP = NULL;
+      btConnectedP = false;
+   }
+
+   return teStatusT;
 }
 
 
@@ -144,27 +211,32 @@ QIcon QCanInterfaceIxxat::icon()
 //----------------------------------------------------------------------------//
 QString QCanInterfaceIxxat::name()
 {
+   QString clReturnT = "IXXAT VCI 3.5 library is not available";
+
    //----------------------------------------------------------------
    // check lib have been loaded
    //
    if (pclIxxatVciP.isAvailable())
    {
-      return QString(clDevInfoP.Description) + QString(" CAN 1");
+      clReturnT = QString(clDevInfoP.Description) + " " +clDevInfoP.UniqueHardwareId.AsChar;
    }
 
-   return QString("IXXAT VCI library is not available");
+   return clReturnT;
 }
-
 
 //----------------------------------------------------------------------------//
 // read()                                                                     //
 //                                                                            //
 //----------------------------------------------------------------------------//
-QCanInterface::InterfaceError_e QCanInterfaceIxxat::read(QCanFrame &clFrameR)
+QCanInterface::InterfaceError_e  QCanInterfaceIxxat::read(QByteArray &clDataR)
 {
    CANMSG  tsCanMsgT;
    HRESULT slResultT;
    int32_t slByteCntrT;
+   QCanFrame      clCanFrameT;
+   QCanFrameError clErrFrameT;
+   QCanTimeStamp  clTimeStampT;
+   InterfaceError_e  clRetValueT = eERROR_NONE;
 
    //----------------------------------------------------------------
    // check lib have been loaded
@@ -175,71 +247,268 @@ QCanInterface::InterfaceError_e QCanInterfaceIxxat::read(QCanFrame &clFrameR)
    }
 
    //----------------------------------------------------------------
-   // get next message in FIFO
+   // get and process next message in FIFO
    //
    slResultT = pclIxxatVciP.pfnCanChannelPeekMessageP(vdCanChannelP,&tsCanMsgT);
-
    if (slResultT == VCI_OK)
    {
-      // handle data depending on type
-      switch (tsCanMsgT.uMsgInfo.Bytes.bType)
+      //--------------------------------------------------------
+      // handle message data
+      //
+      if ((tsCanMsgT.uMsgInfo.Bytes.bType) == CAN_MSGTYPE_DATA)
       {
-         case CAN_MSGTYPE_DATA :
-            qDebug() << tr("handle CAN_MSGTYPE_DATA");
+         // copy all needed parameters to QCanFrame structure
+         if (tsCanMsgT.uMsgInfo.Bits.ext)
+         {
+            clCanFrameT.setIdentifier(tsCanMsgT.dwMsgId);
+         } else
+         {
+            clCanFrameT.setIdentifier((uint16_t)tsCanMsgT.dwMsgId);
+         }
 
-            // copy all needed parameters to QCanFrame structure
-            if (tsCanMsgT.uMsgInfo.Bits.ext)
-            {
-               clFrameR.setIdentifier(tsCanMsgT.dwMsgId);
-            } else
-            {
-               clFrameR.setIdentifier((uint16_t)tsCanMsgT.dwMsgId);
-            }
+         clCanFrameT.setDlc(tsCanMsgT.uMsgInfo.Bits.dlc);
 
-            clFrameR.setDlc(tsCanMsgT.uMsgInfo.Bits.dlc);
+         for (slByteCntrT = 0; slByteCntrT < clCanFrameT.dlc(); slByteCntrT++)
+         {
+            clCanFrameT.setData(slByteCntrT, tsCanMsgT.abData[slByteCntrT]);
+         }
 
-            for (slByteCntrT = 0; slByteCntrT < clFrameR.dlc(); slByteCntrT++)
-            {
-               clFrameR.setData(slByteCntrT, tsCanMsgT.abData[slByteCntrT]);
-            }
+         //------------------------------------------------
+         // increase statistic counter
+         //
+         clStatisticP.ulRcvCount++;
 
-            clStatisticP.ulRcvCount++;
+         //------------------------------------------------
+         // copy the CAN frame to a byte array for transfer
+         //
+         clDataR = clCanFrameT.toByteArray();
+      }
 
-            return eERROR_NONE;
+      //--------------------------------------------------------
+      // handle message data
+      //
+      else if ((tsCanMsgT.uMsgInfo.Bytes.bType) == CAN_MSGTYPE_INFO)
+      {
+         //------------------------------------------------
+         // get info and pass it via error frame to application
+         //
+         if (tsCanMsgT.abData[0] == CAN_INFO_START)
+         {
+            clErrFrameT.setErrorState(eCAN_STATE_BUS_ACTIVE);
+         }
 
-            break;
+         else
+         {
+            clErrFrameT.setErrorState(eCAN_STATE_STOPPED);
+         }
+         clErrFrameT.setErrorType(QCanFrameError::eERROR_TYPE_NONE);
 
-         case CAN_MSGTYPE_INFO :
-            qDebug() << tr("handle CAN_MSGTYPE_INFO");
-            break;
+         //------------------------------------------------
+         // copy the error frame to a byte array
+         //
+         clDataR = clErrFrameT.toByteArray();
+      }
 
-         case CAN_MSGTYPE_ERROR :
-            qDebug() << tr("handle CAN_MSGTYPE_ERROR");
-            break;
 
-         case CAN_MSGTYPE_STATUS :
-            qDebug() << tr("handle CAN_MSGTYPE_STATUS");
-            break;
+      //--------------------------------------------------------
+      // handle message error data
+      //
+      else if ((tsCanMsgT.uMsgInfo.Bytes.bType) == CAN_MSGTYPE_ERROR)
+      {
+         //-------------------------------------------------
+         // prepare error frame
+         //
+         setupErrorFrame(tsCanMsgT.abData[1], tsCanMsgT.abData[0],
+                           clErrFrameT);
 
-         default :
-            qDebug() << tr("UNKNOWN Message Type");
-            break;
+         //------------------------------------------------
+         // copy the error frame to a byte array
+         //
+         clDataR = clErrFrameT.toByteArray();
+
+         //-------------------------------------------------
+         // update number of received error frames
+         //
+         clStatisticP.ulErrCount++;
+      }
+
+      //--------------------------------------------------------
+      // handle message status data
+      //
+      else if ((tsCanMsgT.uMsgInfo.Bytes.bType) == CAN_MSGTYPE_STATUS)
+      {
+         //----------------------------------------------------------------
+         // set bus status
+         //
+         if ((tsCanMsgT.abData[0] & CAN_STATUS_ERRLIM) != 0)
+         {
+            clErrFrameT.setErrorState(eCAN_STATE_BUS_WARN);
+         }
+
+         else if ((tsCanMsgT.abData[0] & CAN_STATUS_OVRRUN) != 0)
+         {
+            clErrFrameT.setErrorState(eCAN_STATE_BUS_PASSIVE);
+         }
+
+         else if ((tsCanMsgT.abData[0] & CAN_STATUS_BUSOFF) != 0)
+         {
+            clErrFrameT.setErrorState(eCAN_STATE_BUS_OFF);
+         }
+         else
+         {
+            clErrFrameT.setErrorState(eCAN_STATE_BUS_ACTIVE);
+         }
+
+         clErrFrameT.setErrorType(QCanFrameError::eERROR_TYPE_NONE);
+
+
+         //------------------------------------------------
+         // copy the error frame to a byte array
+         //
+         clDataR = clErrFrameT.toByteArray();
+      }
+
+      //--------------------------------------------------------
+      // all other not supported data
+      //
+      else
+      {
+         // do not process frame data
+         clRetValueT = eERROR_FIFO_RCV_EMPTY;
       }
    }
 
+   //----------------------------------------------------------------
+   // some other error is pending
+   //
    else if (slResultT != (HRESULT)VCI_E_RXQUEUE_EMPTY)
    {
       qWarning() << "QCanInterface::read() -> CanChannelPeekMessage()" <<
                     "fail with error:" <<
                     pclIxxatVciP.formatedError((HRESULT)slResultT);
+
+      clRetValueT =  eERROR_DEVICE;
+   }
+
+   //----------------------------------------------------------------
+   // no data in receive buffer
+   //
+   else
+   {
+      clRetValueT =  eERROR_FIFO_RCV_EMPTY;
+   }
+
+   return clRetValueT;
+}
+
+//----------------------------------------------------------------------------//
+// reset()                                                                    //
+//                                                                            //
+//----------------------------------------------------------------------------//
+QCanInterface::InterfaceError_e  QCanInterfaceIxxat::reset()
+{
+   qDebug() << "QCanInterfaceIxxat::reset()";
+
+   //----------------------------------------------------------------
+   // check lib have been loaded
+   //
+   if (!pclIxxatVciP.isAvailable())
+   {
+      return eERROR_LIBRARY;
+   }
+
+   //----------------------------------------------------------------
+   // reset statistic values
+   //
+   clStatisticP.ulErrCount = 0;
+   clStatisticP.ulRcvCount = 0;
+   clStatisticP.ulTrmCount = 0;
+
+
+   //----------------------------------------------------------------
+   // reset device
+   //
+   if (pclIxxatVciP.pfnCanControlResetP(vdCanControlP) != VCI_OK)
+   {
+      qDebug() << "QCanInterfaceIxxat::reset() FAIL pfnCanControlResetP";
+
       return eERROR_DEVICE;
    }
 
-
-   return eERROR_FIFO_RCV_EMPTY;
+   //----------------------------------------------------------------
+   // set can interface in previous mode
+   //
+   return setMode(teCanModeP);
 }
 
 
+//----------------------------------------------------------------------------//
+// setupErrorFrame()                                                          //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void QCanInterfaceIxxat::setupErrorFrame(uint8_t ubStatusV,
+                                         uint8_t ubErrorV,
+                                         QCanFrameError &clFrameR)
+{
+   //---------------------------------------------------------
+   // set frame type
+   //
+   switch (ubErrorV)
+   {
+      case CAN_ERROR_STUFF :
+         clFrameR.setErrorType(QCanFrameError::eERROR_TYPE_STUFF);
+         break;
+      case CAN_ERROR_FORM  :
+         clFrameR.setErrorType(QCanFrameError::eERROR_TYPE_FORM);
+         break;
+      case CAN_ERROR_ACK   :
+         clFrameR.setErrorType(QCanFrameError::eERROR_TYPE_ACK);
+         break;
+      case CAN_ERROR_BIT   :
+         clFrameR.setErrorType(QCanFrameError::eERROR_TYPE_BIT0);
+         break;
+      case CAN_ERROR_CRC   :
+         clFrameR.setErrorType(QCanFrameError::eERROR_TYPE_CRC);
+         break;
+      case CAN_ERROR_OTHER :
+         clFrameR.setErrorType(QCanFrameError::eERROR_TYPE_BIT1);
+         break;
+      default :
+         clFrameR.setErrorType(QCanFrameError::eERROR_TYPE_NONE);
+         break;
+   }
+
+   btMsgAndErrPendingP = false;
+
+   //----------------------------------------------------------------
+   // set bus status
+   //
+   if ((ubStatusV & CAN_STATUS_ERRLIM) != 0)
+   {
+      clFrameR.setErrorState(eCAN_STATE_BUS_WARN);
+
+      if ((ubStatusV & CAN_STATUS_TXPEND) != 0)
+      {
+         btMsgAndErrPendingP = true;
+      }
+   }
+
+   else if ((ubStatusV & CAN_STATUS_OVRRUN) != 0)
+   {
+      clFrameR.setErrorState(eCAN_STATE_BUS_PASSIVE);
+   }
+
+   else if ((ubStatusV & CAN_STATUS_BUSOFF) != 0)
+   {
+      clFrameR.setErrorState(eCAN_STATE_BUS_OFF);
+   }
+   else
+   {
+      clFrameR.setErrorState(eCAN_STATE_BUS_ACTIVE);
+   }
+
+
+}
 //----------------------------------------------------------------------------//
 // setBitrate()                                                               //
 //                                                                            //
@@ -404,10 +673,10 @@ QCanInterface::InterfaceError_e	QCanInterfaceIxxat::setMode(const CAN_Mode_e teM
          pclIxxatVciP.pfnCanControlResetP(vdCanControlP);
          if (pclIxxatVciP.pfnCanControlInitializeP(vdCanControlP,
                                        (CAN_OPMODE_STANDARD |
-                                       CAN_OPMODE_EXTENDED |
-                                       CAN_OPMODE_ERRFRAME),
-                                      tsBitrateP.ubBtr0,
-                                      tsBitrateP.ubBtr1) != VCI_OK)
+                                        CAN_OPMODE_EXTENDED |
+                                        CAN_OPMODE_ERRFRAME),
+                                       tsBitrateP.ubBtr0,
+                                       tsBitrateP.ubBtr1) != VCI_OK)
          {
             qWarning() << tr("WARNING: Fail to intialize control interface!");
          }
@@ -434,6 +703,7 @@ QCanInterface::InterfaceError_e	QCanInterfaceIxxat::setMode(const CAN_Mode_e teM
             qWarning() << tr("WARNING: Fail to activate CAN channel!");
          }
 
+         teCanModeP = eCAN_MODE_START;
          break;
 
       case eCAN_MODE_STOP :
@@ -441,6 +711,7 @@ QCanInterface::InterfaceError_e	QCanInterfaceIxxat::setMode(const CAN_Mode_e teM
          {
             qWarning() << tr("WARNING: Fail to deactivate CAN channel!");
          }
+         teCanModeP = eCAN_MODE_STOP;
          break;
 
       default :
@@ -449,16 +720,6 @@ QCanInterface::InterfaceError_e	QCanInterfaceIxxat::setMode(const CAN_Mode_e teM
    }
 
    return eERROR_NONE;
-}
-
-
-//----------------------------------------------------------------------------//
-// state()                                                                    //
-//                                                                            //
-//----------------------------------------------------------------------------//
-CAN_State_e	QCanInterfaceIxxat::state()
-{
-   return eCAN_STATE_BUS_ACTIVE;
 }
 
 
@@ -480,16 +741,33 @@ QCanInterface::InterfaceError_e	QCanInterfaceIxxat::statistic(QCanStatistic_ts &
 //----------------------------------------------------------------------------//
 uint32_t QCanInterfaceIxxat::supportedFeatures()
 {
-   uint32_t ulFeaturesT;
+   PCANCAPABILITIES pclFunctionsT = NULL;
+   uint32_t         ulReturnT = 0;
 
-   ulFeaturesT  = QCAN_IF_SUPPORT_ERROR_FRAMES;
-   ulFeaturesT += QCAN_IF_SUPPORT_LISTEN_ONLY;
+   //----------------------------------------------------------------
+   // check lib have been loaded
+   //
+   if (!pclIxxatVciP.isAvailable())
+   {
+   }
 
-   #if QCAN_SUPPORT_CAN_FD > 0
-   ulFeaturesT += QCAN_IF_SUPPORT_CAN_FD;
-   #endif
+   //----------------------------------------------------------------
+   // read capabilities
+   //
+   else if (pclIxxatVciP.pfnCanControlGetCapsP(vdCanControlP, pclFunctionsT) == VCI_OK)
+   {
+      if ((pclFunctionsT->dwFeatures & CAN_FEATURE_ERRFRAME) != 0)
+      {
+         ulReturnT |= QCAN_IF_SUPPORT_ERROR_FRAMES;
+      }
 
-   return(ulFeaturesT);
+      if ((pclFunctionsT->dwFeatures & CAN_FEATURE_LISTONLY) != 0)
+      {
+         ulReturnT |= QCAN_IF_SUPPORT_LISTEN_ONLY;
+      }
+   }
+
+   return(ulReturnT);
 }
 
 
@@ -502,6 +780,7 @@ QCanInterface::InterfaceError_e	QCanInterfaceIxxat::write( const QCanFrame &clFr
    CANMSG  tsCanMsgT;
    HRESULT slResultT;
    int32_t slByteCntrT;
+   CANCHANSTATUS tsCanChanStatusT;
 
    //----------------------------------------------------------------
    // check lib have been loaded
@@ -540,19 +819,22 @@ QCanInterface::InterfaceError_e	QCanInterfaceIxxat::write( const QCanFrame &clFr
    tsCanMsgT.dwTime = 0;
    slResultT = pclIxxatVciP.pfnCanChannelPostMessageP(vdCanChannelP, &tsCanMsgT);
 
+   //----------------------------------------------------------------
+   // check resul of transmission
+   //
    if (slResultT == VCI_OK)
    {
-      qDebug() << tr("PosMessage() OK");
-
       clStatisticP.ulTrmCount++;
       return eERROR_NONE;
    }
+
    else if (slResultT != (HRESULT)VCI_E_TXQUEUE_FULL)
    {
-      qWarning() << tr("Fail to call pfnCanChannelPostMessageP(): ") + QString::number(slResultT,16);
+      qCritical() << tr("Fail to call pfnCanChannelPostMessageP(): ") + QString::number(slResultT,16);
       return eERROR_DEVICE;
    }
 
+   qCritical() << "FIFO full at call of pfnCanChannelPostMessageP()";
    return eERROR_FIFO_TRM_FULL;
 
 }
