@@ -903,8 +903,6 @@ void QCanNetwork::onTimerEvent(void)
                break;
          }
       }
-      
-      teCanStateP = pclInterfaceP->state();
    }
 
    //----------------------------------------------------------------
