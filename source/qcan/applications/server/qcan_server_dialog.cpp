@@ -643,12 +643,12 @@ void QCanServerDialog::onNetworkShowState(CAN_State_e teStateV)
          break;
 
       case eCAN_STATE_BUS_WARN:
-         ui.pclTxtStatusBusM->setStyleSheet("QLabel { color : yellow; }");
+         ui.pclTxtStatusBusM->setStyleSheet("QLabel { color : orange; }");
          ui.pclTxtStatusBusM->setText(tr("Warning"));
          break;
 
       case eCAN_STATE_BUS_PASSIVE:
-         ui.pclTxtStatusBusM->setStyleSheet("QLabel { color : yellow; }");
+         ui.pclTxtStatusBusM->setStyleSheet("QLabel { color : orange; }");
          ui.pclTxtStatusBusM->setText(tr("Error passive"));
          break;
 

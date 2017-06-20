@@ -712,6 +712,11 @@ void QCanNetwork::reset(void)
    ulFramePerSecMaxP = 0;
    ulFrameCntSaveP   = 0;
    teCanStateP   = eCAN_STATE_STOPPED;
+
+   if(pclInterfaceP.isNull() == false)
+   {
+      pclInterfaceP->reset();
+   }
 }
 
 
