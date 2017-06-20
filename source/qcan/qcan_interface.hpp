@@ -149,7 +149,7 @@ public:
 
    /*!
    ** \return     Status code defined by InterfaceError_e
-   ** \see        write()
+   ** \see        read()
    **
    ** The functions reads a CAN message from the physical channel
    ** \c ubChannelV of the CAN interface. The first CAN channel starts at
@@ -160,6 +160,16 @@ public:
    */
    virtual InterfaceError_e   read( QByteArray &clDataR) = 0;
    
+   /*!
+   ** \return     Status code defined by InterfaceError_e
+   ** \see        reset()
+   **
+   ** The functions resets a CAN a physical CAN interface.
+   ** All statistic informations will be reset also.
+   ** On success the function returns eERROR_NONE.
+   */
+   virtual InterfaceError_e   reset(void) = 0;
+
    /*!
    ** \param[in]  slNomBitRateV  Nominal Bit-rate value
    ** \param[in]  slDatBitRateV  Data Bit-rate value
@@ -179,12 +189,6 @@ public:
    ** Set mode of the physical interface.
    */
    virtual InterfaceError_e	setMode(const CAN_Mode_e teModeV) = 0;
-
-
-   /*!
-   ** Get state of the physical CAN interface.
-   */
-   virtual CAN_State_e	state(void) = 0;
 
 
    virtual InterfaceError_e   statistic(QCanStatistic_ts &clStatisticR) = 0;
