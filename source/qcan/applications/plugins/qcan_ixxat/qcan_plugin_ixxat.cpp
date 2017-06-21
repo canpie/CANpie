@@ -77,7 +77,7 @@ uint8_t QCanPluginIxxat::interfaceCount()
    //
    if (!pclIxxatVciP.isAvailable())
    {
-      qWarning() << tr("WARNING: No lib available!");
+      qWarning() << tr("QCanPluginIxxat::interfaceCount()  WARNING: No lib available!");
       return 0;
    }
 
@@ -86,38 +86,40 @@ uint8_t QCanPluginIxxat::interfaceCount()
    //
    if (pclIxxatVciP.pfnVciEnumDeviceOpenP(&vdDevListP) != VCI_OK)
    {
-      qWarning() << tr("WARNING: Can't open device list!") + QString::number(pclIxxatVciP.pfnVciEnumDeviceOpenP(&vdDevListP),16);
+      qWarning() << tr("QCanPluginIxxat::interfaceCount()  WARNING: Can't open device list!") +
+                    QString::number(pclIxxatVciP.pfnVciEnumDeviceOpenP(&vdDevListP),16);
+      return 0;
    }
 
    //----------------------------------------------------------------
    // Count number of connected devices
    //
-   VCIDEVICEINFO clCanDevT;
+   pclIxxatVciP.pfnVciEnumDeviceResetP(vdDevListP);
    uint8_t ubDevCntrT = 0;
-   while (pclIxxatVciP.pfnVciEnumDeviceNextP(vdDevListP,&clCanDevT) == VCI_OK)
+   aclCanDevInfoP.resize(ubDevCntrT+1);
+   while (pclIxxatVciP.pfnVciEnumDeviceNextP(vdDevListP,&aclCanDevInfoP[ubDevCntrT]) == VCI_OK)
    {
-      ubDevCntrT++;
-   }
+      qInfo() << tr("QCanPluginIxxat::interfaceCount()  INFO: Device '") + aclCanDevInfoP[ubDevCntrT].Description +" "+
+                 aclCanDevInfoP[ubDevCntrT].UniqueHardwareId.AsChar + tr("' found");
 
-   if (!ubDevCntrT)
+      ubDevCntrT++;
+      aclCanDevInfoP.resize(ubDevCntrT+1);
+   }
+   aclCanDevInfoP.removeLast();
+
+   //----------------------------------------------------------------
+   // close device list
+   //
+   pclIxxatVciP.pfnVciEnumDeviceCloseP(&vdDevListP);
+
+   if (ubDevCntrT == 0)
    {
-      qWarning() << tr("WARNING: No devices are connected!");
+      qWarning() << tr("QCanPluginIxxat::interfaceCount()  WARNING: No devices are connected!");
       return 0;
    }
 
-   // create a device list for easy access
-   pclIxxatVciP.pfnVciEnumDeviceResetP(vdDevListP);
-   aclCanDevInfoP.resize(ubDevCntrT);
-   while (ubDevCntrT)
-   {
-      ubDevCntrT--;
-
-      pclIxxatVciP.pfnVciEnumDeviceNextP(vdDevListP,&aclCanDevInfoP[ubDevCntrT]);
-      qInfo() << tr("INFO: Device '") + aclCanDevInfoP[ubDevCntrT].Description + tr("' found");
-   }
-
-   qInfo() << tr("INFO: Total number of found devices is ") + QString::number(aclCanDevInfoP.size(),10);
-
+   qInfo() << tr("QCanPluginIxxat::interfaceCount()  INFO: Total number of found devices is ") +
+              QString::number(aclCanDevInfoP.size(),10);
 
    return (uint8_t)aclCanDevInfoP.size();
 }
