@@ -57,7 +57,7 @@ OBJECTS_DIR = ./objs/
 #---------------------------------------------------------------
 # project configuration and compiler options
 #
-CONFIG += debug
+CONFIG += release
 CONFIG += plugin
 CONFIG += warn_on
 CONFIG += C++11
@@ -139,6 +139,7 @@ win32 {
       message("Building '$$QMAKE_PROJECT_NAME' RELEASE version for Windows ...")
       DEFINES += QT_NO_WARNING_OUTPUT
       DEFINES += QT_NO_DEBUG_OUTPUT
+      DEFINES += QT_NO_INFO_OUTPUT
    }
 }
 

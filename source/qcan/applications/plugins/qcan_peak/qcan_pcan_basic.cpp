@@ -119,7 +119,7 @@ QCanPcanBasic::~QCanPcanBasic()
       //
       if (isAvailable())
       {
-         unInitialize(PCAN_NONEBUS);
+         pfnCAN_UninitializeP(PCAN_NONEBUS);
          btLibFuncLoadP = false;
       }
 
@@ -189,81 +189,3 @@ QString QCanPcanBasic::formatedError(TPCANStatus tvErrorV)
    return clResultT;
 }
 
-
-TPCANStatus QCanPcanBasic::initialize     (TPCANHandle uwChannelV, TPCANBaudrate uwBtr0Btr1V)
-{
-   return pfnCAN_InitializeP(uwChannelV, uwBtr0Btr1V);
-}
-
-
-#if QCAN_SUPPORT_CAN_FD > 0
-TPCANStatus QCanPcanBasic::initializeFD(TPCANHandle uwChannelV,
-                                        TPCANBitrateFD pszBitrateFDV)
-{
-   return pfnCAN_InitializeFDP(uwChannelV, pszBitrateFDV);
-}
-#endif
-
-
-TPCANStatus QCanPcanBasic::unInitialize   (TPCANHandle uwChannelV)
-{
-   return pfnCAN_UninitializeP(uwChannelV);
-}
-
-TPCANStatus QCanPcanBasic::reset          (TPCANHandle uwChannelV)
-{
-   return pfnCAN_ResetP(uwChannelV);
-}
-
-TPCANStatus QCanPcanBasic::getStatus      (TPCANHandle uwChannelV)
-{
-   return pfnCAN_GetStatusP(uwChannelV);
-}
-
-TPCANStatus QCanPcanBasic::read           (TPCANHandle uwChannelV, TPCANMsg *ptsMessageBufferV, TPCANTimestamp *tsTimestampBufferV)
-{
-   return pfnCAN_ReadP(uwChannelV,ptsMessageBufferV,tsTimestampBufferV);
-}
-
-#if QCAN_SUPPORT_CAN_FD > 0
-TPCANStatus QCanPcanBasic::readFD(TPCANHandle uwChannelV,
-                                  TPCANMsgFD *ptsMessageBufferV,
-                                  TPCANTimestampFD *puqTimestampBufferV)
-{
-   return pfnCAN_ReadFDP(uwChannelV,ptsMessageBufferV,puqTimestampBufferV);
-}
-#endif
-
-
-TPCANStatus QCanPcanBasic::write          (TPCANHandle uwChannelV, TPCANMsg *ptsMessageBufferV)
-{
-   return pfnCAN_WriteP(uwChannelV,ptsMessageBufferV);
-}
-
-#if QCAN_SUPPORT_CAN_FD > 0
-TPCANStatus QCanPcanBasic::writeFD( TPCANHandle uwChannelV,
-                                    TPCANMsgFD *ptsMessageBufferV)
-{
-   return pfnCAN_WriteFDP(uwChannelV,ptsMessageBufferV);
-}
-#endif
-
-TPCANStatus QCanPcanBasic::filterMessages (TPCANHandle uwChannelV, DWORD ulFromIDV, DWORD ulToIDV, TPCANMode ubModeV)
-{
-   return pfnCAN_FilterMessagesP(uwChannelV,ulFromIDV,ulToIDV,ubModeV);
-}
-
-TPCANStatus QCanPcanBasic::getValue       (TPCANHandle uwChannelV, TPCANParameter ubParameterV, void *pvdBufferV, DWORD ulBufferLengthV)
-{
-   return pfnCAN_GetValueP(uwChannelV,ubParameterV,pvdBufferV,ulBufferLengthV);
-}
-
-TPCANStatus QCanPcanBasic::setValue       (TPCANHandle uwChannelV, TPCANParameter ubParameterV, void *pvdBufferV, DWORD ulBufferLengthV)
-{
-   return pfnCAN_SetValueP(uwChannelV,ubParameterV,pvdBufferV,ulBufferLengthV);
-}
-
-TPCANStatus QCanPcanBasic::getErrorText   (TPCANStatus ulErrorV, WORD uwLanguageV, LPSTR pszBufferV)
-{
-   return pfnCAN_GetErrorTextP(ulErrorV, uwLanguageV, pszBufferV);
-}

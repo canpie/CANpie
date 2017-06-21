@@ -780,7 +780,6 @@ QCanInterface::InterfaceError_e	QCanInterfaceIxxat::write( const QCanFrame &clFr
    CANMSG  tsCanMsgT;
    HRESULT slResultT;
    int32_t slByteCntrT;
-   CANCHANSTATUS tsCanChanStatusT;
 
    //----------------------------------------------------------------
    // check lib have been loaded

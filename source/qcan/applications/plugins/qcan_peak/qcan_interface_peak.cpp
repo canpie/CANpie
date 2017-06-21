@@ -63,7 +63,7 @@ QCanInterfacePeak::~QCanInterfacePeak()
    {
       if (btConnectedP)
       {
-         pclPcanBasicP.unInitialize(uwPCanChannelP);
+         pclPcanBasicP.pfnCAN_UninitializeP(uwPCanChannelP);
       }
    }
 }
@@ -87,7 +87,7 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::connect(void)
       //--------------------------------------------------------
       // get channel condition
       //
-      tsStatusT = pclPcanBasicP.getValue(uwPCanChannelP, PCAN_CHANNEL_CONDITION, (void*)&ubValueT, 1);
+      tsStatusT = pclPcanBasicP.pfnCAN_GetValueP(uwPCanChannelP, PCAN_CHANNEL_CONDITION, (void*)&ubValueT, 1);
       if (tsStatusT != PCAN_ERROR_OK)
       {
          qWarning() << QString("QCanInterfacePeak::connect(0x" +QString::number(uwPCanChannelP,16)+")") << "fail with error:" << pclPcanBasicP.formatedError(tsStatusT);
@@ -121,17 +121,18 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::connect(void)
          //
          if (btConnectedP)
          {
-            pclPcanBasicP.unInitialize(uwPCanChannelP);
+            pclPcanBasicP.pfnCAN_UninitializeP(uwPCanChannelP);
             btConnectedP = false;
          }
 
          //-------------------------------------------------
          // initialise selected channel it again
          //
-         tsStatusT = pclPcanBasicP.initialize(uwPCanChannelP, uwPCanBitrateP);
+         tsStatusT = pclPcanBasicP.pfnCAN_InitializeP(uwPCanChannelP, uwPCanBitrateP, 0, 0, 0);
+
          if (tsStatusT != PCAN_ERROR_OK)
          {
-            qWarning() << QString("QCanInterfacePeak::connect(0x" +QString::number(uwPCanChannelP,16)+")") << "fail with error:" << pclPcanBasicP.formatedError(tsStatusT);
+            qCritical() << QString("QCanInterfacePeak::connect(0x" +QString::number(uwPCanChannelP,16)+")") << "fail with error:" << pclPcanBasicP.formatedError(tsStatusT);
             teReturnT = eERROR_USED;
          }
 
@@ -164,7 +165,7 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::disconnect()
 {
    if (pclPcanBasicP.isAvailable())
    {
-      TPCANStatus tsStatusT = pclPcanBasicP.unInitialize(uwPCanChannelP);
+      TPCANStatus tsStatusT = pclPcanBasicP.pfnCAN_UninitializeP(uwPCanChannelP);
       if (tsStatusT == PCAN_ERROR_OK)
       {
          btConnectedP = false;
@@ -185,7 +186,7 @@ QIcon QCanInterfacePeak::icon(void)
    if (pclPcanBasicP.isAvailable())
    {
       char        aszBufferT[64];
-      TPCANStatus tsStatusT = pclPcanBasicP.getValue(uwPCanChannelP, PCAN_HARDWARE_NAME, (void*)&aszBufferT[0], sizeof(aszBufferT));
+      TPCANStatus tsStatusT = pclPcanBasicP.pfnCAN_GetValueP(uwPCanChannelP, PCAN_HARDWARE_NAME, (void*)&aszBufferT[0], sizeof(aszBufferT));
       if (tsStatusT == PCAN_ERROR_OK)
       {
          QString clIconNameT;
@@ -218,40 +219,45 @@ QString QCanInterfacePeak::name()
 
    if (pclPcanBasicP.isAvailable())
    {
-      clNameT.clear();
-
-      //--------------------------------------------------------
-      // get HW name
-      //
-      tsStatusT = pclPcanBasicP.getValue(uwPCanChannelP, PCAN_HARDWARE_NAME, (void*)&aszBufferT[0], sizeof(aszBufferT));
-      if (tsStatusT != PCAN_ERROR_OK)
+      if (btConnectedP)
       {
-         return QString("FAIL to get hardware name");
-      }
-      clNameT.append(QLatin1String(aszBufferT));
-      //--------------------------------------------------------
-      // name should contain device number, get it
-      //
-      tsStatusT = pclPcanBasicP.getValue(uwPCanChannelP, PCAN_DEVICE_NUMBER, (void*)&aszBufferT[0], 1);
-      if (tsStatusT != PCAN_ERROR_OK)
-      {
-         return QString("FAIL to get device number");
-      }
-      clNameT.append(" Device " + QString::number((uint8_t)aszBufferT[0],16).toUpper());
+         clNameT.clear();
 
-      //--------------------------------------------------------
-      // get CAN channel number
-      //
-      tsStatusT = pclPcanBasicP.getValue(uwPCanChannelP, PCAN_CONTROLLER_NUMBER, (void*)&aszBufferT[0], 1);
-      if (tsStatusT != PCAN_ERROR_OK)
-      {
-         return QString("FAIL to get channel number");
+         //--------------------------------------------------------
+         // get HW name
+         //
+         tsStatusT = pclPcanBasicP.pfnCAN_GetValueP(uwPCanChannelP, PCAN_HARDWARE_NAME, (void*)&aszBufferT[0], sizeof(aszBufferT));
+         if (tsStatusT != PCAN_ERROR_OK)
+         {
+            return (QString("FAIL to get hardware name ") +  pclPcanBasicP.formatedError(tsStatusT));
+         }
+         clNameT.append(QLatin1String(aszBufferT));
+
+         //--------------------------------------------------------
+         // name should contain device number, get it
+         //
+         tsStatusT = pclPcanBasicP.pfnCAN_GetValueP(uwPCanChannelP, PCAN_DEVICE_NUMBER, (void*)&aszBufferT[0], 1);
+         if (tsStatusT != PCAN_ERROR_OK)
+         {
+            return QString("FAIL to get device number");
+         }
+         clNameT.append(" Device " + QString::number((uint8_t)aszBufferT[0],16).toUpper());
+
+         //--------------------------------------------------------
+         // get CAN channel number
+         //
+         tsStatusT = pclPcanBasicP.pfnCAN_GetValueP(uwPCanChannelP, PCAN_CONTROLLER_NUMBER, (void*)&aszBufferT[0], 1);
+         if (tsStatusT != PCAN_ERROR_OK)
+         {
+            return QString("FAIL to get channel number");
+         }
+         clNameT.append("h CAN "+ QString::number(aszBufferT[0]+1,10));
+
+         // return name
+         return clNameT;
       }
-      clNameT.append("h CAN "+ QString::number(aszBufferT[0]+1,10));
 
-      // return name
-      return clNameT;
-
+      return QString("PCAN interface is not initialised");
    }
 
    return QString("PCAN Basic library is not available");
@@ -302,8 +308,8 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readCAN(QByteArray &clDataR)
    //----------------------------------------------------------------
    // get next message from FIFO
    //
-   ulStatusT = pclPcanBasicP.read(uwPCanChannelP, &tsCanMsgT, 
-                                  &tsCanTimeStampT);
+   ulStatusT = pclPcanBasicP.pfnCAN_ReadP(uwPCanChannelP, &tsCanMsgT,
+                                          &tsCanTimeStampT);
 
    
    //----------------------------------------------------------------
@@ -437,8 +443,8 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFD(QByteArray &clDataR)
    //----------------------------------------------------------------
    // get next message from FIFO
    //
-   ulStatusT = pclPcanBasicP.readFD(uwPCanChannelP, &tsCanMsgT,
-                                    &tsCanTimeStampT);
+   ulStatusT = pclPcanBasicP.pfnCAN_ReadFDP(uwPCanChannelP, &tsCanMsgT,
+                                            &tsCanTimeStampT);
 
 
    //----------------------------------------------------------------
@@ -479,7 +485,7 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFD(QByteArray &clDataR)
             //----------------------------------------
             // Test for BRS bit
             //
-            if (tsCanMsgFdT.MSGTYPE & PCAN_MESSAGE_BRS)
+            if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_BRS)
             {
                clCanFrameT.setBitrateSwitch();
             }
@@ -487,7 +493,7 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFD(QByteArray &clDataR)
             //----------------------------------------
             // Test for ESI bit
             //
-            if (tsCanMsgFdT.MSGTYPE & PCAN_MESSAGE_ESI)
+            if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_ESI)
             {
                clCanFrameT.setErrorStateIndicator();
             }
@@ -614,7 +620,7 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::reset()
    //----------------------------------------------------------------
    // reset device
    //
-   if (pclPcanBasicP.reset(uwPCanChannelP) != PCAN_ERROR_OK)
+   if (pclPcanBasicP.pfnCAN_ResetP(uwPCanChannelP) != PCAN_ERROR_OK)
    {
       return eERROR_DEVICE;
    }
@@ -625,9 +631,9 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::reset()
    //
    if (btConnectedP)
    {
-      pclPcanBasicP.unInitialize(uwPCanChannelP);
+      pclPcanBasicP.pfnCAN_UninitializeP(uwPCanChannelP);
 
-      if (pclPcanBasicP.initialize(uwPCanChannelP, uwPCanBitrateP) != PCAN_ERROR_OK)
+      if (pclPcanBasicP.pfnCAN_InitializeP(uwPCanChannelP, uwPCanBitrateP, 0, 0, 0) != PCAN_ERROR_OK)
       {
          return eERROR_DEVICE;
       }
@@ -804,7 +810,7 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slNomBitR
    //----------------------------------------------------------------
    // perform releasing of CAN Interface
    //
-   pclPcanBasicP.unInitialize(uwPCanChannelP);
+   pclPcanBasicP.pfnCAN_UninitializeP(uwPCanChannelP);
 
    if (slDatBitRateV != eCAN_BITRATE_NONE)
    {
@@ -813,12 +819,12 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slNomBitR
 
       #if QCAN_SUPPORT_CAN_FD > 0
       uint8_t ubValueBufT = PCAN_PARAMETER_ON;
-      if (pclPcanBasicP.setValue(uwPCanChannelP,PCAN_BITRATE_ADAPTING,&ubValueBufT,sizeof(ubValueBufT)))
+      if (pclPcanBasicP.pfnCAN_SetValueP(uwPCanChannelP,PCAN_BITRATE_ADAPTING,&ubValueBufT,sizeof(ubValueBufT)))
       {
          qWarning() << "WARNING: Fail to set adaptive bitrate!";
       }
 
-      ulStatusT = pclPcanBasicP.initializeFD(uwPCanChannelP, clTxtBitrateT.data());
+      ulStatusT = pclPcanBasicP.pfnCAN_InitializeFDP(uwPCanChannelP, clTxtBitrateT.data());
       btFdUsedP = true;
 
       #else
@@ -829,7 +835,7 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slNomBitR
    {
       uwPCanBitrateP = uwBtr0Btr1T;
       qDebug() << QString("QCanInterfacePeak::setBitrate(0x" +QString::number(uwPCanChannelP,16)+  ", " + QString::number(uwPCanBitrateP,10)+ ")") << " : Standard Mode";
-      ulStatusT = pclPcanBasicP.initialize(uwPCanChannelP, uwPCanBitrateP);
+      ulStatusT = pclPcanBasicP.pfnCAN_InitializeP(uwPCanChannelP, uwPCanBitrateP, 0, 0, 0);
       btFdUsedP = false;
    }
 
@@ -876,7 +882,7 @@ QCanInterface::InterfaceError_e	QCanInterfacePeak::setMode(const CAN_Mode_e teMo
          clStatisticP.ulTrmCount = 0;
 
          ubValueBufT = 1;
-         if (pclPcanBasicP.setValue(uwPCanChannelP, PCAN_BUSOFF_AUTORESET,&ubValueBufT,sizeof(ubValueBufT)))
+         if (pclPcanBasicP.pfnCAN_SetValueP(uwPCanChannelP, PCAN_BUSOFF_AUTORESET,&ubValueBufT,sizeof(ubValueBufT)))
          {
             qWarning() << "WARNING: Fail to set AutoReset of Device!";
          }
@@ -961,7 +967,7 @@ uint32_t QCanInterfacePeak::supportedFeatures()
       ulFeaturesT = QCAN_IF_SUPPORT_LISTEN_ONLY;
 
       #if QCAN_SUPPORT_CAN_FD > 0
-      TPCANStatus tsStatusT = pclPcanBasicP.getValue(uwPCanChannelP, PCAN_CHANNEL_FEATURES, (void*)&ulBufferT, sizeof(ulBufferT));
+      TPCANStatus tsStatusT = pclPcanBasicP.pfnCAN_GetValueP(uwPCanChannelP, PCAN_CHANNEL_FEATURES, (void*)&ulBufferT, sizeof(ulBufferT));
       if (tsStatusT != PCAN_ERROR_OK)
       {
          qWarning() << QString("QCanInterfacePeak::supportedFeatures(0x" +QString::number(uwPCanChannelP,16)+")") << "PCAN_CHANNEL_FEATURES fail with error:" << pclPcanBasicP.formatedError(tsStatusT);
@@ -1021,7 +1027,7 @@ QCanInterface::InterfaceError_e	QCanInterfacePeak::write(const QCanFrame &clFram
          tsCanMsgT.DATA[slByteCntrT] = clFrameR.data(slByteCntrT);
       }
 
-      ulStatusT = pclPcanBasicP.write(uwPCanChannelP, &tsCanMsgT);
+      ulStatusT = pclPcanBasicP.pfnCAN_WriteP(uwPCanChannelP, &tsCanMsgT);
 
    }
    else
@@ -1047,7 +1053,7 @@ QCanInterface::InterfaceError_e	QCanInterfacePeak::write(const QCanFrame &clFram
          tsCanMsgFdT.DATA[slByteCntrT] = clFrameR.data(slByteCntrT);
       }
 
-      ulStatusT = pclPcanBasicP.writeFD(uwPCanChannelP, &tsCanMsgFdT);
+      ulStatusT = pclPcanBasicP.pfnCAN_WriteFDP(uwPCanChannelP, &tsCanMsgFdT);
       #else
       ulStatusT = 0;
       #endif

@@ -116,12 +116,19 @@ uint8_t QCanPluginPeak::interfaceCount()
    QCanIf_ts      tsCanIfEntryT;
    bool           btIfIsInListT;
 
+   qDebug() << "QCanPluginPeak::interfaceCount()";
+
+   if (!pclPcanBasicP.isAvailable())
+   {
+      return 0;
+   }
+
    //----------------------------------------------------------------
    // remove all not connected devices and add new
    //
    for (uint8_t ubPCanChnT = 0; ubPCanChnT < (uint8_t)auwPCanChannelP.length(); ubPCanChnT++)
    {
-      tsStatusT = pclPcanBasicP.getValue(auwPCanChannelP[ubPCanChnT], PCAN_CHANNEL_CONDITION,
+      tsStatusT = pclPcanBasicP.pfnCAN_GetValueP(auwPCanChannelP[ubPCanChnT], PCAN_CHANNEL_CONDITION,
                                          (void*)&ulParmBufferT, sizeof(ulParmBufferT));
       if (tsStatusT != PCAN_ERROR_OK)
       {
@@ -197,14 +204,15 @@ uint8_t QCanPluginPeak::interfaceCount()
 //----------------------------------------------------------------------------//
 QCanInterface * QCanPluginPeak::getInterface(uint8_t ubInterfaceV)
 {
+   qDebug() << "QCanPluginPeak::getInterface(" + QString::number(ubInterfaceV,10) +")";
    if (ubInterfaceV < atsQCanIfPeakP.length())
    {
-      qInfo() << "QCanPluginPeak::getInterface() INFO: return pointer to interface" << QString::number(ubInterfaceV);
+      qDebug() << "QCanPluginPeak::getInterface() INFO: return pointer to interface" << QString::number(ubInterfaceV);
 
       return (atsQCanIfPeakP.at(ubInterfaceV).pclQCanInterfacePeak);
    }
 
-   qCritical() << "QCanPluginPeak::getInterface() CRITICAL: interface" << QString::number(ubInterfaceV) << "is not available!";
+   qDebug() << "QCanPluginPeak::getInterface() CRITICAL: interface" << QString::number(ubInterfaceV) << "is not available!";
 
    return NULL;
 }
