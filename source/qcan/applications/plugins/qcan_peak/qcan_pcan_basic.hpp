@@ -73,7 +73,7 @@ private:
    // Type definitions of PCANBasic.dll taken from PCANBasic.h
    // (Last Change 24.04.2015)
    //
-   typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_Initialize_tf)     (TPCANHandle uwChannelV, TPCANBaudrate uwBtr0Btr1V);
+   typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_Initialize_tf)     (TPCANHandle uwChannelV, TPCANBaudrate uwBtr0Btr1V, TPCANType ubHwTypeV, DWORD ulIOPortV, WORD uwInterruptV);
    #if QCAN_SUPPORT_CAN_FD > 0
    typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_InitializeFD_tf)   (TPCANHandle uwChannelV, TPCANBitrateFD pszBitrateFDV);
    #endif
@@ -93,6 +93,9 @@ private:
    typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_SetValue_tf)       (TPCANHandle uwChannelV, TPCANParameter ubParameterV, void *pvdBufferV, DWORD ulBufferLengthV);
    typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_GetErrorText_tf)   (TPCANStatus ulErrorV, WORD uwLanguageV, LPSTR pszBufferV);
 
+
+public:
+   ~QCanPcanBasic();
 
    CAN_Initialize_tf      pfnCAN_InitializeP;
    #if QCAN_SUPPORT_CAN_FD > 0
@@ -114,10 +117,6 @@ private:
    CAN_SetValue_tf        pfnCAN_SetValueP;
    CAN_GetErrorText_tf    pfnCAN_GetErrorTextP;
 
-
-public:
-   ~QCanPcanBasic();
-
    // allow only one instance of PCAN Basic
    static QCanPcanBasic & getInstance()
    {
@@ -128,29 +127,6 @@ public:
    // helper functions
    bool isAvailable (void);
    QString formatedError(TPCANStatus tvErrorV);
-
-   // PCAN Basic access functions
-   TPCANStatus initialize     (TPCANHandle uwChannelV, TPCANBaudrate uwBtr0Btr1V);
-   #if QCAN_SUPPORT_CAN_FD > 0
-   TPCANStatus initializeFD   (TPCANHandle uwChannelV, TPCANBitrateFD pszBitrateFDV);
-   #endif
-   TPCANStatus unInitialize   (TPCANHandle uwChannelV);
-   TPCANStatus reset          (TPCANHandle uwChannelV);
-   TPCANStatus getStatus      (TPCANHandle uwChannelV);
-   TPCANStatus read           (TPCANHandle uwChannelV, TPCANMsg *ptsMessageBufferV, TPCANTimestamp *tsTimestampBufferV);
-
-   #if QCAN_SUPPORT_CAN_FD > 0
-   TPCANStatus readFD         (TPCANHandle uwChannelV, TPCANMsgFD *ptsMessageBufferV, TPCANTimestampFD *puqTimestampBufferV);
-   #endif
-   TPCANStatus write          (TPCANHandle uwChannelV, TPCANMsg *ptsMessageBufferV);
-
-   #if QCAN_SUPPORT_CAN_FD > 0
-   TPCANStatus writeFD        (TPCANHandle uwChannelV, TPCANMsgFD *ptsMessageBufferV);
-   #endif
-   TPCANStatus filterMessages (TPCANHandle uwChannelV, DWORD ulFromIDV, DWORD ulToIDV, TPCANMode ubModeV);
-   TPCANStatus getValue       (TPCANHandle uwChannelV, TPCANParameter ubParameterV, void *pvdBufferV, DWORD ulBufferLengthV);
-   TPCANStatus setValue       (TPCANHandle uwChannelV, TPCANParameter ubParameterV, void *pvdBufferV, DWORD ulBufferLengthV);
-   TPCANStatus getErrorText   (TPCANStatus ulErrorV, WORD uwLanguageV, LPSTR pszBufferV);
 };
 
 #endif /*QCAN_PCAN_BASIC_H_*/
