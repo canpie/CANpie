@@ -196,21 +196,31 @@ namespace QCan {
    };
 
    enum CAN_Mode_e {
-      /*!   Set controller in Stop mode (no reception / transmission possible)
-      */
-      eCAN_MODE_STOP = 0,
 
-      /*!   Set controller into normal operation
+      /*!   Set controller into 'Initialization' mode
       */
-      eCAN_MODE_START,
+      eCAN_MODE_INIT = 0,
 
-      /*!   Set controller into listen-only mode
-      */
-      eCAN_MODE_LISTEN_ONLY,
+      eCAN_MODE_STOP = 0,     // deprecated definition
 
-      /*!   Set controller into Sleep mode
+
+      /*!   Set controller into Operation' mode
       */
-      eCAN_MODE_SLEEP
+      eCAN_MODE_OPERATION = 1,
+
+      eCAN_MODE_START = 1,    // deprecated definition
+
+      /*!   Set controller into 'Listen-only' mode
+      */
+      eCAN_MODE_LISTEN_ONLY = 2,
+
+      /*!   Set controller into 'Sleep' (power-down) mode
+      */
+      eCAN_MODE_SLEEP = 3,
+
+      /*!   Set controller into 'Self-test' mode
+      */
+      eCAN_MODE_SELF_TEST = 4
    };
 
    enum LogLevel_e {
