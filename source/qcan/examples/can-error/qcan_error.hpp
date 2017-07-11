@@ -26,8 +26,8 @@
 //                                                                            //
 //============================================================================//
 
-#include <QCoreApplication>
-#include <QCommandlineParser>
+#include <QtCore/QCoreApplication>
+#include <QtCore/QCommandlineParser>
 
 #include <QCanSocket>
 
@@ -60,6 +60,24 @@ private:
    QCanSocket           clCanSocketP;
    uint8_t              ubChannelP;
    
+   //----------------------------------------------------------------
+   // values of receive and transmit error counter
+   //
+   uint8_t              ubRcvErrorCntP;
+   uint8_t              ubTrmErrorCntP;
+
+   //----------------------------------------------------------------
+   // flags for decrementing the receive and transmit error counter
+   //
+   bool                 btDecRcvErrorP;
+   bool                 btDecTrmErrorP;
+
+   //----------------------------------------------------------------
+   // flags for incrementing the receive and transmit error counter
+   //
+   bool                 btIncRcvErrorP;
+   bool                 btIncTrmErrorP;
+
    QCanFrameError       clErrorFrameP;
    uint32_t             ulFrameGapP;
    uint32_t             ulFrameCountP;

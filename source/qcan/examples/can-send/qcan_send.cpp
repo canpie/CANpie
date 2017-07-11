@@ -90,6 +90,7 @@ QCanSend::QCanSend(QObject *parent) :
    //
    pclAppP = QCoreApplication::instance();
 
+   ubChannelP = eCAN_CHANNEL_NONE;
    
    //----------------------------------------------------------------
    // connect signals for socket operations
@@ -169,7 +170,7 @@ void QCanSend::runCmdParser(void)
    // command line option: -g <msec>
    //
    QCommandLineOption clOptGapT("g", 
-         tr("Time gap in milil-seconds between multiple CAN frames"),
+         tr("Time gap in milli-seconds between multiple CAN frames"),
          tr("gap"),
          "10");          // default value
    clCmdParserP.addOption(clOptGapT);

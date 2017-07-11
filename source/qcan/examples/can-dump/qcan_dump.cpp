@@ -32,6 +32,7 @@
 #include <QDebug>
 
 
+
 //----------------------------------------------------------------------------//
 // main()                                                                     //
 //                                                                            //
@@ -40,15 +41,25 @@ int main(int argc, char *argv[])
 {
    QCoreApplication clAppT(argc, argv);
    QCoreApplication::setApplicationName("can-dump");
-   QCoreApplication::setApplicationVersion("1.0");
+   
+   //----------------------------------------------------------------
+   // get application version (defined in .pro file)
+   //
+   QString clVersionT;
+   clVersionT += QString("%1.%2.").arg(VERSION_MAJOR).arg(VERSION_MINOR);
+   clVersionT += QString("%1").arg(VERSION_BUILD);
+   QCoreApplication::setApplicationVersion(clVersionT);
 
 
    //----------------------------------------------------------------
-   // create the main class and connect the signals 'finished()' 
-   // and 'aboutToQuit()'
+   // create the main class
    //
    QCanDump clMainT;
 
+   
+   //----------------------------------------------------------------
+   // connect the signals
+   //
    QObject::connect(&clMainT, SIGNAL(finished()),
                     &clAppT,  SLOT(quit()));
    
@@ -57,8 +68,9 @@ int main(int argc, char *argv[])
 
    
    //----------------------------------------------------------------
-   // Execute command line parser after 10 ms. This will also start 
-   // the messaging engine in QT
+   // This code will start the messaging engine in QT and in 10 ms 
+   // it will start the execution in the clMainT.runCmdParser() 
+   // routine.
    //
    QTimer::singleShot(10, &clMainT, SLOT(runCmdParser()));
 
@@ -157,7 +169,7 @@ void QCanDump::runCmdParser()
    // command line option: -n <count>
    //
    QCommandLineOption clOptCountT("n", 
-         tr("Terminate after receiption of <count> CAN frames"),
+         tr("Terminate after reception of <count> CAN frames"),
          tr("count"));
    clCmdParserP.addOption(clOptCountT);
    
@@ -346,6 +358,13 @@ void QCanDump::socketReceive(uint32_t ulFrameCntV)
                }
                break;
 
+            case QCanData::eTYPE_ERROR:
+               if (clCanErrorT.fromByteArray(clCanDataT) == true)
+               {
+                  clCanStringT = clCanErrorT.toString(btTimeStampP);
+                  fprintf(stderr, "%s\n", qPrintable(clCanStringT));
+               }
+               break;
             default:
 
                break;

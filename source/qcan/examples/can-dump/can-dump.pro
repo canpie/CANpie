@@ -33,10 +33,16 @@ TARGET = can-dump
 #
 DESTDIR = ../../../../bin
 
+#---------------------------------------------------------------
+# Directory for intermediate moc files
+# 
+MOC_DIR = ../../../../objs
+
 #--------------------------------------------------------------------
-# Objects directory
+# Directory for object files
 #
-OBJECTS_DIR = ./objs/
+OBJECTS_DIR = ../../../../objs
+
 
 #---------------------------------------------------------------
 # project configuration and compiler options
@@ -51,12 +57,23 @@ CONFIG += console
 #---------------------------------------------------------------
 # version of the application
 #
-VERSION = 0.82.1
+VERSION_MAJOR = 0
+VERSION_MINOR = 82
+VERSION_BUILD = 1
+
+
+#---------------------------------------------------------------
+# Target version
+#
+VERSION = $${VERSION_MAJOR}.$${VERSION_MINOR}.$${VERSION_BUILD}
+
 
 #---------------------------------------------------------------
 # definitions for preprocessor
 #
-DEFINES =  
+DEFINES += "VERSION_MAJOR=$$VERSION_MAJOR"\
+           "VERSION_MINOR=$$VERSION_MINOR"\
+           "VERSION_BUILD=$$VERSION_BUILD"
 
 #---------------------------------------------------------------
 # UI files
@@ -77,14 +94,12 @@ INCLUDEPATH  = .
 INCLUDEPATH += ./../../
 INCLUDEPATH += ./../../../qcan
 
-
 #---------------------------------------------------------------
 # search path for source files
 #
 VPATH  = .
 VPATH += ./../..
 VPATH += ./../../../qcan
-
 
 #---------------------------------------------------------------
 # header files of project 

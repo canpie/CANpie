@@ -26,8 +26,8 @@
 //                                                                            //
 //============================================================================//
 
-#include <QCoreApplication>
-#include <QCommandlineParser>
+#include <QtCore/QCoreApplication>
+#include <QtCore/QCommandlineParser>
 
 #include <QCanSocket>
 
