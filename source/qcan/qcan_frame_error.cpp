@@ -192,16 +192,23 @@ QString QCanFrameError::toString(const bool & btShowTimeR)
    //
    QString clStringT;
    
+   uint32_t ulSecondsT = 0;
+   uint32_t ulNanoSecT = 0;
+
+
    if(btShowTimeR == true)
    {
-      
+      ulSecondsT = this->timeStamp().seconds();
+      ulNanoSecT = this->timeStamp().nanoSeconds();
+      ulNanoSecT = ulNanoSecT / 10000;
+      clStringT = QString("%1.%2 ").arg(ulSecondsT, 5, 10).arg(ulNanoSecT, 5, 10, QChar('0'));
    }
    
 
    //----------------------------------------------------------------
    // print frame format
    //
-   clStringT += "CAN error frame   ";
+   clStringT += "   Error frame  :  ";
 
    switch(this->errorState())
    {
@@ -226,6 +233,36 @@ QString QCanFrameError::toString(const bool & btShowTimeR)
          break;
    }
    
+   clStringT += QString(" (Rx=%1, Tx=%2) ").arg(errorCounterReceive()).arg(errorCounterTransmit());
+
+   switch(this->errorType())
+   {
+      case eERROR_TYPE_NONE:
+
+         break;
+
+      case eERROR_TYPE_BIT0:
+      case eERROR_TYPE_BIT1:
+         clStringT += ", bit error";
+         break;
+
+      case eERROR_TYPE_STUFF:
+         clStringT += ", stuff error";
+         break;
+
+      case eERROR_TYPE_FORM:
+         clStringT += ", form error";
+         break;
+
+      case eERROR_TYPE_CRC:
+         clStringT += ", CRC error";
+         break;
+
+      case eERROR_TYPE_ACK:
+         clStringT += ", acknowledgement error";
+         break;
+
+   }
    return(clStringT);
 }
       

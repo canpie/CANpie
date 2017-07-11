@@ -177,6 +177,23 @@ public:
    */
    void setErrorType(ErrorType_e ubTypeV);
 
+   /*!
+   ** \param[in]  clTimeStampR    Time-stamp
+   ** \see        timeStamp()
+   **
+   ** The function sets the time-stamp of the CAN frame.
+   */
+   inline void  setTimeStamp(const QCanTimeStamp & clTimeStampR)       \
+                     { clMsgTimeP = clTimeStampR; };
+
+   /*!
+   ** \return     Time-stamp
+   ** \see        setTimeStamp()
+   **
+   ** The function returns the time-stamp value of the CAN frame.
+   */
+   inline QCanTimeStamp timeStamp(void) const { return clMsgTimeP; };
+
    bool       fromByteArray(const QByteArray & clByteArrayR);
    QByteArray toByteArray() const;
    virtual QString   toString(const bool & btShowTimeR = false);
