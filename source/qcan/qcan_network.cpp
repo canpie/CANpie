@@ -253,7 +253,7 @@ bool QCanNetwork::addInterface(QCanInterface * pclCanIfV)
       {
          if (pclCanIfV->setBitrate(slNomBitRateP, slDatBitRateP) == QCanInterface::eERROR_NONE)
          {
-            if (pclCanIfV->setMode(eCAN_MODE_START) == QCanInterface::eERROR_NONE)
+            if (pclCanIfV->setMode(eCAN_MODE_OPERATION) == QCanInterface::eERROR_NONE)
             {
                pclInterfaceP = pclCanIfV;
                btResultT = true;
@@ -524,13 +524,12 @@ bool  QCanNetwork::handleApiFrame(int32_t & slSockSrcR,
             break;
 
          case QCanFrameApi::eAPI_FUNC_BITRATE:
-            qDebug() << "Got bitrate setting" << clApiFrameT.bitrateNominal();
-            this->setBitrate( clApiFrameT.bitrateNominal(), 
-                              clApiFrameT.bitrateData());
-            if(!pclInterfaceP.isNull())
+            this->setBitrate( clApiFrameT.nominalBitrate(),
+                              clApiFrameT.dataBitrate());
+            if (!pclInterfaceP.isNull())
             {
-               //pclInterfaceP->setBitrate( clApiFrameT.bitrate(),
-               //                           clApiFrameT.brsClock());
+               pclInterfaceP->setBitrate( clApiFrameT.nominalBitrate(),
+                                          clApiFrameT.dataBitrate());
             }
             btResultT = true;
             break;
@@ -539,13 +538,6 @@ bool  QCanNetwork::handleApiFrame(int32_t & slSockSrcR,
 
             break;
 
-         case QCanFrameApi::eAPI_FUNC_DRIVER_INIT:
-
-            break;
-
-         case QCanFrameApi::eAPI_FUNC_DRIVER_RELEASE:
-
-            break;
 
 
          default:
@@ -790,8 +782,18 @@ void QCanNetwork::onSocketConnect(void)
             SLOT(onSocketDisconnect())   );
    
    //----------------------------------------------------------------
-   // 
-   clFrameApiT.setName(clNetNameP);
+   // Send information to client:
+   // - interface name
+   // - actual bit-rate
+   //
+   if (!pclInterfaceP.isNull())
+   {
+      clFrameApiT.setName(pclInterfaceP->name());
+   }
+   else
+   {
+      clFrameApiT.setName("Virtual CAN");
+   }
    pclSocketT->write(clFrameApiT.toByteArray());
    clFrameApiT.setBitrate(slNomBitRateP, slDatBitRateP);
    pclSocketT->write(clFrameApiT.toByteArray());
@@ -1099,9 +1101,9 @@ void QCanNetwork::setBitrate(int32_t slNomBitRateV, int32_t slDatBitRateV)
       //
       if(!pclInterfaceP.isNull())
       {
-         pclInterfaceP->setMode(eCAN_MODE_STOP);
+         pclInterfaceP->setMode(eCAN_MODE_INIT);
          pclInterfaceP->setBitrate(slNomBitRateP, slDatBitRateP);
-         pclInterfaceP->setMode(eCAN_MODE_START);
+         pclInterfaceP->setMode(eCAN_MODE_OPERATION);
       }
 
       //--------------------------------------------------------
