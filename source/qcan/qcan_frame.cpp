@@ -677,7 +677,7 @@ QString QCanFrame::toString(const bool & btShowTimeR)
    //----------------------------------------------------------------
    // setup a string object
    //
-   QString clStringT; //(QCAN_FRAME_STRING_SIZE, '\0');
+   QString clStringT;
    uint32_t ulSecondsT = 0;
    uint32_t ulNanoSecT = 0;
    
