@@ -54,7 +54,7 @@
 //----------------------------------------------------------------------------//
 QCanFrameApi::QCanFrameApi() : QCanData(eTYPE_API)
 {
-
+   ulMsgMarkerP = QCanFrameApi::eAPI_FUNC_NONE;
 }
 
 
@@ -68,34 +68,38 @@ QCanFrameApi::~QCanFrameApi()
 }
 
 
-
 //----------------------------------------------------------------------------//
-// bitrate()                                                                  //
-// get bit-rate value (byte 0 .. 3)                                           //
+// dataBitrate()                                                              //
+//                                                                            //
 //----------------------------------------------------------------------------//
-bool QCanFrameApi::bitrate(int32_t & slNomBitRateV, int32_t & slDatBitRateV)
+int32_t QCanFrameApi::dataBitrate(void)
 {
-   bool  btResultT = false;
+   int32_t slBitrateT = eCAN_BITRATE_NONE;
 
-   if(ulMsgMarkerP == QCanFrameApi::eAPI_FUNC_BITRATE)
+   if (ulMsgMarkerP == QCanFrameApi::eAPI_FUNC_BITRATE)
    {
-      slNomBitRateV = dataUInt32(0);
-      slDatBitRateV = dataUInt32(4);
-      btResultT = true;
+      slBitrateT = dataUInt32(4);
    }
 
-   return(btResultT);
+   return (slBitrateT);
 }
 
-int32_t QCanFrameApi::bitrateData(void)
+//----------------------------------------------------------------------------//
+// nominalBitrate()                                                           //
+//                                                                            //
+//----------------------------------------------------------------------------//
+int32_t QCanFrameApi::nominalBitrate(void)
 {
-   return (dataUInt32(4));
+   int32_t slBitrateT = eCAN_BITRATE_NONE;
+
+   if (ulMsgMarkerP == QCanFrameApi::eAPI_FUNC_BITRATE)
+   {
+      slBitrateT = dataUInt32(0);
+   }
+
+   return (slBitrateT);
 }
 
-int32_t QCanFrameApi::bitrateNominal(void)
-{
-   return (dataUInt32(0));
-}
 
 //----------------------------------------------------------------------------//
 // function()                                                                 //
@@ -117,22 +121,21 @@ CAN_Mode_e QCanFrameApi::mode(void)
    return((CAN_Mode_e ) aubByteP[0]);
 }
 
-bool QCanFrameApi::name(QString & clNameR)
+QString QCanFrameApi::name(void)
 {
-   bool     btResultT = false;
+   QString  clNameT;
    uint8_t  ubPosT;
 
    if(ulMsgMarkerP == QCanFrameApi::eAPI_FUNC_NAME)
    {
-      clNameR.clear();
+      clNameT.clear();
       for (ubPosT = 0; ubPosT < ubMsgDlcP; ubPosT++)
       {
-         clNameR.append(aubByteP[ubPosT]);
+         clNameT.append(aubByteP[ubPosT]);
       }
-      btResultT = true;
    }
 
-   return (btResultT);
+   return (clNameT);
 }
 
 
@@ -159,16 +162,6 @@ void QCanFrameApi::setMode(CAN_Mode_e teModeV)
 }
 
 
-void QCanFrameApi::setDriverInit()
-{
-   ulMsgMarkerP = QCanFrameApi::eAPI_FUNC_DRIVER_INIT;
-
-}
-void QCanFrameApi::setDriverRelease()
-{
-   ulMsgMarkerP = QCanFrameApi::eAPI_FUNC_DRIVER_RELEASE;
-
-}
 
 void QCanFrameApi::setName(QString clNameV)
 {
@@ -243,10 +236,7 @@ QString QCanFrameApi::toString(const bool & btShowTimeR)
    //
    QString clStringT; 
    
-   if(btShowTimeR == true)
-   {
-      
-   }
+
    
    
 
@@ -256,11 +246,51 @@ QString QCanFrameApi::toString(const bool & btShowTimeR)
    switch(function())
    {
       case eAPI_FUNC_BITRATE:
-         clStringT = "Bit-rate:";
+         clStringT = "Nominal bit-rate: ";
+         if (nominalBitrate() == eCAN_BITRATE_NONE)
+         {
+            clStringT += "None";
+         }
+         else
+         {
+            if (nominalBitrate() < 1000000)
+            {
+               //------------------------------------------------
+               // print values < 1000000 in kBit/s
+               //
+               clStringT += QString("%1 kBit/s").arg(nominalBitrate() / 1000);
+            }
+            else
+            {
+               //------------------------------------------------
+               // print values >= 1000000 in MBit/s
+               //
+               clStringT += QString("%1 MBit/s").arg(nominalBitrate() / 1000000);
+            }
+         }
+
+         if (dataBitrate() != eCAN_BITRATE_NONE)
+         {
+            clStringT += ", Data bit-rate: ";
+            if (dataBitrate() < 1000000)
+            {
+               //------------------------------------------------
+               // print values < 1000000 in kBit/s
+               //
+               clStringT += QString("%1 kBit/s").arg(dataBitrate() / 1000);
+            }
+            else
+            {
+               //------------------------------------------------
+               // print values >= 1000000 in MBit/s
+               //
+               clStringT += QString("%1 MBit/s").arg(dataBitrate() / 1000000);
+            }
+         }
          break;
 
       case eAPI_FUNC_NAME:
-         name(clStringT);
+         clStringT = name();
          break;
          
       default:
