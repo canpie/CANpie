@@ -27,11 +27,15 @@
 //============================================================================//
 
 
+//------------------------------------------------------------------------------
+// $Author$
+// $Date$
+// $Rev$
+//------------------------------------------------------------------------------
+
 
 #ifndef  COMPILER_H_
 #define  COMPILER_H_
-
-
 
 
 //-----------------------------------------------------------------------------
@@ -225,6 +229,7 @@ typedef  bool                 bool_t;
 #ifdef  __arm__
 #ifndef __linux__
 
+#include <stdbool.h>
 #include <stdint.h>           // data types uint8_t ... uint64_t
 
 #define  CPP_CONST            const
@@ -344,6 +349,7 @@ typedef  uint8_t              bool_t;
 #ifdef __KERNEL__
 #include <linux/types.h>   // data types uint8_t ... uint32_t, kernel space
 #else
+#include <stdbool.h>       // data type bool, user space
 #include <stdint.h>        // data types uint8_t ... uint32_t, user space
 #endif
 
@@ -612,10 +618,19 @@ typedef  long                 int32_t;
 #define  CPP_CONST
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE
+#define  CPP_NULL             (void *) 0
 #define  CPP_PACK
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
 #endif
+
+//--------------------------------------------------------------
+// Keil-C does not support the C99 standard, so the keywords
+// are defined here
+//
+#define  inline
+#define  true                 1
+#define  false                0
 
 typedef  signed short         Status_tv;
 
@@ -853,6 +868,34 @@ typedef  long                 int32_t;
 // Renesas NC30 compiler for R8C and M16C controller
 //
 #ifdef NC30
+
+#define  CPP_CONST
+#define  CPP_DATA_SIZE        32
+#define  CPP_INLINE
+#define  CPP_PACK
+#ifndef  CPP_PARM_UNUSED
+#define  CPP_PARM_UNUSED(x)   x
+#endif
+
+typedef  short                Status_tv;
+
+typedef  unsigned char        bool_t;
+typedef  unsigned char        uint8_t;
+typedef  signed char          int8_t;
+typedef  unsigned short       uint16_t;
+typedef  short                int16_t;
+typedef  unsigned long        uint32_t;
+typedef  long                 int32_t;
+
+
+#endif
+// End of definition:  NC30
+//--------------------------------------------------------------------
+
+//--------------------------------------------------------------------
+// Renesas NC30 compiler for R8C and M16C controller
+//
+#ifdef __ICCRL78__
 
 #define  CPP_CONST
 #define  CPP_DATA_SIZE        32
