@@ -35,20 +35,27 @@
 //-----------------------------------------------------------------------------
 /*!
 ** \file    cp_fifo.h
-** \brief   Definitions and prototypes for FIFO implementation
+** \brief   CANpie FIFO functions
 **
 ** A CAN message FIFO can be assigned to every message message buffer
-** by calling CpCoreFifoConfig(). This file defines the structure of 
+** by calling CpCoreFifoConfig(). This file defines the structure of
 ** a CAN message FIFO (CpFifo_s) and inline functions to access the
 ** FIFO.
 */
 
 /*----------------------------------------------------------------------------*\
-** Includes                                                                   **
+** Include files                                                              **
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
 #include "canpie.h"
+
+//-------------------------------------------------------------------//
+// take precautions if compiled with C++ compiler                    //
+#ifdef __cplusplus                                                   //
+extern "C" {                                                         //
+#endif                                                               //
+//-------------------------------------------------------------------//
 
 /*----------------------------------------------------------------------------*\
 ** Definitions                                                                **
@@ -72,7 +79,8 @@
 **
 ** This structure is initialised by CpFifoInit().
 */
-struct CpFifo_s {
+struct CpFifo_s
+{
    /*! Index where the last data has been written to
    */
    uint32_t  ulIndexIn;
@@ -88,7 +96,7 @@ struct CpFifo_s {
    /*!
    ** Pointer to CAN message buffer
    */
-   CpCanMsg_ts * ptsCanMsg;
+   CpCanMsg_ts *ptsCanMsg;
 };
 /*!
 ** \typedef    CpFifo_ts
@@ -106,16 +114,16 @@ typedef struct CpFifo_s CpFifo_ts;
 ** \return  Pointer to CAN message
 **
 ** This function returns a pointer to the next free CAN message entry
-** inside the FIFO. Please make sure to call CpFifoIsFull() in advance. 
+** inside the FIFO. Please make sure to call CpFifoIsFull() in advance.
 ** After writing to the FIFO the index has to adjusted by calling
-** CpFifoIncIn(), like shown in this code example:  
+** CpFifoIncIn(), like shown in this code example:
 **
 ** \code
 **
 ** static CpFifo_ts  tsCanFifoS;
 ** CpCanMsg_ts *     ptsCanNewMsgT;
 ** CpCanMsg_ts *     ptsCanInEntryT;
-** 
+**
 **
 **
 ** if (!(CpFifoIsFull(&tsCanFifoS)))
@@ -128,7 +136,7 @@ typedef struct CpFifo_s CpFifo_ts;
 ** }
 ** \endcode
 */
-CpCanMsg_ts * CpFifoDataInPtr(CpFifo_ts * ptsFifoV);
+CpCanMsg_ts *CpFifoDataInPtr(CpFifo_ts *ptsFifoV);
 
 
 /*!
@@ -137,16 +145,16 @@ CpCanMsg_ts * CpFifoDataInPtr(CpFifo_ts * ptsFifoV);
 ** \return  Pointer to CAN message
 **
 ** This function returns a pointer to the first CAN message entry
-** inside the FIFO. Please make sure to call CpFifoIsEmpty() in advance. 
+** inside the FIFO. Please make sure to call CpFifoIsEmpty() in advance.
 ** After reading from the FIFO the index has to adjusted by calling
-** CpFifoIncOut(), like shown in this code example:  
+** CpFifoIncOut(), like shown in this code example:
 **
 ** \code
 **
 ** static CpFifo_ts  tsCanFifoS;
 ** CpCanMsg_ts *     ptsCanNewMsgT;
 ** CpCanMsg_ts *     ptsCanOutEntryT;
-** 
+**
 **
 **
 ** if (!(CpFifoIsEmpty(&tsCanFifoS)))
@@ -159,7 +167,7 @@ CpCanMsg_ts * CpFifoDataInPtr(CpFifo_ts * ptsFifoV);
 ** }
 ** \endcode
 */
-CpCanMsg_ts * CpFifoDataOutPtr(CpFifo_ts * ptsFifoV);
+CpCanMsg_ts *CpFifoDataOutPtr(CpFifo_ts *ptsFifoV);
 
 
 /*!
@@ -167,9 +175,9 @@ CpCanMsg_ts * CpFifoDataOutPtr(CpFifo_ts * ptsFifoV);
 ** \param   ptsFifoV - Pointer to CAN message FIFO
 **
 ** This function increments the CpFifo_ts::ulIndexIn element of the
-** CAN message FIFO.  
+** CAN message FIFO.
 */
-void CpFifoIncIn(CpFifo_ts * ptsFifoV);
+void CpFifoIncIn(CpFifo_ts *ptsFifoV);
 
 
 /*!
@@ -177,9 +185,9 @@ void CpFifoIncIn(CpFifo_ts * ptsFifoV);
 ** \param   ptsFifoV - Pointer to CAN message FIFO
 **
 ** This function increments the CpFifo_ts::ulIndexOut element of the
-** CAN message FIFO.  
+** CAN message FIFO.
 */
-void CpFifoIncOut(CpFifo_ts * ptsFifoV);
+void CpFifoIncOut(CpFifo_ts *ptsFifoV);
 
 
 /*!
@@ -187,8 +195,8 @@ void CpFifoIncOut(CpFifo_ts * ptsFifoV);
 ** \param   ptsFifoV - Pointer to CAN message FIFO
 ** \param   ptsCanMsgV - Pointer to array of CAN messages
 ** \param   ulSizeV - Size if CAN message array
-** 
-** This function initialises a CA message FIFO. The paramter 
+**
+** This function initialises a CA message FIFO. The paramter
 ** \a ptsCanMsgV points to an array of CpCanMsg_ts elements.
 ** The number of messages which can be stored inside the array
 ** is determined by the paramter \a ulSizeV.
@@ -199,13 +207,13 @@ void CpFifoIncOut(CpFifo_ts * ptsFifoV);
 ** #define NUMBER_OF_FIFO_ENTRIES   20
 ** static CpFifo_ts     tsCanFifoS;
 ** static CpCanMsg_ts   atsCanMsgS[NUMBER_OF_FIFO_ENTRIES];
-** 
+**
 ** CpFifoInit(&tsCanFifoS, &atsCanMsgS, NUMBER_OF_FIFO_ENTRIES);
 **
 ** \endcode
 **
 */
-void CpFifoInit(CpFifo_ts * ptsFifoV, CpCanMsg_ts * ptsCanMsgV, 
+void CpFifoInit(CpFifo_ts *ptsFifoV, CpCanMsg_ts *ptsCanMsgV,
                 uint32_t ulSizeV);
 
 
@@ -215,9 +223,9 @@ void CpFifoInit(CpFifo_ts * ptsFifoV, CpCanMsg_ts * ptsCanMsgV,
 ** \return  true if FIFO is empty, otherwise false
 **
 ** The function returns \a true if the FIFO is empty, otherwise it will
-** return \a false. 
+** return \a false.
 */
-bool_t CpFifoIsEmpty(CpFifo_ts * ptsFifoV);
+bool_t CpFifoIsEmpty(CpFifo_ts *ptsFifoV);
 
 
 
@@ -227,10 +235,10 @@ bool_t CpFifoIsEmpty(CpFifo_ts * ptsFifoV);
 ** \return  true if FIFO is full, otherwise false
 **
 ** The function returns \a true if the FIFO is full, otherwise it will
-** return \a false. 
+** return \a false.
 **
 */
-bool_t CpFifoIsFull(CpFifo_ts * ptsFifoV);
+bool_t CpFifoIsFull(CpFifo_ts *ptsFifoV);
 
 
 
@@ -281,6 +289,13 @@ bool_t CpFifoIsFull(CpFifo_ts * ptsFifoV);
          } while (0)
 #endif
 
+
+//-------------------------------------------------------------------//
+#ifdef __cplusplus                                                   //
+}                                                                    //
+#endif                                                               //
+// end of C++ compiler wrapper                                       //
+//-------------------------------------------------------------------//
 
 
 #endif   // CP_FIFO_H_

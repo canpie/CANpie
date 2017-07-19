@@ -47,7 +47,7 @@
 // CpFifoDataInPtr()                                                          //
 //                                                                            //
 //----------------------------------------------------------------------------//
-inline CpCanMsg_ts * CpFifoDataInPtr(CpFifo_ts * ptsFifoV)
+inline CpCanMsg_ts *CpFifoDataInPtr(CpFifo_ts *ptsFifoV)
 {
    //----------------------------------------------------------------
    // allow pointer arithmetic here, because index is limited
@@ -64,7 +64,7 @@ inline CpCanMsg_ts * CpFifoDataInPtr(CpFifo_ts * ptsFifoV)
 // CpFifoDataOutPtr()                                                         //
 //                                                                            //
 //----------------------------------------------------------------------------//
-inline CpCanMsg_ts * CpFifoDataOutPtr(CpFifo_ts * ptsFifoV)
+inline CpCanMsg_ts *CpFifoDataOutPtr(CpFifo_ts *ptsFifoV)
 {
    //----------------------------------------------------------------
    // allow pointer arithmetic here, because index is limited
@@ -81,10 +81,10 @@ inline CpCanMsg_ts * CpFifoDataOutPtr(CpFifo_ts * ptsFifoV)
 // CpFifoIncIn()                                                              //
 //                                                                            //
 //----------------------------------------------------------------------------//
-inline void CpFifoIncIn(CpFifo_ts * ptsFifoV)
+inline void CpFifoIncIn(CpFifo_ts *ptsFifoV)
 {
    ptsFifoV->ulIndexIn++;
-   if ( (ptsFifoV->ulIndexIn) >= (ptsFifoV->ulIndexMax) )
+   if ((ptsFifoV->ulIndexIn) >= (ptsFifoV->ulIndexMax))
    {
       ptsFifoV->ulIndexIn = 0;
    }
@@ -95,10 +95,10 @@ inline void CpFifoIncIn(CpFifo_ts * ptsFifoV)
 // CpFifoIncOut()                                                             //
 //                                                                            //
 //----------------------------------------------------------------------------//
-inline void CpFifoIncOut(CpFifo_ts * ptsFifoV)
+inline void CpFifoIncOut(CpFifo_ts *ptsFifoV)
 {
    ptsFifoV->ulIndexOut++;
-   if ( (ptsFifoV->ulIndexOut) >= (ptsFifoV->ulIndexMax) )
+   if ((ptsFifoV->ulIndexOut) >= (ptsFifoV->ulIndexMax))
    {
       ptsFifoV->ulIndexOut = 0;
    }
@@ -109,8 +109,8 @@ inline void CpFifoIncOut(CpFifo_ts * ptsFifoV)
 // CpFifoInit()                                                               //
 //                                                                            //
 //----------------------------------------------------------------------------//
-inline void CpFifoInit( CpFifo_ts * ptsFifoV, CpCanMsg_ts * ptsCanMsgV, 
-                        uint32_t ulSizeV)
+inline void CpFifoInit(CpFifo_ts *ptsFifoV, CpCanMsg_ts *ptsCanMsgV,
+                       uint32_t ulSizeV)
 {
    ptsFifoV->ulIndexIn  = 0;
    ptsFifoV->ulIndexOut = 0;
@@ -125,15 +125,15 @@ inline void CpFifoInit( CpFifo_ts * ptsFifoV, CpCanMsg_ts * ptsCanMsgV,
 // CpFifoIsEmpty()                                                            //
 //                                                                            //
 //----------------------------------------------------------------------------//
-inline bool_t CpFifoIsEmpty(CpFifo_ts * ptsFifoV)
+inline bool_t CpFifoIsEmpty(CpFifo_ts *ptsFifoV)
 {
    bool_t btResultT = false;
-   
+
    if ((ptsFifoV->ulIndexIn) == (ptsFifoV->ulIndexOut))
    {
       btResultT = true;
    }
-   
+
    return (btResultT);
 }
 
@@ -142,17 +142,17 @@ inline bool_t CpFifoIsEmpty(CpFifo_ts * ptsFifoV)
 // CpFifoIsFull()                                                             //
 //                                                                            //
 //----------------------------------------------------------------------------//
-inline bool_t CpFifoIsFull(CpFifo_ts * ptsFifoV)
+inline bool_t CpFifoIsFull(CpFifo_ts *ptsFifoV)
 {
    bool_t btResultT = false;
 
-   if (   ((ptsFifoV->ulIndexIn + 1) == (ptsFifoV->ulIndexOut)) ||
-        ( ((ptsFifoV->ulIndexOut) == 0) && 
-          ((ptsFifoV->ulIndexIn + 1) == ptsFifoV->ulIndexMax) ) )
+   if (((ptsFifoV->ulIndexIn + 1) == (ptsFifoV->ulIndexOut)) ||
+         (((ptsFifoV->ulIndexOut) == 0) &&
+          ((ptsFifoV->ulIndexIn + 1) == ptsFifoV->ulIndexMax)))
    {
       btResultT = true;
    }
-   
+
    return (btResultT);
-   
+
 }
