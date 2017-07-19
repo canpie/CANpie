@@ -231,13 +231,14 @@ QByteArray QCanFrameApi::toByteArray() const
 //----------------------------------------------------------------------------//
 QString QCanFrameApi::toString(const bool & btShowTimeR)
 {
+
+   Q_UNUSED(btShowTimeR);
+
+
    //----------------------------------------------------------------
    // setup a string object
    //
    QString clStringT; 
-   
-
-   
    
 
    //----------------------------------------------------------------
