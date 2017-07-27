@@ -524,13 +524,14 @@ bool  QCanNetwork::handleApiFrame(int32_t & slSockSrcR,
             break;
 
          case QCanFrameApi::eAPI_FUNC_BITRATE:
+
             this->setBitrate( clApiFrameT.nominalBitrate(),
                               clApiFrameT.dataBitrate());
-            if (!pclInterfaceP.isNull())
-            {
-               pclInterfaceP->setBitrate( clApiFrameT.nominalBitrate(),
-                                          clApiFrameT.dataBitrate());
-            }
+//            if (!pclInterfaceP.isNull())
+//            {
+//               pclInterfaceP->setBitrate( clApiFrameT.nominalBitrate(),
+//                                          clApiFrameT.dataBitrate());
+//            }
             btResultT = true;
             break;
 
@@ -870,7 +871,7 @@ void QCanNetwork::onTimerEvent(void)
    if(pclInterfaceP.isNull() == false)
    {
       slSockIdxT = QCAN_SOCKET_CAN_IF;
-      while(pclInterfaceP->read(clSockDataT) != QCanInterface::eERROR_FIFO_RCV_EMPTY)
+      while(pclInterfaceP->read(clSockDataT) == QCanInterface::eERROR_NONE)
       {
          switch(frameType(clSockDataT))
          {
@@ -960,7 +961,9 @@ void QCanNetwork::onTimerEvent(void)
                break;         
                
             default:
-               
+               addLogMessage(CAN_Channel_e (id()), "Wrong message type",
+                             eLOG_LEVEL_DEBUG);
+
                break;
          }
       }
@@ -1112,14 +1115,14 @@ void QCanNetwork::setBitrate(int32_t slNomBitRateV, int32_t slDatBitRateV)
       if (btFastDataEnabledP)
       {
          addLogMessage(CAN_Channel_e (id()),
-                       "Set bit-rate " + nominalBitrateString(),
+                       "Set nominal bit-rate " + nominalBitrateString() +
+                       " and data bit-rate " + dataBitrateString(),
                        eLOG_LEVEL_NOTICE);
       }
       else
       {
          addLogMessage(CAN_Channel_e (id()),
-                       "Set nominal bit-rate " + nominalBitrateString() +
-                       " and data bit-rate " + dataBitrateString(),
+                       "Set bit-rate " + nominalBitrateString(),
                        eLOG_LEVEL_NOTICE);
       }
    }
@@ -1154,6 +1157,18 @@ void QCanNetwork::setErrorFramesEnabled(bool btEnableV)
    {
       btErrorFramesEnabledP = false;
    }
+
+   if (btErrorFramesEnabledP)
+   {
+      addLogMessage(CAN_Channel_e (id()), "CAN error frame support enabled",
+                    eLOG_LEVEL_NOTICE);
+   }
+   else
+   {
+      addLogMessage(CAN_Channel_e (id()), "CAN error frame support disabled",
+                    eLOG_LEVEL_NOTICE);
+   }
+
 }
 
 
@@ -1170,6 +1185,17 @@ void QCanNetwork::setFastDataEnabled(bool btEnableV)
    else
    {
       btFastDataEnabledP = false;
+   }
+
+   if (btFastDataEnabledP)
+   {
+      addLogMessage(CAN_Channel_e (id()), "CAN FD support enabled",
+                    eLOG_LEVEL_NOTICE);
+   }
+   else
+   {
+      addLogMessage(CAN_Channel_e (id()), "CAN FD support disabled",
+                    eLOG_LEVEL_NOTICE);
    }
 }
 
