@@ -54,7 +54,10 @@
 //----------------------------------------------------------------------------//
 QCanFrameError::QCanFrameError() : QCanData(eTYPE_ERROR)
 {
-
+   setErrorState(eCAN_STATE_BUS_ACTIVE);
+   setErrorCounterReceive(0);
+   setErrorCounterTransmit(0);
+   setErrorType(eERROR_TYPE_NONE);
 }
 
 
