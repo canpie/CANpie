@@ -78,6 +78,8 @@ private:
    bool                 btIncRcvErrorP;
    bool                 btIncTrmErrorP;
 
+   QCanFrameError::ErrorType_e   teErrorTypeP;
+
    QCanFrameError       clErrorFrameP;
    uint32_t             ulFrameGapP;
    uint32_t             ulFrameCountP;

@@ -108,6 +108,8 @@ QCanError::QCanError(QObject *parent) :
    ulFrameGapP   = 0;
    ulFrameCountP = 0;
 
+   teErrorTypeP  = QCanFrameError::eERROR_TYPE_NONE;
+
    //----------------------------------------------------------------
    // connect signals for socket operations
    //
@@ -165,6 +167,15 @@ void QCanError::runCmdParser(void)
                                       tr("CAN interface, e.g. can1"));
 
    
+   //-----------------------------------------------------------
+   // command line option: -e <type>
+   //
+   QCommandLineOption clOptErrTypeT("e",
+         tr("Set error type to [NONE|BIT0|BIT1|STUFF|FORM|CRC|ACK]"),
+         tr("type"),
+         "NONE");       // default value
+   clCmdParserP.addOption(clOptErrTypeT);
+
    //-----------------------------------------------------------
    // command line option: -g <msec>
    //
@@ -265,6 +276,45 @@ void QCanError::runCmdParser(void)
    ubChannelP = (uint8_t) (slChannelT);
 
    //----------------------------------------------------------------
+   // get error type
+   //
+   if (clCmdParserP.value(clOptErrTypeT).contains("NONE", Qt::CaseInsensitive))
+   {
+      teErrorTypeP = QCanFrameError::eERROR_TYPE_NONE;
+   }
+   else if (clCmdParserP.value(clOptErrTypeT).contains("BIT0", Qt::CaseInsensitive))
+   {
+      teErrorTypeP = QCanFrameError::eERROR_TYPE_BIT0;
+   }
+   else if (clCmdParserP.value(clOptErrTypeT).contains("BIT1", Qt::CaseInsensitive))
+   {
+      teErrorTypeP = QCanFrameError::eERROR_TYPE_BIT1;
+   }
+   else if (clCmdParserP.value(clOptErrTypeT).contains("STUFF", Qt::CaseInsensitive))
+   {
+      teErrorTypeP = QCanFrameError::eERROR_TYPE_STUFF;
+   }
+   else if (clCmdParserP.value(clOptErrTypeT).contains("FORM", Qt::CaseInsensitive))
+   {
+      teErrorTypeP = QCanFrameError::eERROR_TYPE_FORM;
+   }
+   else if (clCmdParserP.value(clOptErrTypeT).contains("CRC", Qt::CaseInsensitive))
+   {
+      teErrorTypeP = QCanFrameError::eERROR_TYPE_CRC;
+   }
+   else if (clCmdParserP.value(clOptErrTypeT).contains("ACK", Qt::CaseInsensitive))
+   {
+      teErrorTypeP = QCanFrameError::eERROR_TYPE_ACK;
+   }
+   else
+   {
+      fprintf(stderr, "%s \n\n",
+              qPrintable(tr("Error: Unknown option for error type.")));
+      clCmdParserP.showHelp(0);
+   }
+
+
+   //----------------------------------------------------------------
    // get receive error counter
    //
    ubRcvErrorCntP = clCmdParserP.value(clOptRcvErrCountT).toInt(Q_NULLPTR, 10);
@@ -272,7 +322,7 @@ void QCanError::runCmdParser(void)
    //----------------------------------------------------------------
    // get transmit error counter
    //
-   ubTrmErrorCntP = clCmdParserP.value(clOptRcvErrCountT).toInt(Q_NULLPTR, 10);
+   ubTrmErrorCntP = clCmdParserP.value(clOptTrmErrCountT).toInt(Q_NULLPTR, 10);
 
    //----------------------------------------------------------------
    // get number of frames to send
@@ -312,7 +362,7 @@ void QCanError::sendErrorFrame(void)
    
    clSystemTimeT = QTime::currentTime();
    clCanTimeT.fromMilliSeconds(clSystemTimeT.msec());
-   
+   clErrorFrameP.setTimeStamp(clCanTimeT);
    clCanSocketP.writeFrame(clErrorFrameP);
    
    if (ulFrameCountP > 1)
@@ -337,10 +387,30 @@ void QCanError::sendErrorFrame(void)
 void QCanError::socketConnected()
 {
    //----------------------------------------------------------------
-   // initial setup of CAN frame
+   // initial setup of CAN error frame
    //
-   clErrorFrameP.setErrorState(eCAN_STATE_BUS_WARN);
-    
+   clErrorFrameP.setErrorCounterReceive(ubRcvErrorCntP);
+   clErrorFrameP.setErrorCounterTransmit(ubTrmErrorCntP);
+   clErrorFrameP.setErrorType(teErrorTypeP);
+
+   //----------------------------------------------------------------
+   // error state depends on counter values
+   //
+   if ((ubRcvErrorCntP >= 96) || (ubTrmErrorCntP >= 96))
+   {
+      clErrorFrameP.setErrorState(eCAN_STATE_BUS_WARN);
+   }
+
+   if ((ubRcvErrorCntP >= 127) || (ubTrmErrorCntP >= 127))
+   {
+      clErrorFrameP.setErrorState(eCAN_STATE_BUS_PASSIVE);
+   }
+
+   if (ubTrmErrorCntP == 255)
+   {
+      clErrorFrameP.setErrorState(eCAN_STATE_BUS_OFF);
+   }
+
    QTimer::singleShot(10, this, SLOT(sendErrorFrame()));
 }
 
