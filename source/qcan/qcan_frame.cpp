@@ -560,6 +560,21 @@ void QCanFrame::setDlc(uint8_t ubDlcV)
    }
 }
 
+//----------------------------------------------------------------------------//
+// setErrorStateIndicator()                                                   //
+// set the ESI bit                                                            //
+//----------------------------------------------------------------------------//
+void QCanFrame::setErrorStateIndicator(const bool & btEsiR)
+{
+   if (btEsiR == true)
+   {
+      ubMsgCtrlP |= CAN_FRAME_ISO_FD_ESI;
+   }
+   else
+   {
+      ubMsgCtrlP &= (~CAN_FRAME_ISO_FD_ESI);
+   }
+}
 
 //----------------------------------------------------------------------------//
 // setFrameFormat()                                                           //
