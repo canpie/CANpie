@@ -62,6 +62,12 @@ class QCanFrame : private QCanData
 {
 public:
    
+   /*!
+   ** \enum    Format_e
+   **
+   ** This enumeration defines the CAN frame formats for classical CAN
+   ** and CAN FD.
+   */
    enum Format_e {
 
       /*! Classic CAN, Standard frame format                */
@@ -86,6 +92,10 @@ public:
    
 
    /*!
+   ** \param[in]  ubFormatR      CAN frame format
+   ** \param[in]  ulIdentifierR  CAN frame identifier
+   ** \param[in]  ubDlcR         CAN frame data length code
+    **  
    ** Constructs a CAN frame of type \c ubTypeR with an identifier value
    ** of \c ulIdentifierR and a DLC value of \c ubDlcR.
    */

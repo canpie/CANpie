@@ -83,6 +83,7 @@ public:
 
    /*!
    ** \param[in]  teChannelV     CAN channel
+   ** \param[in]  slMilliSecsV   Time to wait for connection
    ** \return     \c true if connection is possible
    ** \see        disconnectNetwork()
    **
@@ -90,8 +91,10 @@ public:
    ** connected() is used on connection to the CAN network. On failure, the
    ** reason can be evaluated by the error() signal. A socket can connect
    ** only once to a single CAN network. If the socket is already connected,
-   ** the method returns \c false.
-   **
+   ** the method returns \c false. The optional parameter \a slMilliSecsV
+   ** defines how many milli-seconds the method shall wait until a
+   ** connection has been established.
+   ** <p>
    ** The connection is made to QHostAddress::LocalHost, using the port
    ** #QCAN_TCP_DEFAULT_PORT. The host address can be changed with
    ** setHostAddress().
@@ -160,25 +163,30 @@ public:
 
 
    /*!
-   ** Get error state
+   ** \return  CAN error state
    **
+   ** Get the actual CAN error state, which is defined by the 
+   ** QCan::CAN_State_e enumeration.
    */
    CAN_State_e state(void);
 
    bool  setMode(CAN_Mode_e & teModeR);
 
-   bool  read( QByteArray & clFrameDataR, 
-               QCanData::Type_e * pubFrameType = Q_NULLPTR);
-   
    /*!
-   ** \param[out] clFrameR       Reference to CAN frame
-   ** \return     \c true if CAN frame was read
-   ** \see        writeFrame()
+   ** \param[out]    clFrameDataR   Reference to data frame
+   ** \param[in,out] pubFrameTypeV  Pointer to frame type   
+   ** \return        \c true if CAN frame was read
+   ** \see           writeFrame()
    **
-   ** The function reads a CAN frame from the CAN socket and places the
-   ** result in \a clFrameR. If no CAN frame is available, the function
-   ** returns \c false.
+   ** The function reads a data frame from the CAN socket and places the
+   ** result in \a clFrameDataR. If no CAN frame is available, the function
+   ** returns \c false. The optional pointer \a pubFrameTypeV holds
+   ** the frame type, defined by the QCanData::Type_e enumeration.
    */
+   bool  read( QByteArray & clFrameDataR, 
+               QCanData::Type_e * pubFrameTypeV = Q_NULLPTR);
+   
+
    bool  readFrame(QCanFrame & clFrameR);
 
    bool  write(const QByteArray & clFrameDataR);

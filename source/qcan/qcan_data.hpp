@@ -89,6 +89,11 @@ class QCanData
 {
 public:
    
+   /*!
+   ** \enum Type_e
+   ** 
+   ** The enumeration Type_e defines frame types. 
+   */
    enum Type_e {
 
       /*! API frame, refer to QCanFrameApi               */
@@ -100,6 +105,7 @@ public:
       /*! Error frame, refer to QCanFrameError           */
       eTYPE_ERROR,
       
+      /*! Unknown frame type                             */
       eTYPE_UNKNOWN
 
    };

@@ -69,7 +69,11 @@ class QCanFrameError : private QCanData
 {
 public:
    
-
+   /*!
+   ** \enum ErrorType_e
+   ** 
+   ** The enumeration ErrorType_e defines CAN error types. 
+   */
    enum ErrorType_e {
 
       /*! no error                                          */

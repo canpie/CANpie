@@ -38,7 +38,7 @@
 
 //-----------------------------------------------------------------------------
 /*!
-** \file    qcan_can_plugin.hpp
+** \file    qcan_plugin.hpp
 ** \brief   CAN plugin class
 **
 */

@@ -2,15 +2,15 @@
 /*!
 ** \page page.license    %CANpie FD License
 
-%CANpie FD is free software; you can redistribute it and/or modify 
-it under the terms of the GNU Lesser General Public License as published by 
-the Free Software Foundation; either version 3 of the License, or (at your 
-option) any later version.
+%CANpie FD is licensed under the Apache License, Version 2.0 (the "License").
 
-This code / library is distributed in the hope that it will be useful, 
-but WITHOUT ANY WARRANTY; without even the implied warranty of 
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the verbatim
-copy of the LGPL version 3 below.
+Unless required by applicable law or agreed to in writing, software 
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+See the verbatim copy of the Apache License, Version 2.0 below.
 
 <p>
 <br>

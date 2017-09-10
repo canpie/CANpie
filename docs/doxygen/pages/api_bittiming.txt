@@ -84,5 +84,5 @@ overview of recommended bittiming setups.
 
 The default baudrates defined in this table can be setup via the core function
 CpCoreBaudrate(). The supplied parameter for the baudrate
-selection is taken from the enumeration #CP_BAUD (canpie.h).
+selection is taken from the enumeration #CpBitrate_e (canpie.h).
 */

@@ -137,9 +137,15 @@ namespace QCan {
       eCAN_BITRATE_MAX = 9999 //!< eCAN_BITRATE_MAX
    };
 
+   
+   /*!
+   ** \enum CAN_Channel_e
+   ** 
+   ** The enumeration CAN_Channel_e defines up to 8 CAN channels.
+   */
    enum CAN_Channel_e {
 
-      /* CAN interface invalid         */
+      /*! CAN interface invalid        */
       eCAN_CHANNEL_NONE = 0,
 
       /*! CAN interface 1              */
@@ -167,6 +173,12 @@ namespace QCan {
       eCAN_CHANNEL_8
    };
 
+   /*!
+   ** \enum CAN_State_e
+   ** 
+   ** The enumeration CAN_State_e defines possible states of the CAN
+   ** protocol engine.
+   */
    enum CAN_State_e {
       /*!
       ** CAN controller is in stopped mode
@@ -202,6 +214,12 @@ namespace QCan {
       eCAN_STATE_BUS_OFF
    };
 
+   /*!
+   ** \enum CAN_Mode_e
+   ** 
+   ** The enumeration CAN_Mode_e defines possible modes of the CAN
+   ** protocol engine.
+   */
    enum CAN_Mode_e {
 
       /*!   Set controller into 'Initialization' mode

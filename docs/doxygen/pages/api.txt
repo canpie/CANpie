@@ -36,7 +36,10 @@
 
 <h2>Programming in C++</h2>
 
-The %CANpie FD API provides classes for manipulation of CAN frames.
+The %CANpie FD API provides classes for manipulation of CAN frames and
+passing these frames via a socket interface (QCanSocket) between 
+applications. 
+
 The classes are using the <a href="https://doc.qt.io">
 Qt Library</a> and have the prefix <b>QCan</b>. The following table 
 gives an overview. 
@@ -50,36 +53,19 @@ gives an overview.
 </tr>
 
 <tr>
-   <td class="entry" style="width:25%">\ref QCanFrameApi</td>
-   <td class="desc">Class defining an API frame, derived from QCanData.</td>
-</tr>
-
-<tr class="odd">
-   <td class="entry" style="width:25%">\ref QCanFrameError</td>
-   <td class="desc">Class defining a CAN error frame, derived from QCanData.</td>
-</tr>
-
-<tr>
    <td class="entry" style="width:25%">\ref QCanFrame</td>
    <td class="desc">Class defining a CAN data frame, derived from QCanData.</td>
 </tr>
 
 <tr class="odd">
-   <td class="entry" style="width:25%">\ref QCanTimeStamp</td>
-   <td class="desc">Time-stamp with a resolution of 1 nanosecond.</td>
+   <td class="entry" style="width:25%">\ref QCanFrameApi</td>
+   <td class="desc">Class defining an API frame, derived from QCanData.</td>
 </tr>
 
-</table>
-</div>
-
-
-<p>
-The following classes  classes are using the <a href="https://doc.qt.io">
-Qt Library</a> and have the prefix <b>QCan</b>.
-
-
-<div class="function" style="width:800px">
-<table class="function" style="width:800px">
+<tr>
+   <td class="entry" style="width:25%">\ref QCanFrameError</td>
+   <td class="desc">Class defining a CAN error frame, derived from QCanData.</td>
+</tr>
 
 <tr class="odd">
    <td class="entry" style="width:25%">\ref QCanInterface</td>
@@ -102,13 +88,23 @@ Qt Library</a> and have the prefix <b>QCan</b>.
 </tr>
 
 <tr class="odd">
+   <td class="entry" style="width:25%">\ref QCanSocket</td>
+   <td class="desc">Class defining a CAN socket, which connects to a QCanNetwork</td>
+</tr>
+
+<tr>
+   <td class="entry" style="width:25%">\ref QCanSocketCpFD</td>
+   <td class="desc">CANpie FD interface for QCanSocket class</td>
+</tr>
+
+<tr class="odd">
    <td class="entry" style="width:25%">\ref QCanSocketDialog</td>
    <td class="desc">Dialog for QCanSocket class</td>
 </tr>
 
 <tr>
-   <td class="entry" style="width:25%">\ref QCanSocket</td>
-   <td class="desc">Class defining a CAN socket, which connects to a QCanNetwork</td>
+   <td class="entry" style="width:25%">\ref QCanTimeStamp</td>
+   <td class="desc">Time-stamp with a resolution of 1 nanosecond.</td>
 </tr>
 
 

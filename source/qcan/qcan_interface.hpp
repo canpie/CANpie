@@ -38,7 +38,7 @@
 
 //-----------------------------------------------------------------------------
 /*!
-** \file    qcan_can_interface.hpp
+** \file    qcan_interface.hpp
 ** \brief   CAN interface class
 **
 */
@@ -124,9 +124,10 @@ public:
    virtual InterfaceError_e connect(void) = 0;
 
    /*!
+   ** \return     \c true if connection is possible
    ** \see connected()
    **
-   ** Returns true if interface is connected.
+   ** The function returns \c true if the interface is connected.
    */
    virtual bool connected(void) = 0;
 
@@ -155,12 +156,12 @@ public:
    virtual QString name(void) = 0;
 
    /*!
+   ** \param[out] clDataR  Message stream
    ** \return     Status code defined by InterfaceError_e
    ** \see        read()
    **
-   ** The functions reads a CAN message from the physical channel
-   ** \c ubChannelV of the CAN interface. The first CAN channel starts at
-   ** index 0.
+   ** The functions reads a CAN message (data or error frame) from the 
+   ** CAN interface. The data is copied to the QByteArray \a clDataR.
    ** If no message is available, the function will return the value
    ** eERROR_FIFO_RCV_EMPTY. On success the function returns eERROR_NONE.
    **
@@ -191,11 +192,12 @@ public:
 
 
    /*!
+   ** \param[in]  teModeV CAN mode 
    ** \return     Status code defined by InterfaceError_e
    **
-   ** Set mode of the physical interface.
+   ** Set mode of the physical CAN interface.
    */
-   virtual InterfaceError_e	setMode(const CAN_Mode_e teModeV) = 0;
+   virtual InterfaceError_e	   setMode(const CAN_Mode_e teModeV) = 0;
 
 
    virtual InterfaceError_e   statistic(QCanStatistic_ts &clStatisticR) = 0;
@@ -211,15 +213,16 @@ public:
 	
 
    /*!
+   ** \param[in]  clFrameR CAN data frame
    ** \return     Status code defined by InterfaceError_e
    ** \see        read()
    **
-   ** The functions writes a CAN message to the physical CAN interface
-   ** \c ubChannelV of the CAN interface. The first CAN channel starts at
-   ** index 0. On success the function returns eERROR_NONE.
+   ** The functions writes a CAN message (data frame) to the 
+   ** CAN interface. The CAN frame data is defined by the parameter 
+   ** \a clFrameR. On success the function returns eERROR_NONE.
    **
    */
-   virtual InterfaceError_e	write(const QCanFrame &clFrameR) = 0;
+   virtual InterfaceError_e   	write(const QCanFrame &clFrameR) = 0;
 
 
 
