@@ -2,7 +2,7 @@
 // File:          device_can_fd.c                                             //
 // Description:   CANpie core functions                                       //
 //                                                                            //
-// Copyright (C) MicroControl GmbH & Co. KG                                   //
+// Copyright 2017 MicroControl GmbH & Co. KG                                  //
 // 53844 Troisdorf - Germany                                                  //
 // www.microcontrol.net                                                       //
 //                                                                            //
@@ -20,10 +20,17 @@
 //    may be used to endorse or promote products derived from this software   //
 //    without specific prior written permission.                              //
 //                                                                            //
-// Provided that this notice is retained in full, this software may be        //
-// distributed under the terms of the GNU Lesser General Public License       //
-// ("LGPL") version 3 as distributed in the 'LICENSE' file.                   //
+// Licensed under the Apache License, Version 2.0 (the "License");            //
+// you may not use this file except in compliance with the License.           //
+// You may obtain a copy of the License at                                    //
 //                                                                            //
+//    http://www.apache.org/licenses/LICENSE-2.0                              //
+//                                                                            //
+// Unless required by applicable law or agreed to in writing, software        //
+// distributed under the License is distributed on an "AS IS" BASIS,          //
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   //
+// See the License for the specific language governing permissions and        //
+// limitations under the License.                                             //
 //============================================================================//
 
 
