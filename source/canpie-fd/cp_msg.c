@@ -77,7 +77,7 @@ void  CpMsgClear(CpCanMsg_ts *ptsCanMsgV)
 
       for (ubDataCntT = 0; ubDataCntT < (uint8_t) CP_DATA_SIZE; ubDataCntT++)
       {
-         ptsCanMsgV->aubData[ubDataCntT] = (uint8_t) 0;
+         ptsCanMsgV->tuMsgData.aubByte[ubDataCntT] = (uint8_t) 0;
       }
 
       ptsCanMsgV->ubMsgDLC             = (uint8_t) 0;
@@ -161,14 +161,14 @@ uint8_t  CpMsgGetData(const CpCanMsg_ts *ptsCanMsgV, uint8_t ubPosV)
       {
          if (ubPosV < 64)
          {
-            ubDataT = ptsCanMsgV->aubData[ubPosV];
+            ubDataT = ptsCanMsgV->tuMsgData.aubByte[ubPosV];
          }
       }
       else
       {
          if (ubPosV <  8)
          {
-            ubDataT = ptsCanMsgV->aubData[ubPosV];
+            ubDataT = ptsCanMsgV->tuMsgData.aubByte[ubPosV];
          }
       }
    }
@@ -475,14 +475,14 @@ void  CpMsgSetData(CpCanMsg_ts *ptsCanMsgV, uint8_t ubPosV, uint8_t ubValueV)
       {
          if (ubPosV < 64)
          {
-            ptsCanMsgV->aubData[ubPosV] = ubValueV;
+            ptsCanMsgV->tuMsgData.aubByte[ubPosV] = ubValueV;
          }
       }
       else
       {
          if (ubPosV <  8)
          {
-            ptsCanMsgV->aubData[ubPosV] = ubValueV;
+            ptsCanMsgV->tuMsgData.aubByte[ubPosV] = ubValueV;
          }
       }
    }

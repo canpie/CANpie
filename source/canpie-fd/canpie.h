@@ -975,8 +975,19 @@ typedef struct CpCanMsg_s
    ** The number of used bytes is described via the structure
    ** member \c ubMsgDLC.
    */
-   uint8_t  aubData[CP_DATA_SIZE];
+   union {
+      /*!   byte access, array of bytes         */
+      uint8_t   aubByte[CP_DATA_SIZE];
 
+      /*!   16 bit access, array of words       */
+      uint16_t  auwWord[CP_DATA_SIZE / 2];
+
+      /*!   32 bit access, array of longs       */
+      uint32_t  aulLong[CP_DATA_SIZE / 4];
+
+      /*!   64 bit access, array of long longs  */
+      uint64_t  auqQuad[CP_DATA_SIZE / 8];
+   } tuMsgData;
 
    /*!
    ** The data length code denotes the number of data bytes

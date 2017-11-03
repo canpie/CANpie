@@ -466,7 +466,7 @@ void  CpMsgSetTime(CpCanMsg_ts *ptsCanMsgV, const CpTime_ts *ptsTimeV);
 
 
 #define  CpMsgGetData(MSG_PTR, POS)                               \
-            ((MSG_PTR)->aubData[POS])
+            ((MSG_PTR)->tuMsgData.aubByte[POS])
 
 #define  CpMsgGetDlc(MSG_PTR)                                     \
             ((MSG_PTR)->ubMsgDLC)
@@ -512,7 +512,7 @@ void  CpMsgSetTime(CpCanMsg_ts *ptsCanMsgV, const CpTime_ts *ptsTimeV);
          } while(0)
 
 #define  CpMsgSetData(MSG_PTR, POS, VAL)                          \
-            ( (MSG_PTR)->aubData[POS] = (VAL) )
+            ( (MSG_PTR)->tuMsgData.aubByte[POS] = (VAL) )
 
 #define  CpMsgSetDlc(MSG_PTR, DLC)                                \
          do {                                                     \
