@@ -6,3 +6,6 @@
 /ui_*.h
 /qrc_*.cpp
 /qcantest.app
+/canpie-fd/*.d
+/canpie-fd/*.o
+/canpie-fd/test_canpie_*
