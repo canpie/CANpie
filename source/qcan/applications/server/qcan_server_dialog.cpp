@@ -399,7 +399,9 @@ void QCanServerDialog::onInterfaceChange( uint8_t ubIdxV,
       if(pclNetworkT->addInterface(pclCanIfV) == true)
       {
          apclCanIfWidgetP[ubIdxV]->setIcon(pclCanIfV->icon());
-      } else
+         pclLoggerP->addLoggingSource(pclCanIfV);
+      }
+      else
       {
          qWarning() << "Fail to add interface!";
       }
