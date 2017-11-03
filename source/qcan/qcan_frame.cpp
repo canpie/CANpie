@@ -70,7 +70,9 @@
 //----------------------------------------------------------------------------//
 QCanFrame::QCanFrame() : QCanData(eTYPE_CAN)
 {
-
+   setFrameFormat(eFORMAT_CAN_STD);
+   setIdentifier(0);
+   setDlc(0);
 }
 
 
