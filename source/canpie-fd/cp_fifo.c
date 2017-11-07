@@ -1,5 +1,5 @@
 //============================================================================//
-// File:          cp_fifo.h                                                   //
+// File:          cp_fifo.c                                                   //
 // Description:   CANpie FIFO functions                                       //
 //                                                                            //
 // Copyright 2017 MicroControl GmbH & Co. KG                                  //
