@@ -83,7 +83,7 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-#include "compiler.h"
+#include "cp_compiler.h"
 #include "cp_platform.h"       // Architecture dependent definitions
 
 

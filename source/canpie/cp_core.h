@@ -251,6 +251,22 @@ CpStatus_tv CpCoreBufferGetDlc(  CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
                                  uint8_t * pubDlcV);
 
 
+
+/*!
+** \brief  	Check if the specified buffer is busy
+** \param   ptsPortV       Pointer to CAN port structure
+** \param   ubBufferIdxV   Buffer number
+**
+** \return  Error code taken from the #CpErr enumeration. If the device is
+** 			busy the function will return \c CpErr_BUFFER_BUSY. If not busy and
+** 			no other error occurred the function will return \c CpErr_OK.
+**
+** This function check if the selected \c ubBufferIdxV is busy.
+*/
+CpStatus_tv CpCoreBufferBusy(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV);
+
+
+
 /*!
 ** \brief   Initialise buffer in FullCAN controller
 ** \param   ptsPortV       Pointer to CAN port structure

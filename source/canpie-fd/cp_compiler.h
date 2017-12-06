@@ -41,8 +41,8 @@
 //------------------------------------------------------------------------------
 
 
-#ifndef  COMPILER_H_
-#define  COMPILER_H_
+#ifndef  CP_COMPILER_H_
+#define  CP_COMPILER_H_
 
 
 //-----------------------------------------------------------------------------
@@ -990,9 +990,18 @@ typedef  long long            int64_t;
 //--------------------------------------------------------------------
 
 
+//--------------------------------------------------------------------
+// Compiler external
+//
+#ifdef CP_COMPILER_EXT
+// This is used if someone must define everthing inside the application
+#include "cp_compiler_ext.h"
+#endif
+// End of definition:  CP_COMPILER_EXT
+//--------------------------------------------------------------------
 
 //--------------------------------------------------------------------
-// Test is used compiler has been recognised by checking the
+// Test is used compiler has been recognized by checking the
 // symbol CPP_DATA_SIZE.
 //
 #ifndef  CPP_DATA_SIZE
@@ -1000,4 +1009,4 @@ typedef  long long            int64_t;
 #endif
 
 
-#endif      // COMPILER_H_
+#endif      // CP_COMPILER_H_
