@@ -453,6 +453,10 @@ enum CpErr {
    */
    CpErr_PARAM,
 
+   /*!   Buffer is busy (45dec / 2Dhex)
+   */
+   CpErr_BUFFER_BUSY,
+
    /*!   Function is not supported (50dec / 32hex)
    */
    CpErr_NOT_SUPPORTED = 50
