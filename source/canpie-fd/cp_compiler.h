@@ -41,8 +41,8 @@
 //------------------------------------------------------------------------------
 
 
-#ifndef  COMPILER_H_
-#define  COMPILER_H_
+#ifndef  CP_COMPILER_H_
+#define  CP_COMPILER_H_
 
 
 //-----------------------------------------------------------------------------
@@ -1000,4 +1000,4 @@ typedef  long long            int64_t;
 #endif
 
 
-#endif      // COMPILER_H_
+#endif      // CP_COMPILER_H_
