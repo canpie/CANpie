@@ -990,6 +990,41 @@ typedef  long long            int64_t;
 //--------------------------------------------------------------------
 
 
+//--------------------------------------------------------------------
+// Diab Compiler
+//
+#ifdef __DCC__
+
+#define  CPP_CONST            const
+#define  CPP_DATA_SIZE        64
+#define  CPP_INLINE
+#define  CPP_PACK
+#ifndef  CPP_PARM_UNUSED
+#define  CPP_PARM_UNUSED(x)   x
+#endif
+
+#define  CPP_NULL             (void *) 0
+
+#define  true                 1
+#define  false                0
+
+typedef  short                Status_tv;
+
+#include "li_types.h"
+
+//typedef  unsigned char        bool_t;
+//typedef  unsigned char        uint8_t;
+//typedef  signed char          int8_t;
+//typedef  unsigned short       uint16_t;
+//typedef  short                int16_t;
+//typedef  unsigned long        uint32_t;
+//typedef  long                 int32_t;
+//typedef  unsigned long long   uint64_t;
+//typedef  long long            int64_t;
+
+#endif
+// End of definition:  __DCC__
+//--------------------------------------------------------------------
 
 //--------------------------------------------------------------------
 // Test is used compiler has been recognised by checking the
