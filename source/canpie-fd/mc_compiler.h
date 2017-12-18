@@ -1,5 +1,5 @@
 //============================================================================//
-// File:          compiler.h                                                  //
+// File:          mc_compiler.h                                               //
 // Description:   Compiler independent data types for embedded solutions      //
 //                                                                            //
 // Copyright 2017 MicroControl GmbH & Co. KG                                  //
@@ -34,20 +34,14 @@
 //============================================================================//
 
 
-//------------------------------------------------------------------------------
-// $Author$
-// $Date$
-// $Rev$
-//------------------------------------------------------------------------------
 
-
-#ifndef  COMPILER_H_
-#define  COMPILER_H_
+#ifndef  MC_COMPILER_H_
+#define  MC_COMPILER_H_
 
 
 //-----------------------------------------------------------------------------
 /*!
-** \file    compiler.h
+** \file    mc_compiler.h
 ** \brief   Definition of compiler independent data types
 **
 ** Due to different implementations of data types in the world of C compilers,
@@ -155,14 +149,6 @@
 #endif
 
 
-/*----------------------------------------------------------------------------*/
-/* File specific splint configuration:                                        */
-/*----------------------------------------------------------------------------*/
-
-#if defined(__LCLINT__)
-#define  CPP_PARM_UNUSED     /*@unused@*/
-#endif
-
 
 //----------------------------------------------------------------------------//
 // Target Machine / Compiler dependent definitions                            //
@@ -209,13 +195,12 @@ typedef  long                 int32_t;
 #include <stdbool.h>          // boolean definitions
 #include <stdint.h>           // data types uint8_t ... uint64_t
 
+#define  CPP_COMPILER         __VERSION__
 #define  CPP_CONST            const
 #define  CPP_DATA_SIZE        64
 #define  CPP_INLINE           __inline
 #define  CPP_PACK             __attribute__ ((packed))
-#ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   UNUSED_ ## x __attribute__((unused))
-#endif
 #define  CPP_NULL             (void *) 0
 
 typedef  int32_t              Status_tv;
@@ -1000,4 +985,4 @@ typedef  long long            int64_t;
 #endif
 
 
-#endif      // COMPILER_H_
+#endif      // MC_COMPILER_H_
