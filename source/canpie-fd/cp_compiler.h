@@ -994,7 +994,7 @@ typedef  long long            int64_t;
 // Compiler external
 //
 #ifdef CP_COMPILER_EXT
-// This is used if someone must define everthing inside the application
+// This is used if someone must define everything inside the application
 #include "cp_compiler_ext.h"
 #endif
 // End of definition:  CP_COMPILER_EXT

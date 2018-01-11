@@ -84,7 +84,7 @@ extern "C" {                                                         //
 ** \struct  CpFifo_s
 ** \brief   Administration variables of a CAN message FIFO
 **
-** This structure is initialized by CpFifoInit().
+** This structure is initialised by CpFifoInit().
 */
 struct CpFifo_s
 {
@@ -198,17 +198,17 @@ void CpFifoIncOut(CpFifo_ts *ptsFifoV);
 
 
 /*!
-** \brief   Initialize CAN message FIFO
+** \brief   Initialise CAN message FIFO
 ** \param   ptsFifoV - Pointer to CAN message FIFO
 ** \param   ptsCanMsgV - Pointer to array of CAN messages
 ** \param   ulSizeV - Size if CAN message array
 **
-** This function initializes a CA message FIFO. The parameter
+** This function initialises a CA message FIFO. The paramter
 ** \a ptsCanMsgV points to an array of CpCanMsg_ts elements.
 ** The number of messages which can be stored inside the array
 ** is determined by the parameter \a ulSizeV.
 **
-** Here is an example for initialization of a CAN message FIFO:
+** Here is an example for initialisation of a CAN message FIFO:
 ** \code
 ** ...
 ** #define NUMBER_OF_FIFO_ENTRIES   20
