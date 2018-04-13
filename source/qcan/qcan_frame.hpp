@@ -43,8 +43,8 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-#include <QDataStream>
-#include <QString>
+#include <QtCore/QDataStream>
+#include <QtCore/QString>
 
 #include "qcan_data.hpp"
 
