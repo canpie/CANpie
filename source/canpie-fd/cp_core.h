@@ -240,7 +240,7 @@ CpStatus_tv CpCoreBufferEnable(CpPort_ts *ptsPortV, uint8_t ubBufferIdxV,
 **
 */
 CpStatus_tv CpCoreBufferGetData(CpPort_ts *ptsPortV, uint8_t ubBufferIdxV,
-                                uint8_t *pubDestDataV,
+                                /*@out@*/ uint8_t *pubDestDataV,
                                 uint8_t   ubStartPosV,
                                 uint8_t   ubSizeV);
 
@@ -261,7 +261,7 @@ CpStatus_tv CpCoreBufferGetData(CpPort_ts *ptsPortV, uint8_t ubBufferIdxV,
 ** configured by CpCoreBufferConfig() in advance.
 */
 CpStatus_tv CpCoreBufferGetDlc(CpPort_ts *ptsPortV, uint8_t ubBufferIdxV,
-                               uint8_t *pubDlcV);
+                               /*@out@*/ uint8_t *pubDlcV);
 
 
 
