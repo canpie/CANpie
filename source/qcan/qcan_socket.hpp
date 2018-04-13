@@ -38,11 +38,13 @@
 #define QCAN_SOCKET_HPP_
 
 
-#include <QHostAddress>
-#include <QPointer>
-#include <QString>
-#include <QTcpSocket>
-#include <QVector>
+#include <QtCore/QString>
+#include <QtCore/QVector>
+#include <QtCore/QPointer>
+
+#include <QtNetwork/QHostAddress>
+#include <QtNetwork/QLocalSocket>
+#include <QtNetwork/QTcpSocket>
 
 #include "qcan_defs.hpp"
 #include "qcan_frame.hpp"
@@ -257,17 +259,20 @@ protected:
 
 private:
 
-   QPointer<QTcpSocket> pclTcpSockP;
-   QHostAddress         clTcpHostAddrP;
-   uint16_t             uwTcpPortP;
-   bool                 btIsConnectedP;
-   int32_t              slSocketErrorP;
+   QPointer<QLocalSocket>  pclLocalSockP;
+   QPointer<QTcpSocket>    pclTcpSockP;
+   QHostAddress            clTcpHostAddrP;
+   uint16_t                uwTcpPortP;
+   bool                    btIsConnectedP;
+   bool                    btIsLocalConnectionP;
+   int32_t                 slSocketErrorP;
 
 private slots:
-   void  onSocketConnect(void);
-   void  onSocketDisconnect(void);
-   void  onSocketError(QAbstractSocket::SocketError teSocketErrorV);
-   virtual void  onSocketReceive(void);
+   virtual void   onSocketConnect(void);
+   virtual void   onSocketDisconnect(void);
+   void           onSocketErrorLocal(QLocalSocket::LocalSocketError teSocketErrorV);
+   void           onSocketErrorTcp(QAbstractSocket::SocketError teSocketErrorV);
+   virtual void   onSocketReceive(void);
 };
 
 #endif   // QCAN_SOCKET_HPP_
