@@ -44,7 +44,7 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-#include <QByteArray>
+#include <QtCore/QByteArray>
 
 #include "qcan_defs.hpp"
 #include "qcan_namespace.hpp"
