@@ -100,6 +100,12 @@ struct CpFifo_s
    */
    uint32_t  ulIndexMax;
 
+   /*! Status of FIFO full or empty
+    *  0x01: FIFO is empty
+    *  0x02: FIFO is full
+    */
+   uint32_t  ulState;
+
    /*!
    ** Pointer to CAN message buffer
    */
@@ -261,13 +267,11 @@ bool_t CpFifoIsFull(CpFifo_ts *ptsFifoV);
       (((FIFO_PTR)->ptsCanMsg) + ((FIFO_PTR)->ulIndexOut))
 
 
-#define  CpFifoIsEmpty(FIFO_PTR) \
-   (((FIFO_PTR)->ulIndexIn == (FIFO_PTR)->ulIndexOut) ? 1 : 0)
+#define  CpFifoIsEmpty(FIFO_PTR)                                     \
+            (((FIFO_PTR)->ulState == 0x0001) ? 1 : 0)
 
-#define  CpFifoIsFull(FIFO_PTR)                                            \
-            ( (((FIFO_PTR)->ulIndexIn+1 == (FIFO_PTR)->ulIndexOut) ||       \
-              (((FIFO_PTR)->ulIndexOut  == 0) &&                             \
-               ((FIFO_PTR)->ulIndexIn+1 == (FIFO_PTR)->ulIndexMax) )) ? 1 : 0)
+#define  CpFifoIsFull(FIFO_PTR)                                      \
+            (((FIFO_PTR)->ulState == 0x0002) ? 1 : 0)
 
 #define  CpFifoIncIn(FIFO_PTR)                                       \
          do {                                                        \
@@ -276,6 +280,11 @@ bool_t CpFifoIsFull(CpFifo_ts *ptsFifoV);
             {                                                        \
                (FIFO_PTR)->ulIndexIn = 0;                            \
             }                                                        \
+            if ((FIFO_PTR)->ulIndexIn == (FIFO_PTR)->ulIndexOut)     \
+            {                                                        \
+               (FIFO_PTR)->ulState = 0x02;                           \
+            }                                                        \
+            (FIFO_PTR)->ulState &= ~0x01;                            \
          } while (0)
 
 #define  CpFifoIncOut(FIFO_PTR)                                      \
@@ -285,6 +294,11 @@ bool_t CpFifoIsFull(CpFifo_ts *ptsFifoV);
             {                                                        \
                (FIFO_PTR)->ulIndexOut = 0;                           \
             }                                                        \
+            if ((FIFO_PTR)->ulIndexIn == (FIFO_PTR)->ulIndexOut)     \
+            {                                                        \
+               (FIFO_PTR)->ulState = 0x01;                           \
+            }                                                        \
+            (FIFO_PTR)->ulState &= ~0x02;                            \
          } while (0)
 
 #define  CpFifoInit(FIFO_PTR, MSG_PTR, SIZE)                         \
@@ -292,6 +306,7 @@ bool_t CpFifoIsFull(CpFifo_ts *ptsFifoV);
             (FIFO_PTR)->ulIndexIn  = 0;                              \
             (FIFO_PTR)->ulIndexOut = 0;                              \
             (FIFO_PTR)->ulIndexMax = (SIZE);                         \
+            (FIFO_PTR)->ulState    = 0x01;                           \
             (FIFO_PTR)->ptsCanMsg  = (MSG_PTR);                      \
          } while (0)
 #endif

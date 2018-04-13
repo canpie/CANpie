@@ -48,7 +48,7 @@
 ** Definitions                                                                **
 **                                                                            **
 \*----------------------------------------------------------------------------*/
-
+#if   CP_FIFO_MACRO == 0
 
 //----------------------------------------------------------------------------//
 // CpFifoDataInPtr()                                                          //
@@ -95,6 +95,14 @@ CPP_INLINE void CpFifoIncIn(CpFifo_ts *ptsFifoV)
    {
       ptsFifoV->ulIndexIn = 0;
    }
+   if (ptsFifoV->ulIndexIn == ptsFifoV->ulIndexOut)
+   {
+      // set state to full
+      ptsFifoV->ulState = 0x02;
+   }
+
+   // clear empty state
+   ptsFifoV->ulState &= ~0x01;
 }
 
 
@@ -109,6 +117,14 @@ CPP_INLINE void CpFifoIncOut(CpFifo_ts *ptsFifoV)
    {
       ptsFifoV->ulIndexOut = 0;
    }
+
+   if (ptsFifoV->ulIndexIn == ptsFifoV->ulIndexOut)
+   {
+      // set empty state
+      ptsFifoV->ulState = 0x01;
+   }
+   // clear full state
+   ptsFifoV->ulState &= ~0x02;
 }
 
 
@@ -122,6 +138,7 @@ CPP_INLINE void CpFifoInit(CpFifo_ts *ptsFifoV, CpCanMsg_ts *ptsCanMsgV,
    ptsFifoV->ulIndexIn  = 0;
    ptsFifoV->ulIndexOut = 0;
    ptsFifoV->ulIndexMax = ulSizeV;
+   ptsFifoV->ulState    = 0x01;     // set initial state to empty
    /*@ -mustfreeonly -temptrans @*/
    ptsFifoV->ptsCanMsg  = ptsCanMsgV;
    /*@ +mustfreeonly +temptrans @*/
@@ -136,7 +153,7 @@ CPP_INLINE bool_t CpFifoIsEmpty(CpFifo_ts *ptsFifoV)
 {
    bool_t btResultT = false;
 
-   if ((ptsFifoV->ulIndexIn) == (ptsFifoV->ulIndexOut))
+   if (ptsFifoV->ulState == 0x0001)
    {
       btResultT = true;
    }
@@ -153,9 +170,7 @@ CPP_INLINE bool_t CpFifoIsFull(CpFifo_ts *ptsFifoV)
 {
    bool_t btResultT = false;
 
-   if (((ptsFifoV->ulIndexIn + 1) == (ptsFifoV->ulIndexOut)) ||
-         (((ptsFifoV->ulIndexOut) == 0) &&
-          ((ptsFifoV->ulIndexIn + 1) == ptsFifoV->ulIndexMax)))
+   if (ptsFifoV->ulState == 0x0002)
    {
       btResultT = true;
    }
@@ -163,3 +178,5 @@ CPP_INLINE bool_t CpFifoIsFull(CpFifo_ts *ptsFifoV)
    return (btResultT);
 
 }
+
+#endif   // CP_FIFO_MACRO == 0
