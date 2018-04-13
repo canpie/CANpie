@@ -34,6 +34,8 @@ TARGET = CANpieServer
 DESTDIR = ../../../../bin
 
 MOC_DIR = ../../../../objs
+RCC_DIR = ../../../../objs
+
 
 #--------------------------------------------------------------------
 # Objects directory
@@ -43,7 +45,7 @@ OBJECTS_DIR = ../../../../objs
 #---------------------------------------------------------------
 # project configuration and compiler options
 #
-CONFIG += debug 
+CONFIG += debug_and_release
 CONFIG += warn_on
 CONFIG += C++11
 CONFIG += silent
@@ -53,8 +55,8 @@ CONFIG += silent
 # version of the application
 #
 VERSION_MAJOR = 0
-VERSION_MINOR = 83
-VERSION_BUILD = 2
+VERSION_MINOR = 87
+VERSION_BUILD = 1
 
 
 #---------------------------------------------------------------
@@ -134,6 +136,7 @@ SOURCES =   qcan_interface_widget.cpp  \
             qcan_server.cpp            \
             qcan_server_dialog.cpp     \
             qcan_server_logger.cpp     \
+            qcan_server_settings.cpp   \
             server_main.cpp
 
 
@@ -152,6 +155,11 @@ macx {
    }
 
    #--------------------------------------------------
+	# Add App Nap suspender class for Mac OS only
+	#
+   SOURCES += MacAppNapSuspender.mm
+   
+   #--------------------------------------------------
    # Use the supplied .plist file settings
    #
    QMAKE_INFO_PLIST = Info.plist
@@ -160,13 +168,11 @@ macx {
    # The correct version of the MAC SDK might be 
    # necessary depending on the combination of
    # Qt version and Mac OS X (i.e. Xcode) version.
-   # For macOS Sierra (Xcode 8) in combination with
-   # Qt 5.6.0 the following definition is required.
    # The active SDK version can be looked up by checking 
    # the symbolic link in this directory:
    # /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
    #
-   QMAKE_MAC_SDK = macosx10.12
+   QMAKE_MAC_SDK = macosx10.13
    
    #--------------------------------------------------
    # Minimum OS X version for submission is 10.9
@@ -177,6 +183,11 @@ macx {
    # Icon for application
    #
    ICON = ./images/canpie_server.icns
+   
+   #--------------------------------------------------
+	# Use Foundation framework for App Nap suspender 
+	#
+   LIBS += -framework Foundation
 }
 
 win32 {

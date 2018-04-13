@@ -12,14 +12,44 @@
 <context>
     <name>QCanServerDialog</name>
     <message>
-        <location filename="../qcan_server_dialog.cpp" line="335"/>
+        <location filename="../qcan_server_dialog.cpp" line="340"/>
         <source>&amp;Configuration ...</source>
         <translation>&amp;Konfiguration ...</translation>
     </message>
     <message>
-        <location filename="../qcan_server_dialog.cpp" line="343"/>
+        <location filename="../qcan_server_dialog.cpp" line="348"/>
         <source>&amp;Quit</source>
         <translation>&amp;Beenden</translation>
+    </message>
+    <message>
+        <location filename="../qcan_server_dialog.cpp" line="635"/>
+        <source>Stopped</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qcan_server_dialog.cpp" line="639"/>
+        <source>Sleeping</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qcan_server_dialog.cpp" line="644"/>
+        <source>OK (error active)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qcan_server_dialog.cpp" line="649"/>
+        <source>Warning</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qcan_server_dialog.cpp" line="654"/>
+        <source>Error passive</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qcan_server_dialog.cpp" line="659"/>
+        <source>Bus-off</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -173,42 +203,52 @@
         <translation>CAN Statistik</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="343"/>
+        <location filename="../forms/ServerConfig.ui" line="350"/>
+        <source>CAN status</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../forms/ServerConfig.ui" line="362"/>
+        <source>Error passive</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../forms/ServerConfig.ui" line="419"/>
         <source>Server configuration</source>
         <translation>Server Konfiguration</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="358"/>
+        <location filename="../forms/ServerConfig.ui" line="434"/>
         <source>CAN server port</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="374"/>
+        <location filename="../forms/ServerConfig.ui" line="450"/>
         <source>Message dispatch time</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="390"/>
+        <location filename="../forms/ServerConfig.ui" line="466"/>
         <source> ms</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="428"/>
+        <location filename="../forms/ServerConfig.ui" line="504"/>
         <source>CAN server host</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="445"/>
+        <location filename="../forms/ServerConfig.ui" line="521"/>
         <source>Local only</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="450"/>
+        <location filename="../forms/ServerConfig.ui" line="526"/>
         <source>Network</source>
         <translation>Netzwerk</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="457"/>
+        <location filename="../forms/ServerConfig.ui" line="533"/>
         <source>Information</source>
         <translation>Version</translation>
     </message>

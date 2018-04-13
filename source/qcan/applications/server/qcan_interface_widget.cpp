@@ -1,17 +1,53 @@
+//====================================================================================================================//
+// File:          qcan_interface_widget.cpp                                                                           //
+// Description:   QCAN server - Widget for QCanInterface                                                              //
+//                                                                                                                    //
+// Copyright (C) MicroControl GmbH & Co. KG                                                                           //
+// 53844 Troisdorf - Germany                                                                                          //
+// www.microcontrol.net                                                                                               //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the   //
+// following conditions are met:                                                                                      //
+// 1. Redistributions of source code must retain the above copyright notice, this list of conditions, the following   //
+//    disclaimer and the referenced file 'LICENSE'.                                                                   //
+// 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the       //
+//    following disclaimer in the documentation and/or other materials provided with the distribution.                //
+// 3. Neither the name of MicroControl nor the names of its contributors may be used to endorse or promote products   //
+//    derived from this software without specific prior written permission.                                           //
+//                                                                                                                    //
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance     //
+// with the License. You may obtain a copy of the License at                                                          //
+//                                                                                                                    //
+//    http://www.apache.org/licenses/LICENSE-2.0                                                                      //
+//                                                                                                                    //
+// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed   //
+// on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for  //
+// the specific language governing permissions and limitations under the License.                                     //
+//                                                                                                                    //
+//====================================================================================================================//
+
+
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Include files                                                                                                      **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
+
 #include "qcan_interface_widget.hpp"
 
-#include <QDebug>
-#include <QPainter>
-#include <QPaintEvent>
-#include <QPalette>
+#include <QtCore/QCoreApplication>
+#include <QtCore/QDebug>
+#include <QtCore/QPluginLoader>
+#include <QtCore/QPoint>
 
-#include <QMessageBox>
-#include <QDir>
-#include <QMenu>
-#include <QPluginLoader>
-#include <QPoint>
+#include <QtGui/QPainter>
+#include <QtGui/QPaintEvent>
+#include <QtGui/QPalette>
 
-#include <QCoreApplication>
+#include <QtWidgets/QMessageBox>
+
+
+
 /*----------------------------------------------------------------------------*\
 ** Class methods                                                              **
 **                                                                            **
@@ -106,7 +142,7 @@ void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
    //
    switch(pclEventV->button())
    {
-      case Qt::LeftButton:
+      case Qt::RightButton:
 
          //-----------------------------------------------------
          // show context menu
@@ -124,7 +160,7 @@ void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
          }
          break;
 
-      case Qt::RightButton:
+      case Qt::LeftButton:
          qDebug() << "Right button pressed";
 
          break;
@@ -304,7 +340,7 @@ bool QCanInterfaceWidget::setInterface(QString clNameV)
    {
       foreach (QCanPlugin *pclPluginT, apclQCanPluginP)
       {
-         // if an interface habe been found quit here
+         // if an interface have been found quit here
          if (pclQCanInterfaceP != NULL)
          {
             break;
@@ -313,6 +349,7 @@ bool QCanInterfaceWidget::setInterface(QString clNameV)
          // check all interces of selected plugin
          for (uint8_t ubIfCntT = 0; ubIfCntT < pclPluginT->interfaceCount(); ubIfCntT++)
          {
+            qDebug() << "2te stelle....";
             pclInterfaceT = pclPluginT->getInterface(ubIfCntT);
             pclInterfaceT->connect();
             clInterfaceNameT = pclInterfaceT->name();
@@ -320,17 +357,25 @@ bool QCanInterfaceWidget::setInterface(QString clNameV)
 
             if (clNameV == clInterfaceNameT)
             {
+               qDebug() << "Reqeusted Interface found: " << clInterfaceNameT;
                pclQCanInterfaceP = pclInterfaceT;
                break;
             }
          }
       }
+   } else
+   {
+      qDebug() << "New interface name is 'Virtual CAN bus', so do not change it.";
    }
+
+   qDebug() << "emit interfaceChanged " << QString::number(ubInterfaceIdxP,10);
 
    emit interfaceChanged(ubInterfaceIdxP, pclQCanInterfaceP);
 
    if (clInterfaceNameT != NULL)
    {
+      qDebug() << "Set new Interface:" << clInterfaceNameT;
+
       return true;
    }
 

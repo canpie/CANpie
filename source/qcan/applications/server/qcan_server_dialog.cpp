@@ -1,55 +1,57 @@
-//============================================================================//
-// File:          qcan_server_dialog.cpp                                      //
-// Description:   QCAN classes - CAN server dialog                            //
-//                                                                            //
-// Copyright (C) MicroControl GmbH & Co. KG                                   //
-// 53844 Troisdorf - Germany                                                  //
-// www.microcontrol.net                                                       //
-//                                                                            //
-//----------------------------------------------------------------------------//
-// Redistribution and use in source and binary forms, with or without         //
-// modification, are permitted provided that the following conditions         //
-// are met:                                                                   //
-// 1. Redistributions of source code must retain the above copyright          //
-//    notice, this list of conditions, the following disclaimer and           //
-//    the referenced file 'LICENSE'.                                          //
-// 2. Redistributions in binary form must reproduce the above copyright       //
-//    notice, this list of conditions and the following disclaimer in the     //
-//    documentation and/or other materials provided with the distribution.    //
-// 3. Neither the name of MicroControl nor the names of its contributors      //
-//    may be used to endorse or promote products derived from this software   //
-//    without specific prior written permission.                              //
-//                                                                            //
-// Provided that this notice is retained in full, this software may be        //
-// distributed under the terms of the GNU Lesser General Public License       //
-// ("LGPL") version 3 as distributed in the 'LICENSE' file.                   //
-//                                                                            //
-//============================================================================//
+//====================================================================================================================//
+// File:          qcan_server_dialog.cpp                                                                              //
+// Description:   QCAN server - configuration dialog                                                                  //
+//                                                                                                                    //
+// Copyright (C) MicroControl GmbH & Co. KG                                                                           //
+// 53844 Troisdorf - Germany                                                                                          //
+// www.microcontrol.net                                                                                               //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the   //
+// following conditions are met:                                                                                      //
+// 1. Redistributions of source code must retain the above copyright notice, this list of conditions, the following   //
+//    disclaimer and the referenced file 'LICENSE'.                                                                   //
+// 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the       //
+//    following disclaimer in the documentation and/or other materials provided with the distribution.                //
+// 3. Neither the name of MicroControl nor the names of its contributors may be used to endorse or promote products   //
+//    derived from this software without specific prior written permission.                                           //
+//                                                                                                                    //
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance     //
+// with the License. You may obtain a copy of the License at                                                          //
+//                                                                                                                    //
+//    http://www.apache.org/licenses/LICENSE-2.0                                                                      //
+//                                                                                                                    //
+// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed   //
+// on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for  //
+// the specific language governing permissions and limitations under the License.                                     //
+//                                                                                                                    //
+//====================================================================================================================//
 
 
-/*----------------------------------------------------------------------------*\
-** Include files                                                              **
-**                                                                            **
-\*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Include files                                                                                                      **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
 
 #include "qcan_server_dialog.hpp"
 
-#include <QDebug>
-#include <QDir>
-#include <QString>
+#include <QtCore/QDebug>
+#include <QtCore/QDir>
+#include <QtCore/QString>
 
 
-/*----------------------------------------------------------------------------*\
-** Definitions                                                                **
-**                                                                            **
-\*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Definitions                                                                                                        **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
 
 
 
-/*----------------------------------------------------------------------------*\
-** Class methods                                                              **
-**                                                                            **
-\*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Class methods                                                                                                      **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
+
 
 
 //----------------------------------------------------------------------------//
@@ -69,8 +71,6 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    //
    setupNetworks();
 
-   // setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint );
-   
    //----------------------------------------------------------------
    // setup the user interface
    //
@@ -134,6 +134,63 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    ui.pclCbbNetDatBitrateM->addItem("5 MBit/s"  , (int32_t) 5000000);
    
    //----------------------------------------------------------------
+   // load settings
+   //
+   pclSettingsP = new QSettings( QSettings::NativeFormat,
+                                 QSettings::UserScope,
+                                 "microcontrol.net",
+                                 "CANpieServer");
+
+   //-----------------------------------------------------------
+   // settings for server
+   //
+   pclSettingsP->beginGroup("Server");
+   QHostAddress clHostAddrT = QHostAddress(pclSettingsP->value("hostAddress",
+                                             "127.0.0.1").toString());
+   pclCanServerP->setServerAddress(clHostAddrT);
+   pclSettingsP->endGroup();
+
+   //-----------------------------------------------------------
+   // settings for network
+   //
+   for(ubNetworkIdxT = 0; ubNetworkIdxT < QCAN_NETWORK_MAX; ubNetworkIdxT++)
+   {
+      pclNetworkT = pclCanServerP->network(ubNetworkIdxT);
+      pclLoggerP->addLoggingSource(pclNetworkT);
+      clNetNameT  = "CAN_" + QString("%1").arg(ubNetworkIdxT+1);
+      pclSettingsP->beginGroup(clNetNameT);
+
+      pclLoggerP->setLogLevel((CAN_Channel_e)(ubNetworkIdxT + 1),
+                              (LogLevel_e) pclSettingsP->value("loglevel",
+                                                eLOG_LEVEL_INFO).toInt());
+
+      pclNetworkT->setNetworkEnabled(pclSettingsP->value("enable",
+                                     0).toBool());
+
+      pclNetworkT->setErrorFrameEnabled(pclSettingsP->value("errorFrame",
+                                     0).toBool());
+
+      pclNetworkT->setFastDataEnabled(pclSettingsP->value("canFD",
+                                     0).toBool());
+
+      pclNetworkT->setListenOnlyEnabled(pclSettingsP->value("listenOnly",
+                                     0).toBool());
+
+      pclNetworkT->setBitrate(pclSettingsP->value("bitrateNom",
+                              500000).toInt(),
+                              pclSettingsP->value("bitrateDat",
+                              eCAN_BITRATE_NONE).toInt());
+
+      apclCanIfWidgetP[ubNetworkIdxT]->setInterface(
+            pclSettingsP->value("interface" +
+                                QString::number(ubNetworkIdxT),"").toString());
+
+      pclSettingsP->endGroup();
+
+   }
+
+
+   //----------------------------------------------------------------
    // connect widgets of dialog
    //
    connect(ui.pclCkbNetEnableM, SIGNAL(clicked(bool)),
@@ -157,11 +214,14 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    connect(ui.pclCbbNetDatBitrateM, SIGNAL(currentIndexChanged(int)),
            this, SLOT(onNetworkConfBitrateDat(int)));
 
-   connect(ui.pclCbbServHostM, SIGNAL(currentIndexChanged(int)),
-           this, SLOT(onServerConfAddress(int)));
+   connect(ui.pclChkServerRemoteAccessM, SIGNAL(stateChanged(int)),
+           this, SLOT(onServerRemoteAccess(int)));
 
-   connect(ui.pclSpnSrvTimeM, SIGNAL(valueChanged(int)),
-           this, SLOT(onServerConfTime(int)));
+   connect(ui.pclChkChangeBitrateM, SIGNAL(stateChanged(int)),
+           this, SLOT(onServerBitrateAccess(int)));
+
+   connect(ui.pclPbtNetDevSpecificConfigM, SIGNAL(clicked()),
+           this, SLOT(onDeviceSpecificConfig()));
 
    connect(ui.pclBtnStatusResetM, SIGNAL(clicked(bool)),
            this, SLOT(onNetworkReset(bool)));
@@ -170,18 +230,20 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    // connect default signals / slots for statistic
    //
    pclNetworkT = pclCanServerP->network(0);
-   connect(pclNetworkT, SIGNAL(showCanFrames(uint32_t)),
-           this, SLOT(onNetworkShowCanFrames(uint32_t)) );
+   connect(pclNetworkT, SIGNAL(showCanFrames(CAN_Channel_e, uint32_t)),
+           this, SLOT(onNetworkShowCanFrames(CAN_Channel_e, uint32_t)) );
 
-   connect(pclNetworkT, SIGNAL(showErrFrames(uint32_t)),
-           this, SLOT(onNetworkShowErrFrames(uint32_t)) );
+   connect(pclNetworkT, SIGNAL(showErrFrames(CAN_Channel_e, uint32_t)),
+           this, SLOT(onNetworkShowErrFrames(CAN_Channel_e, uint32_t)) );
 
-   connect(pclNetworkT, SIGNAL(showLoad(uint8_t, uint32_t)),
-            this, SLOT(onNetworkShowLoad(uint8_t, uint32_t)) );
+   connect(pclNetworkT, SIGNAL(showLoad(CAN_Channel_e, uint8_t, uint32_t)),
+            this, SLOT(onNetworkShowLoad(CAN_Channel_e, uint8_t, uint32_t)) );
 
-   connect(pclNetworkT, SIGNAL(showState(CAN_State_e)),
-            this, SLOT(onNetworkShowState(CAN_State_e)) );
+   connect(pclNetworkT, SIGNAL(showState(CAN_Channel_e, CAN_State_e)),
+            this, SLOT(onNetworkShowState(CAN_Channel_e, CAN_State_e)) );
 
+   connect(pclNetworkT, SIGNAL(changeBitrate(CAN_Channel_e, uint32_t, int32_t)),
+           this, SLOT(onNetworkChangeBitrate(CAN_Channel_e, uint32_t, int32_t)));
 
    //----------------------------------------------------------------
    // Intialise interface widgets for CAN interface selection
@@ -191,67 +253,9 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
       connect( apclCanIfWidgetP[ubNetworkIdxT], 
                &QCanInterfaceWidget::interfaceChanged,
                this,                                       
-               &QCanServerDialog::onInterfaceChange  );
+               &QCanServerDialog::onInterfaceChange);
    }
 
-
-   //----------------------------------------------------------------
-   // load settings
-   //
-   pclSettingsP = new QSettings( QSettings::NativeFormat,
-                                 QSettings::UserScope,
-                                 "microcontrol.net",
-                                 "CANpieServer");
-
-   //-----------------------------------------------------------
-   // settings for server
-   //
-   pclSettingsP->beginGroup("Server");
-   QHostAddress clHostAddrT = QHostAddress(pclSettingsP->value("hostAddress",
-                                             "127.0.0.1").toString());
-   pclCanServerP->setServerAddress(clHostAddrT);
-   pclCanServerP->setDispatcherTime(pclSettingsP->value("dispatchTime",
-                                                         20).toInt());
-   pclSettingsP->endGroup();
-
-   //-----------------------------------------------------------
-   // settings for network
-   //
-   for(ubNetworkIdxT = 0; ubNetworkIdxT < QCAN_NETWORK_MAX; ubNetworkIdxT++)
-   {
-      pclNetworkT = pclCanServerP->network(ubNetworkIdxT);
-      pclLoggerP->addLoggingSource(pclNetworkT);
-      clNetNameT  = "CAN_" + QString("%1").arg(ubNetworkIdxT+1);
-      pclSettingsP->beginGroup(clNetNameT);
-
-      pclLoggerP->setLogLevel((CAN_Channel_e)(ubNetworkIdxT + 1),
-                              (LogLevel_e) pclSettingsP->value("loglevel",
-                                                eLOG_LEVEL_INFO).toInt());
-
-      pclNetworkT->setNetworkEnabled(pclSettingsP->value("enable",
-                                     0).toBool());
-
-      pclNetworkT->setErrorFramesEnabled(pclSettingsP->value("errorFrame",
-                                     0).toBool());
-
-      pclNetworkT->setFastDataEnabled(pclSettingsP->value("canFD",
-                                     0).toBool());
-
-      pclNetworkT->setListenOnlyEnabled(pclSettingsP->value("listenOnly",
-                                     0).toBool());
-
-      pclNetworkT->setBitrate(pclSettingsP->value("bitrateNom",
-                              500000).toInt(),
-                              pclSettingsP->value("bitrateDat",
-                              eCAN_BITRATE_NONE).toInt());
-
-      apclCanIfWidgetP[ubNetworkIdxT]->setInterface(
-            pclSettingsP->value("interface" + 
-                                QString::number(ubNetworkIdxT),"").toString());
-
-      pclSettingsP->endGroup();
-
-   }
 
 
    //----------------------------------------------------------------
@@ -274,7 +278,7 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
 
    ui.pclTabConfigM->setCurrentIndex(0);
    pclTbxNetworkP->setCurrentIndex(0);
-   this->updateUI(0);
+   this->updateUI(eCAN_CHANNEL_1);
 
 }
 
@@ -305,7 +309,7 @@ QCanServerDialog::~QCanServerDialog()
       pclSettingsP->setValue("bitrateNom", pclNetworkT->nominalBitrate());
       pclSettingsP->setValue("bitrateDat", pclNetworkT->dataBitrate());
       pclSettingsP->setValue("enable",     pclNetworkT->isNetworkEnabled());
-      pclSettingsP->setValue("errorFrame", pclNetworkT->isErrorFramesEnabled());
+      pclSettingsP->setValue("errorFrame", pclNetworkT->isErrorFrameEnabled());
       pclSettingsP->setValue("canFD",      pclNetworkT->isFastDataEnabled());
       pclSettingsP->setValue("listenOnly", pclNetworkT->isListenOnlyEnabled());
       pclSettingsP->setValue("loglevel",   pclLoggerP->logLevel((CAN_Channel_e)(ubNetworkIdxT+1)));
@@ -322,8 +326,6 @@ QCanServerDialog::~QCanServerDialog()
    pclSettingsP->setValue("hostAddress",
                            pclCanServerP->serverAddress().toString());
 
-   pclSettingsP->setValue("dispatchTime",
-                           pclCanServerP->dispatcherTime());
    pclSettingsP->endGroup();
 
    delete(pclSettingsP);
@@ -396,10 +398,10 @@ void QCanServerDialog::onInterfaceChange( uint8_t ubIdxV,
    else
    {
       qDebug() << " set interface icon";
-      if(pclNetworkT->addInterface(pclCanIfV) == true)
+      if (pclNetworkT->addInterface(pclCanIfV) == true)
       {
+         pclNetworkT->startInterface();
          apclCanIfWidgetP[ubIdxV]->setIcon(pclCanIfV->icon());
-         pclLoggerP->addLoggingSource(pclCanIfV);
       }
       else
       {
@@ -407,6 +409,7 @@ void QCanServerDialog::onInterfaceChange( uint8_t ubIdxV,
       }
    }
 
+   updateUI(CAN_Channel_e (ubIdxV + 1));
 }
 
 void QCanServerDialog::onLoggingWindow(void)
@@ -423,41 +426,58 @@ void QCanServerDialog::onNetworkChange(int slIndexV)
 {
    QCanNetwork *  pclNetworkT;
 
-   qDebug() << "onNetworkChange()" << slIndexV;
+   qDebug() << "QCanServerDialog::onNetworkChange()" << slIndexV;
 
    //----------------------------------------------------------------
    // reconnect the signals / slots for statistic
    //
    pclNetworkT = pclCanServerP->network(slLastNetworkIndexP);
-   disconnect(pclNetworkT, SIGNAL(showCanFrames(uint32_t)),
-           this, SLOT(onNetworkShowCanFrames(uint32_t)) );
+   disconnect(pclNetworkT, SIGNAL(showCanFrames(CAN_Channel_e, uint32_t)),
+           this, SLOT(onNetworkShowCanFrames(CAN_Channel_e, uint32_t)) );
 
-   disconnect(pclNetworkT, SIGNAL(showErrFrames(uint32_t)),
-           this, SLOT(onNetworkShowErrFrames(uint32_t)) );
+   disconnect(pclNetworkT, SIGNAL(showErrFrames(CAN_Channel_e, uint32_t)),
+           this, SLOT(onNetworkShowErrFrames(CAN_Channel_e, uint32_t)) );
 
-   disconnect(pclNetworkT, SIGNAL(showLoad(uint8_t, uint32_t)),
-            this, SLOT(onNetworkShowLoad(uint8_t, uint32_t)) );
+   disconnect(pclNetworkT, SIGNAL(showLoad(CAN_Channel_e, uint8_t, uint32_t)),
+            this, SLOT(onNetworkShowLoad(CAN_Channel_e, uint8_t, uint32_t)) );
 
+   disconnect(pclNetworkT, SIGNAL(showState(CAN_Channel_e, CAN_State_e)),
+            this, SLOT(onNetworkShowState(CAN_Channel_e, CAN_State_e)) );
+
+   disconnect(pclNetworkT, SIGNAL(changeBitrate(CAN_Channel_e, uint32_t, int32_t)),
+           this, SLOT(onNetworkChangeBitrate(CAN_Channel_e, uint32_t, int32_t)));
 
    pclNetworkT = pclCanServerP->network(slIndexV);
-   connect(pclNetworkT, SIGNAL(showCanFrames(uint32_t)),
-           this, SLOT(onNetworkShowCanFrames(uint32_t)) );
+   connect(pclNetworkT, SIGNAL(showCanFrames(CAN_Channel_e, uint32_t)),
+           this, SLOT(onNetworkShowCanFrames(CAN_Channel_e, uint32_t)) );
 
-   connect(pclNetworkT, SIGNAL(showErrFrames(uint32_t)),
-           this, SLOT(onNetworkShowErrFrames(uint32_t)) );
+   connect(pclNetworkT, SIGNAL(showErrFrames(CAN_Channel_e, uint32_t)),
+           this, SLOT(onNetworkShowErrFrames(CAN_Channel_e, uint32_t)) );
 
-   connect(pclNetworkT, SIGNAL(showLoad(uint8_t, uint32_t)),
-            this, SLOT(onNetworkShowLoad(uint8_t, uint32_t)) );
+   connect(pclNetworkT, SIGNAL(showLoad(CAN_Channel_e, uint8_t, uint32_t)),
+            this, SLOT(onNetworkShowLoad(CAN_Channel_e, uint8_t, uint32_t)) );
+
+   connect(pclNetworkT, SIGNAL(showState(CAN_Channel_e, CAN_State_e)),
+            this, SLOT(onNetworkShowState(CAN_Channel_e, CAN_State_e)) );
+
+   connect(pclNetworkT, SIGNAL(changeBitrate(CAN_Channel_e, uint32_t, int32_t)),
+           this, SLOT(onNetworkChangeBitrate(CAN_Channel_e, uint32_t, int32_t)));
 
    //----------------------------------------------------------------
    // update user interface
    //
-   this->updateUI(slIndexV);
+   this->updateUI(CAN_Channel_e (slIndexV + 1));
 
    //----------------------------------------------------------------
    // store index for future access
    //
    slLastNetworkIndexP = slIndexV;
+}
+
+void QCanServerDialog::onNetworkChangeBitrate(CAN_Channel_e ubChannelV, uint32_t slNomBitRateV, int32_t slDatBitRateV)
+{
+   qDebug() << "QCanServerDialog::onNetworkChangeBitrate(CAN channel" << ubChannelV << ")";
+   updateUI(ubChannelV);
 }
 
 
@@ -554,7 +574,7 @@ void QCanServerDialog::onNetworkConfErrorFrames(bool btEnableV)
    pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
    if(pclNetworkT != Q_NULLPTR)
    {
-      pclNetworkT->setErrorFramesEnabled(btEnableV);
+      pclNetworkT->setErrorFrameEnabled(btEnableV);
    }
 }
 
@@ -575,6 +595,10 @@ void QCanServerDialog::onNetworkConfListenOnly(bool btEnableV)
 }
 
 
+//----------------------------------------------------------------------------//
+// onNetworkReset()                                                           //
+//                                                                            //
+//----------------------------------------------------------------------------//
 void QCanServerDialog::onNetworkReset(bool btCheckedV)
 {
    Q_UNUSED(btCheckedV);
@@ -593,8 +617,10 @@ void QCanServerDialog::onNetworkReset(bool btCheckedV)
 // onNetworkShowCanFrames()                                                   //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void QCanServerDialog::onNetworkShowCanFrames(uint32_t ulFrameCntV)
+void QCanServerDialog::onNetworkShowCanFrames(CAN_Channel_e ubChannelV, uint32_t ulFrameCntV)
 {
+   Q_UNUSED(ubChannelV);
+
    ui.pclCntStatCanM->setText(QString("%1").arg(ulFrameCntV));
    if (ulFrameCntV > 0)
    {
@@ -606,8 +632,10 @@ void QCanServerDialog::onNetworkShowCanFrames(uint32_t ulFrameCntV)
 // onNetworkShowErrFrames()                                                   //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void QCanServerDialog::onNetworkShowErrFrames(uint32_t ulFrameCntV)
+void QCanServerDialog::onNetworkShowErrFrames(CAN_Channel_e ubChannelV, uint32_t ulFrameCntV)
 {
+   Q_UNUSED(ubChannelV);
+
    ui.pclCntStatErrM->setText(QString("%1").arg(ulFrameCntV));
    if (ulFrameCntV > 0)
    {
@@ -620,14 +648,18 @@ void QCanServerDialog::onNetworkShowErrFrames(uint32_t ulFrameCntV)
 // onNetworkShowLoad()                                                        //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void QCanServerDialog::onNetworkShowLoad(uint8_t ubLoadV, uint32_t ulMsgPerSecV)
+void QCanServerDialog::onNetworkShowLoad(CAN_Channel_e ubChannelV, uint8_t ubLoadV, uint32_t ulMsgPerSecV)
 {
+   Q_UNUSED(ubChannelV);
+
    ui.pclCntStatMsgM->setText(QString("%1").arg(ulMsgPerSecV));
    ui.pclPgbStatLoadM->setValue(ubLoadV);
 }
 
-void QCanServerDialog::onNetworkShowState(CAN_State_e teStateV)
+void QCanServerDialog::onNetworkShowState(CAN_Channel_e ubChannelV, CAN_State_e teStateV)
 {
+   Q_UNUSED(ubChannelV);
+
    ui.pclTxtStatusBusM->setStyleSheet("QLabel { color : black; }");
    switch(teStateV)
    {
@@ -663,15 +695,50 @@ void QCanServerDialog::onNetworkShowState(CAN_State_e teStateV)
 
 
 //----------------------------------------------------------------------------//
-// onServerConfAddress()                                                      //
+// onDeviceSpecificConfig()                                                   //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void QCanServerDialog::onServerConfAddress(int slIndexV)
+void QCanServerDialog::onDeviceSpecificConfig()
+{
+   qDebug() << "onDeviceSpecificConfig";
+
+   QCanNetwork *  pclNetworkT;
+
+   pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
+   if(pclNetworkT != Q_NULLPTR)
+   {
+      qDebug() << "Call Configuration GUI for " << pclNetworkT->name();
+      pclNetworkT->setInterfaceConfiguration();
+   }
+}
+
+
+//----------------------------------------------------------------------------//
+// onServerBitrateAccess()                                                    //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void QCanServerDialog::onServerBitrateAccess(int slStateV)
+{
+
+   if(slStateV == Qt::Unchecked)
+   {
+      pclCanServerP->enableBitrateChange(false);
+   }
+   else
+   {
+      pclCanServerP->enableBitrateChange(true);
+   }
+}
+
+//----------------------------------------------------------------------------//
+// onServerRemoteAccess()                                                     //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void QCanServerDialog::onServerRemoteAccess(int slStateV)
 {
    QHostAddress clHostAddressT;
 
-   qDebug() << "onServerConfAddress" << slIndexV;
-   if(slIndexV == 0)
+   if(slStateV == Qt::Unchecked)
    {
       clHostAddressT = QHostAddress(QHostAddress::LocalHost);
    }
@@ -686,10 +753,9 @@ void QCanServerDialog::onServerConfAddress(int slIndexV)
 // onServerConfTime()                                                         //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void QCanServerDialog::onServerConfTime(int slValueV)
+void QCanServerDialog::onServerDispatchTimeLimit(int slValueV)
 {
    qDebug() << "onServerConfTime" << slValueV;
-   pclCanServerP->setDispatcherTime(slValueV);
 }
 
 
@@ -702,6 +768,10 @@ void QCanServerDialog::setupNetworks(void)
    pclCanServerP = new QCanServer(  this,
                                     QCAN_TCP_DEFAULT_PORT,
                                     QCAN_NETWORK_MAX);
+
+   if (pclCanServerP->isActive() == false)
+   {
+   }
 }
 
 
@@ -722,17 +792,19 @@ void QCanServerDialog::setIcon(void)
 // updateUI()                                                                 //
 //                                                                            //
 //----------------------------------------------------------------------------//
-void QCanServerDialog::updateUI(uint8_t ubNetworkIdxV)
+void QCanServerDialog::updateUI(const CAN_Channel_e & ubChannelR)
 {
    QCanNetwork * pclNetworkT;
 
+   qDebug() << "QCanServerDialog::updateUI(CAN channel" << ubChannelR << ")";
 
    //----------------------------------------------------------------
    // update network tab
    //
-   pclNetworkT = pclCanServerP->network(ubNetworkIdxV);
+   pclNetworkT = pclCanServerP->network(ubChannelR - 1);
    if(pclNetworkT != Q_NULLPTR)
    {
+
       //--------------------------------------------------------
       // Is network enabled?
       //
@@ -741,10 +813,10 @@ void QCanServerDialog::updateUI(uint8_t ubNetworkIdxV)
       //--------------------------------------------------------
       // Does it support error frames?
       //
-      if(pclNetworkT->hasErrorFramesSupport())
+      if(pclNetworkT->hasErrorFrameSupport())
       {
          ui.pclCkbNetErrorFramesM->setEnabled(true);
-         ui.pclCkbNetErrorFramesM->setChecked(pclNetworkT->isErrorFramesEnabled());
+         ui.pclCkbNetErrorFramesM->setChecked(pclNetworkT->isErrorFrameEnabled());
       }
       else
       {
@@ -766,6 +838,7 @@ void QCanServerDialog::updateUI(uint8_t ubNetworkIdxV)
          ui.pclCkbNetCanFdM->setEnabled(false);
       }
 
+
       //--------------------------------------------------------
       // Is CAN-FD activated?
       //
@@ -780,6 +853,7 @@ void QCanServerDialog::updateUI(uint8_t ubNetworkIdxV)
          ui.pclCbbNetDatBitrateM->setEnabled(false);
       }
 
+
       //--------------------------------------------------------
       // Does it support Listen-Only mode?
       //
@@ -793,7 +867,19 @@ void QCanServerDialog::updateUI(uint8_t ubNetworkIdxV)
          ui.pclCkbNetListenOnlyM->setChecked(false);
          ui.pclCkbNetListenOnlyM->setEnabled(false);
       }
-      
+
+      //--------------------------------------------------------
+      // Does it support Device Specific Configuration
+      //
+      if (pclNetworkT->hasSpecificConfigurationSupport())
+      {
+         ui.pclPbtNetDevSpecificConfigM->show();
+         ui.pclPbtNetDevSpecificConfigM->setEnabled(true);
+      } else
+      {
+         ui.pclPbtNetDevSpecificConfigM->setEnabled(false);
+         ui.pclPbtNetDevSpecificConfigM->hide();
+      }
 
       //--------------------------------------------------------
       // show current nominal bit-rate
@@ -824,17 +910,17 @@ void QCanServerDialog::updateUI(uint8_t ubNetworkIdxV)
       //--------------------------------------------------------
       // Update value for CAN messages
       //
-      onNetworkShowCanFrames(pclNetworkT->frameCount());
+      onNetworkShowCanFrames(ubChannelR, pclNetworkT->frameCount());
 
       //--------------------------------------------------------
       // Update value for Error messages
       //
-      onNetworkShowErrFrames(pclNetworkT->frameCountError());
+      onNetworkShowErrFrames(ubChannelR, pclNetworkT->frameCountError());
 
       //--------------------------------------------------------
       // show current CAN bus status
       //
-      onNetworkShowState(pclNetworkT->state());
+      onNetworkShowState(ubChannelR, pclNetworkT->state());
    }
 
    //----------------------------------------------------------------
@@ -843,14 +929,13 @@ void QCanServerDialog::updateUI(uint8_t ubNetworkIdxV)
    if(pclNetworkT != Q_NULLPTR)
    {
       QHostAddress clHostAddrT = pclNetworkT->serverAddress();
-      if(clHostAddrT == QHostAddress(QHostAddress::LocalHost))
+      if(clHostAddrT == QHostAddress(QHostAddress::Any))
       {
-         ui.pclCbbServHostM->setCurrentIndex(0);
+         ui.pclChkServerRemoteAccessM->setCheckState(Qt::Checked);
       }
       else
       {
-         ui.pclCbbServHostM->setCurrentIndex(1);
+         ui.pclChkServerRemoteAccessM->setCheckState(Qt::Unchecked);
       }
-      ui.pclSpnSrvTimeM->setValue(pclNetworkT->dispatcherTime());
    }
 }

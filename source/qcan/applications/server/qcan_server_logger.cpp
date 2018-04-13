@@ -1,14 +1,49 @@
+//====================================================================================================================//
+// File:          qcan_server_logger.hpp                                                                              //
+// Description:   QCAN server - logging widget                                                                        //
+//                                                                                                                    //
+// Copyright (C) MicroControl GmbH & Co. KG                                                                           //
+// 53844 Troisdorf - Germany                                                                                          //
+// www.microcontrol.net                                                                                               //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the   //
+// following conditions are met:                                                                                      //
+// 1. Redistributions of source code must retain the above copyright notice, this list of conditions, the following   //
+//    disclaimer and the referenced file 'LICENSE'.                                                                   //
+// 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the       //
+//    following disclaimer in the documentation and/or other materials provided with the distribution.                //
+// 3. Neither the name of MicroControl nor the names of its contributors may be used to endorse or promote products   //
+//    derived from this software without specific prior written permission.                                           //
+//                                                                                                                    //
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance     //
+// with the License. You may obtain a copy of the License at                                                          //
+//                                                                                                                    //
+//    http://www.apache.org/licenses/LICENSE-2.0                                                                      //
+//                                                                                                                    //
+// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed   //
+// on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for  //
+// the specific language governing permissions and limitations under the License.                                     //
+//                                                                                                                    //
+//====================================================================================================================//
 
 
 
 #include "qcan_server_logger.hpp"
 
-#include <QDebug>
 
-#include <QFileDialog>
-#include <QFont>
-#include <QFontDatabase>
-#include <QMenu>
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Include files                                                                                                      **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
+
+#include <QtCore/QDebug>
+
+#include <QtGui/QFont>
+#include <QtGui/QFontDatabase>
+
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMenu>
 
 
 QCanServerLogger::QCanServerLogger()
@@ -68,6 +103,10 @@ QCanServerLogger::~QCanServerLogger()
 }
 
 
+//----------------------------------------------------------------------------//
+// addLoggingSource()                                                         //
+//                                                                            //
+//----------------------------------------------------------------------------//
 void QCanServerLogger::addLoggingSource(QObject *sender)
 {
 
@@ -111,20 +150,31 @@ void QCanServerLogger::appendMessage(const CAN_Channel_e ubChannelV,
    }
 }
 
+
+//--------------------------------------------------------------------------------------------------------------------//
+// hide()                                                                                                             //
+// hide the log window                                                                                                //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanServerLogger::hide(void)
 {
    pclLogWindowP->hide();
 }
 
+
+//--------------------------------------------------------------------------------------------------------------------//
+// isHidden()                                                                                                         //
+// check if log window is hidden                                                                                      //
+//--------------------------------------------------------------------------------------------------------------------//
 bool QCanServerLogger::isHidden(void)
 {
    return (pclLogWindowP->isHidden());
 }
 
-//----------------------------------------------------------------------------//
-// logLevel()                                                                 //
-// return log level of selected CAN chennel                                   //
-//----------------------------------------------------------------------------//
+
+//--------------------------------------------------------------------------------------------------------------------//
+// logLevel()                                                                                                         //
+// return log level of selected CAN channel                                                                           //
+//--------------------------------------------------------------------------------------------------------------------//
 LogLevel_e QCanServerLogger::logLevel(const CAN_Channel_e ubChannelV)
 {
    LogLevel_e teLevelT = eLOG_LEVEL_INFO;
@@ -137,29 +187,31 @@ LogLevel_e QCanServerLogger::logLevel(const CAN_Channel_e ubChannelV)
    return teLevelT;
 }
 
-//----------------------------------------------------------------------------//
-// onChangeLogLevel()                                                         //
-// change log level for all CAN chennels                                      //
-//----------------------------------------------------------------------------//
+
+//--------------------------------------------------------------------------------------------------------------------//
+// onChangeLogLevel()                                                                                                 //
+// change log level for all CAN channels                                                                              //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanServerLogger::onChangeLogLevel(QAction * pclActionV)
 {
    setLogLevel(teCanChannelP, (LogLevel_e) pclActionV->data().toInt());
 }
 
 
-//----------------------------------------------------------------------------//
-// onClearLog()                                                               //
-// clear log window                                                           //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// onClearLog()                                                                                                       //
+// clear log window                                                                                                   //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanServerLogger::onClearLog(void)
 {
    apclLogTextP[teCanChannelP - 1]->clear();
 }
 
-//----------------------------------------------------------------------------//
-// onSetLogFile()                                                             //
-// set log file                                                               //
-//----------------------------------------------------------------------------//
+
+//--------------------------------------------------------------------------------------------------------------------//
+// onSetLogFile()                                                                                                     //
+// set log file                                                                                                       //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanServerLogger::onSetLogFile(void)
 {
    QString clFileNameT;
@@ -175,10 +227,10 @@ void QCanServerLogger::onSetLogFile(void)
 }
 
 
-//----------------------------------------------------------------------------//
-// showLogWindowMenu()                                                        //
-// show context menu in log window                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// showLogWindowMenu()                                                                                                //
+// show context menu in log window                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanServerLogger::onShowLogMenu(const QPoint &pos)
 {
    QMenu *    pclMenuT;
@@ -280,6 +332,11 @@ void QCanServerLogger::onShowLogMenu(const QPoint &pos)
 
 }
 
+
+//--------------------------------------------------------------------------------------------------------------------//
+// setFileName()                                                                                                      //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 bool QCanServerLogger::setFileName(const CAN_Channel_e ubChannelV,
                                    QString fileName)
 {
@@ -323,6 +380,11 @@ bool QCanServerLogger::setFileName(const CAN_Channel_e ubChannelV,
    return false;
 }
 
+
+//--------------------------------------------------------------------------------------------------------------------//
+// setLogLevel()                                                                                                      //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanServerLogger::setLogLevel(const CAN_Channel_e ubChannelV,
                                    LogLevel_e teLogLevelV)
 {
@@ -362,10 +424,10 @@ void QCanServerLogger::setLogLevel(const CAN_Channel_e ubChannelV,
 }
 
 
-//----------------------------------------------------------------------------//
-// show()                                                                     //
-// show the log window and ensure it is placed over all other windows         //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// show()                                                                                                             //
+// show the log window and ensure it is placed over all other windows                                                 //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanServerLogger::show(void)
 {
    pclLogWindowP->show();
