@@ -34,7 +34,8 @@
 //============================================================================//
 
 
-#include <QDebug>
+#include <QtCore/QDebug>
+#include <QtCore/QThread>
 
 #include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QComboBox>
@@ -53,6 +54,18 @@ enum SocketHost_e {
    eSocketHostLocal = 0,
    eSocketHostRemote
 };
+
+#include <QtCore/QCoreApplication>
+#include <QtCore/QTime>
+
+void delay( int millisecondsToWait )
+{
+    QTime dieTime = QTime::currentTime().addMSecs( millisecondsToWait );
+    while( QTime::currentTime() < dieTime )
+    {
+        QCoreApplication::processEvents( QEventLoop::AllEvents, 100 );
+    }
+}
 
 class QCanSocketDialogPrivate : public QObject
 {
@@ -137,13 +150,13 @@ void QCanSocketDialogPrivate::createWidgets(QCanSocketDialog * pclWidgetV)
    pclLblHostAddressP->setObjectName(QStringLiteral("pclLblHostAddressP"));
    pclLblHostAddressP->setGeometry(QRect(10, 40, 140, 20));
    pclLblHostAddressP->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-   pclLblHostAddressP->setEnabled(false);
+   pclLblHostAddressP->hide();
    
    pclEdtHostAddressP = new QLineEdit(pclGroupBoxP);
    pclEdtHostAddressP->setObjectName(QStringLiteral("pclEdtHostAddressP"));
    pclEdtHostAddressP->setGeometry(QRect(170, 42, 145, 21));
    pclEdtHostAddressP->setInputMask("000.000.000.000");
-   pclEdtHostAddressP->setEnabled(false);
+   pclEdtHostAddressP->hide();
 
    QFont clFontT;
    clFontT.setFamily(QStringLiteral("Courier"));
@@ -254,13 +267,21 @@ void QCanSocketDialogPrivate::enableConnectionWait(bool btEnableV)
 //----------------------------------------------------------------------------//
 void QCanSocketDialogPrivate::enableHost(bool btEnableV)
 {
-   pclLblHostAddressP->setEnabled(btEnableV);
-   pclEdtHostAddressP->setEnabled(btEnableV);
+   if (btEnableV)
+   {
+      pclLblHostAddressP->show();
+      pclEdtHostAddressP->show();
+   }
+   else
+   {
+      pclLblHostAddressP->hide();
+      pclEdtHostAddressP->hide();
+   }
 }
 
 
 //----------------------------------------------------------------------------//
-// QCanSocketDialog::setHostAddress()                                         //
+// QCanSocketDialogPrivate::setHostAddress()                                  //
 //                                                                            //
 //----------------------------------------------------------------------------//
 void QCanSocketDialogPrivate::doConnectionWait()
@@ -276,6 +297,11 @@ void QCanSocketDialogPrivate::doConnectionWait()
 
 }
 
+
+//----------------------------------------------------------------------------//
+// QCanSocketDialogPrivate::setChannel()                                      //
+//                                                                            //
+//----------------------------------------------------------------------------//
 void QCanSocketDialogPrivate::setChannel(const CAN_Channel_e teChannelV)
 {
    pclCbxCanChannelP->setCurrentIndex(pclCbxCanChannelP->findData(teChannelV));
@@ -283,7 +309,7 @@ void QCanSocketDialogPrivate::setChannel(const CAN_Channel_e teChannelV)
 
 
 //----------------------------------------------------------------------------//
-// QCanSocketDialog::setHostAddress()                                         //
+// QCanSocketDialogPrivate::setHostAddress()                                  //
 //                                                                            //
 //----------------------------------------------------------------------------//
 void QCanSocketDialogPrivate::setHostAddress(const QHostAddress clHostAddressV)
@@ -338,6 +364,10 @@ QCanSocketDialog::QCanSocketDialog(QWidget *parent, Qt::WindowFlags f) :
    pclSocketP = new QCanSocket();
    pclTimerP  = new QTimer();
    pclWidgetP = new QCanSocketDialogPrivate();
+
+   clHostAddressP = QHostAddress::LocalHost;
+   teChannelP     = eCAN_CHANNEL_1;
+
    pclWidgetP->createWidgets(this);
    pclWidgetP->connectSlots(this);
    pclWidgetP->translate(this);
@@ -355,6 +385,10 @@ QCanSocketDialog::QCanSocketDialog(QWidget *parent, const QString &caption) :
    pclSocketP = new QCanSocket();
    pclTimerP  = new QTimer();
    pclWidgetP = new QCanSocketDialogPrivate();
+
+   clHostAddressP = QHostAddress::LocalHost;
+   teChannelP     = eCAN_CHANNEL_1;
+
    pclWidgetP->createWidgets(this);
    pclWidgetP->connectSlots(this);
    pclWidgetP->translate(this);
@@ -385,6 +419,14 @@ void QCanSocketDialog::accept(void)
    QDialog::accept();
 }
 
+//----------------------------------------------------------------------------//
+// QCanSocketDialog::channel()                                                //
+// get selected channel number                                                //
+//----------------------------------------------------------------------------//
+CAN_Channel_e QCanSocketDialog::channel() const
+{
+   return (teChannelP);
+}
 
 //----------------------------------------------------------------------------//
 // QCanSocketDialog::connect()                                                //
@@ -392,11 +434,15 @@ void QCanSocketDialog::accept(void)
 //----------------------------------------------------------------------------//
 void QCanSocketDialog::connect()
 {
+   qDebug() << "QCanSocketDialog::connect()";
+
    pclSocketP->disconnectNetwork();
-   pclSocketP->connectNetwork(pclWidgetP->channel());
+
    pclWidgetP->showInfoText(tr("Waiting for connection .."));
    pclWidgetP->enableConnectionWait();
    pclTimerP->start(20);
+
+   pclSocketP->connectNetwork(pclWidgetP->channel());
 }
 
 
@@ -406,6 +452,8 @@ void QCanSocketDialog::connect()
 //----------------------------------------------------------------------------//
 void QCanSocketDialog::connectSlots(void)
 {
+   qDebug() << "QCanSocketDialog::connectSlots()";
+
    QObject::connect( pclTimerP, SIGNAL(timeout()), 
                      this, SLOT(onConnectionTimer()));
 
@@ -431,6 +479,8 @@ void QCanSocketDialog::connectSlots(void)
 //----------------------------------------------------------------------------//
 void QCanSocketDialog::disconnectSlots(void)
 {
+   qDebug() << "QCanSocketDialog::disconnectSlots()";
+
    //----------------------------------------------------------------
    // disconnect signals for socket operations
    //
@@ -463,9 +513,13 @@ void QCanSocketDialog::done(int slResultV)
       // Cancel has been pressed:
       // - disconnect from network
       // - delete the QCanSocket instance
+      // - set channel number to eCAN_CHANNEL_NONE
       //
       pclSocketP->disconnectNetwork();
       delete (pclSocketP);
+      pclSocketP.clear();
+      teChannelP = eCAN_CHANNEL_NONE;
+
    }
 
    QDialog::done(slResultV);
@@ -479,6 +533,8 @@ void QCanSocketDialog::done(int slResultV)
 void QCanSocketDialog::onChannelChanged(int slIndexV)
 {
    Q_UNUSED(slIndexV);
+
+   teChannelP = pclWidgetP->channel();
    this->connect();
 }
 
@@ -521,13 +577,24 @@ void QCanSocketDialog::onSocketConnected(void)
    QByteArray        clCanDataT;
    QCanFrameApi      clCanApiT;
    QString           clCanInfoT;
-   
+
+
+   qDebug() << "QCanSocketDialog::onSocketConnected()";
+
    pclTimerP->stop();
    pclWidgetP->enableConnectionWait(false);
    pclWidgetP->showInfoText(tr("Connected."));
 
-   if(pclSocketP->read(clCanDataT, &ubFrameTypeT) == true)
+   //----------------------------------------------------------------
+   // add a little delay of 20 ms to make sure that initial data
+   // from the CANpie server is available
+   //
+   QThread::msleep(20);
+
+   if (pclSocketP->read(clCanDataT, &ubFrameTypeT) == true)
    {
+      qDebug() << "QCanSocketDialog::onSocketConnected() - read data";
+
       switch(ubFrameTypeT)
       {
          case QCanData::eTYPE_API:
@@ -544,6 +611,9 @@ void QCanSocketDialog::onSocketConnected(void)
             
       }
    } 
+
+   qDebug() << "QCanSocketDialog::onSocketConnected() - done";
+
 }
 
 
@@ -580,7 +650,9 @@ void QCanSocketDialog::onSocketError(QAbstractSocket::SocketError teSocketErrorV
 //----------------------------------------------------------------------------//
 QHostAddress QCanSocketDialog::peerAddress() const
 {
-   
+   QHostAddress clPeerAddressT = QHostAddress::LocalHost;
+
+   return clPeerAddressT;
 }
 
 
@@ -599,9 +671,9 @@ void QCanSocketDialog::show()
 // QCanSocketDialog::socket()                                                 //
 //                                                                            //
 //----------------------------------------------------------------------------//
-QCanSocket QCanSocketDialog::socket(void) const
+QCanSocket * QCanSocketDialog::socket(void) const
 {
-   
+   return (pclSocketP);
 }
 
 
@@ -612,6 +684,7 @@ QCanSocket QCanSocketDialog::socket(void) const
 void QCanSocketDialog::setChannel(const CAN_Channel_e teChannelV)
 {
    pclWidgetP->setChannel(teChannelV);
+   teChannelP = teChannelV;
 }
 
 

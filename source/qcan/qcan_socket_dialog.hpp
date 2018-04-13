@@ -85,10 +85,18 @@ public:
 
    ~QCanSocketDialog();
    
+   /*!
+   ** \return     CAN channel number
+   **
+   ** The function returns the selected CAN channel number.
+   */
+   CAN_Channel_e  channel() const;
+
    QHostAddress   peerAddress() const;
    
    /*!
    ** \param[in]  clHostAddressV Server host address
+   ** \see        channel()
    **
    ** Setup the %CANpie server host address which should be displayed as
    ** default before the show() method is called.
@@ -110,7 +118,7 @@ public:
    */
    void           show(void);
    
-   QCanSocket     socket(void) const;
+   QCanSocket *   socket(void) const;
    
 Q_SIGNALS:
    /*!
@@ -137,7 +145,9 @@ private Q_SLOTS:
 private:
    QCanSocketDialogPrivate *  pclWidgetP;
    QPointer<QCanSocket>       pclSocketP;
+   QHostAddress               clHostAddressP;
    QTimer *                   pclTimerP;
+   CAN_Channel_e              teChannelP;
 
    void           connect(void);
    void           connectSlots(void);
