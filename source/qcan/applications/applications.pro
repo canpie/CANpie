@@ -18,8 +18,18 @@ QMAKE_PROJECT_NAME = "applications"
 #
 TEMPLATE = subdirs
 
+CONFIG += debug_and_release 
+
 #---------------------------------------------------------------
 # list of sub directories
 #
-SUBDIRS  = ./plugins \
-           ./server
+SUBDIRS  = ./can-config  \
+           ./can-dump    \
+           ./can-error   \
+           ./can-send    \
+           ./server		 \
+           ./plugins
+
+message("--------------------------------------------------------------------------------")
+message("Compile all QCan applications ..                                                ")
+message("--------------------------------------------------------------------------------")
