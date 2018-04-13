@@ -81,6 +81,7 @@
 */
 #define  QCAN_TCP_SOCKET_MAX        16
 
+#define  QCAN_LOCAL_SOCKET_MAX      16
 
 //-------------------------------------------------------------------
 /*!
@@ -136,6 +137,16 @@
 */
 #define  QCAN_IF_SUPPORT_CAN_FD           ((uint32_t) (0x00000004))
 
+//-------------------------------------------------------------------
+/*!
+** \def     QCAN_IF_SUPPORT_SPECIFIC_CONFIG
+** \ingroup QCAN_IF
+** \brief   Support device specific configuration
+**
+** The bit-mask value defines if CAN interface supports
+** device specific configuration.
+*/
+#define  QCAN_IF_SUPPORT_SPECIFIC_CONFIG  ((uint32_t) (0x00000008))
 
 
 #endif // QCAN_DEFS_HPP_
