@@ -38,10 +38,13 @@
 #include "qcan_pcan_basic.hpp"
 #include "qcan_interface_peak.hpp"
 
-//----------------------------------------------------------------------------//
-// QCanPeakUsb                                                                //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//-----------------------------------------------------------------------------
+/*!
+** \class   QCanPluginPeak
+** \brief   Peak PCAN
+**
+*/
+
 class QCanPluginPeak : public QCanPlugin
 {
     Q_OBJECT

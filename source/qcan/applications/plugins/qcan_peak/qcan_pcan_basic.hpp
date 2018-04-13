@@ -29,20 +29,23 @@
 #ifndef QCAN_PCAN_BASIC_H_
 #define QCAN_PCAN_BASIC_H_
 
-#include <QObject>
+
+#include <QtCore/QDebug>
+#include <QtCore/QObject>
+#include <QtCore/QLibrary>
 
 #ifdef   Q_OS_WIN32
 #include <windows.h>
 #include "PCANBasic.h"
 #define  DRV_CALLBACK_TYPE       WINAPI
-#define  QCAN_SUPPORT_CAN_FD     0
+#define  QCAN_SUPPORT_CAN_FD     1
 #define  QCAN_PEAKLIB            "PCANBasic.dll"
 #endif
 
 #ifdef   Q_OS_OSX
 #include "PCBUSB.h"
 #define  DRV_CALLBACK_TYPE
-#define  QCAN_SUPPORT_CAN_FD     0
+#define  QCAN_SUPPORT_CAN_FD     1
 #define  QCAN_PEAKLIB            "libPCBUSB.dylib"
 #endif
 
@@ -50,8 +53,6 @@
 #error   Operating system not supported
 #endif
 
-#include <QLibrary>
-#include <QDebug>
 
 //----------------------------------------------------------------------------//
 // QCanPeakUsb                                                                //

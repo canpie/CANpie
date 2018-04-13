@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>images/mc_can_peak_usb_256.png</file>
         <file>images/pcan.png</file>
         <file>images/pcan_usb.png</file>
         <file>images/pcan_usb_fd.png</file>

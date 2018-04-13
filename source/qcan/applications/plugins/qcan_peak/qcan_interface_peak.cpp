@@ -1,38 +1,65 @@
-//============================================================================//
-// File:          qcan_interface_peak.cpp                                     //
-// Description:   QCan Inteface of PCAN Basic library                         //
-//                                                                            //
-// Copyright (C) MicroControl GmbH & Co. KG                                   //
-// 53842 Troisdorf - Germany                                                  //
-// www.microcontrol.net                                                       //
-//                                                                            //
-//----------------------------------------------------------------------------//
-// Redistribution and use in source and binary forms, with or without         //
-// modification, are permitted provided that the following conditions         //
-// are met:                                                                   //
-// 1. Redistributions of source code must retain the above copyright          //
-//    notice, this list of conditions, the following disclaimer and           //
-//    the referenced file 'COPYING'.                                          //
-// 2. Redistributions in binary form must reproduce the above copyright       //
-//    notice, this list of conditions and the following disclaimer in the     //
-//    documentation and/or other materials provided with the distribution.    //
-// 3. Neither the name of MicroControl nor the names of its contributors      //
-//    may be used to endorse or promote products derived from this software   //
-//    without specific prior written permission.                              //
-//                                                                            //
-// Provided that this notice is retained in full, this software may be        //
-// distributed under the terms of the GNU Lesser General Public License       //
-// ("LGPL") version 3 as distributed in the 'COPYING' file.                   //
-//                                                                            //
-//============================================================================//
+//====================================================================================================================//
+// File:          qcan_interface_peak.cpp                                                                             //
+// Description:   QCan Interface of PCAN Basic library                                                                //
+//                                                                                                                    //
+// Copyright (C) MicroControl GmbH & Co. KG                                                                           //
+// 53844 Troisdorf - Germany                                                                                          //
+// www.microcontrol.net                                                                                               //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the   //
+// following conditions are met:                                                                                      //
+// 1. Redistributions of source code must retain the above copyright notice, this list of conditions, the following   //
+//    disclaimer and the referenced file 'LICENSE'.                                                                   //
+// 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the       //
+//    following disclaimer in the documentation and/or other materials provided with the distribution.                //
+// 3. Neither the name of MicroControl nor the names of its contributors may be used to endorse or promote products   //
+//    derived from this software without specific prior written permission.                                           //
+//                                                                                                                    //
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance     //
+// with the License. You may obtain a copy of the License at                                                          //
+//                                                                                                                    //
+//    http://www.apache.org/licenses/LICENSE-2.0                                                                      //
+//                                                                                                                    //
+// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed   //
+// on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for  //
+// the specific language governing permissions and limitations under the License.                                     //
+//                                                                                                                    //
+//====================================================================================================================//
+
+
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Include files                                                                                                      **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
 
 #include "qcan_interface_peak.hpp"
 
 
-//----------------------------------------------------------------------------//
-// QCanInterfacePeak()                                                        //
-//                                                                            //
-//----------------------------------------------------------------------------//
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Definitions                                                                                                        **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
+
+#ifndef  PCAN_ALLOW_ERROR_FRAMES
+#define  PCAN_ALLOW_ERROR_FRAMES    ((uint8_t) 0x20)
+#endif
+
+#ifndef  PCAN_MESSAGE_ERRFRAME
+#define  PCAN_MESSAGE_ERRFRAME      ((uint8_t) 0x40)
+#endif
+
+
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Class methods                                                                                                      **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanInterfacePeak()                                                                                                //
+// constructor                                                                                                        //
+//--------------------------------------------------------------------------------------------------------------------//
 QCanInterfacePeak::QCanInterfacePeak(uint16_t uwPCanChannelV)
 {
    if (!pclPcanBasicP.isAvailable())
@@ -40,7 +67,7 @@ QCanInterfacePeak::QCanInterfacePeak(uint16_t uwPCanChannelV)
       qCritical() << "QCanInterfacePeak(): PEAKBasic library is not available!";
    }
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // setup PCAN Channel of this interface
    //
    uwPCanChannelP = uwPCanChannelV;
@@ -49,12 +76,19 @@ QCanInterfacePeak::QCanInterfacePeak(uint16_t uwPCanChannelV)
 
    btConnectedP = false;
    btFdUsedP = false;
+
+   //---------------------------------------------------------------------------------------------------
+   // message buffer for CAN message is empty
+   //
+   btIsMessageInBufferP = false;
+   clCanMessageBufferP.resize(QCAN_FRAME_ARRAY_SIZE);
 }
 
-//----------------------------------------------------------------------------//
-// ~QCanInterfacePeak()                                                       //
-//                                                                            //
-//----------------------------------------------------------------------------//
+
+//--------------------------------------------------------------------------------------------------------------------//
+// ~QCanInterfacePeak()                                                                                               //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 QCanInterfacePeak::~QCanInterfacePeak()
 {
    qDebug() << "QCanInterfacePeak::~QCanInterfacePeak()";
@@ -68,19 +102,60 @@ QCanInterfacePeak::~QCanInterfacePeak()
    }
 }
 
-//----------------------------------------------------------------------------//
-// connect()                                                                  //
-//                                                                            //
-//----------------------------------------------------------------------------//
+void QCanInterfacePeak::checkStatus(void)
+{
+   TPCANStatus       ulStatusT;
+
+   ulStatusT = pclPcanBasicP.pfnCAN_GetStatusP(uwPCanChannelP);
+   if (ulStatusT != PCAN_ERROR_OK)
+   {
+      QString msg = "Status: ";
+      msg += QString("%1").arg(ulStatusT);
+      emit addLogMessage(msg, eLOG_LEVEL_INFO);
+
+   }
+
+
+}
+
+
+void QCanInterfacePeak::onTimerEvent(void)
+{
+   if (read(clCanMessageBufferP) == eERROR_NONE)
+   {
+      btIsMessageInBufferP = true;
+      emit readyRead();
+   }
+   else
+   {
+      // QTimer::singleShot(50, this, SLOT(onTimerEvent()));
+   }
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// connect()                                                                                                          //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 QCanInterface::InterfaceError_e QCanInterfacePeak::connect(void)
 {
    InterfaceError_e teReturnT = eERROR_LIBRARY;
    uint8_t          ubValueT;
    TPCANStatus      tsStatusT;
-   qDebug() << QString("QCanInterfacePeak::connect()...");
 
-   //----------------------------------------------------------------
+   #if QCAN_SUPPORT_CAN_FD > 0
+   qDebug() << QString("QCanInterfacePeak::connect()... - using CAN FD mode");
+   #else
+   qDebug() << QString("QCanInterfacePeak::connect()... - using Classic CAN mode");
+   #endif
+
+   //---------------------------------------------------------------------------------------------------
+   // tell some details about this CAN interface to the logger
    //
+   emit addLogMessage(version(), eLOG_LEVEL_INFO);
+
+   //---------------------------------------------------------------------------------------------------
+   // Try to connect the CAN interface
    //
    if (pclPcanBasicP.isAvailable())
    {
@@ -90,7 +165,8 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::connect(void)
       tsStatusT = pclPcanBasicP.pfnCAN_GetValueP(uwPCanChannelP, PCAN_CHANNEL_CONDITION, (void*)&ubValueT, 1);
       if (tsStatusT != PCAN_ERROR_OK)
       {
-         qWarning() << QString("QCanInterfacePeak::connect(0x" +QString::number(uwPCanChannelP,16)+")") << "fail with error:" << pclPcanBasicP.formatedError(tsStatusT);
+         qWarning() << QString("QCanInterfacePeak::connect(0x" + QString::number(uwPCanChannelP,16)+")") \
+                    << "fail with error:" << pclPcanBasicP.formatedError(tsStatusT);
       }
 
       //--------------------------------------------------------
@@ -98,16 +174,18 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::connect(void)
       //
       else if (ubValueT == PCAN_CHANNEL_UNAVAILABLE)
       {
-         qDebug() << QString("QCanInterfacePeak::connect(0x" +QString::number(uwPCanChannelP,16)+")") << " is not available " << pclPcanBasicP.formatedError(tsStatusT);
+         qDebug() << QString("QCanInterfacePeak::connect(0x" + QString::number(uwPCanChannelP,16)+")") \
+                  << " is not available " << pclPcanBasicP.formatedError(tsStatusT);
          teReturnT = eERROR_CHANNEL;
       }
 
       //--------------------------------------------------------
-      // channel is ocupied, quit here
+      // channel is occupied, quit here
       //
       else if (ubValueT == 0)
       {
-         qWarning() << QString("QCanInterfacePeak::connect(0x" +QString::number(uwPCanChannelP,16)+")") << " is ouccupied " << pclPcanBasicP.formatedError(tsStatusT);
+         qWarning() << QString("QCanInterfacePeak::connect(0x" + QString::number(uwPCanChannelP,16)+")") \
+                    << " is occupied " << pclPcanBasicP.formatedError(tsStatusT);
          teReturnT = eERROR_USED;
       }
 
@@ -132,7 +210,8 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::connect(void)
 
          if (tsStatusT != PCAN_ERROR_OK)
          {
-            qCritical() << QString("QCanInterfacePeak::connect(0x" +QString::number(uwPCanChannelP,16)+")") << "fail with error:" << pclPcanBasicP.formatedError(tsStatusT);
+            qCritical() << QString("QCanInterfacePeak::connect(0x" + QString::number(uwPCanChannelP,16)+")") \
+                        << "fail with error:" << pclPcanBasicP.formatedError(tsStatusT);
             teReturnT = eERROR_USED;
          }
 
@@ -140,6 +219,11 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::connect(void)
          {
             btConnectedP = true;
             teReturnT = eERROR_NONE;
+
+            //---------------------------------------------------------------------------------------------------
+            // configure the refresh timer which updates all statistic information and sends some signals
+            //
+            QTimer::singleShot(10, this, SLOT(onTimerEvent()));
          }
       }
    }
@@ -147,20 +231,21 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::connect(void)
    return teReturnT;
 }
 
-//----------------------------------------------------------------------------//
-// connected()                                                                //
-//                                                                            //
-//----------------------------------------------------------------------------//
+
+//--------------------------------------------------------------------------------------------------------------------//
+// connected()                                                                                                        //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 bool QCanInterfacePeak::connected(void)
 {
    return btConnectedP;
 }
 
 
-//----------------------------------------------------------------------------//
-// disconnect()                                                               //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// disconnect()                                                                                                       //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 QCanInterface::InterfaceError_e QCanInterfacePeak::disconnect()
 {
    if (pclPcanBasicP.isAvailable())
@@ -171,22 +256,25 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::disconnect()
          btConnectedP = false;
          return eERROR_NONE;
       }
-      qWarning() << QString("QCanInterfacePeak::disconnect(0x" +QString::number(uwPCanChannelP,16)+")") << "fail with error:" << pclPcanBasicP.formatedError(tsStatusT);
+      qWarning() << QString("QCanInterfacePeak::disconnect(0x" + QString::number(uwPCanChannelP,16)+")") \
+                 << "fail with error:" << pclPcanBasicP.formatedError(tsStatusT);
    }
 
    return eERROR_LIBRARY;
 }
 
-//----------------------------------------------------------------------------//
-// icon()                                                                     //
-//                                                                            //
-//----------------------------------------------------------------------------//
+
+//--------------------------------------------------------------------------------------------------------------------//
+// icon()                                                                                                             //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 QIcon QCanInterfacePeak::icon(void)
 {
    if (pclPcanBasicP.isAvailable())
    {
       char        aszBufferT[64];
-      TPCANStatus tsStatusT = pclPcanBasicP.pfnCAN_GetValueP(uwPCanChannelP, PCAN_HARDWARE_NAME, (void*)&aszBufferT[0], sizeof(aszBufferT));
+      TPCANStatus tsStatusT = pclPcanBasicP.pfnCAN_GetValueP(uwPCanChannelP, PCAN_HARDWARE_NAME,
+                                                             (void*)&aszBufferT[0], sizeof(aszBufferT));
       if (tsStatusT == PCAN_ERROR_OK)
       {
          QString clIconNameT;
@@ -195,22 +283,25 @@ QIcon QCanInterfacePeak::icon(void)
          clIconNameT.replace(QString("-"),QString("_"));
          clIconNameT.replace(QString(" "),QString("_"));
 
-         qDebug() <<QString("QCanInterfacePeak::icon(0x" +QString::number(uwPCanChannelP,16)+")") << QString(":/images/"+clIconNameT+".png");
+         qDebug() <<QString("QCanInterfacePeak::icon(0x" + QString::number(uwPCanChannelP,16)+")") \
+                  << QString(":/images/"+clIconNameT+".png");
 
          return QIcon(QString(":/images/"+clIconNameT+".png"));
 
       }
-      qWarning() << QString("QCanInterfacePeak::icon(0x" +QString::number(uwPCanChannelP,16)+")") << "fail with error:" << pclPcanBasicP.formatedError(tsStatusT);
+
+      qWarning() << QString("QCanInterfacePeak::icon(0x" + QString::number(uwPCanChannelP,16)+")") \
+                 << "failed with error:" << pclPcanBasicP.formatedError(tsStatusT);
    }
 
    return QIcon("images/pcan_fail.ico");
 }
 
 
-//----------------------------------------------------------------------------//
-// name()                                                                     //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// name()                                                                                                             //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 QString QCanInterfacePeak::name()
 {
    TPCANStatus tsStatusT;
@@ -223,36 +314,42 @@ QString QCanInterfacePeak::name()
       {
          clNameT.clear();
 
-         //--------------------------------------------------------
+         //-----------------------------------------------------------------------------------
          // get HW name
          //
-         tsStatusT = pclPcanBasicP.pfnCAN_GetValueP(uwPCanChannelP, PCAN_HARDWARE_NAME, (void*)&aszBufferT[0], sizeof(aszBufferT));
+         tsStatusT = pclPcanBasicP.pfnCAN_GetValueP(uwPCanChannelP, PCAN_HARDWARE_NAME,
+                                                    (void*)&aszBufferT[0], sizeof(aszBufferT));
          if (tsStatusT != PCAN_ERROR_OK)
          {
-            return (QString("FAIL to get hardware name ") +  pclPcanBasicP.formatedError(tsStatusT));
+            return (QString("Failed to get hardware name ") +  pclPcanBasicP.formatedError(tsStatusT));
          }
          clNameT.append(QLatin1String(aszBufferT));
 
-         //--------------------------------------------------------
+         //-----------------------------------------------------------------------------------
          // name should contain device number, get it
          //
-         tsStatusT = pclPcanBasicP.pfnCAN_GetValueP(uwPCanChannelP, PCAN_DEVICE_NUMBER, (void*)&aszBufferT[0], 1);
+         tsStatusT = pclPcanBasicP.pfnCAN_GetValueP(uwPCanChannelP, PCAN_DEVICE_NUMBER,
+                                                    (void*)&aszBufferT[0], 1);
          if (tsStatusT != PCAN_ERROR_OK)
          {
-            return QString("FAIL to get device number");
+            return QString("Failed to get device number");
          }
          clNameT.append(" Device " + QString::number((uint8_t)aszBufferT[0],16).toUpper());
 
-         //--------------------------------------------------------
+         //-----------------------------------------------------------------------------------
          // get CAN channel number
          //
-         tsStatusT = pclPcanBasicP.pfnCAN_GetValueP(uwPCanChannelP, PCAN_CONTROLLER_NUMBER, (void*)&aszBufferT[0], 1);
+         #ifdef Q_OS_MACOS
+
+         #else
+         tsStatusT = pclPcanBasicP.pfnCAN_GetValueP(uwPCanChannelP, PCAN_CONTROLLER_NUMBER,
+                                                    (void*)&aszBufferT[0], 1);
          if (tsStatusT != PCAN_ERROR_OK)
          {
             return QString("FAIL to get channel number");
          }
          clNameT.append("h CAN "+ QString::number(aszBufferT[0]+1,10));
-
+         #endif
          // return name
          return clNameT;
       }
@@ -264,35 +361,60 @@ QString QCanInterfacePeak::name()
 }
 
 
-
-//----------------------------------------------------------------------------//
-// read()                                                                     //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// read()                                                                                                             //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 QCanInterface::InterfaceError_e  QCanInterfacePeak::read(QByteArray &clDataR)
 {
+   InterfaceError_e  clRetValueT;
+
    if (!pclPcanBasicP.isAvailable())
    {
-      return eERROR_LIBRARY;
+      clRetValueT = eERROR_LIBRARY;
    }
-
-   //----------------------------------------------------------------
-   // check channel have been connected
-   //
-   #if QCAN_SUPPORT_CAN_FD > 0
-   if (btFdUsedP == true)
+   else
    {
-      return readFD(clDataR);
-   }
-   #endif
+      #if QCAN_SUPPORT_CAN_FD > 0
+      if (btIsMessageInBufferP)
+      {
+         btIsMessageInBufferP = false;
+         clDataR = clCanMessageBufferP;
+         clRetValueT = eERROR_NONE;
+      }
+      else
+      {
+         if (btFdUsedP == true)
+         {
+            clRetValueT = readFD(clDataR);
+         }
+         else
+         {
+            clRetValueT = readCAN(clDataR);
+         }
+      }
+      #else
+      clRetValueT = readCAN(clDataR);
+      #endif
 
-   return readCAN(clDataR);
+   }
+
+   if (clRetValueT == eERROR_FIFO_RCV_EMPTY)
+   {
+      QTimer::singleShot(50, this, SLOT(onTimerEvent()));
+   }
+   else
+   {
+      // emit readyRead();
+   }
+   return (clRetValueT);
 }
 
-//----------------------------------------------------------------------------//
-// readCAN()                                                                  //
-//                                                                            //
-//----------------------------------------------------------------------------//
+
+//--------------------------------------------------------------------------------------------------------------------//
+// readCAN()                                                                                                          //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 QCanInterface::InterfaceError_e  QCanInterfacePeak::readCAN(QByteArray &clDataR)
 {
    TPCANStatus       ulStatusT;
@@ -305,33 +427,62 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readCAN(QByteArray &clDataR)
    QCanTimeStamp     clTimeStampT;
    InterfaceError_e  clRetValueT = eERROR_NONE;
    
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // get next message from FIFO
    //
    ulStatusT = pclPcanBasicP.pfnCAN_ReadP(uwPCanChannelP, &tsCanMsgT,
                                           &tsCanTimeStampT);
 
-   
-   //----------------------------------------------------------------
+
+   //---------------------------------------------------------------------------------------------------
    // read message structure 
    //
    if (ulStatusT == PCAN_ERROR_OK)
    {
-      //--------------------------------------------------------
+      //--------------------------------------------------------------------------------------
       // handle data depending on type
       //
       if((tsCanMsgT.MSGTYPE & PCAN_MESSAGE_STATUS) > 0)
       {
-         //------------------------------------------------
-         // this is a status message
+         emit addLogMessage("Status message", eLOG_LEVEL_INFO);
+
+         //------------------------------------------------------------------------------
+         // this is a status message, which is in fact a status of CAN error state
          //
+         switch (tsCanMsgT.DATA[3])
+         {
+            case 0x02:
+
+               break;
+
+            case 0x04:
+               emit stateChanged(eCAN_STATE_BUS_WARN);
+               break;
+
+            case 0x08:
+               emit stateChanged(eCAN_STATE_BUS_PASSIVE);
+               break;
+
+            case 0x10:
+               emit stateChanged(eCAN_STATE_BUS_OFF);
+               break;
+
+            default:
+
+               break;
+
+
+         }
          clRetValueT = eERROR_FIFO_RCV_EMPTY;
+      }
+      else if ((tsCanMsgT.MSGTYPE & PCAN_MESSAGE_ERRFRAME) > 0)
+      {
+         emit addLogMessage("Error frame", eLOG_LEVEL_INFO);
       }
       else
       {
-         //------------------------------------------------
-         // Classical CAN frame with standard or
-         // extended identifier
+         //------------------------------------------------------------------------------
+         // Classical CAN frame with standard or extended identifier
          //
          if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_EXTENDED)
          {
@@ -342,7 +493,7 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readCAN(QByteArray &clDataR)
             clCanFrameT.setFrameFormat(QCanFrame::eFORMAT_CAN_STD);
          }
             
-         //------------------------------------------------
+         //------------------------------------------------------------------------------
          // Classical CAN remote frame
          //
          if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_RTR)
@@ -350,17 +501,17 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readCAN(QByteArray &clDataR)
             clCanFrameT.setRemote(true);
          }
          
-         //------------------------------------------------
+         //------------------------------------------------------------------------------
          // copy the identifier
          //
          clCanFrameT.setIdentifier(tsCanMsgT.ID);
 
-         //------------------------------------------------
+         //------------------------------------------------------------------------------
          // copy the DLC
          //
          clCanFrameT.setDlc(tsCanMsgT.LEN);
 
-         //------------------------------------------------
+         //------------------------------------------------------------------------------
          // copy the data
          //
          for (ubCntT = 0; ubCntT < clCanFrameT.dataSize(); ubCntT++)
@@ -368,10 +519,9 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readCAN(QByteArray &clDataR)
             clCanFrameT.setData(ubCntT, tsCanMsgT.DATA[ubCntT]);
          }
 
-         //------------------------------------------------
+         //------------------------------------------------------------------------------
          // copy the time-stamp
-         // the value is a multiple of 1 us and has a
-         // total time span of 4294,9 secs 
+         // The value is a multiple of 1 us and has a total time span of 4294,9 secs
          //
          ulMicroSecsT = tsCanTimeStampT.millis * 1000;
          ulMicroSecsT = ulMicroSecsT + tsCanTimeStampT.micros;
@@ -379,23 +529,24 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readCAN(QByteArray &clDataR)
          
          clCanFrameT.setTimeStamp(clTimeStampT);
          
-         //------------------------------------------------
+         //------------------------------------------------------------------------------
          // increase statistic counter
          //
          clStatisticP.ulRcvCount++;
          
-         //------------------------------------------------
+         //------------------------------------------------------------------------------
          // copy the CAN frame to a byte array for transfer
          //
          clDataR = clCanFrameT.toByteArray();
       }
    }
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // test for bus error
    //
    else if ((ulStatusT & (TPCANStatus)PCAN_ERROR_ANYBUSERR) > 0)
    {
+
       setupErrorFrame(ulStatusT, clErrFrameT);
       //--------------------------------------------------------
       // copy the error frame to a byte array
@@ -416,6 +567,7 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readCAN(QByteArray &clDataR)
    //
    else
    {
+      emit addLogMessage("Hardware error code " + QString("0x%1").arg(ulStatusT, 16), eLOG_LEVEL_ERROR);
       clRetValueT = eERROR_DEVICE;
    }
 
@@ -423,10 +575,10 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readCAN(QByteArray &clDataR)
 }
 
 
-//----------------------------------------------------------------------------//
-// readFD()                                                                   //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// readFD()                                                                                                           //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 #if QCAN_SUPPORT_CAN_FD > 0
 QCanInterface::InterfaceError_e  QCanInterfacePeak::readFD(QByteArray &clDataR)
 {
@@ -434,30 +586,28 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFD(QByteArray &clDataR)
    uint8_t           ubCntT;
    TPCANMsgFD        tsCanMsgT;
    TPCANTimestampFD  tsCanTimeStampT;
-   uint32_t          ulMicroSecsT;
    QCanFrame         clCanFrameT;
    QCanFrameError    clErrFrameT;
    QCanTimeStamp     clTimeStampT;
    InterfaceError_e  clRetValueT = eERROR_NONE;
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // get next message from FIFO
    //
-   ulStatusT = pclPcanBasicP.pfnCAN_ReadFDP(uwPCanChannelP, &tsCanMsgT,
-                                            &tsCanTimeStampT);
+   ulStatusT = pclPcanBasicP.pfnCAN_ReadFDP(uwPCanChannelP, &tsCanMsgT, &tsCanTimeStampT);
 
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // read message structure
    //
    if (ulStatusT == PCAN_ERROR_OK)
    {
-      //--------------------------------------------------------
+      //-------------------------------------------------------------------------------------------
       // handle data depending on type
       //
       if((tsCanMsgT.MSGTYPE & PCAN_MESSAGE_STATUS) > 0)
       {
-         //------------------------------------------------
+         //-----------------------------------------------------------------------------------
          // this is a status message
          //
          clRetValueT = eERROR_FIFO_RCV_EMPTY;
@@ -545,13 +695,9 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFD(QByteArray &clDataR)
          // the value is a multiple of 1 us and has a
          // total time span of 4294,9 secs
          //
-         /*
-         ulMicroSecsT = tsCanTimeStampT.millis * 1000;
-         ulMicroSecsT = ulMicroSecsT + tsCanTimeStampT.micros;
-         clTimeStampT.fromMicroSeconds(ulMicroSecsT);
+         clTimeStampT.fromMicroSeconds(tsCanTimeStampT);
 
          clCanFrameT.setTimeStamp(clTimeStampT);
-         */
 
          //------------------------------------------------
          // increase statistic counter
@@ -576,6 +722,7 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFD(QByteArray &clDataR)
          // copy the error frame to a byte array
          //
          clDataR = clErrFrameT.toByteArray();
+         qDebug() << "Error frame";
       }
 
       //--------------------------------------------------------
@@ -596,58 +743,69 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFD(QByteArray &clDataR)
 #endif
 
 
-//----------------------------------------------------------------------------//
-// reset()                                                                    //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// reset()                                                                                                            //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 QCanInterface::InterfaceError_e  QCanInterfacePeak::reset()
 {
-   //----------------------------------------------------------------
-   // check lib is available
+   InterfaceError_e  clRetValueT = eERROR_NONE;
+
+   //---------------------------------------------------------------------------------------------------
+   // check if driver is available
    //
    if (!pclPcanBasicP.isAvailable())
    {
-      return eERROR_LIBRARY;
+      clRetValueT = eERROR_LIBRARY;
    }
-
-   //----------------------------------------------------------------
-   // reset statistic values
-   //
-   clStatisticP.ulErrCount = 0;
-   clStatisticP.ulRcvCount = 0;
-   clStatisticP.ulTrmCount = 0;
-
-   //----------------------------------------------------------------
-   // reset device
-   //
-   if (pclPcanBasicP.pfnCAN_ResetP(uwPCanChannelP) != PCAN_ERROR_OK)
+   else
    {
-      return eERROR_DEVICE;
-   }
+      //-------------------------------------------------------------------------------------------
+      // reset statistic values
+      //
+      clStatisticP.ulErrCount = 0;
+      clStatisticP.ulRcvCount = 0;
+      clStatisticP.ulTrmCount = 0;
 
-   //----------------------------------------------------------------
-   // perform a hardware reset only if
-   // it hase been initialised before
-   //
-   if (btConnectedP)
-   {
-      pclPcanBasicP.pfnCAN_UninitializeP(uwPCanChannelP);
-
-      if (pclPcanBasicP.pfnCAN_InitializeP(uwPCanChannelP, uwPCanBitrateP, 0, 0, 0) != PCAN_ERROR_OK)
+      //-------------------------------------------------------------------------------------------
+      // reset device
+      //
+      if (pclPcanBasicP.pfnCAN_ResetP(uwPCanChannelP) != PCAN_ERROR_OK)
       {
-         return eERROR_DEVICE;
+         clRetValueT = eERROR_DEVICE;
+      }
+      else
+      {
+         //-----------------------------------------------------------------------------------
+         // perform a hardware reset only if it has been initialised before
+         //
+         if (btConnectedP)
+         {
+            pclPcanBasicP.pfnCAN_UninitializeP(uwPCanChannelP);
+
+            if (pclPcanBasicP.pfnCAN_InitializeP(uwPCanChannelP, uwPCanBitrateP, 0, 0, 0) != PCAN_ERROR_OK)
+            {
+               clRetValueT = eERROR_DEVICE;
+            }
+            else
+            {
+               clRetValueT = setMode(teCanModeP);
+            }
+         }
       }
    }
 
-   return setMode(teCanModeP);
+
+   return (clRetValueT);
+
 }
 
-//----------------------------------------------------------------------------//
-// setBitrate()                                                               //
-//                                                                            //
-//----------------------------------------------------------------------------//
-QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slNomBitRateV,
-                                                               int32_t slDatBitRateV)
+
+//--------------------------------------------------------------------------------------------------------------------//
+// setBitrate()                                                                                                       //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slNomBitRateV, int32_t slDatBitRateV)
 {
    if (!pclPcanBasicP.isAvailable())
    {
@@ -679,26 +837,27 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slNomBitR
       //--------------------------------------------------------
       // FD Bit-rate: all settings for 80 MHz clock
       //
-
+      QString clDebugMsgT = QString("PCAN - setBitrate(%1 , %2)").arg(slNomBitRateV).arg(slDatBitRateV);
+      emit addLogMessage(clDebugMsgT, eLOG_LEVEL_INFO);
       //--------------------------------------------------------
       // select corresponding PEAK configuration for
       // nominal bit rate
       //
-      switch(slNomBitRateV)
+      switch(slNomBitRateV )
       {
-         case eCAN_BITRATE_125K:
+         case 125:
             clTxtBitrateNomT = "f_clock_mhz=80, nom_brp=2, nom_tseg1=255, nom_tseg2=64, nom_sjw=64";
             break;
 
-         case eCAN_BITRATE_250K:
+         case 250:
             clTxtBitrateNomT = "f_clock_mhz=80, nom_brp=2, nom_tseg1=127, nom_tseg2=32, nom_sjw=32";
             break;
 
-         case eCAN_BITRATE_500K:
+         case 500:
             clTxtBitrateNomT = "f_clock_mhz=80, nom_brp=2, nom_tseg1=63, nom_tseg2=16, nom_sjw=16";
             break;
 
-         case eCAN_BITRATE_1M:
+         case 1000:
             clTxtBitrateNomT = "f_clock_mhz=80, nom_brp=2, nom_tseg1=31, nom_tseg2=8, nom_sjw=8";
             break;
 
@@ -733,6 +892,8 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slNomBitR
 
       clTxtBitrateNomT.append(clTxtBitrateDataT);
       clTxtBitrateT = clTxtBitrateNomT.toUtf8();
+      emit addLogMessage(clTxtBitrateNomT, eLOG_LEVEL_INFO);
+
    }
    else
    #endif
@@ -822,6 +983,8 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slNomBitR
       if (pclPcanBasicP.pfnCAN_SetValueP(uwPCanChannelP,PCAN_BITRATE_ADAPTING,&ubValueBufT,sizeof(ubValueBufT)))
       {
          qWarning() << "WARNING: Fail to set adaptive bitrate!";
+         emit addLogMessage("WARNING: Fail to set adaptive bitrate!", eLOG_LEVEL_INFO);
+
       }
 
       ulStatusT = pclPcanBasicP.pfnCAN_InitializeFDP(uwPCanChannelP, clTxtBitrateT.data());
@@ -884,8 +1047,14 @@ QCanInterface::InterfaceError_e	QCanInterfacePeak::setMode(const CAN_Mode_e teMo
          ubValueBufT = 1;
          if (pclPcanBasicP.pfnCAN_SetValueP(uwPCanChannelP, PCAN_BUSOFF_AUTORESET,&ubValueBufT,sizeof(ubValueBufT)))
          {
-            qWarning() << "WARNING: Fail to set AutoReset of Device!";
+            qWarning() << "WARNING: Fail to set 'AutoReset'!";
          }
+
+         if (pclPcanBasicP.pfnCAN_SetValueP(uwPCanChannelP, PCAN_ALLOW_ERROR_FRAMES,&ubValueBufT,sizeof(ubValueBufT)))
+         {
+            qWarning() << "WARNING: Fail to set 'Allow Error Frames'!";
+         }
+
          teCanModeP = eCAN_MODE_START;
          break;
 
@@ -985,10 +1154,40 @@ uint32_t QCanInterfacePeak::supportedFeatures()
 }
 
 
-//----------------------------------------------------------------------------//
-// write()                                                                    //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------------------------
+// nice macros to make a string from a definition, used in version()
+//
+#define STRINGIFY(x)    #x
+#define TOSTRING(x)     STRINGIFY(x)
+
+//--------------------------------------------------------------------------------------------------------------------//
+// version()                                                                                                          //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+QString QCanInterfacePeak::version(void)
+{
+   QString clVersionT;
+   const char szPluginC[]   = TOSTRING(TARGET_NAME);
+
+   clVersionT  = QString("Plugin ");
+   clVersionT.append(szPluginC);
+   clVersionT += QString(" version %1.%2,").arg(VERSION_MAJOR).arg(VERSION_MINOR);
+   clVersionT += QString(" build %1,").arg(VERSION_BUILD);
+
+   clVersionT += " using library ";
+   #ifdef   Q_OS_OSX
+   clVersionT += "libPCBUSB.dylib";
+   #else
+   clVersionT += "PCANBasic.dll";
+   #endif
+   return (clVersionT);
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// write()                                                                                                            //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 QCanInterface::InterfaceError_e	QCanInterfacePeak::write(const QCanFrame &clFrameR)
 {
    TPCANStatus ulStatusT;
@@ -1074,3 +1273,4 @@ QCanInterface::InterfaceError_e	QCanInterfacePeak::write(const QCanFrame &clFram
    return eERROR_FIFO_TRM_FULL;
 
 }
+

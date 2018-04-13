@@ -52,26 +52,41 @@ win32 {
 #---------------------------------------------------------------
 # Objects directory
 #
-OBJECTS_DIR = ./objs/
+OBJECTS_DIR = ./objs
+MOC_DIR     = ./objs
+RCC_DIR     = ./objs
 
 #---------------------------------------------------------------
 # project configuration and compiler options
 #
-CONFIG += release
+CONFIG += debug_and_release 
 CONFIG += plugin
 CONFIG += warn_on
 CONFIG += C++11
 CONFIG += silent
 
 #---------------------------------------------------------------
-# version of the plugin
+# version of the application
 #
-VERSION = 0.82.1
+VERSION_MAJOR = 0
+VERSION_MINOR = 85
+VERSION_BUILD = 2
+
+
+#---------------------------------------------------------------
+# Target version
+#
+VERSION = $${VERSION_MAJOR}.$${VERSION_MINOR}.$${VERSION_BUILD}
+
 
 #---------------------------------------------------------------
 # definitions for preprocessor
 #
-DEFINES =
+DEFINES += "VERSION_MAJOR=$$VERSION_MAJOR"\
+           "VERSION_MINOR=$$VERSION_MINOR"\
+           "VERSION_BUILD=$$VERSION_BUILD"\
+           "TARGET_NAME=$$TARGET"
+           
 
 #---------------------------------------------------------------
 # UI files
@@ -127,9 +142,17 @@ EXAMPLE_FILES = plugin.json
 # OS specific settings
 #
 macx {
-   message("Building '$$QMAKE_PROJECT_NAME' for Mac OS X ...")
    QMAKE_MAC_SDK = macosx10.12
    QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
+   
+   CONFIG(debug, debug|release) {
+      message("Building '$$QMAKE_PROJECT_NAME' DEBUG version for Mac OS X ...")
+   } else {
+      message("Building '$$QMAKE_PROJECT_NAME' RELEASE version for Mac OS X ...")
+      DEFINES += QT_NO_WARNING_OUTPUT
+      DEFINES += QT_NO_DEBUG_OUTPUT
+      DEFINES += QT_NO_INFO_OUTPUT
+   }
 }
 
 win32 {
