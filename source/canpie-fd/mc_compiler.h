@@ -98,6 +98,7 @@
 ** \li Microsoft Visual C/C++ compiler
 ** \li National Instruments CVI compiler
 ** \li Renesas NC30 compiler for R8C and M16C controller
+** \li Renesas RX compiler
 ** \li Texas Instruments ARM compiler
 ** \li Texas Instruments TMS320C28x compiler
 **
@@ -130,8 +131,19 @@
 ** typically used as return values. In order to keep the overhead
 ** small for different target platforms the data type can be adjusted.
 **
-**
+** Setting the symbol MC_COMPILER_EXT_H_ allows to include an external
+** header file named "mc_compiler_ext.h".
 */
+
+
+//-------------------------------------------------------------------
+// This is used for definitions which are out of scope of this file
+// and are application specific.
+//
+#ifdef   MC_COMPILER_EXT_H_
+#include "mc_compiler_ext.h"
+#endif
+
 
 //-------------------------------------------------------------------
 /*!
@@ -647,11 +659,20 @@ typedef  long                 int32_t;
 
 #define  CPP_CONST            const
 #define  CPP_DATA_SIZE        64
-#define  CPP_INLINE           __inline
+#define  CPP_INLINE
+#define  CPP_NULL             (void *) 0
 #define  CPP_PACK
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
 #endif
+
+//--------------------------------------------------------------
+// Keil-C does not support the C99 standard, so the keywords
+// are defined here
+//
+#define  inline
+#define  true                 1
+#define  false                0
 
 #include <stdint.h>
 
@@ -912,6 +933,37 @@ typedef  long                 int32_t;
 // End of definition:  NC30
 //--------------------------------------------------------------------
 
+//--------------------------------------------------------------------
+// Renesas RX compiler
+//
+#ifdef __RENESAS__
+#ifdef  __RX
+
+#include <stdbool.h>
+#include <stdint.h>           // data types uint8_t ... uint64_t
+
+#define  CPP_CONST            const
+#define  CPP_DATA_SIZE        32
+#define  CPP_INLINE
+#define  CPP_PACK
+#ifndef  CPP_PARM_UNUSED
+#define  CPP_PARM_UNUSED(x)   x
+#endif
+
+#define  CPP_NULL             (void *) 0
+
+typedef  int32_t              Status_tv;
+
+#ifndef __cplusplus
+typedef  _Bool                bool_t;
+#else
+typedef  bool                 bool_t;
+#endif
+
+#endif
+#endif
+// End of definition:  Renesas RX compiler
+//--------------------------------------------------------------------
 
 //--------------------------------------------------------------------
 // Texas Instruments ARM compiler
@@ -975,6 +1027,24 @@ typedef  long long            int64_t;
 //--------------------------------------------------------------------
 
 
+/*!
+** \union Float_u
+** \brief Needed to access a float value like an 32bit unsigned value
+**        and otherwise
+*/
+typedef union Float_u {
+   /*!
+   ** \var     ftValue
+   ** \brief   Floating-point value
+   */
+   float       ftValue;
+
+   /*!
+   ** \var     ulValue
+   ** \brief   32bit unsigned value
+   */
+   uint32_t    ulValue;
+} Float_tu;
 
 //--------------------------------------------------------------------
 // Test is used compiler has been recognised by checking the
