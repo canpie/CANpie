@@ -83,8 +83,8 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-#include "mc_compiler.h"			// Compiler denpendent data types and definitions
-#include "cp_platform.h"      // Architecture dependent definitions
+#include "mc_compiler.h"
+#include "cp_platform.h"       // Architecture dependent definitions
 
 
 /*----------------------------------------------------------------------------*\
@@ -985,8 +985,10 @@ typedef struct CpCanMsg_s
       /*!   32 bit access, array of longs       */
       uint32_t  aulLong[CP_DATA_SIZE / 4];
 
-      /*!   64 bit access, array of long longs  */
+      /*!   64 bit access, array of quadwords   */
+      #if CPP_DATA_SIZE > 32
       uint64_t  auqQuad[CP_DATA_SIZE / 8];
+      #endif
    } tuMsgData;
 
    /*!
