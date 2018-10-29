@@ -28,16 +28,32 @@
 
 #include "qcan_pcan_basic.hpp"
 
+#include <QtCore/QDir>
+#include <QtCore/QCoreApplication>
+
 //----------------------------------------------------------------------------//
 // QCanPcanBasic()                                                            //
 //                                                                            //
 //----------------------------------------------------------------------------//
 QCanPcanBasic::QCanPcanBasic()
 {
-   // get file name
+   #if defined(Q_OS_MAC)
+   //----------------------------------------------------------------
+   // For MacOS the library is copied inside the following directory:
+   // 'CANpieServer.app/Contents/Frameworks/'
+   // This allows a simple package generation.
+   //
+   QDir clLibDirectoryT(QCoreApplication::applicationDirPath());
+   clLibDirectoryT.cdUp();
+   clLibDirectoryT.cd("Frameworks");
+   clCanLibP.setFileName(clLibDirectoryT.absolutePath() + "/" + QCAN_PEAKLIB);
+   #else
    clCanLibP.setFileName(QCAN_PEAKLIB);
+   #endif
 
-   if (!clCanLibP.load()) {
+
+   if (!clCanLibP.load())
+   {
        qCritical() << "QCanPcanBasic(): Failed to load the library:" << qPrintable(clCanLibP.fileName());
    }
 

@@ -44,7 +44,7 @@ TARGET          = $$qtLibraryTarget(QCanPeak)
 # directory for target file
 #
 macx {
-   DESTDIR = ../../../../../bin/CANpieServer.app/Contents/Plugins
+   DESTDIR = ../../../../../bin/CANpieServer.app/Contents/PlugIns
 }
 win32 {
    DESTDIR = ../../../../../bin/plugins
@@ -69,7 +69,7 @@ CONFIG += silent
 # version of the application
 #
 VERSION_MAJOR = 0
-VERSION_MINOR = 85
+VERSION_MINOR = 89
 VERSION_BUILD = 2
 
 
@@ -126,10 +126,7 @@ HEADERS =   qcan_interface.hpp      \
 #---------------------------------------------------------------
 # source files of project
 #
-SOURCES =   qcan_data.cpp           \
-            qcan_frame.cpp          \
-            qcan_frame_api.cpp      \
-            qcan_frame_error.cpp    \
+SOURCES =   qcan_frame.cpp          \
             qcan_timestamp.cpp      \
             qcan_interface_peak.cpp \
             qcan_pcan_basic.cpp     \

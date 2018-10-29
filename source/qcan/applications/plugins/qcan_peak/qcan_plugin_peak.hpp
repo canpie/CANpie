@@ -29,11 +29,13 @@
 #ifndef QCAN_PLUGIN_PEAK_H_
 #define QCAN_PLUGIN_PEAK_H_
 
-#include <QObject>
-#include <QtPlugin>
-#include <QLibrary>
-#include <QCanPlugin>
-#include <QtWidgets>
+#include <QtCore/QLibrary>
+#include <QtCore/QObject>
+#include <QtCore/QtPlugin>
+
+#include <QtWidgets/QWidget>
+
+#include "qcan_plugin.hpp"
 
 #include "qcan_pcan_basic.hpp"
 #include "qcan_interface_peak.hpp"

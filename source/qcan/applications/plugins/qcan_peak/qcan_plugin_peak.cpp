@@ -91,7 +91,7 @@ QCanPluginPeak::~QCanPluginPeak()
    //
    foreach (QCanIf_ts tsCanIfEntryT, atsQCanIfPeakP)
    {
-      if (tsCanIfEntryT.pclQCanInterfacePeak->connected())
+      if (tsCanIfEntryT.pclQCanInterfacePeak->connectionState() == QCanInterface::ConnectedState)
       {
          tsCanIfEntryT.pclQCanInterfacePeak->disconnect();
       }
@@ -224,7 +224,7 @@ QCanInterface * QCanPluginPeak::getInterface(uint8_t ubInterfaceV)
 //----------------------------------------------------------------------------//
 QIcon QCanPluginPeak::icon()
 {
-   return QIcon(":/images/pcan.png");
+   return QIcon(":/images/pcan_256.png");
 }
 
 
