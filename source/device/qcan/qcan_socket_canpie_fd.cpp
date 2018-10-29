@@ -1,8 +1,8 @@
 //============================================================================//
-// File:          qcan_socket_canpie.cpp                                      //
-// Description:   QCAN classes - CAN socket for CANpie version 2              //
+// File:          qcan_socket_canpie_fd.hpp                                   //
+// Description:   QCAN classes - CAN socket for CANpie FD                     //
 //                                                                            //
-// Copyright 2017 MicroControl GmbH & Co. KG                                  //
+// Copyright 2018 MicroControl GmbH & Co. KG                                  //
 // 53844 Troisdorf - Germany                                                  //
 // www.microcontrol.net                                                       //
 //                                                                            //
@@ -41,8 +41,6 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-#include "qcan_frame_api.hpp"
-#include "qcan_frame_error.hpp"
 #include "qcan_socket_canpie_fd.hpp"
 
 
@@ -136,7 +134,7 @@ static CpStatus_tv CheckParam(const CpPort_ts * ptsPortV,
 CpStatus_tv CpCoreBitrate( CpPort_ts * ptsPortV, int32_t slNomBitRateV,
                            int32_t slDatBitRateV)
 {
-   QCanFrameApi      clFrameT;
+   // QCanFrameApi      clFrameT;
    QCanSocketCpFD *  pclSockT;
    CpStatus_tv       tvStatusT = eCP_ERR_CHANNEL;
    
@@ -148,9 +146,9 @@ CpStatus_tv CpCoreBitrate( CpPort_ts * ptsPortV, int32_t slNomBitRateV,
    //----------------------------------------------------------------
    // get access to socket
    //
-   if(ptsPortV != (CpPort_ts *) 0L)
+   if (ptsPortV != (CpPort_ts *) 0L)
    {
-      if(ptsPortV->ubPhyIf < QCAN_NETWORK_MAX)
+      if (ptsPortV->ubPhyIf < QCAN_NETWORK_MAX)
       {
          pclSockT = &(aclCanSockListS[(ptsPortV->ubPhyIf) - 1]);
 
@@ -159,13 +157,14 @@ CpStatus_tv CpCoreBitrate( CpPort_ts * ptsPortV, int32_t slNomBitRateV,
          // enumeration values as defined in 
          // QCan::CAN_Bitrate_e, so it can be copied.
          //
-         clFrameT.setBitrate(slNomBitRateV, slDatBitRateV);
+         //clFrameT.setBitrate(slNomBitRateV, slDatBitRateV);
          tvStatusT = eCP_ERR_NONE;
-         if(pclSockT->writeFrame(clFrameT) == false)
-         {
-            qDebug() << "CpCoreBitrate() ............. : Failed";
-            tvStatusT =  eCP_ERR_BITRATE;
-         }
+
+         //if (pclSockT->writeFrame(clFrameT) == false)
+         //{
+         //   qDebug() << "CpCoreBitrate() ............. : Failed";
+         //   tvStatusT =  eCP_ERR_BITRATE;
+         //}
       }
    }
 
@@ -370,7 +369,7 @@ CpStatus_tv CpCoreBufferSend(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
       // write CAN frame
       //
       clFrameT = pclSockT->fromCpMsg(ubBufferIdxV);
-      if(pclSockT->writeFrame(clFrameT) == false)
+      if(pclSockT->write(clFrameT) == false)
       {
          tvStatusT = eCP_ERR_TRM_FULL;
          qDebug() << "Failed to write message";
@@ -471,7 +470,6 @@ CpStatus_tv CpCoreBufferSetDlc(  CpPort_ts * ptsPortV,
 //----------------------------------------------------------------------------//
 CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV)
 {
-   QCanFrameApi      clFrameT;
    QCanSocketCpFD *  pclSockT;
    CpStatus_tv       tvStatusT = eCP_ERR_CHANNEL;
 
@@ -499,7 +497,7 @@ CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV)
             // Stop the CAN controller (passive on the bus)
             //
             case eCP_MODE_STOP:
-               clFrameT.setMode(eCAN_MODE_STOP);
+               //clFrameT.setMode(eCAN_MODE_STOP);
                tvStatusT = eCP_ERR_NONE;
                break;
 
@@ -508,7 +506,7 @@ CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV)
             //
             case eCP_MODE_START:
                pclSockT->tsCanStateP.ubCanErrState  = eCP_STATE_BUS_ACTIVE;
-               clFrameT.setMode(eCAN_MODE_START);
+               //clFrameT.setMode(eCAN_MODE_START);
                tvStatusT = eCP_ERR_NONE;
                break;
 
@@ -516,7 +514,7 @@ CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV)
             // Start the CAN controller (Listen-Only)
             //
             case eCP_MODE_LISTEN_ONLY:
-               clFrameT.setMode(eCAN_MODE_LISTEN_ONLY);
+               //clFrameT.setMode(eCAN_MODE_LISTEN_ONLY);
                tvStatusT = eCP_ERR_NONE;
                break;
 
@@ -791,7 +789,7 @@ CpStatus_tv CpCoreFifoWrite(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
       for (ulMsgCntT = 0; ulMsgCntT < *pulMsgCntV; ulMsgCntT++)
       {
          clFrameT = pclSockT->fromCpMsg(ptsCanMsgV);
-         if(pclSockT->writeFrame(clFrameT) == false)
+         if(pclSockT->write(clFrameT) == false)
          {
             tvStatusT = eCP_ERR_TRM_FULL;
             qDebug() << "CpCoreFifoWrite() ........... : failed";
@@ -985,6 +983,7 @@ CpStatus_tv CpSocketSetHostAddress(uint8_t ubPhyIfV,
 //----------------------------------------------------------------------------//
 QCanSocketCpFD::QCanSocketCpFD()
 {
+
    pfnRcvIntHandlerP = 0;
    pfnTrmIntHandlerP = 0;
 
@@ -1025,7 +1024,7 @@ CpCanMsg_ts QCanSocketCpFD::fromCanFrame(QCanFrame & clCanFrameR)
    CpMsgSetIdentifier(&tsCanMsgT, clCanFrameR.identifier());
    CpMsgSetDlc(&tsCanMsgT, clCanFrameR.dlc());
 
-   for(ubDataCntT = 0; ubDataCntT < 64; ubDataCntT++)
+   for(ubDataCntT = 0; ubDataCntT < CP_DATA_SIZE; ubDataCntT++)
    {
       CpMsgSetData(&tsCanMsgT, ubDataCntT, clCanFrameR.data(ubDataCntT));
    }
@@ -1042,7 +1041,7 @@ QCanFrame QCanSocketCpFD::fromCpMsg(CpCanMsg_ts * ptsCanMsgV)
    QCanFrame      clCanFrameT;
    uint8_t        ubDataCntT;
 
-   if(CpMsgIsFastData(ptsCanMsgV))
+   if(CpMsgIsFdFrame(ptsCanMsgV))
    {
       if(CpMsgIsExtended(ptsCanMsgV))
       {
@@ -1088,7 +1087,7 @@ QCanFrame QCanSocketCpFD::fromCpMsg(uint8_t ubMsgBufferV)
 
    ptsCanMsgT = &(atsCanMsgP[ubMsgBufferV]);
 
-   if(CpMsgIsFastData(ptsCanMsgT))
+   if(CpMsgIsFdFrame(ptsCanMsgT))
    {
       if(CpMsgIsExtended(ptsCanMsgT))
       {
@@ -1121,15 +1120,6 @@ QCanFrame QCanSocketCpFD::fromCpMsg(uint8_t ubMsgBufferV)
    return(clCanFrameT);
 }
 
-
-//----------------------------------------------------------------------------//
-// handleApiFrame()                                                           //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void QCanSocketCpFD::handleApiFrame(QCanFrameApi & clApiFrameR)
-{
-   Q_UNUSED(clApiFrameR);
-}
 
 
 //----------------------------------------------------------------------------//
@@ -1182,8 +1172,8 @@ void QCanSocketCpFD::handleCanFrame(QCanFrame & clCanFrameR)
             //
             ptsCanBufT->ulIdentifier   = tsCanMsgT.ulIdentifier;
             ptsCanBufT->ubMsgDLC       = tsCanMsgT.ubMsgDLC;
-            memcpy(&(ptsCanBufT->aubData[0]),
-                   &(tsCanMsgT.aubData[0]),
+            memcpy(&(ptsCanBufT->tuMsgData.aubByte[0]),
+                   &(tsCanMsgT.tuMsgData.aubByte[0]),
                    CP_DATA_SIZE );
             
             //----------------------------------------
@@ -1221,52 +1211,12 @@ void QCanSocketCpFD::handleCanFrame(QCanFrame & clCanFrameR)
 
 
 //----------------------------------------------------------------------------//
-// handleErrFrame()                                                           //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void  QCanSocketCpFD::handleErrFrame(QCanFrameError & clErrFrameR)
-{
-   tsCanStateP.ubCanErrState  = clErrFrameR.errorState();
-   tsCanStateP.ubCanErrType   = clErrFrameR.errorType();
-   tsCanStateP.ubCanRcvErrCnt = clErrFrameR.errorCounterReceive();
-   tsCanStateP.ubCanTrmErrCnt = clErrFrameR.errorCounterTransmit();
-   
-   tsStatisticP.ulErrMsgCount++;
-}
-
-
-//----------------------------------------------------------------------------//
-// onSocketReceive()                                                          //
-// receive CAN message                                                        //
-//----------------------------------------------------------------------------//
-void  QCanSocketCpFD::onSocketConnect(void)
-{
-   qDebug() << "QCanSocketCpFD::onSocketConnect()";
-   ubStatusP = 1;
-}
-
-//----------------------------------------------------------------------------//
-// onSocketReceive()                                                          //
-// receive CAN message                                                        //
-//----------------------------------------------------------------------------//
-void  QCanSocketCpFD::onSocketDisconnect(void)
-{
-   qDebug() << "QCanSocketCpFD::onSocketDisconnect()";
-   ubStatusP = 2;
-}
-
-
-//----------------------------------------------------------------------------//
 // onSocketReceive()                                                          //
 // receive CAN message                                                        //
 //----------------------------------------------------------------------------//
 void QCanSocketCpFD::onSocketReceive()
 {
-   QByteArray        clCanDataT;
    QCanFrame         clCanFrameT;
-   QCanFrameApi      clCanApiT;
-   QCanFrameError    clCanErrorT;
-   QCanData::Type_e  ubFrameTypeT;
    uint32_t          ulFrameCntT;
    uint32_t          ulFrameMaxT;
 
@@ -1274,40 +1224,11 @@ void QCanSocketCpFD::onSocketReceive()
    ulFrameMaxT = framesAvailable();
    for(ulFrameCntT = 0; ulFrameCntT < ulFrameMaxT; ulFrameCntT++)
    {
-      if (this->read(clCanDataT, &ubFrameTypeT) == true)
+      if (this->read(clCanFrameT) == true)
       {
-         switch (ubFrameTypeT)
-         {
-            case QCanData::eTYPE_API:
-               if (clCanApiT.fromByteArray(clCanDataT) == true)
-               {
-                  handleApiFrame(clCanApiT);
-               }
-               break;
-               
-            case QCanData::eTYPE_CAN:
-               if (clCanFrameT.fromByteArray(clCanDataT) == true)
-               {
-                  handleCanFrame(clCanFrameT);
-               }
-               break;
-               
-            case QCanData::eTYPE_ERROR:
-               if (clCanErrorT.fromByteArray(clCanDataT) == true)
-               {
-                  handleErrFrame(clCanErrorT);
-               }
-               break;
-            default:
-
-               break;
-               
-         }
+         handleCanFrame(clCanFrameT);
       }
    }
 }
-
-
-
 
 

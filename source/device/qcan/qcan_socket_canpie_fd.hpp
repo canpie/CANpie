@@ -1,6 +1,6 @@
 //============================================================================//
-// File:          qcan_socket_canpie.cpp                                      //
-// Description:   QCAN classes - CAN socket for CANpie version 2              //
+// File:          qcan_socket_canpie_fd.cpp                                   //
+// Description:   QCAN classes - CAN socket for CANpie FD                     //
 //                                                                            //
 // Copyright 2017 MicroControl GmbH & Co. KG                                  //
 // 53844 Troisdorf - Germany                                                  //
@@ -34,31 +34,27 @@
 //============================================================================//
 
 
-/*----------------------------------------------------------------------------*\
-** Include files                                                              **
-**                                                                            **
-\*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Include files                                                                                                      **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
 
 
 
 #include "../../canpie-fd/cp_core.h"
 #include "../../canpie-fd/cp_msg.h"
 #include "qcan_socket.hpp"
+#include "qcan_server_settings.hpp"
 
 
-/*----------------------------------------------------------------------------*\
-** Definitions                                                                **
-**                                                                            **
-\*----------------------------------------------------------------------------*/
 
-//-----------------------------------------------------------------------------
+
+//----------------------------------------------------------------------------------------------------------------
 /*!
-** \class QCanSocketCpFD
-** \brief CAN socket for CANpie FD
+** \class   QCanSocketCpFD
 **
-** The QCanSocketCpFD class provides a CANpie FD interface for the
-** QCanSocket class. 
-**
+** The QCanSocketCpFD class provides an interface between the %CANpie FD core functions and the QCanSocket class.
+** Hence it is possible to write applications using the C API of %CANpie FD.
 */
 class QCanSocketCpFD : public QCanSocket
 {
@@ -68,8 +64,10 @@ public:
    QCanSocketCpFD();
 
 
-   friend  CpStatus_tv CpCoreBitrate( CpPort_ts * ptsPortV, int32_t slBitrateV,
-         int32_t slBrsClockV);
+
+
+   friend  CpStatus_tv CpCoreBitrate( CpPort_ts *ptsPortV, int32_t slNomBitRateV,
+         int32_t slDatBitRateV);
    
    friend  CpStatus_tv CpCoreBufferConfig( CpPort_ts * ptsPortV,
          uint8_t   ubBufferIdxV,
@@ -133,17 +131,14 @@ public:
   
 private slots:
    void  onSocketReceive(void);
-   void  onSocketConnect(void);
-   void  onSocketDisconnect(void);
+
    
 private:
    QCanFrame      fromCpMsg(uint8_t ubMsgBufferV);
    QCanFrame      fromCpMsg(CpCanMsg_ts * ptsCanMsgV);
    CpCanMsg_ts    fromCanFrame(QCanFrame & clCanFrameR);
    
-   void           handleApiFrame(QCanFrameApi & clApiFrameR);
    void           handleCanFrame(QCanFrame & clCanFrameR);
-   void           handleErrFrame(QCanFrameError & clErrFrameR);
    
    //-------------------------------------------------------------------
    // simulation of CAN message buffer
