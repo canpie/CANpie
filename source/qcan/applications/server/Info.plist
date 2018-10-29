@@ -16,8 +16,10 @@
 	<string>CANpie Server</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>© 2018, MicroControl GmbH &amp; Co. KG, All rights reserved.</string>
-	<key>CFBundleShortVersionString</key>
-	<string>0.84</string>
+   <key>CFBundleVersion</key>
+   <string>0.88.0</string>
+   	<key>CFBundleShortVersionString</key>
+	<string>0.88.0</string>
 	<key>CFBundleIconFile</key>
 	<string>canpie_server.icns</string>
 </dict>

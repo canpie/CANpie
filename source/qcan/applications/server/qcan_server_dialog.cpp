@@ -39,6 +39,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QString>
 
+#include <QtWidgets/QTreeWidgetItem>
 
 /*--------------------------------------------------------------------------------------------------------------------*\
 ** Definitions                                                                                                        **
@@ -46,6 +47,10 @@
 \*--------------------------------------------------------------------------------------------------------------------*/
 
 
+#define  TAB_CONFIG_NETWORK      ((int32_t) 0)
+#define  TAB_CONFIG_SERVER       ((int32_t) 1)
+#define  TAB_CONFIG_INFO         ((int32_t) 2)
+#define  TAB_CONFIG_PLUGIN       ((int32_t) 3)
 
 /*--------------------------------------------------------------------------------------------------------------------*\
 ** Class methods                                                                                                      **
@@ -53,11 +58,10 @@
 \*--------------------------------------------------------------------------------------------------------------------*/
 
 
-
-//----------------------------------------------------------------------------//
-// QCanServer()                                                               //
-// constructor                                                                //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog()                                                                                                 //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 QCanServerDialog::QCanServerDialog(QWidget * parent)
    : QDialog(parent)
 {
@@ -66,38 +70,43 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    QString        clNetNameT;
 
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // create CAN networks
    //
    setupNetworks();
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // setup the user interface
    //
    ui.setupUi(this);
 
-   //----------------------------------------------------------------
+   createCanInfo();
+
+   //---------------------------------------------------------------------------------------------------
    // update version number in info tab
    //
-   QString clVersionT = "CANpie Server Version ";
+   QString clVersionT = "CANpie FD Server Version ";
    clVersionT += QString("%1.%2.").arg(VERSION_MAJOR).arg(VERSION_MINOR);
    clVersionT += QString("%1").arg(VERSION_BUILD);
    ui.pclLblInfoVersionM->setText(clVersionT);
 
-   //----------------------------------------------------------------
-   // add logging
+   //---------------------------------------------------------------------------------------------------
+   // Add logging: this must be done before the QCanInterfaceWidget and QCanNetwork classes are
+   // initialised
    //
    pclLoggerP = new QCanServerLogger();
 
-   //----------------------------------------------------------------
-   // hide CAN server port
+   //---------------------------------------------------------------------------------------------------
+   // Hide some elements:
+   // - CAN server port
+   // - Tab for plug-ins
    //
    ui.pclLblSrvPortM->hide();
    ui.pclEdtSrvPortM->hide();
+   ui.pclTabConfigM->removeTab(TAB_CONFIG_PLUGIN);
 
-
-   //----------------------------------------------------------------
-   // create toolbox for can interfaces
+   //---------------------------------------------------------------------------------------------------
+   // create toolbox for can interfaces and add logging
    //
    pclTbxNetworkP = new QToolBox(ui.pclTabConfigNetworkM);
    pclTbxNetworkP->setGeometry(QRect(0, 0, 101, 361));
@@ -107,9 +116,17 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
       apclCanIfWidgetP[ubNetworkIdxT]->setGeometry(QRect(0, 0, 101, 145));
       pclTbxNetworkP->addItem(apclCanIfWidgetP[ubNetworkIdxT], 
                               ("CAN " + QString::number(ubNetworkIdxT+1,10)));
+
+      connect( apclCanIfWidgetP[ubNetworkIdxT],
+               &QCanInterfaceWidget::interfaceChanged,
+               this,
+               &QCanServerDialog::onInterfaceChange);
+
+      pclLoggerP->addLoggingSource(apclCanIfWidgetP[ubNetworkIdxT]);
    }
 
-   //----------------------------------------------------------------
+
+   //---------------------------------------------------------------------------------------------------
    // create values for nominal bit-rate
    //
    ui.pclCbbNetNomBitrateM->clear();
@@ -123,7 +140,7 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    ui.pclCbbNetNomBitrateM->addItem("800 kBit/s", (int32_t)  800000);
    ui.pclCbbNetNomBitrateM->addItem("1 MBit/s"  , (int32_t) 1000000);
    
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // create values for data bit-rate
    //
    ui.pclCbbNetDatBitrateM->clear();
@@ -133,7 +150,7 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    ui.pclCbbNetDatBitrateM->addItem("4 MBit/s"  , (int32_t) 4000000);
    ui.pclCbbNetDatBitrateM->addItem("5 MBit/s"  , (int32_t) 5000000);
    
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // load settings
    //
    pclSettingsP = new QSettings( QSettings::NativeFormat,
@@ -141,7 +158,7 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
                                  "microcontrol.net",
                                  "CANpieServer");
 
-   //-----------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // settings for server
    //
    pclSettingsP->beginGroup("Server");
@@ -150,10 +167,10 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    pclCanServerP->setServerAddress(clHostAddrT);
    pclSettingsP->endGroup();
 
-   //-----------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // settings for network
    //
-   for(ubNetworkIdxT = 0; ubNetworkIdxT < QCAN_NETWORK_MAX; ubNetworkIdxT++)
+   for (ubNetworkIdxT = 0; ubNetworkIdxT < pclCanServerP->maximumNetwork(); ubNetworkIdxT++)
    {
       pclNetworkT = pclCanServerP->network(ubNetworkIdxT);
       pclLoggerP->addLoggingSource(pclNetworkT);
@@ -170,7 +187,7 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
       pclNetworkT->setErrorFrameEnabled(pclSettingsP->value("errorFrame",
                                      0).toBool());
 
-      pclNetworkT->setFastDataEnabled(pclSettingsP->value("canFD",
+      pclNetworkT->setFlexibleDataEnabled(pclSettingsP->value("canFD",
                                      0).toBool());
 
       pclNetworkT->setListenOnlyEnabled(pclSettingsP->value("listenOnly",
@@ -181,21 +198,16 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
                               pclSettingsP->value("bitrateDat",
                               eCAN_BITRATE_NONE).toInt());
 
-      apclCanIfWidgetP[ubNetworkIdxT]->setInterface(
-            pclSettingsP->value("interface" +
-                                QString::number(ubNetworkIdxT),"").toString());
+      apclCanIfWidgetP[ubNetworkIdxT]->setInterface(pclSettingsP->value("interface","").toString());
 
       pclSettingsP->endGroup();
 
    }
 
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // connect widgets of dialog
    //
-   connect(ui.pclCkbNetEnableM, SIGNAL(clicked(bool)),
-           this, SLOT(onNetworkConfEnable(bool)));
-
    connect(ui.pclCkbNetErrorFramesM, SIGNAL(clicked(bool)),
            this, SLOT(onNetworkConfErrorFrames(bool)));
 
@@ -214,11 +226,17 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    connect(ui.pclCbbNetDatBitrateM, SIGNAL(currentIndexChanged(int)),
            this, SLOT(onNetworkConfBitrateDat(int)));
 
-   connect(ui.pclChkServerRemoteAccessM, SIGNAL(stateChanged(int)),
-           this, SLOT(onServerRemoteAccess(int)));
+   connect(ui.pclBtnConfigDefaultM, SIGNAL(clicked(bool)),
+           this, SLOT(onServerSetDefault(bool)));
 
    connect(ui.pclChkChangeBitrateM, SIGNAL(stateChanged(int)),
-           this, SLOT(onServerBitrateAccess(int)));
+           this, SLOT(onServerAccessBitrate(int)));
+
+   connect(ui.pclChkServerRemoteAccessM, SIGNAL(stateChanged(int)),
+           this, SLOT(onServerAccessRemote(int)));
+
+   connect(ui.pclChkChangeBitrateM, SIGNAL(stateChanged(int)),
+           this, SLOT(onServerAccessBitrate(int)));
 
    connect(ui.pclPbtNetDevSpecificConfigM, SIGNAL(clicked()),
            this, SLOT(onDeviceSpecificConfig()));
@@ -226,39 +244,40 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    connect(ui.pclBtnStatusResetM, SIGNAL(clicked(bool)),
            this, SLOT(onNetworkReset(bool)));
 
-   //----------------------------------------------------------------
-   // connect default signals / slots for statistic
+
+   //---------------------------------------------------------------------------------------------------
+   // Connect signals of the available CAN networks:
    //
-   pclNetworkT = pclCanServerP->network(0);
-   connect(pclNetworkT, SIGNAL(showCanFrames(CAN_Channel_e, uint32_t)),
-           this, SLOT(onNetworkShowCanFrames(CAN_Channel_e, uint32_t)) );
+   for (ubNetworkIdxT = 0; ubNetworkIdxT < pclCanServerP->maximumNetwork(); ubNetworkIdxT++)
+   {
+      pclNetworkT = pclCanServerP->network(ubNetworkIdxT);
 
-   connect(pclNetworkT, SIGNAL(showErrFrames(CAN_Channel_e, uint32_t)),
-           this, SLOT(onNetworkShowErrFrames(CAN_Channel_e, uint32_t)) );
+      connect(pclNetworkT, SIGNAL(showInterfaceState(CAN_Channel_e, QCanInterface::ConnectionState_e)),
+            this, SLOT(onInterfaceStateChange(CAN_Channel_e, QCanInterface::ConnectionState_e)) );
 
-   connect(pclNetworkT, SIGNAL(showLoad(CAN_Channel_e, uint8_t, uint32_t)),
+      connect(pclNetworkT, SIGNAL(showBitrate(CAN_Channel_e, uint32_t, int32_t)),
+            this, SLOT(onNetworkShowBitrate(CAN_Channel_e, uint32_t, int32_t)));
+
+      connect(pclNetworkT, SIGNAL(showCanFrames(CAN_Channel_e, uint32_t)),
+            this, SLOT(onNetworkShowCanFrames(CAN_Channel_e, uint32_t)) );
+
+      connect(pclNetworkT, SIGNAL(showErrFrames(CAN_Channel_e, uint32_t)),
+            this, SLOT(onNetworkShowErrFrames(CAN_Channel_e, uint32_t)) );
+
+      connect(pclNetworkT, SIGNAL(showLoad(CAN_Channel_e, uint8_t, uint32_t)),
             this, SLOT(onNetworkShowLoad(CAN_Channel_e, uint8_t, uint32_t)) );
 
-   connect(pclNetworkT, SIGNAL(showState(CAN_Channel_e, CAN_State_e)),
+      connect(pclNetworkT, SIGNAL(showState(CAN_Channel_e, CAN_State_e)),
             this, SLOT(onNetworkShowState(CAN_Channel_e, CAN_State_e)) );
 
-   connect(pclNetworkT, SIGNAL(changeBitrate(CAN_Channel_e, uint32_t, int32_t)),
-           this, SLOT(onNetworkChangeBitrate(CAN_Channel_e, uint32_t, int32_t)));
+      connect(pclNetworkT, SIGNAL(showSocketState(CAN_Channel_e, uint32_t, uint32_t)),
+            this, SLOT(onNetworkShowSocketState(CAN_Channel_e, uint32_t, uint32_t)) );
 
-   //----------------------------------------------------------------
-   // Intialise interface widgets for CAN interface selection
-   //
-   for(ubNetworkIdxT = 0; ubNetworkIdxT < QCAN_NETWORK_MAX; ubNetworkIdxT++)
-   {
-      connect( apclCanIfWidgetP[ubNetworkIdxT], 
-               &QCanInterfaceWidget::interfaceChanged,
-               this,                                       
-               &QCanServerDialog::onInterfaceChange);
+
    }
 
 
-
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // create actions and tray icon in system tray
    //
    createActions();
@@ -266,16 +285,15 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    setIcon();
    pclIconTrayP->show();
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // set title of dialog window
    //
    setWindowTitle("CANpie Server");
    
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // show CAN channel 1 as default and update user interface
    //
-   slLastNetworkIndexP = 0;
-
+   slNetworkTabIndexP = 0;
    ui.pclTabConfigM->setCurrentIndex(0);
    pclTbxNetworkP->setCurrentIndex(0);
    this->updateUI(eCAN_CHANNEL_1);
@@ -283,10 +301,10 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
 }
 
 
-//----------------------------------------------------------------------------//
-// QCanServer()                                                               //
-// destructor                                                                 //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// ~QCanServerDialog()                                                                                                //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 QCanServerDialog::~QCanServerDialog()
 {
    uint8_t        ubNetworkIdxT;
@@ -308,14 +326,12 @@ QCanServerDialog::~QCanServerDialog()
       pclSettingsP->beginGroup(clNetNameT);
       pclSettingsP->setValue("bitrateNom", pclNetworkT->nominalBitrate());
       pclSettingsP->setValue("bitrateDat", pclNetworkT->dataBitrate());
-      pclSettingsP->setValue("enable",     pclNetworkT->isNetworkEnabled());
+      pclSettingsP->setValue("enable"    , pclNetworkT->isNetworkEnabled());
       pclSettingsP->setValue("errorFrame", pclNetworkT->isErrorFrameEnabled());
-      pclSettingsP->setValue("canFD",      pclNetworkT->isFastDataEnabled());
+      pclSettingsP->setValue("canFD"     , pclNetworkT->isFlexibleDataEnabled());
       pclSettingsP->setValue("listenOnly", pclNetworkT->isListenOnlyEnabled());
-      pclSettingsP->setValue("loglevel",   pclLoggerP->logLevel((CAN_Channel_e)(ubNetworkIdxT+1)));
-
-      pclSettingsP->setValue("interface"+QString::number(ubNetworkIdxT), 
-                              apclCanIfWidgetP[ubNetworkIdxT]->name());
+      pclSettingsP->setValue("loglevel"  , pclLoggerP->logLevel((CAN_Channel_e)(ubNetworkIdxT+1)));
+      pclSettingsP->setValue("interface" , apclCanIfWidgetP[ubNetworkIdxT]->name());
 
       pclSettingsP->endGroup();
    }
@@ -333,10 +349,10 @@ QCanServerDialog::~QCanServerDialog()
 }
 
 
-//----------------------------------------------------------------------------//
-// createActions()                                                            //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::createActions()                                                                                  //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanServerDialog::createActions(void)
 {
    pclActionConfigP = new QAction(tr("&Configuration ..."), this);
@@ -352,10 +368,64 @@ void QCanServerDialog::createActions(void)
 }
 
 
-//----------------------------------------------------------------------------//
-// createTrayIcon()                                                           //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::createCanInfo()                                                                                  //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServerDialog::createCanInfo(void)
+{
+   uint8_t           ubNetworkCntT;
+   QTreeWidgetItem * pclNetworkItemT = 0L;
+   QCanNetwork *     pclNetworkT = 0L;
+
+   //---------------------------------------------------------------------------------------------------
+   // clear all items in widget
+   //
+   ui.pclTrwNetworkM->clear();
+   ui.pclTrwNetworkM->setColumnWidth(0, 100);
+   ui.pclTrwNetworkM->setColumnWidth(1, 100);
+   ui.pclTrwNetworkM->setColumnWidth(2, 200);
+
+
+   //---------------------------------------------------------------------------------------------------
+   // setup entries for each CAN network
+   //
+   for(ubNetworkCntT = 0; ubNetworkCntT < pclCanServerP->maximumNetwork(); ubNetworkCntT++)
+   {
+      pclNetworkT = pclCanServerP->network(ubNetworkCntT);
+      pclNetworkItemT = new QTreeWidgetItem(ui.pclTrwNetworkM , ubNetworkCntT);
+
+      //-------------------------------------------------------------------------------------------
+      // name of network
+      //
+      pclNetworkItemT->setText(0, pclNetworkT->name());
+
+      //-------------------------------------------------------------------------------------------
+      // number of connections
+      //
+      pclNetworkItemT->setText(1, " 0 / 0 ");
+      pclNetworkItemT->setToolTip(1, tr("Number of local connections / number of TCP connections"));
+
+      //-------------------------------------------------------------------------------------------
+      // interface name
+      //
+      pclNetworkItemT->setText(2, "Virtual CAN");
+
+
+      //-------------------------------------------------------------------------------------------
+      // interface version
+      //
+      pclNetworkItemT->setText(3, " ");
+
+   }
+
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::createTrayIcon()                                                                                 //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanServerDialog::createTrayIcon(void)
 {
    pclMenuTrayP = new QMenu(this);
@@ -369,335 +439,10 @@ void QCanServerDialog::createTrayIcon(void)
 }
 
 
-//----------------------------------------------------------------------------//
-// onInterfaceChange()                                                        //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void QCanServerDialog::onInterfaceChange( uint8_t ubIdxV, 
-                                          QCanInterface *pclCanIfV)
-{
-   QCanNetwork *  pclNetworkT;
-
-   qDebug() << "QCanServerDialog:onInterfaceChange() ToolBox Index " << QString::number(ubIdxV);
-
-
-   //----------------------------------------------------------------
-   // get selected QCanNetwork
-   //
-   pclNetworkT = pclCanServerP->network(ubIdxV);
-
-   //----------------------------------------------------------------
-   // add / remove physical CAN interface
-   //
-   if (pclCanIfV == Q_NULLPTR)
-   {
-      pclNetworkT->removeInterface();
-      apclCanIfWidgetP[ubIdxV]->setIcon(QIcon(QCAN_IF_VCAN_ICON));
-      qDebug() << " set vCAN icon";
-   }
-   else
-   {
-      qDebug() << " set interface icon";
-      if (pclNetworkT->addInterface(pclCanIfV) == true)
-      {
-         pclNetworkT->startInterface();
-         apclCanIfWidgetP[ubIdxV]->setIcon(pclCanIfV->icon());
-      }
-      else
-      {
-         qWarning() << "Fail to add interface!";
-      }
-   }
-
-   updateUI(CAN_Channel_e (ubIdxV + 1));
-}
-
-void QCanServerDialog::onLoggingWindow(void)
-{
-   pclLoggerP->show();
-}
-
-
-//----------------------------------------------------------------------------//
-// onNetworkChange()                                                          //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void QCanServerDialog::onNetworkChange(int slIndexV)
-{
-   QCanNetwork *  pclNetworkT;
-
-   qDebug() << "QCanServerDialog::onNetworkChange()" << slIndexV;
-
-   //----------------------------------------------------------------
-   // reconnect the signals / slots for statistic
-   //
-   pclNetworkT = pclCanServerP->network(slLastNetworkIndexP);
-   disconnect(pclNetworkT, SIGNAL(showCanFrames(CAN_Channel_e, uint32_t)),
-           this, SLOT(onNetworkShowCanFrames(CAN_Channel_e, uint32_t)) );
-
-   disconnect(pclNetworkT, SIGNAL(showErrFrames(CAN_Channel_e, uint32_t)),
-           this, SLOT(onNetworkShowErrFrames(CAN_Channel_e, uint32_t)) );
-
-   disconnect(pclNetworkT, SIGNAL(showLoad(CAN_Channel_e, uint8_t, uint32_t)),
-            this, SLOT(onNetworkShowLoad(CAN_Channel_e, uint8_t, uint32_t)) );
-
-   disconnect(pclNetworkT, SIGNAL(showState(CAN_Channel_e, CAN_State_e)),
-            this, SLOT(onNetworkShowState(CAN_Channel_e, CAN_State_e)) );
-
-   disconnect(pclNetworkT, SIGNAL(changeBitrate(CAN_Channel_e, uint32_t, int32_t)),
-           this, SLOT(onNetworkChangeBitrate(CAN_Channel_e, uint32_t, int32_t)));
-
-   pclNetworkT = pclCanServerP->network(slIndexV);
-   connect(pclNetworkT, SIGNAL(showCanFrames(CAN_Channel_e, uint32_t)),
-           this, SLOT(onNetworkShowCanFrames(CAN_Channel_e, uint32_t)) );
-
-   connect(pclNetworkT, SIGNAL(showErrFrames(CAN_Channel_e, uint32_t)),
-           this, SLOT(onNetworkShowErrFrames(CAN_Channel_e, uint32_t)) );
-
-   connect(pclNetworkT, SIGNAL(showLoad(CAN_Channel_e, uint8_t, uint32_t)),
-            this, SLOT(onNetworkShowLoad(CAN_Channel_e, uint8_t, uint32_t)) );
-
-   connect(pclNetworkT, SIGNAL(showState(CAN_Channel_e, CAN_State_e)),
-            this, SLOT(onNetworkShowState(CAN_Channel_e, CAN_State_e)) );
-
-   connect(pclNetworkT, SIGNAL(changeBitrate(CAN_Channel_e, uint32_t, int32_t)),
-           this, SLOT(onNetworkChangeBitrate(CAN_Channel_e, uint32_t, int32_t)));
-
-   //----------------------------------------------------------------
-   // update user interface
-   //
-   this->updateUI(CAN_Channel_e (slIndexV + 1));
-
-   //----------------------------------------------------------------
-   // store index for future access
-   //
-   slLastNetworkIndexP = slIndexV;
-}
-
-void QCanServerDialog::onNetworkChangeBitrate(CAN_Channel_e ubChannelV, uint32_t slNomBitRateV, int32_t slDatBitRateV)
-{
-   qDebug() << "QCanServerDialog::onNetworkChangeBitrate(CAN channel" << ubChannelV << ")";
-   updateUI(ubChannelV);
-}
-
-
-//----------------------------------------------------------------------------//
-// onNetworkConfBitrate()                                                     //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void QCanServerDialog::onNetworkConfBitrateDat(int slBitrateSelV)
-{
-   QCanNetwork *  pclNetworkT;
-
-   pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
-   if(pclNetworkT != Q_NULLPTR)
-   {
-      slBitrateSelV = ui.pclCbbNetDatBitrateM->currentData().toInt();
-      qDebug() << "Change data bit-rate" << slBitrateSelV;
-      pclNetworkT->setBitrate(pclNetworkT->nominalBitrate(), slBitrateSelV);
-   }
-}
-
-
-//----------------------------------------------------------------------------//
-// onNetworkConfBitrate()                                                     //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void QCanServerDialog::onNetworkConfBitrateNom(int slBitrateSelV)
-{
-   QCanNetwork * pclNetworkT;
-
-   pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
-   if(pclNetworkT != Q_NULLPTR)
-   {
-      slBitrateSelV = ui.pclCbbNetNomBitrateM->currentData().toInt();
-      qDebug() << "Change nominal bit-rate" << slBitrateSelV;
-      pclNetworkT->setBitrate(slBitrateSelV, pclNetworkT->dataBitrate());
-   }
-}
-
-
-//----------------------------------------------------------------------------//
-// onNetworkConfCanFd()                                                       //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void QCanServerDialog::onNetworkConfCanFd(bool btEnableV)
-{
-   QCanNetwork * pclNetworkT;
-
-   pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
-   if(pclNetworkT != Q_NULLPTR)
-   {
-      pclNetworkT->setFastDataEnabled(btEnableV);
-   }
-
-   //----------------------------------------------------------------
-   // update user interface
-   //
-   if(btEnableV == true)
-   {
-      ui.pclLblNetDatBitrateM->setEnabled(true);
-      ui.pclCbbNetDatBitrateM->setEnabled(true);
-   }
-   else
-   {
-      ui.pclLblNetDatBitrateM->setEnabled(false);
-      ui.pclCbbNetDatBitrateM->setEnabled(false);
-   }
-}
-
-
-//----------------------------------------------------------------------------//
-// onNetworkConfEnable()                                                      //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void QCanServerDialog::onNetworkConfEnable(bool btEnableV)
-{
-   QCanNetwork * pclNetworkT;
-
-   pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
-   if(pclNetworkT != Q_NULLPTR)
-   {
-      pclNetworkT->setNetworkEnabled(btEnableV);
-   }
-}
-
-
-//----------------------------------------------------------------------------//
-// onNetworkConfErrorFrames()                                                 //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void QCanServerDialog::onNetworkConfErrorFrames(bool btEnableV)
-{
-   QCanNetwork * pclNetworkT;
-
-   pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
-   if(pclNetworkT != Q_NULLPTR)
-   {
-      pclNetworkT->setErrorFrameEnabled(btEnableV);
-   }
-}
-
-
-//----------------------------------------------------------------------------//
-// onNetworkConfListenOnly()                                                  //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void QCanServerDialog::onNetworkConfListenOnly(bool btEnableV)
-{
-   QCanNetwork * pclNetworkT;
-
-   pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
-   if(pclNetworkT != Q_NULLPTR)
-   {
-      pclNetworkT->setListenOnlyEnabled(btEnableV);
-   }
-}
-
-
-//----------------------------------------------------------------------------//
-// onNetworkReset()                                                           //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void QCanServerDialog::onNetworkReset(bool btCheckedV)
-{
-   Q_UNUSED(btCheckedV);
-   QCanNetwork * pclNetworkT;
-
-   pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
-   if(pclNetworkT != Q_NULLPTR)
-   {
-      pclNetworkT->reset();
-   }
-   ui.pclBtnStatusResetM->setEnabled(false);
-}
-
-
-//----------------------------------------------------------------------------//
-// onNetworkShowCanFrames()                                                   //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void QCanServerDialog::onNetworkShowCanFrames(CAN_Channel_e ubChannelV, uint32_t ulFrameCntV)
-{
-   Q_UNUSED(ubChannelV);
-
-   ui.pclCntStatCanM->setText(QString("%1").arg(ulFrameCntV));
-   if (ulFrameCntV > 0)
-   {
-      ui.pclBtnStatusResetM->setEnabled(true);
-   }
-}
-
-//----------------------------------------------------------------------------//
-// onNetworkShowErrFrames()                                                   //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void QCanServerDialog::onNetworkShowErrFrames(CAN_Channel_e ubChannelV, uint32_t ulFrameCntV)
-{
-   Q_UNUSED(ubChannelV);
-
-   ui.pclCntStatErrM->setText(QString("%1").arg(ulFrameCntV));
-   if (ulFrameCntV > 0)
-   {
-      ui.pclBtnStatusResetM->setEnabled(true);
-   }
-}
-
-
-//----------------------------------------------------------------------------//
-// onNetworkShowLoad()                                                        //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void QCanServerDialog::onNetworkShowLoad(CAN_Channel_e ubChannelV, uint8_t ubLoadV, uint32_t ulMsgPerSecV)
-{
-   Q_UNUSED(ubChannelV);
-
-   ui.pclCntStatMsgM->setText(QString("%1").arg(ulMsgPerSecV));
-   ui.pclPgbStatLoadM->setValue(ubLoadV);
-}
-
-void QCanServerDialog::onNetworkShowState(CAN_Channel_e ubChannelV, CAN_State_e teStateV)
-{
-   Q_UNUSED(ubChannelV);
-
-   ui.pclTxtStatusBusM->setStyleSheet("QLabel { color : black; }");
-   switch(teStateV)
-   {
-      case eCAN_STATE_STOPPED:
-         ui.pclTxtStatusBusM->setText(tr("Stopped"));
-         break;
-
-      case eCAN_STATE_SLEEPING:
-         ui.pclTxtStatusBusM->setText(tr("Sleeping"));
-         break;
-
-      case eCAN_STATE_BUS_ACTIVE:
-         ui.pclTxtStatusBusM->setStyleSheet("QLabel { color : green; }");
-         ui.pclTxtStatusBusM->setText(tr("OK (error active)"));
-         break;
-
-      case eCAN_STATE_BUS_WARN:
-         ui.pclTxtStatusBusM->setStyleSheet("QLabel { color : orange; }");
-         ui.pclTxtStatusBusM->setText(tr("Warning"));
-         break;
-
-      case eCAN_STATE_BUS_PASSIVE:
-         ui.pclTxtStatusBusM->setStyleSheet("QLabel { color : orange; }");
-         ui.pclTxtStatusBusM->setText(tr("Error passive"));
-         break;
-
-      case eCAN_STATE_BUS_OFF:
-         ui.pclTxtStatusBusM->setStyleSheet("QLabel { color : red; }");
-         ui.pclTxtStatusBusM->setText(tr("Bus-off"));
-         break;
-   }
-}
-
-
-//----------------------------------------------------------------------------//
-// onDeviceSpecificConfig()                                                   //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::onDeviceSpecificConfig()                                                                         //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanServerDialog::onDeviceSpecificConfig()
 {
    qDebug() << "onDeviceSpecificConfig";
@@ -713,11 +458,446 @@ void QCanServerDialog::onDeviceSpecificConfig()
 }
 
 
-//----------------------------------------------------------------------------//
-// onServerBitrateAccess()                                                    //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void QCanServerDialog::onServerBitrateAccess(int slStateV)
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::onInterfaceChange()                                                                              //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServerDialog::onInterfaceChange( const CAN_Channel_e & ubChannelR, QCanInterface * pclInterfaceV)
+{
+   QCanNetwork *  pclNetworkT;
+
+
+   //---------------------------------------------------------------------------------------------------
+   // The channel enumeration starts at 1 for a physical channel, the network list starts at 0.
+   // Setup a variable for access to the network and the widget array.
+   //
+   uint8_t  ubIndexV = ubChannelR - 1;
+
+   //---------------------------------------------------------------------------------------------------
+   // get selected QCanNetwork
+   //
+   pclNetworkT = pclCanServerP->network(ubIndexV);
+   if (pclNetworkT != (QCanNetwork *) 0L)
+   {
+      //-------------------------------------------------------------------------------------------
+      // Add / remove physical CAN interface:
+      // First, any existing CAN interface is stopped (disconnect from the network) and then the
+      // pointer for the QCanInterface class is removed from the network. These operations never
+      // fail, even if there is no physical interface present.
+      //
+      pclNetworkT->stopInterface();
+      pclNetworkT->removeInterface();
+
+      if (pclInterfaceV == Q_NULLPTR)
+      {
+         //-----------------------------------------------------------------------------------
+         // Remove physical CAN interface:
+         // We use the internal VCAN again, the icon is updated.
+         //
+         qDebug() << "QCanServerDialog::onInterfaceChange() --- pclInterfaceV == Q_NULLPTR  -> use VCAN";
+         apclCanIfWidgetP[ubIndexV]->setIcon(QIcon(QCAN_IF_VCAN_ICON));
+
+         //-----------------------------------------------------------------------------
+         // Update the CAN information tree view:
+         // Get the item for the given channel number and set interface name / version
+         //
+         QTreeWidgetItem * pclNetworkItemT = ui.pclTrwNetworkM->topLevelItem(ubChannelR - 1);
+
+         if (pclNetworkItemT != (QTreeWidgetItem *) 0L)
+         {
+            pclNetworkItemT->setText(2, "Virtual CAN"   );
+            pclNetworkItemT->setText(3, " "             );
+         }
+      }
+      else
+      {
+         //-----------------------------------------------------------------------------------
+         // Add physical CAN interface:
+         // We use the icon of the QCanInterface class. The interface is started only
+         // if the network is enabled.
+         //
+         if (pclNetworkT->addInterface(pclInterfaceV) == true)
+         {
+            qDebug() << "QCanServerDialog::onInterfaceChange() --- start CAN interface";
+            if (pclNetworkT->isNetworkEnabled())
+            {
+               apclCanIfWidgetP[ubIndexV]->setIcon(pclInterfaceV->icon());
+               pclNetworkT->startInterface();
+
+               //-----------------------------------------------------------------------------
+               // Update the CAN information tree view:
+               // Get the item for the given channel number and set interface name / version
+               //
+               QTreeWidgetItem * pclNetworkItemT = ui.pclTrwNetworkM->topLevelItem(ubChannelR - 1);
+
+               if (pclNetworkItemT != (QTreeWidgetItem *) 0L)
+               {
+                  pclNetworkItemT->setText(2, pclInterfaceV->name()    );
+                  pclNetworkItemT->setText(3, pclInterfaceV->version() );
+               }
+            }
+         }
+         else
+         {
+            //-----------------------------------------------------------------------------------
+            // Failed to add the new QCanInterface:
+            // Log error and set VCAN icon
+            //
+            qDebug() << "QCanServerDialog::onInterfaceChange() --- failed to add CAN interface";
+            pclLoggerP->appendMessage(ubChannelR, tr("Failed to add CAN interface"), eLOG_LEVEL_ERROR);
+            apclCanIfWidgetP[ubIndexV]->setIcon(QIcon(QCAN_IF_VCAN_ICON));
+         }
+      }
+
+      updateUI(ubChannelR);
+
+   }
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::onInterfaceStateChange()                                                                         //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServerDialog::onInterfaceStateChange(const CAN_Channel_e & ubChannelR,
+                                              const QCanInterface::ConnectionState_e & teConnectionStateR)
+{
+   switch (teConnectionStateR)
+   {
+      //--------------------------------------------------------------------------------------
+      // There is a hardware failure for the CAN interface, this means the CAN interface
+      // has already been removed inside the QCanNetwork::onInterfaceConnectionChanged()
+      // method. We change the icon here and issue a notification.
+      //
+      case QCanInterface::FailureState:
+
+         apclCanIfWidgetP[ubChannelR - 1]->setIcon(QIcon(QCAN_IF_VCAN_ICON));
+
+         if ( (pclIconTrayP != 0L) && (ui.pclChkDisableNotificationM->isChecked() == false) )
+         {
+            pclIconTrayP->showMessage(tr("Error"), tr("CAN interface has been removed"),
+                                      QSystemTrayIcon::Critical);
+         }
+
+         break;
+
+      default:
+
+         break;
+   }
+
+
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::onLoggingWindow()                                                                                //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServerDialog::onLoggingWindow(void)
+{
+   pclLoggerP->show();
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::onNetworkChange()                                                                                //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServerDialog::onNetworkChange(int slIndexV)
+{
+   //---------------------------------------------------------------------------------------------------
+   // Store the selected tab index:
+   // We store the index of the selected tab here because requesting the selected tab via the
+   // method ui.pclTabConfigM->currentIndex() fails here: inside this slot still the old tab
+   // is the current one, slIndexV is the new one.
+   //
+   slNetworkTabIndexP = slIndexV;
+
+   //---------------------------------------------------------------------------------------------------
+   // update user interface
+   //
+   this->updateUI(CAN_Channel_e (slIndexV + 1));
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::onNetworkShowBitrate()                                                                           //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServerDialog::onNetworkShowBitrate(CAN_Channel_e ubChannelV, uint32_t slNomBitRateV, int32_t slDatBitRateV)
+{
+   Q_UNUSED(slNomBitRateV);
+   Q_UNUSED(slDatBitRateV);
+
+   qDebug() << "QCanServerDialog::onNetworkShowBitrate(CAN channel" << ubChannelV << ")";
+   updateUI(ubChannelV);
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::onNetworkConfBitrateDat()                                                                        //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServerDialog::onNetworkConfBitrateDat(int slBitrateSelV)
+{
+   QCanNetwork *  pclNetworkT;
+
+   pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
+   if(pclNetworkT != Q_NULLPTR)
+   {
+      slBitrateSelV = ui.pclCbbNetDatBitrateM->currentData().toInt();
+      qDebug() << "QCanServerDialog::onNetworkConfBitrateDat(" << slBitrateSelV << ")";
+      pclNetworkT->setBitrate(pclNetworkT->nominalBitrate(), slBitrateSelV);
+   }
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::onNetworkConfBitrateNom()                                                                        //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServerDialog::onNetworkConfBitrateNom(int slBitrateSelV)
+{
+   QCanNetwork * pclNetworkT;
+
+   pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
+   if(pclNetworkT != Q_NULLPTR)
+   {
+      slBitrateSelV = ui.pclCbbNetNomBitrateM->currentData().toInt();
+      qDebug() << "QCanServerDialog::onNetworkConfBitrateNom(" << slBitrateSelV << ")";
+      pclNetworkT->setBitrate(slBitrateSelV, pclNetworkT->dataBitrate());
+   }
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::onNetworkConfCanFd()                                                                             //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServerDialog::onNetworkConfCanFd(bool btEnableV)
+{
+   QCanNetwork * pclNetworkT;
+
+   pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
+   if (pclNetworkT != Q_NULLPTR)
+   {
+      pclNetworkT->setFlexibleDataEnabled(btEnableV);
+   }
+
+   //----------------------------------------------------------------
+   // update user interface
+   //
+   if (btEnableV == true)
+   {
+      ui.pclLblNetDatBitrateM->setEnabled(true);
+      ui.pclCbbNetDatBitrateM->setEnabled(true);
+   }
+   else
+   {
+      ui.pclLblNetDatBitrateM->setEnabled(false);
+      ui.pclCbbNetDatBitrateM->setEnabled(false);
+   }
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::onNetworkConfEnable()                                                                            //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServerDialog::onNetworkConfEnable(bool btEnableV)
+{
+   QCanNetwork * pclNetworkT;
+
+   pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
+   if (pclNetworkT != Q_NULLPTR)
+   {
+      pclNetworkT->setNetworkEnabled(btEnableV);
+   }
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::onNetworkConfErrorFrames()                                                                       //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServerDialog::onNetworkConfErrorFrames(bool btEnableV)
+{
+   QCanNetwork * pclNetworkT;
+
+   pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
+   if (pclNetworkT != Q_NULLPTR)
+   {
+      pclNetworkT->setErrorFrameEnabled(btEnableV);
+   }
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::onNetworkConfListenOnly()                                                                        //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServerDialog::onNetworkConfListenOnly(bool btEnableV)
+{
+   QCanNetwork * pclNetworkT;
+
+   pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
+   if (pclNetworkT != Q_NULLPTR)
+   {
+      pclNetworkT->setListenOnlyEnabled(btEnableV);
+   }
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::onNetworkReset()                                                                                 //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServerDialog::onNetworkReset(bool btCheckedV)
+{
+   Q_UNUSED(btCheckedV);
+   QCanNetwork * pclNetworkT;
+
+   pclNetworkT = pclCanServerP->network(pclTbxNetworkP->currentIndex());
+   if(pclNetworkT != Q_NULLPTR)
+   {
+      pclNetworkT->reset();
+   }
+   ui.pclBtnStatusResetM->setEnabled(false);
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::onNetworkShowCanFrames()                                                                         //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServerDialog::onNetworkShowCanFrames(CAN_Channel_e teChannelV, uint32_t ulFrameCntV)
+{
+   if (teChannelV == selectedChannel())
+   {
+      ui.pclCntStatCanM->setText(QString("%1").arg(ulFrameCntV));
+      if (ulFrameCntV > 0)
+      {
+         ui.pclBtnStatusResetM->setEnabled(true);
+      }
+   }
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::onNetworkShowErrFrames()                                                                          //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServerDialog::onNetworkShowErrFrames(CAN_Channel_e teChannelV, uint32_t ulFrameCntV)
+{
+   if (teChannelV == selectedChannel())
+   {
+      ui.pclCntStatErrM->setText(QString("%1").arg(ulFrameCntV));
+      if (ulFrameCntV > 0)
+      {
+         ui.pclBtnStatusResetM->setEnabled(true);
+      }
+   }
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::onNetworkShowLoad()                                                                              //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServerDialog::onNetworkShowLoad(CAN_Channel_e teChannelV, uint8_t ubLoadV, uint32_t ulMsgPerSecV)
+{
+   if (teChannelV == selectedChannel())
+   {
+      ui.pclCntStatMsgM->setText(QString("%1").arg(ulMsgPerSecV));
+      ui.pclPgbStatLoadM->setValue(ubLoadV);
+   }
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::onNetworkShowSocketState()                                                                       //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServerDialog::onNetworkShowSocketState(const CAN_Channel_e & ubChannelR,
+                                                const uint32_t & ulLocalSocketsR, const uint32_t & ulTcpSocketsR)
+{
+   QTreeWidgetItem * pclNetworkItemT = 0L;
+
+   //---------------------------------------------------------------------------------------------------
+   // get the item for the given channel number
+   //
+   pclNetworkItemT = ui.pclTrwNetworkM->topLevelItem(ubChannelR - 1);
+
+   if (pclNetworkItemT != (QTreeWidgetItem *) 0L)
+   {
+      pclNetworkItemT->setText(1, QString(" %1 / %2").arg(ulLocalSocketsR).arg(ulTcpSocketsR) );
+   }
+
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::onNetworkShowState()                                                                             //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServerDialog::onNetworkShowState(CAN_Channel_e teChannelV, CAN_State_e teStateV)
+{
+
+   if (teChannelV == selectedChannel())
+   {
+      ui.pclTxtStatusBusM->setStyleSheet("QLabel { color : black; }");
+      switch (teStateV)
+      {
+         case eCAN_STATE_STOPPED:
+            ui.pclTxtStatusBusM->setText(tr("Stopped"));
+            break;
+
+         case eCAN_STATE_SLEEPING:
+            ui.pclTxtStatusBusM->setText(tr("Sleeping"));
+            break;
+
+         case eCAN_STATE_BUS_ACTIVE:
+            ui.pclTxtStatusBusM->setStyleSheet("QLabel { color : green; }");
+            ui.pclTxtStatusBusM->setText(tr("OK (error active)"));
+            break;
+
+         case eCAN_STATE_BUS_WARN:
+            ui.pclTxtStatusBusM->setStyleSheet("QLabel { color : orange; }");
+            ui.pclTxtStatusBusM->setText(tr("Warning"));
+            break;
+
+         case eCAN_STATE_BUS_PASSIVE:
+            ui.pclTxtStatusBusM->setStyleSheet("QLabel { color : orange; }");
+            ui.pclTxtStatusBusM->setText(tr("Error passive"));
+            break;
+
+         case eCAN_STATE_BUS_OFF:
+            ui.pclTxtStatusBusM->setStyleSheet("QLabel { color : red; }");
+            ui.pclTxtStatusBusM->setText(tr("Bus-off"));
+            break;
+      }
+   }
+
+   //---------------------------------------------------------------------------------------------------
+   // Notify a bus-off state
+   //
+   if ( (pclIconTrayP != 0L)                                  &&
+        (ui.pclChkDisableNotificationM->isChecked() == false) &&
+        (teStateV == eCAN_STATE_BUS_OFF)                          )
+   {
+      pclIconTrayP->showMessage(tr("Error"),
+                                tr(QString("CAN %1 interface is bus-off").arg(teChannelV).toLatin1()),
+                                QSystemTrayIcon::Information);
+   }
+
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::onServerBitrateAccess()                                                                          //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServerDialog::onServerAccessBitrate(int slStateV)
 {
 
    if(slStateV == Qt::Unchecked)
@@ -730,11 +910,12 @@ void QCanServerDialog::onServerBitrateAccess(int slStateV)
    }
 }
 
-//----------------------------------------------------------------------------//
-// onServerRemoteAccess()                                                     //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void QCanServerDialog::onServerRemoteAccess(int slStateV)
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::onServerRemoteAccess()                                                                           //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServerDialog::onServerAccessRemote(int slStateV)
 {
    QHostAddress clHostAddressT;
 
@@ -749,36 +930,66 @@ void QCanServerDialog::onServerRemoteAccess(int slStateV)
    pclCanServerP->setServerAddress(clHostAddressT);
 }
 
-//----------------------------------------------------------------------------//
-// onServerConfTime()                                                         //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void QCanServerDialog::onServerDispatchTimeLimit(int slValueV)
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::onServerSetDefault()                                                                             //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServerDialog::onServerSetDefault(bool btCheckedV)
 {
-   qDebug() << "onServerConfTime" << slValueV;
-}
+   Q_UNUSED(btCheckedV);
 
 
-//----------------------------------------------------------------------------//
-// setupNetworks()                                                            //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void QCanServerDialog::setupNetworks(void)
-{
-   pclCanServerP = new QCanServer(  this,
-                                    QCAN_TCP_DEFAULT_PORT,
-                                    QCAN_NETWORK_MAX);
-
-   if (pclCanServerP->isActive() == false)
+   //---------------------------------------------------------------------------------------------------
+   // set log level of all networks to eLOG_LEVEL_INFO
+   //
+   for (uint8_t ubChannelCntT = eCAN_CHANNEL_1; ubChannelCntT <= pclCanServerP->maximumNetwork(); ubChannelCntT++)
    {
+      pclLoggerP->setLogLevel((CAN_Channel_e) ubChannelCntT, eLOG_LEVEL_INFO);
    }
+
+   //---------------------------------------------------------------------------------------------------
+   // server can't be accessed via network
+   //
+   ui.pclChkServerRemoteAccessM->setChecked(false);
+
+   //---------------------------------------------------------------------------------------------------
+   // all networks are enabled
+   //
+   QCanNetwork *     pclNetworkT = 0L;
+   ui.pclChkDisableNetworkM->setChecked(false);
+   for(uint8_t ubNetworkCntT = 0; ubNetworkCntT < pclCanServerP->maximumNetwork(); ubNetworkCntT++)
+   {
+      pclNetworkT = pclCanServerP->network(ubNetworkCntT);
+
+      if (pclNetworkT != (QCanNetwork *) 0L)
+      {
+         pclNetworkT->setNetworkEnabled(true);
+      }
+   }
+
+   //---------------------------------------------------------------------------------------------------
+   // notification are possible
+   //
+   ui.pclChkDisableNotificationM->setChecked(false);
+
 }
 
 
-//----------------------------------------------------------------------------//
-// setIcon()                                                                  //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::selectedChannel()                                                                                //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+CAN_Channel_e QCanServerDialog::selectedChannel(void)
+{
+   return ((CAN_Channel_e) (slNetworkTabIndexP + 1));
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::setIcon()                                                                                        //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanServerDialog::setIcon(void)
 {
     QIcon clIconT = QIcon(":images/canpie_server_512.png");
@@ -788,29 +999,36 @@ void QCanServerDialog::setIcon(void)
 }
 
 
-//----------------------------------------------------------------------------//
-// updateUI()                                                                 //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::setupNetworks()                                                                                  //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServerDialog::setupNetworks(void)
+{
+   pclCanServerP = new QCanServer(this, QCAN_TCP_DEFAULT_PORT, QCAN_NETWORK_MAX);
+
+}
+
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::updateUI()                                                                                       //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanServerDialog::updateUI(const CAN_Channel_e & ubChannelR)
 {
    QCanNetwork * pclNetworkT;
 
    qDebug() << "QCanServerDialog::updateUI(CAN channel" << ubChannelR << ")";
-
-   //----------------------------------------------------------------
+   qDebug() << "Selected channel: " << selectedChannel();
+   //---------------------------------------------------------------------------------------------------
    // update network tab
    //
    pclNetworkT = pclCanServerP->network(ubChannelR - 1);
    if(pclNetworkT != Q_NULLPTR)
    {
 
-      //--------------------------------------------------------
-      // Is network enabled?
-      //
-      ui.pclCkbNetEnableM->setChecked(pclNetworkT->isNetworkEnabled());
-
-      //--------------------------------------------------------
+      //-------------------------------------------------------------------------------------------
       // Does it support error frames?
       //
       if(pclNetworkT->hasErrorFrameSupport())
@@ -824,13 +1042,13 @@ void QCanServerDialog::updateUI(const CAN_Channel_e & ubChannelR)
          ui.pclCkbNetErrorFramesM->setEnabled(false);
       }
       
-      //--------------------------------------------------------
+      //-------------------------------------------------------------------------------------------
       // Does it support CAN-FD frames?
       //
-      if(pclNetworkT->hasFastDataSupport())
+      if(pclNetworkT->hasFlexibleDataSupport())
       {
          ui.pclCkbNetCanFdM->setEnabled(true);
-         ui.pclCkbNetCanFdM->setChecked(pclNetworkT->isFastDataEnabled());
+         ui.pclCkbNetCanFdM->setChecked(pclNetworkT->isFlexibleDataEnabled());
       }
       else
       {
@@ -839,7 +1057,7 @@ void QCanServerDialog::updateUI(const CAN_Channel_e & ubChannelR)
       }
 
 
-      //--------------------------------------------------------
+      //-------------------------------------------------------------------------------------------
       // Is CAN-FD activated?
       //
       if(ui.pclCkbNetCanFdM->isChecked())
@@ -854,7 +1072,7 @@ void QCanServerDialog::updateUI(const CAN_Channel_e & ubChannelR)
       }
 
 
-      //--------------------------------------------------------
+      //-------------------------------------------------------------------------------------------
       // Does it support Listen-Only mode?
       //
       if(pclNetworkT->hasListenOnlySupport())
@@ -868,62 +1086,72 @@ void QCanServerDialog::updateUI(const CAN_Channel_e & ubChannelR)
          ui.pclCkbNetListenOnlyM->setEnabled(false);
       }
 
-      //--------------------------------------------------------
+      //-------------------------------------------------------------------------------------------
       // Does it support Device Specific Configuration
       //
       if (pclNetworkT->hasSpecificConfigurationSupport())
       {
          ui.pclPbtNetDevSpecificConfigM->show();
          ui.pclPbtNetDevSpecificConfigM->setEnabled(true);
-      } else
+      }
+      else
       {
          ui.pclPbtNetDevSpecificConfigM->setEnabled(false);
          ui.pclPbtNetDevSpecificConfigM->hide();
       }
 
-      //--------------------------------------------------------
-      // show current nominal bit-rate
+      //-------------------------------------------------------------------------------------------
+      // Show current nominal bit-rate:
+      // During update of the widget all signals from the widget are blocked, so a call of
+      // onNetworkConfBitrateNom() is suppressed.
       //
       int32_t slNomBitRateSelT = ui.pclCbbNetNomBitrateM->findData(pclNetworkT->nominalBitrate());
+      ui.pclCbbNetNomBitrateM->blockSignals(true);
       ui.pclCbbNetNomBitrateM->setCurrentIndex(slNomBitRateSelT);
+      ui.pclCbbNetNomBitrateM->blockSignals(false);
+
       
-      //--------------------------------------------------------
-      // show current data bit-rate
+      //-------------------------------------------------------------------------------------------
+      // Show current data bit-rate:
+      // During update of the widget all signals from the widget are blocked, so a call of
+      // onNetworkConfBitrateDat() is suppressed.
       //
       int32_t slDatBitRateSelT = ui.pclCbbNetDatBitrateM->findData(pclNetworkT->dataBitrate());
+      ui.pclCbbNetDatBitrateM->blockSignals(true);
       ui.pclCbbNetDatBitrateM->setCurrentIndex(slDatBitRateSelT);
+      ui.pclCbbNetDatBitrateM->blockSignals(false);
 
 
-      //--------------------------------------------------------
+      //-------------------------------------------------------------------------------------------
       // Bus load and Messages/s are set to 0 by default
       //
       ui.pclCntStatMsgM->setText("0");
       ui.pclPgbStatLoadM->setValue(0);
 
 
-      //--------------------------------------------------------
-      // the reset button disabled by default, it is enabled
-      // by onNetworkShowCanFrames() or onNetworkShowErrFrames()
+      //-------------------------------------------------------------------------------------------
+      // The reset button is disabled by default, it is enabled by onNetworkShowCanFrames() or
+      // onNetworkShowErrFrames()
       //
       ui.pclBtnStatusResetM->setEnabled(false);
 
-      //--------------------------------------------------------
+      //-------------------------------------------------------------------------------------------
       // Update value for CAN messages
       //
       onNetworkShowCanFrames(ubChannelR, pclNetworkT->frameCount());
 
-      //--------------------------------------------------------
+      //-------------------------------------------------------------------------------------------
       // Update value for Error messages
       //
       onNetworkShowErrFrames(ubChannelR, pclNetworkT->frameCountError());
 
-      //--------------------------------------------------------
+      //-------------------------------------------------------------------------------------------
       // show current CAN bus status
       //
       onNetworkShowState(ubChannelR, pclNetworkT->state());
    }
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // update server tab
    //
    if(pclNetworkT != Q_NULLPTR)

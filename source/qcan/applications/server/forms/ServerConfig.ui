@@ -50,8 +50,14 @@
    <property name="text">
     <string>Close</string>
    </property>
+   <property name="autoDefault">
+    <bool>false</bool>
+   </property>
   </widget>
   <widget class="QTabWidget" name="pclTabConfigM">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -105,19 +111,6 @@
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
-     <widget class="QCheckBox" name="pclCkbNetEnableM">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>30</y>
-        <width>171</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Enable network</string>
-      </property>
-     </widget>
      <widget class="QCheckBox" name="pclCkbNetErrorFramesM">
       <property name="enabled">
        <bool>false</bool>
@@ -141,7 +134,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>90</y>
+        <y>30</y>
         <width>171</width>
         <height>20</height>
        </rect>
@@ -157,7 +150,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>120</y>
+        <y>90</y>
         <width>171</width>
         <height>20</height>
        </rect>
@@ -201,14 +194,14 @@
      <widget class="QPushButton" name="pclPbtNetDevSpecificConfigM">
       <property name="geometry">
        <rect>
-        <x>310</x>
+        <x>240</x>
         <y>110</y>
-        <width>131</width>
+        <width>201</width>
         <height>31</height>
        </rect>
       </property>
       <property name="text">
-       <string>Device Specific Config</string>
+       <string>Device Configuration</string>
       </property>
      </widget>
     </widget>
@@ -434,66 +427,153 @@
     <attribute name="title">
      <string>Server configuration</string>
     </attribute>
-    <widget class="QLabel" name="pclLblSrvPortM">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
+    <widget class="QPushButton" name="pclBtnConfigDefaultM">
      <property name="geometry">
       <rect>
-       <x>30</x>
-       <y>230</y>
-       <width>141</width>
-       <height>20</height>
+       <x>20</x>
+       <y>330</y>
+       <width>191</width>
+       <height>32</height>
       </rect>
      </property>
      <property name="text">
-      <string>CAN server port</string>
+      <string>Set default values</string>
      </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="pclEdtSrvPortM">
-     <property name="enabled">
+     <property name="autoDefault">
       <bool>false</bool>
      </property>
-     <property name="geometry">
-      <rect>
-       <x>200</x>
-       <y>230</y>
-       <width>113</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="maxLength">
-      <number>6</number>
-     </property>
     </widget>
-    <widget class="QCheckBox" name="pclChkServerRemoteAccessM">
+    <widget class="QGroupBox" name="pclGrpNetworkM">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>20</x>
        <y>20</y>
-       <width>481</width>
-       <height>20</height>
+       <width>561</width>
+       <height>111</height>
       </rect>
      </property>
-     <property name="text">
-      <string>Allow access to server from remote computer</string>
+     <property name="title">
+      <string>Access via network</string>
      </property>
+     <widget class="QCheckBox" name="pclChkServerRemoteAccessM">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>30</y>
+        <width>481</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Allow access to server from remote computer</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="pclLblSrvPortM">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>70</y>
+        <width>161</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>CANpie FD server port</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="pclEdtSrvPortM">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>210</x>
+        <y>70</y>
+        <width>113</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="maxLength">
+       <number>6</number>
+      </property>
+     </widget>
     </widget>
-    <widget class="QCheckBox" name="pclChkChangeBitrateM">
+    <widget class="QGroupBox" name="pclGrpSettingM">
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>50</y>
-       <width>481</width>
-       <height>20</height>
+       <y>230</y>
+       <width>561</width>
+       <height>91</height>
       </rect>
      </property>
-     <property name="text">
-      <string>Allow application to change bit-rate settings</string>
+     <property name="title">
+      <string>CAN network </string>
      </property>
+     <widget class="QCheckBox" name="pclChkDisableNetworkM">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>30</y>
+        <width>481</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Allow to disable a network </string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="pclChkDisableNotificationM">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>60</y>
+        <width>481</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Suppress notifications (bus-off, error conditions)</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="pclGrpApplicationM">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>140</y>
+       <width>561</width>
+       <height>80</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Access via application</string>
+     </property>
+     <widget class="QCheckBox" name="pclChkChangeBitrateM">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>30</y>
+        <width>481</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Allow application to change bit-rate settings</string>
+      </property>
+     </widget>
     </widget>
    </widget>
    <widget class="QWidget" name="pclTabConfigInfoM">
@@ -504,7 +584,7 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>20</y>
+       <y>10</y>
        <width>271</width>
        <height>100</height>
       </rect>
@@ -522,15 +602,73 @@
     <widget class="QLabel" name="pclLblInfoVersionM">
      <property name="geometry">
       <rect>
-       <x>310</x>
-       <y>40</y>
-       <width>241</width>
+       <x>320</x>
+       <y>60</y>
+       <width>261</width>
        <height>31</height>
       </rect>
      </property>
      <property name="text">
-      <string notr="true">CANpie Server Version 0.82</string>
+      <string notr="true">CANpie FD Server Version 0.82</string>
      </property>
+    </widget>
+    <widget class="QTreeWidget" name="pclTrwNetworkM">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>130</y>
+       <width>561</width>
+       <height>201</height>
+      </rect>
+     </property>
+     <property name="itemsExpandable">
+      <bool>true</bool>
+     </property>
+     <column>
+      <property name="text">
+       <string>CAN</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Connections</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Interface</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Version</string>
+      </property>
+     </column>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="pclTabConfigPluginM">
+    <attribute name="title">
+     <string>Plugins</string>
+    </attribute>
+    <widget class="QTreeWidget" name="pclTrwPluginM">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>40</y>
+       <width>541</width>
+       <height>192</height>
+      </rect>
+     </property>
+     <column>
+      <property name="text">
+       <string>Plug-In</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Version</string>
+      </property>
+     </column>
     </widget>
    </widget>
   </widget>
@@ -548,6 +686,25 @@
    </property>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>pclTabConfigM</tabstop>
+  <tabstop>pclCkbNetCanFdM</tabstop>
+  <tabstop>pclCbbNetNomBitrateM</tabstop>
+  <tabstop>pclCbbNetDatBitrateM</tabstop>
+  <tabstop>pclCkbNetErrorFramesM</tabstop>
+  <tabstop>pclCkbNetListenOnlyM</tabstop>
+  <tabstop>pclPbtNetDevSpecificConfigM</tabstop>
+  <tabstop>pclBtnStatusResetM</tabstop>
+  <tabstop>pclBtnCloseM</tabstop>
+  <tabstop>pclChkServerRemoteAccessM</tabstop>
+  <tabstop>pclEdtSrvPortM</tabstop>
+  <tabstop>pclChkChangeBitrateM</tabstop>
+  <tabstop>pclChkDisableNetworkM</tabstop>
+  <tabstop>pclChkDisableNotificationM</tabstop>
+  <tabstop>pclBtnConfigDefaultM</tabstop>
+  <tabstop>pclTrwNetworkM</tabstop>
+  <tabstop>pclTrwPluginM</tabstop>
+ </tabstops>
  <resources>
   <include location="../server.qrc"/>
  </resources>

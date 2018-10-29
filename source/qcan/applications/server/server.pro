@@ -55,8 +55,8 @@ CONFIG += silent
 # version of the application
 #
 VERSION_MAJOR = 0
-VERSION_MINOR = 87
-VERSION_BUILD = 1
+VERSION_MINOR = 90
+VERSION_BUILD = 00
 
 
 #---------------------------------------------------------------
@@ -127,10 +127,7 @@ HEADERS =   qcan_interface_widget.hpp  \
 # source files of project 
 #
 SOURCES =   qcan_interface_widget.cpp  \
-            qcan_data.cpp              \
             qcan_frame.cpp             \
-            qcan_frame_api.cpp         \
-            qcan_frame_error.cpp       \
             qcan_timestamp.cpp         \
             qcan_network.cpp           \
             qcan_server.cpp            \
@@ -168,11 +165,13 @@ macx {
    # The correct version of the MAC SDK might be 
    # necessary depending on the combination of
    # Qt version and Mac OS X (i.e. Xcode) version.
+   # For macOS Sierra (Xcode 8) in combination with
+   # Qt 5.6.0 the following definition is required.
    # The active SDK version can be looked up by checking 
    # the symbolic link in this directory:
    # /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
    #
-   QMAKE_MAC_SDK = macosx10.13
+   QMAKE_MAC_SDK = macosx10.14
    
    #--------------------------------------------------
    # Minimum OS X version for submission is 10.9

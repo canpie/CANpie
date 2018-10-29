@@ -71,21 +71,26 @@ public:
 
 public slots:
 
-   //void onNetworkConfInterface(QMouseEvent *);
-
    /*!
    ** This slot is triggered on change of the physical CAN interface.
    ** The parameter \c pclCanInterfaceV is a pointer to a new interface. If
    ** \c pclCanInterfaceV is NULL, the physical interface shall be removed.
    */
-   void onInterfaceChange(uint8_t ubIdxV, QCanInterface * pclCanIfV);
+   void onInterfaceChange(const CAN_Channel_e & ubChannelR, QCanInterface * pclInterfaceV);
 
-   void onNetworkChangeBitrate(CAN_Channel_e ubChannelV, uint32_t slNomBitRateV, int32_t slDatBitRateV);
+   void onInterfaceStateChange(const CAN_Channel_e & ubChannelR,
+                               const QCanInterface::ConnectionState_e & teConnectionStateR);
 
+   void onNetworkShowBitrate(CAN_Channel_e ubChannelV, uint32_t slNomBitRateV, int32_t slDatBitRateV);
    void onNetworkShowCanFrames(CAN_Channel_e ubChannelV, uint32_t ulFrameCntV);
    void onNetworkShowErrFrames(CAN_Channel_e ubChannelV, uint32_t ulFrameCntV);
    void onNetworkShowLoad(CAN_Channel_e ubChannelV, uint8_t ubLoadV, uint32_t ulMsgPerSecV);
+
+   void onNetworkShowSocketState(const CAN_Channel_e & ubChannelR,
+                                 const uint32_t & ulLocalSocketsR, const uint32_t & ulTcpSocketsR);
+
    void onNetworkShowState(CAN_Channel_e ubChannelV, CAN_State_e teStateV);
+
 
 
 private slots:
@@ -100,19 +105,29 @@ private slots:
    
    void onDeviceSpecificConfig();
 
-   void onServerBitrateAccess(int slStateV);
-   void onServerRemoteAccess(int slStateV);
-   void onServerDispatchTimeLimit(int slValueV);
+   void onServerAccessBitrate(int slStateV);
+   void onServerAccessRemote(int slStateV);
+
+   //----------------------------------------------------------------------------------------------
+   /*!
+   ** Set default values to server, trigger by push button 'pclBtnConfigDefaultM'
+   */
+   void onServerSetDefault(bool btCheckedV);
 
    void onLoggingWindow(void);
 
 private:
    void     createActions(void);
+   void     createCanInfo(void);
    void     createTrayIcon(void);
+
+   CAN_Channel_e  selectedChannel(void);
+
    void     setupNetworks(void);
    void     showNetworkConfiguration(void);
    void     setIcon(void);
    void     updateUI(const CAN_Channel_e & ubChannelR);
+   void     updateTabServer(void);
 
    Ui_ServerConfig         ui;
    QAction *               pclActionConfigP;
@@ -125,7 +140,7 @@ private:
    QCanServer *            pclCanServerP;
    QSettings *             pclSettingsP;
 
-   int32_t                 slLastNetworkIndexP;
+   int32_t                 slNetworkTabIndexP;
 
    QToolBox *              pclTbxNetworkP;
    QCanInterfaceWidget *   apclCanIfWidgetP[QCAN_NETWORK_MAX];

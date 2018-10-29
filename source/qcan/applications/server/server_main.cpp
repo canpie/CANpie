@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
    // Add "clean" option with multiple names (-c, --clean)
    //
    QCommandLineOption clCmdOptionCleanT(QStringList() << "c" << "clean",
-                                        QCoreApplication::translate("CANpie Server", "Start in clean mode."));
+                                        QCoreApplication::translate("CANpie FD Server", "Start in clean mode."));
    clCmdParserT.addOption(clCmdOptionCleanT);
 
    // Process the actual command line arguments given by the user
@@ -82,11 +82,11 @@ int main(int argc, char *argv[])
    if (clCmdParserT.isSet(clCmdOptionCleanT) == false)
    {
       QCanServerSettings   clServerSettingsT;
-      if (clServerSettingsT.isServerActive() == true)
+      if (clServerSettingsT.state() == QCanServerSettings::eSTATE_ACTIVE)
       {
-         fprintf(stdout, "%s \n", qPrintable("CANpie Server is already running"));
+         fprintf(stdout, "%s \n", qPrintable("CANpie FD Server " +  clServerSettingsT.stateString() ));
 
-         QMessageBox::warning(0L, "CANpie Server", "CANpie Server is already running.");
+         QMessageBox::warning(0L, "CANpie FD Server", "CANpie Server is already running.");
 
          exit(0);
       }

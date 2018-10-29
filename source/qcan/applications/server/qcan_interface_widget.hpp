@@ -66,7 +66,7 @@ public:
     * \brief setIcon
     * \param clIconR - Icon
     */
-   void setIcon(QIcon clIconR);
+   void setIcon(QIcon clIconR, QIcon::Mode teModeV = QIcon::Normal);
    void setPluginPath(QDir);
 
    /*!
@@ -91,7 +91,7 @@ public:
 
 private:
 
-   uint8_t ubInterfaceIdxP;
+   uint8_t  ubInterfaceIdxP;
    QIcon    clIconP;
    QDir     clPluginPathP;
 
@@ -117,8 +117,22 @@ public slots:
 
 
 signals:
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]  ubChannelR  CAN channel
+   ** \param[in]  clMessageR  Logging message
+   ** \param[in]  teLogLevelR Logging level
+   **
+   ** This signal is emitted by the CAN network to inform the application about status changes or
+   ** error conditions.
+   */
+   void  addLogMessage(const CAN_Channel_e & ubChannelR,
+                       const QString & clMessageR, const LogLevel_e & teLogLevelR = eLOG_LEVEL_WARN);
+
    void clicked(bool checked = false );
-   void interfaceChanged(uint8_t ubIdxV, QCanInterface *pclIfV);
+
+   void interfaceChanged(const CAN_Channel_e & ubChannelR, QCanInterface * pclInterfaceV);
 
 };
 

@@ -63,6 +63,7 @@ QCanServerLogger::QCanServerLogger()
    QString  clTabLabelT;
    for (uint8_t ubLogNumT = 0; ubLogNumT < QCAN_NETWORK_MAX; ubLogNumT++)
    {
+      ateLogLevelP[ubLogNumT] = eLOG_LEVEL_INFO;
       apclLogFileP[ubLogNumT] = Q_NULLPTR;
 
       apclLogTextP[ubLogNumT] = new QTextBrowser();
@@ -75,9 +76,9 @@ QCanServerLogger::QCanServerLogger()
                this, SLOT(onShowLogMenu(const QPoint &)));
 
       pclLogTabP->addTab(apclLogTextP[ubLogNumT], clTabLabelT);
-      setLogLevel((CAN_Channel_e) (ubLogNumT + 1), eLOG_LEVEL_NOTICE);
-
    }
+
+
    //----------------------------------------------------------------
    // the tab widget is the central widget, the initial log widget
    // size is 800 x 480 pixel
@@ -281,26 +282,11 @@ void QCanServerLogger::onShowLogMenu(const QPoint &pos)
       //
       pclSubMenuT = new QMenu(tr("Log level"));
 
-      pclLevelT = pclSubMenuT->addAction(tr("Info"));
-      pclLevelT->setCheckable(true);
-      pclLevelT->setData(eLOG_LEVEL_INFO);
-      if (ateLogLevelP[slTabIndexT] == eLOG_LEVEL_INFO)
-      {
-         pclLevelT->setChecked(true);
-      }
 
-      pclLevelT = pclSubMenuT->addAction(tr("Notice"));
+      pclLevelT = pclSubMenuT->addAction(tr("Fatal"));
       pclLevelT->setCheckable(true);
-      pclLevelT->setData(eLOG_LEVEL_NOTICE);
-      if (ateLogLevelP[slTabIndexT] == eLOG_LEVEL_NOTICE)
-      {
-         pclLevelT->setChecked(true);
-      }
-
-      pclLevelT = pclSubMenuT->addAction(tr("Warning"));
-      pclLevelT->setCheckable(true);
-      pclLevelT->setData(eLOG_LEVEL_WARN);
-      if (ateLogLevelP[slTabIndexT] == eLOG_LEVEL_WARN)
+      pclLevelT->setData(eLOG_LEVEL_FATAL);
+      if (ateLogLevelP[slTabIndexT] == eLOG_LEVEL_FATAL)
       {
          pclLevelT->setChecked(true);
       }
@@ -313,6 +299,22 @@ void QCanServerLogger::onShowLogMenu(const QPoint &pos)
          pclLevelT->setChecked(true);
       }
 
+      pclLevelT = pclSubMenuT->addAction(tr("Warning"));
+      pclLevelT->setCheckable(true);
+      pclLevelT->setData(eLOG_LEVEL_WARN);
+      if (ateLogLevelP[slTabIndexT] == eLOG_LEVEL_WARN)
+      {
+         pclLevelT->setChecked(true);
+      }
+
+      pclLevelT = pclSubMenuT->addAction(tr("Info"));
+      pclLevelT->setCheckable(true);
+      pclLevelT->setData(eLOG_LEVEL_INFO);
+      if (ateLogLevelP[slTabIndexT] == eLOG_LEVEL_INFO)
+      {
+         pclLevelT->setChecked(true);
+      }
+
       pclLevelT = pclSubMenuT->addAction(tr("Debug"));
       pclLevelT->setCheckable(true);
       pclLevelT->setData(eLOG_LEVEL_DEBUG);
@@ -320,6 +322,15 @@ void QCanServerLogger::onShowLogMenu(const QPoint &pos)
       {
          pclLevelT->setChecked(true);
       }
+
+      pclLevelT = pclSubMenuT->addAction(tr("Trace"));
+      pclLevelT->setCheckable(true);
+      pclLevelT->setData(eLOG_LEVEL_TRACE);
+      if (ateLogLevelP[slTabIndexT] == eLOG_LEVEL_TRACE)
+      {
+         pclLevelT->setChecked(true);
+      }
+
 
       connect( pclSubMenuT, SIGNAL(triggered(QAction*)),
                this, SLOT(onChangeLogLevel(QAction*)));
@@ -388,7 +399,6 @@ bool QCanServerLogger::setFileName(const CAN_Channel_e ubChannelV,
 void QCanServerLogger::setLogLevel(const CAN_Channel_e ubChannelV,
                                    LogLevel_e teLogLevelV)
 {
-   qDebug() << "SET LOG LEVEL" << QString::number(teLogLevelV,10)<<" of Channel "<< QString::number(ubChannelV,10);
 
    if ((ubChannelV >= eCAN_CHANNEL_1) && (ubChannelV <= QCAN_NETWORK_MAX))
    {
@@ -398,25 +408,38 @@ void QCanServerLogger::setLogLevel(const CAN_Channel_e ubChannelV,
 
       switch (teLogLevelV)
       {
-         case eLOG_LEVEL_INFO:
-            clLogTextP = tr("Set log level: Info");
+         case eLOG_LEVEL_OFF:
+            clLogTextP = tr("Set log level: Off");
             break;
 
-         case eLOG_LEVEL_NOTICE:
-            clLogTextP = tr("Set log level: Notice");
-            break;
-
-         case eLOG_LEVEL_WARN:
-            clLogTextP = tr("Set log level: Warning");
+         case eLOG_LEVEL_FATAL:
+            clLogTextP = tr("Set log level: Fatal");
             break;
 
          case eLOG_LEVEL_ERROR:
             clLogTextP = tr("Set log level: Error");
             break;
 
+         case eLOG_LEVEL_WARN:
+            clLogTextP = tr("Set log level: Warning");
+            break;
+
+         case eLOG_LEVEL_INFO:
+            clLogTextP = tr("Set log level: Info");
+            break;
+
          case eLOG_LEVEL_DEBUG:
             clLogTextP = tr("Set log level: Debug");
             break;
+
+         case eLOG_LEVEL_TRACE:
+            clLogTextP = tr("Set log level: Trace");
+            break;
+
+         case eLOG_LEVEL_ALL:
+            clLogTextP = tr("Set log level: All");
+            break;
+
       }
 
       appendMessage(ubChannelV, clLogTextP, teLogLevelV);
