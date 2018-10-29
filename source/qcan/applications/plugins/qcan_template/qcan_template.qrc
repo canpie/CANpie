@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/mc_can_plugin_256.png</file>
+    </qresource>
+</RCC>
