@@ -1,0 +1,21 @@
+//-----------------------------------------------------------------------------
+/*!
+** \page page.cp_server_config    %CANpie FD Server Configuration
+
+
+
+
+<h2>CAN network configuration</h2>
+
+<p>
+<br>
+
+
+<h3>Selection of a CAN interface</h3>
+
+
+<h2>Remote access</h2>
+
+<p>
+
+*/

@@ -1,0 +1,46 @@
+//-----------------------------------------------------------------------------
+/*!
+** \page page.cp_cmd_dump    can-dump
+
+The purpose of the command line tool \c can-dump is to show CAN frames from an
+active \ref page.cp_server channel.
+
+<h2>Description</h2>
+
+    can-dump [options] interface
+
+The options are as follows:
+ 
+    -h, --help     Displays this help
+    -H <host>      Connect to <host>
+    -n <count>     Terminate after reception of <count> CAN frames
+    -t             Show time-stamp
+    -T <msec>      Terminate after <msec> without reception
+    -v, --version  Displays version information
+
+The command requires a CAN interface as argument, where \c can1 is the first
+CAN interface. 
+
+
+<h2>Examples</h2>
+
+Show CAN messages from CAN interface 2 and stop after 20 messages:
+
+    can-dump -n 20 can2
+
+Connect to CAN channel 1 of a CANpie server running on a remote host with IP 
+address 192.168.40.44, terminate after 2 seconds without reception of CAN 
+messages:
+
+    can-dump -H 192.168.40.44 -T 2000 can1
+    
+
+<h2>See also</h2>
+
+Use \ref page.cp_cmd_send for transmission of CAN data frames and \ref page.cp_cmd_error 
+for transmission of CAN error frames.
+
+<p>
+<br>
+
+*/

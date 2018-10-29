@@ -1,7 +1,29 @@
 //-----------------------------------------------------------------------------
 /*!
 ** \page page.api    %CANpie FD API
-
+**
+** CAN is based on a broadcast communication mechanism. This broadcast communication is achieved by using a
+** message oriented transmission protocol. These messages are identified by using a message identifier. The
+** message identifier has to be unique within the whole network and it defines not only the content but also the
+** priority of the message.
+** <p>
+** The CAN data link layer comprises two protocols: Classical CAN introduced in 1986 and CAN FD introduced
+** in 2012. The protocols are internationally standardized in ISO 11898-1:2015. Both protocols support
+** base frames (11-bit CAN-ID) and extended frames (29-bit CAN-ID), leading to four message frame formats:
+** \li Classical base frame format (CBFF): message that contains up to 8 byte and is identified by 11 bits
+** \li Classical extended frame format (CEFF): message that contains up to 8 byte and is identified by 29 bits
+** \li FD base frame format (FBFF): message that contains up to 64 byte and is identified by 11 bits
+** \li FD extended frame format (FEFF): message that contains up to 64 byte and is identified by 29 bits
+** <p>
+** The Classical CAN protocol uses one bit-rate in the arbitration and the data phase. The transmission speed is
+** limited to 1 Mbit/s. The payload (i.e. the data field) is limited to 8 byte. The following picture shows a
+** Classic CAN frame with an 11-bit CAN-ID.
+** \image html can_frame_cbff.png "Classic CAN frame" width=800px
+**
+** <p><br>
+** The CAN FD protocol allows payloads up to 64 byte. Additionally, it supports an optional second bit-rate for
+** the data-phase (field BRS). The following picture shows a CAN FD frame with an 11-bit CAN-ID.
+** \image html can_frame_fbff.png "CAN FD frame" width=800px
 
 <h2>Programming in C</h2>
 
@@ -48,33 +70,23 @@ gives an overview.
 <table class="function" style="width:800px">
 
 <tr class="odd">
-   <td class="entry" style="width:25%">\ref QCanData</td>
-   <td class="desc">Base class for CAN data structure.</td>
-</tr>
-
-<tr>
    <td class="entry" style="width:25%">\ref QCanFrame</td>
-   <td class="desc">Class defining a CAN data frame, derived from QCanData.</td>
-</tr>
-
-<tr class="odd">
-   <td class="entry" style="width:25%">\ref QCanFrameApi</td>
-   <td class="desc">Class defining an API frame, derived from QCanData.</td>
+   <td class="desc">Class defining a CAN data frame or error frame</td>
 </tr>
 
 <tr>
-   <td class="entry" style="width:25%">\ref QCanFrameError</td>
-   <td class="desc">Class defining a CAN error frame, derived from QCanData.</td>
-</tr>
-
-<tr class="odd">
    <td class="entry" style="width:25%">\ref QCanInterface</td>
    <td class="desc">Class defining a physical CAN interface</td>
 </tr>
 
-<tr>
+<tr class="odd">
    <td class="entry" style="width:25%">\ref QCanNetwork</td>
    <td class="desc">Class defining a CAN network</td>
+</tr>
+
+<tr>
+   <td class="entry" style="width:25%">\ref QCanNetworkSettings</td>
+   <td class="desc">Access parameters of QCanNetwork</td>
 </tr>
 
 <tr class="odd">
@@ -88,21 +100,26 @@ gives an overview.
 </tr>
 
 <tr class="odd">
+   <td class="entry" style="width:25%">\ref QCanServerSettings</td>
+   <td class="desc">Access parameters of QCanServer</td>
+</tr>
+
+<tr>
    <td class="entry" style="width:25%">\ref QCanSocket</td>
    <td class="desc">Class defining a CAN socket, which connects to a QCanNetwork</td>
 </tr>
 
-<tr>
+<tr class="odd">
    <td class="entry" style="width:25%">\ref QCanSocketCpFD</td>
    <td class="desc">CANpie FD interface for QCanSocket class</td>
 </tr>
 
-<tr class="odd">
+<tr>
    <td class="entry" style="width:25%">\ref QCanSocketDialog</td>
    <td class="desc">Dialog for QCanSocket class</td>
 </tr>
 
-<tr>
+<tr class="odd">
    <td class="entry" style="width:25%">\ref QCanTimeStamp</td>
    <td class="desc">Time-stamp with a resolution of 1 nanosecond.</td>
 </tr>

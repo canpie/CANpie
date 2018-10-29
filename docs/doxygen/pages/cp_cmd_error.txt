@@ -1,0 +1,47 @@
+//-----------------------------------------------------------------------------
+/*!
+** \page page.cp_cmd_error    can-error
+
+The purpose of command line tool \c can-error is to send CAN error frames
+to an active \ref page.cp_server channel.
+
+<h2>Description</h2>
+
+    can-error [options] interface
+
+The options are as follows:
+
+    -h, --help     Displays this help.
+    -e <type>      Set error type to [NONE|BIT0|BIT1|STUFF|FORM|CRC|ACK]
+    -g <gap>       Time gap in milli-seconds between multiple error frames
+    -H <host>      Connect to <host>
+    -n <count>     Terminate after transmission of <count> error frames
+    -R <value>     Set receive error counter to <value>
+    -T <value>     Set transmit error counter to <value>
+    -i <R|T>       Increment the requested error counter
+    -v, --version  Displays version information.
+
+
+The command requires a CAN interface as argument, where \c can1 is the first
+CAN interface. 
+
+<h2>Examples</h2>
+
+Send CAN error frame on CAN interface 2 and set receive error counter to 8:
+
+    can-error -R 8 can2
+
+Send CAN error frame on CAN interface 1 and set transmit error counter to 128, causing
+an error passive state:
+
+    can-error -T 128 can1
+    
+
+<h2>See also</h2>
+
+\ref page.cp_cmd_dump for display of CAN messages.
+
+<p>
+<br>
+
+*/

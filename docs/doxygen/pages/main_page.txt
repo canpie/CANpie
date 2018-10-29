@@ -26,14 +26,21 @@ with the exception that 8 functions are deprecated. Please refer to
 the section \ref page.api_deprecated for details.
  
 
-<h2>%CANpie File structure</h2>
+<h2>%CANpie FD File structure</h2>
 
 Refer to \ref page.file_struct for on overview. 
 
-<h2>%CANpie configuration options</h2>
+<h2>%CANpie FD configuration options</h2>
 
 The %CANpie FD driver offers a flexible concept for adaptation to
 a CAN controller. Please refer to the section \ref CP_CONF for details.
+
+
+<h2>%CANpie FD Server</h2>
+
+The \ref page.cp_server provides a solution to connect CAN interfaces from
+various manufactures to a PC. The application accesses the CAN interfaces
+using the %CANpie C or C++ language API. 
 
 <p>
 <br>

@@ -2,7 +2,7 @@
 /*!
 ** \page page.examples    %CANpie FD Examples
 
-Example code is located inside the directory \a source/examples.
+Example applications are located inside the directory \a source/qcan/applications.
 
 <div class="function" style="width:800px">
 <table class="function" style="width:800px">

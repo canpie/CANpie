@@ -1,0 +1,50 @@
+//-----------------------------------------------------------------------------
+/*!
+** \page page.cp_cmd_send    can-send
+
+The purpose of the command line tool \c can-send is to send CAN data frames
+to an active \ref page.cp_server channel.
+
+<h2>Description</h2>
+
+    can-send [options] interface
+
+The options are as follows:
+
+    -h, --help     Displays this help.
+    -D <dlc>       Set DLC to <dlc>
+    -f <format>    Set frame format to [CBFF|CEFF|FBFF|FEFF]
+    -g <gap>       Time gap in milli-seconds between multiple CAN frames
+    -H <host>      Connect to <host>
+    -i <I|D|P>     Increment the requested type
+    -I <id>        Set identifier to <id>
+    -n <count>     Terminate after transmission of <count> CAN frames
+    -P <payload>   Set payload to <payload>, i.e. a string of hex values
+    -v, --version  Displays version information.
+
+The command requires a CAN interface as argument, where \c can1 is the first
+CAN interface. 
+  
+
+<h2>Examples</h2>
+
+Send CAN data frame in CBFF with identifier 33 and DLC 4 on CAN interface 1:
+
+    can-send -I 33 -D 4 can1
+
+Send 10 CAN data frames with a start identifier of 100, increment the identifier
+for every following message. Use a gap of 100 ms between transmission on CAN
+interface 2
+
+    can-send -I 100 -D 0 -iI -n 10 -g 100 can2
+    
+
+<h2>See also</h2>
+
+\ref page.cp_cmd_dump for display of CAN messages.
+
+
+<p>
+<br>
+
+*/
