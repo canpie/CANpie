@@ -1311,7 +1311,7 @@ dl.section dd {
 
 .image
 {
-        text-align: center;
+   text-align: left;
 }
 
 .dotgraph
@@ -1336,7 +1336,8 @@ dl.section dd {
 
 .caption
 {
-	font-weight: bold;
+	font-weight: normal;
+	font-style:  italic;
 }
 
 div.zoom
