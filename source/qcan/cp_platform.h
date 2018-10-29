@@ -69,7 +69,7 @@
 
 #define  CP_BUFFER_MAX              32
 
-#define  CP_CAN_FD                  1
+#define  CP_CAN_FD                  0
 
 #define  CP_CAN_MSG_MACRO           1
 

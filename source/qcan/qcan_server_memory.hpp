@@ -42,19 +42,66 @@
 
 #define  QCAN_MEMORY_KEY         "QCAN_SERVER_SHARED_KEY"
 
+#define  QCAN_IF_NAME_LENGTH     64
+
+
 /*--------------------------------------------------------------------------------------------------------------------*\
 ** Structures                                                                                                         **
 **                                                                                                                    **
 \*--------------------------------------------------------------------------------------------------------------------*/
 
+//-----------------------------------------------------------------------------------------------------
+// Server
+//
 typedef struct Server_s {
-   uint32_t ulVersionMajor;
-   uint32_t ulVersionMinor;
+
+   //--------------------------------------------------------------------------
+   // Server version: major
+   //
+   int32_t  slVersionMajor;
+
+   //--------------------------------------------------------------------------
+   // Server version: minor
+   //
+   int32_t  slVersionMinor;
+
+   //--------------------------------------------------------------------------
+   // Server version: build
+   //
+   int32_t  slVersionBuild;
+
+   //--------------------------------------------------------------------------
+   // Number of CAN networks supported by the server
+   //
+   int32_t  slNetworkCount;
+
+   //--------------------------------------------------------------------------
+   // Stores the start date / time of the server in milliseconds that have
+   // passed since 1970-01-01T00:00:00.000
+   //
+   int64_t  sqDateTimeStart;
+
+   //--------------------------------------------------------------------------
+   // Stores the actual date / time of the server in milliseconds that have
+   // passed since 1970-01-01T00:00:00.000
+   //
+   int64_t  sqDateTimeActual;
+
+   int32_t  slReserved[56];
+
 } Server_ts;
 
+
+//-----------------------------------------------------------------------------------------------------
+// Network
+//
 typedef struct Network_s {
-   uint32_t ulVersionMajor;
-   uint32_t ulVersionMinor;
+   int32_t  slActive;
+   int32_t  slStatus;
+   int32_t  slNomBitRate;
+   int32_t  slDatBitRate;
+   char     szInterfaceName[QCAN_IF_NAME_LENGTH];
+   int32_t  slReserved[108];
 } Network_ts;
 
 typedef struct ServerSettings_s {

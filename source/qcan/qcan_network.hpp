@@ -40,6 +40,7 @@
 #include <QtCore/QDateTime>
 #include <QtCore/QMutex>
 #include <QtCore/QPointer>
+#include <QtCore/QSharedMemory>
 #include <QtCore/QTimer>
 
 #include <QtNetwork/QLocalServer>
@@ -49,8 +50,8 @@
 #include <QtNetwork/QTcpSocket>
 
 #include "qcan_frame.hpp"
-#include "qcan_frame_api.hpp"
-#include "qcan_frame_error.hpp"
+#include "qcan_interface.hpp"
+
 
 using namespace QCan;
 
@@ -58,7 +59,6 @@ using namespace QCan;
 ** Referenced classes                                                                                                 **
 **                                                                                                                    **
 \*--------------------------------------------------------------------------------------------------------------------*/
-class QCanInterface;
 
 
 
@@ -70,13 +70,16 @@ class QCanInterface;
 ** 
 ** This class represents a CAN network with a unique bit-rate. It supports one physical CAN interface (see class
 ** QCanInterface), which can be attached during run-time to the CAN network and a limited number of virtual CAN
-** interfaces (sockets). Clients can connect to a QCanNetwork via the QCanSocket class.
+** interfaces (sockets).
 ** <p>
-** <h3>Sockets</h3>
+** <h2>Sockets</h2>
+** Clients can connect to a QCanNetwork via the QCanSocket class, either via a local socket or a TCP socket. The
+** maximum number of available sockets is defined by #QCAN_LOCAL_SOCKET_MAX and #QCAN_TCP_SOCKET_MAX.
 ** It is only possible to connect to a network when it is enabled (see setNetworkEnabled() and isNetworkEnabled()).
 **
+**
 ** <p>
-** <h3>CAN Interface</h3>
+** <h2>CAN Interface</h2>
 ** A physical CAN interface is attached to the network using the addInterface() function. It is started by
 ** calling startInterface(), which configures the actual bit-rate settings.
 ** <p>
@@ -98,7 +101,7 @@ public:
    **
    ** Create new CAN network with unique channel number.
    */
-   QCanNetwork(QObject * pclParentV = Q_NULLPTR, uint16_t  uwPortV = QCAN_TCP_DEFAULT_PORT);
+   QCanNetwork(QObject * pclParentV = Q_NULLPTR, uint16_t  uwPortV = QCAN_TCP_DEFAULT_PORT, QSharedMemory * pclSettingsV = 0);
 	
 	
 	~QCanNetwork();
@@ -122,22 +125,13 @@ public:
    //---------------------------------------------------------------------------------------------------
    /*!
    ** \return     Bit-rate value for Nominal Bit Timing
-   ** \see        nominalBitrate()
-   ** \deprecated It is advised to use nominalBitrate() for new applications.
-   **
-   */
-	inline int32_t  bitrate(void)          {  return (slNomBitRateP);    };
-
-   //---------------------------------------------------------------------------------------------------
-   /*!
-   ** \return     Bit-rate value for Nominal Bit Timing
    ** \see        setBitrate()
    **
    ** This function returns the nominal bit-rate of the CAN network. For <b>classical CAN</b>, the
    ** return value defines the bit-rate for the complete frame. For <b>CAN FD</b> the return value
    ** defines the bit-rate for the arbitration phase.
    ** <p>
-   ** If no bit-rate is configured, the function will return CANpie::eCAN_BITRATE_NONE.
+   ** If no bit-rate is configured, the function will return QCan::eCAN_BITRATE_NONE.
    */
 	inline int32_t  nominalBitrate(void)   {  return (slNomBitRateP);    };
 
@@ -162,7 +156,7 @@ public:
    ** value is always CANpie::eCAN_BITRATE_NONE. For <b>CAN FD</b> the return value defines the bit-rate
    ** for the data phase.
    ** <p>
-   ** If no bit-rate is configured, the function will return CANpie::eCAN_BITRATE_NONE.
+   ** If no bit-rate is configured, the function will return QCan::eCAN_BITRATE_NONE.
    */
 	inline int32_t  dataBitrate(void)      {  return (slDatBitRateP);    };
 
@@ -214,12 +208,12 @@ public:
    //---------------------------------------------------------------------------------------------------
    /*!
    ** \return     \c true if CAN FD is supported
-   ** \see        isFastDataEnabled()
+   ** \see        isFlexibleDataEnabled()
    **
    ** This function returns \c true if the attached CAN interface supports CAN FD frames, otherwise it
    ** returns \c false.
    */
-   bool hasFastDataSupport(void);
+   bool hasFlexibleDataSupport(void);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -252,12 +246,12 @@ public:
    //---------------------------------------------------------------------------------------------------
    /*!
    ** \return     \c true if CAN FD is enabled
-   ** \see        setFastDataEnabled()
+   ** \see        setFlexibleDataEnabled()
    **
    ** This function returns \c true if CAN FD mode is enabled, otherwise it returns
    ** \c false.
    */
-   bool isFastDataEnabled(void)     { return (btFastDataEnabledP);      };
+   bool isFlexibleDataEnabled(void) { return (btFlexibleDataEnabledP);  };
 
 
    //---------------------------------------------------------------------------------------------------
@@ -293,8 +287,14 @@ public:
    */
 	void removeInterface(void);
 
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \return  Server address
+   ** \see     setServerAddress()
+   **
+   ** The method returns the configured server address.
+   */
    QHostAddress serverAddress(void);
-
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -311,8 +311,7 @@ public:
    ** For selection of predefined bit-rates the value can be taken from the enumeration
    ** CANpie::CAN_Bitrate_e.
    */
-	void setBitrate(int32_t slNomBitRateV,
-	                int32_t slDatBitRateV = eCAN_BITRATE_NONE);
+	void setBitrate(int32_t slNomBitRateV, int32_t slDatBitRateV = eCAN_BITRATE_NONE);
 
 
 	void setBitrateFrameEnabled(bool btEnableV = true)    { btBitrateFrameEnabledP = btEnableV; };
@@ -332,11 +331,11 @@ public:
    //---------------------------------------------------------------------------------------------------
    /*!
    ** \param[in]  btEnableV      Enable / disable CAN FD mode
-   ** \see        isFastDataEnabled()
+   ** \see        isFlexibleDataEnabled()
    **
    ** This function enables the CAN FD mode if \a btEnable is \c true, it is disabled on \c false.
    */
-   void setFastDataEnabled(bool btEnableV = true);
+   void setFlexibleDataEnabled(bool btEnableV = true);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -360,6 +359,17 @@ public:
    */
    void setNetworkEnabled(bool btEnableV = true);
 
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]  clHostAddressV Server address
+   ** \return     \c true if server address is accepted
+   ** \see        serverAddress()
+   **
+   ** This method sets the server address. The server address can only be modified when the network is
+   ** not enabled (see isNetworkEnabled()). The method returns \c true is the new server address is
+   ** accepted, otherwise \c false.
+   */
    bool setServerAddress(QHostAddress clHostAddressV);
 
    //---------------------------------------------------------------------------------------------------
@@ -398,70 +408,80 @@ signals:
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \param[in]  ubChannelR - CAN channel
-   ** \param[in]  clMessageV - Logging message
-   ** \param[in]  teLogLevel - Logging level
+   ** \param[in]  ubChannelR  CAN channel
+   ** \param[in]  clMessageR  Logging message
+   ** \param[in]  teLogLevelR Logging level
    **
    ** This signal is emitted by the CAN network to inform the application about status changes or
    ** error conditions.
    */
    void  addLogMessage(const CAN_Channel_e & ubChannelR,
-                       const QString & clMessageR, const LogLevel_e & teLogLevelR = eLOG_LEVEL_NOTICE);
+                       const QString & clMessageR, const LogLevel_e & teLogLevelR = eLOG_LEVEL_WARN);
 
-   void  changeBitrate(const CAN_Channel_e & ubChannelR, const uint32_t & slNomBitRateR,
-                       const int32_t & slDatBitRateR);
-
-   //---------------------------------------------------------------------------------------------------
-   /*!
-   ** \param[in]  ubChannelR - CAN channel
-   ** \param[in]  ulFrameTotalV  Total number of frames
-   **
-   ** This signal is emitted every second. The parameter \a ulFrameTotalV
-   ** denotes the total number of API frames.
-   */
-   void  showApiFrames(const CAN_Channel_e & ubChannelR, const uint32_t & ulFrameTotalR);
+   void  showBitrate(const CAN_Channel_e & ubChannelR, const uint32_t & slNomBitRateR,
+                     const int32_t & slDatBitRateR);
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \param[in]  ubChannelR - CAN channel
-   ** \param[in]  ulFrameTotalV  Total number of frames
+   ** \param[in]  ubChannelR     CAN channel
+   ** \param[in]  ulFrameTotalR  Total number of frames
    **
-   ** This signal is emitted every second. The parameter \a ulFrameTotalV
-   ** denotes the total number of CAN frames.
+   ** This signal is emitted every second. The parameter \a ulFrameTotalV denotes the total number of
+   ** CAN frames.
    */
    void  showCanFrames(const CAN_Channel_e & ubChannelR, const uint32_t & ulFrameTotalR);
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \param[in]  ubChannelR    - CAN channel
-   ** \param[in]  ulFrameTotalV - Total number of frames
+   ** \param[in]  ubChannelR     CAN channel
+   ** \param[in]  ulFrameTotalR  Total number of frames
    **
-   ** This signal is emitted every second. The parameter \a ulFrameTotalV
-   ** denotes the total number of CAN error frames.
+   ** This signal is emitted every second. The parameter \a ulFrameTotalV denotes the total number of
+   ** CAN error frames.
    */
    void  showErrFrames(const CAN_Channel_e & ubChannelR, const uint32_t & ulFrameTotalR);
 
+   //---------------------------------------------------------------------------------------------------
    /*!
-   ** \param[in]  ubChannelR   - CAN channel
-   ** \param[in]  ubLoadR      - Bus load in percent
-   ** \param[in]  ulMsgPerSecR - Messages per second
+   ** \param[in]  ubChannelR           CAN channel
+   ** \param[in]  teConnectionStateR   Connection state of CAN interface
+   **
+   ** This signal is once upon a connection state change of a physical CAN interface.
+   */
+   void  showInterfaceState(const CAN_Channel_e & ubChannelR,
+                            const QCanInterface::ConnectionState_e & teConnectionStateR);
+
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]  ubChannelR     CAN channel
+   ** \param[in]  ubLoadR        Bus load in percent
+   ** \param[in]  ulMsgPerSecR   Messages per second
    **
    **
    ** This signal is emitted every second. The parameter \a ubLoadV
    ** denotes the bus load in percent (value range 0 .. 100).
    */
-   void  showLoad(const CAN_Channel_e & ubChannelR, const uint8_t & ubLoadR, const uint32_t & ulMsgPerSecR);
+   void  showLoad(const CAN_Channel_e & ubChannelR, const uint8_t & ubLoadR,
+                  const uint32_t & ulMsgPerSecR);
+
+
+   //---------------------------------------------------------------------------------------------------
+   void  showSocketState(const CAN_Channel_e & ubChannelR,
+                         const uint32_t & ulLocalSocketsR, const uint32_t & ulTcpSocketsR);
 
    void  showState(const CAN_Channel_e & ubChannelR, const CAN_State_e & teStateR);
 
 
 private slots:
 
-   void onInterfaceLogMessage(QString clMessageV, LogLevel_e teLogLevelV);
+   void  onInterfaceConnectionChanged(const QCanInterface::ConnectionState_e & teConnectionStateR);
 
-   void onInterfaceNewData(void);
+   void  onInterfaceLogMessage(QString clMessageV, LogLevel_e teLogLevelV);
 
-   void onInterfaceStateChange(CAN_State_e teStateV);
+   void  onInterfaceNewData(void);
+
+   void  onInterfaceStateChange(CAN_State_e teStateV);
 
    /*!
    ** This slot is called upon local socket connection.
@@ -502,8 +522,6 @@ protected:
 
 private:
 
-   QCanData::Type_e  frameType(const QByteArray & clSockDataR);
-   
    //----------------------------------------------------------------
    // returns number of bits inside a data frame for static
    // calculations
@@ -519,15 +537,11 @@ private:
       eFRAME_SOURCE_SOCKET_TCP
    };
 
-   bool  handleApiFrame(enum FrameSource_e teFrameSrcV,
-                        int32_t & slSockSrcR, QByteArray & clSockDataR);
+   inline CAN_Channel_e channel()      { return ((CAN_Channel_e) ubIdP) ;  };
 
-   bool  handleCanFrame(enum FrameSource_e teFrameSrcV,
-                        int32_t & slSockSrcR, QByteArray & clSockDataR);
+   bool  handleCanFrame(enum FrameSource_e teFrameSrcV, const int32_t slSockSrcV, const QByteArray clSockDataV);
 
-   bool  handleErrFrame(enum FrameSource_e teFrameSrcV,
-                        int32_t & slSockSrcR, QByteArray & clSockDataR);
-
+   void  setCanState(CAN_State_e teStateV);
 
    //----------------------------------------------------------------
    // unique network ID, ubNetIdP is used to manage a unique id
@@ -581,10 +595,12 @@ private:
    //
    CAN_State_e             teCanStateP;
    
+   QCanFrame               clCanFrameInP;
+   QCanFrame               clCanFrameOutP;
+
    //----------------------------------------------------------------
    // statistic frame counter
    //
-   uint32_t                ulCntFrameApiP;
    uint32_t                ulCntFrameCanP;
    uint32_t                ulCntFrameErrP;
 
@@ -604,10 +620,16 @@ private:
    uint8_t                 ubBusLoadP;
 
    bool                    btErrorFrameEnabledP;
-   bool                    btFastDataEnabledP;
+   bool                    btFlexibleDataEnabledP;
    bool                    btListenOnlyEnabledP;
    bool                    btNetworkEnabledP;
    bool                    btBitrateFrameEnabledP;
+
+   //----------------------------------------------------------------
+   // Data exchange via shared memory
+   //
+   QPointer<QSharedMemory> pclSettingsP;
+
 };
 
 #endif   // QCAN_NETWORK_HPP_

@@ -57,16 +57,29 @@
 // QCanServer()                                                                                                       //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-QCanServer::QCanServer( QObject * pclParentV, uint16_t  uwPortStartV, uint8_t   ubNetworkNumV)
+QCanServer::QCanServer( QObject * pclParentV, uint16_t  uwPortStartV, uint8_t ubNetworkNumV)
 {
    QCanNetwork *  pclCanNetT;
 
-   //----------------------------------------------------------------
+   //------------------------------------------------------------------------------------
    // set the parent
    //
    this->setParent(pclParentV);
 
-   //----------------------------------------------------------------
+   //------------------------------------------------------------------------------------
+   // limit the number of possible networks to QCAN_NETWORK_MAX
+   //
+   if (ubNetworkNumV > QCAN_NETWORK_MAX)
+   {
+      ubNetworkNumV = QCAN_NETWORK_MAX;
+   }
+
+   //------------------------------------------------------------------------------------
+   // setup shared memory for data exchange
+   //
+   initSettings();
+
+   //------------------------------------------------------------------------------------
    // create CAN networks
    //
    pclListNetsP = new QVector<QCanNetwork *>;
@@ -74,12 +87,16 @@ QCanServer::QCanServer( QObject * pclParentV, uint16_t  uwPortStartV, uint8_t   
 
    for(uint8_t ubNetCntT = 0; ubNetCntT < ubNetworkNumV; ubNetCntT++)
    {
-      pclCanNetT = new QCanNetwork(pclParentV, uwPortStartV + ubNetCntT);
+      pclCanNetT = new QCanNetwork(pclParentV, uwPortStartV + ubNetCntT, pclSettingsP);
       pclListNetsP->append(pclCanNetT);
-
    }
 
-   initSettings();
+   //------------------------------------------------------------------------------------
+   // start timer that calls onTimerEvent() every second
+   //
+   pclTimerP = new QTimer();
+   connect(pclTimerP, SIGNAL(timeout()), this, SLOT(onTimerEvent()));
+   pclTimerP->start(1000);
 }
 
 
@@ -89,6 +106,12 @@ QCanServer::QCanServer( QObject * pclParentV, uint16_t  uwPortStartV, uint8_t   
 //--------------------------------------------------------------------------------------------------------------------//
 QCanServer::~QCanServer()
 {
+   //------------------------------------------------------------------------------------
+   // stop timer
+   //
+   pclTimerP->stop();
+   delete (pclTimerP);
+
    releaseSettings();
 }
 
@@ -120,13 +143,32 @@ void QCanServer::enableBitrateChange(bool btEnabledV)
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanServer::initSettings(void)
 {
+
    pclSettingsP = new QSharedMemory(QString(QCAN_MEMORY_KEY));
    btMemoryAttachedP = pclSettingsP->create(sizeof(ServerSettings_ts), QSharedMemory::ReadWrite);
 
    if (btMemoryAttachedP)
    {
       pclSettingsP->lock();
+
+      //---------------------------------------------------------------------------------
+      // clear all memory initially
+      //
       memset(pclSettingsP->data(), 0, sizeof(ServerSettings_ts));
+
+      //---------------------------------------------------------------------------------
+      // setup the shared memory
+      //
+      ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
+
+      ptsSettingsT->tsServer.slVersionMajor = VERSION_MAJOR;
+      ptsSettingsT->tsServer.slVersionMinor = VERSION_MINOR;
+      ptsSettingsT->tsServer.slVersionBuild = VERSION_BUILD;
+      ptsSettingsT->tsServer.slNetworkCount = QCAN_NETWORK_MAX;
+
+      ptsSettingsT->tsServer.sqDateTimeStart  = QDateTime::currentMSecsSinceEpoch();
+      ptsSettingsT->tsServer.sqDateTimeActual = QDateTime::currentMSecsSinceEpoch();
+
       pclSettingsP->unlock();
    }
    else
@@ -153,6 +195,25 @@ uint8_t QCanServer::maximumNetwork(void) const
 QCanNetwork * QCanServer::network(uint8_t ubNetworkIdxV)
 {
    return(pclListNetsP->at(ubNetworkIdxV));
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServer::onTimerEvent()                                                                                         //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServer::onTimerEvent(void)
+{
+   pclSettingsP->lock();
+
+   //---------------------------------------------------------------------------------
+   // setup the shared memory
+   //
+   ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
+
+   ptsSettingsT->tsServer.sqDateTimeActual = QDateTime::currentMSecsSinceEpoch();
+
+   pclSettingsP->unlock();
 }
 
 

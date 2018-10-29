@@ -34,8 +34,11 @@
 //============================================================================//
 
 
+
+#include <QtCore/QCoreApplication>
 #include <QtCore/QDebug>
 #include <QtCore/QThread>
+#include <QtCore/QTime>
 
 #include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QComboBox>
@@ -46,7 +49,10 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QProgressBar>
+#include <QtWidgets/QPushButton>
 
+
+#include "qcan_server_settings.hpp"
 #include "qcan_socket_dialog.hpp"
 
 
@@ -55,8 +61,6 @@ enum SocketHost_e {
    eSocketHostRemote
 };
 
-#include <QtCore/QCoreApplication>
-#include <QtCore/QTime>
 
 void delay( int millisecondsToWait )
 {
@@ -79,6 +83,7 @@ public:
    CAN_Channel_e  channel(void);
    
    void           doConnectionWait();
+   void           enableButtonOk(bool btEnableV = true);
    void           enableConnectionWait(bool btEnableV = true);
    void           enableHost(bool btEnableV = true);
    void           setChannel(const CAN_Channel_e teChannelV);
@@ -248,6 +253,13 @@ void QCanSocketDialogPrivate::connectSlots(QCanSocketDialog * pclWidgetV)
    
 }
 
+void QCanSocketDialogPrivate::enableButtonOk(bool btEnableV)
+{
+   QPushButton * pclButtonOkT = pclButtonBoxP->button(QDialogButtonBox::Ok);
+
+   pclButtonOkT->setEnabled(btEnableV);
+}
+
 void QCanSocketDialogPrivate::enableConnectionWait(bool btEnableV)
 {
    if (btEnableV == true)
@@ -367,6 +379,7 @@ QCanSocketDialog::QCanSocketDialog(QWidget *parent, Qt::WindowFlags f) :
 
    clHostAddressP = QHostAddress::LocalHost;
    teChannelP     = eCAN_CHANNEL_1;
+   btConnectFailP = true;
 
    pclWidgetP->createWidgets(this);
    pclWidgetP->connectSlots(this);
@@ -388,6 +401,7 @@ QCanSocketDialog::QCanSocketDialog(QWidget *parent, const QString &caption) :
 
    clHostAddressP = QHostAddress::LocalHost;
    teChannelP     = eCAN_CHANNEL_1;
+   btConnectFailP = true;
 
    pclWidgetP->createWidgets(this);
    pclWidgetP->connectSlots(this);
@@ -428,10 +442,11 @@ CAN_Channel_e QCanSocketDialog::channel() const
    return (teChannelP);
 }
 
-//----------------------------------------------------------------------------//
-// QCanSocketDialog::connect()                                                //
-// connect to the server                                                      //
-//----------------------------------------------------------------------------//
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanSocketDialog::connect()                                                                                        //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanSocketDialog::connect()
 {
    qDebug() << "QCanSocketDialog::connect()";
@@ -443,13 +458,14 @@ void QCanSocketDialog::connect()
    pclTimerP->start(20);
 
    pclSocketP->connectNetwork(pclWidgetP->channel());
+   qDebug() << "QCanSocketDialog::connect() - done";
 }
 
 
-//----------------------------------------------------------------------------//
-// QCanSocketDialog::connectSlots()                                           //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanSocketDialog::connectSlots()                                                                                   //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanSocketDialog::connectSlots(void)
 {
    qDebug() << "QCanSocketDialog::connectSlots()";
@@ -457,7 +473,7 @@ void QCanSocketDialog::connectSlots(void)
    QObject::connect( pclTimerP, SIGNAL(timeout()), 
                      this, SLOT(onConnectionTimer()));
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // connect signals for socket operations
    //
    QObject::connect(pclSocketP, SIGNAL(connected()),
@@ -468,68 +484,86 @@ void QCanSocketDialog::connectSlots(void)
    
    QObject::connect(pclSocketP, SIGNAL(error(QAbstractSocket::SocketError)),
                     this, SLOT(onSocketError(QAbstractSocket::SocketError)));
-   
 
 }
 
 
-//----------------------------------------------------------------------------//
-// QCanSocketDialog::disconnectSlots()                                        //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanSocketDialog::disconnectSlots()                                                                                //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanSocketDialog::disconnectSlots(void)
 {
    qDebug() << "QCanSocketDialog::disconnectSlots()";
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // disconnect signals for socket operations
    //
-   QObject::disconnect(pclSocketP, SIGNAL(connected()),
-                       this, SLOT(onSocketConnected()));
+   if (pclSocketP != 0L)
+   {
+      QObject::disconnect(pclSocketP, SIGNAL(connected()),
+                          this, SLOT(onSocketConnected()));
 
-   QObject::disconnect(pclSocketP, SIGNAL(disconnected()),
-                       this, SLOT(onSocketDisconnected()));
-   
-   QObject::disconnect(pclSocketP, SIGNAL(error(QAbstractSocket::SocketError)),
-                       this, SLOT(onSocketError(QAbstractSocket::SocketError)));
+      QObject::disconnect(pclSocketP, SIGNAL(disconnected()),
+                          this, SLOT(onSocketDisconnected()));
+
+      QObject::disconnect(pclSocketP, SIGNAL(error(QAbstractSocket::SocketError)),
+                          this, SLOT(onSocketError(QAbstractSocket::SocketError)));
+   }
 
 }
 
 
-//----------------------------------------------------------------------------//
-// QCanSocketDialog::done()                                                   //
-// This method is called when [OK] or [Cancel] is clicked. Possible values    //
-// for slResultV: QDialog::Accepted or QDialog::Rejected                      //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanSocketDialog::done()                                                                                           //
+// This method is called when [OK] or [Cancel] is clicked. Possible values for slResultV: QDialog::Accepted or        //
+// QDialog::Rejected                                                                                                  //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanSocketDialog::done(int slResultV)
 {
-   if (slResultV == QDialog::Accepted)
+   qDebug() << "QCanSocketDialog::done()" << slResultV;
+
+   //---------------------------------------------------------------------------------------------------
+   // First test if the connection to a CANpie server failed
+   //
+   if (btConnectFailP == true)
    {
-      emit socketSelected(pclSocketP);
-   }
-   else
-   {
-      //--------------------------------------------------------
-      // Cancel has been pressed:
-      // - disconnect from network
-      // - delete the QCanSocket instance
-      // - set channel number to eCAN_CHANNEL_NONE
-      //
-      pclSocketP->disconnectNetwork();
       delete (pclSocketP);
       pclSocketP.clear();
       teChannelP = eCAN_CHANNEL_NONE;
-
+   }
+   else
+   {
+      //-------------------------------------------------------------------------------------------
+      // Connection to a CANpie server was successful
+      //
+      if (slResultV == QDialog::Accepted)
+      {
+         emit socketSelected(pclSocketP);
+      }
+      else
+      {
+         //-----------------------------------------------------------------------------------
+         // Cancel has been pressed:
+         // - disconnect from network
+         // - delete the QCanSocket instance
+         // - set channel number to eCAN_CHANNEL_NONE
+         //
+         pclSocketP->disconnectNetwork();
+         delete (pclSocketP);
+         pclSocketP.clear();
+         teChannelP = eCAN_CHANNEL_NONE;
+      }
    }
 
    QDialog::done(slResultV);
 }
 
 
-//----------------------------------------------------------------------------//
-// QCanSocketDialog::onChannelChanged()                                       //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanSocketDialog::onChannelChanged()                                                                               //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanSocketDialog::onChannelChanged(int slIndexV)
 {
    Q_UNUSED(slIndexV);
@@ -573,44 +607,25 @@ void QCanSocketDialog::onHostChanged(int slIndexV)
 //----------------------------------------------------------------------------//
 void QCanSocketDialog::onSocketConnected(void)
 {
-   QCanData::Type_e  ubFrameTypeT;
    QByteArray        clCanDataT;
-   QCanFrameApi      clCanApiT;
    QString           clCanInfoT;
-
 
    qDebug() << "QCanSocketDialog::onSocketConnected()";
 
    pclTimerP->stop();
    pclWidgetP->enableConnectionWait(false);
-   pclWidgetP->showInfoText(tr("Connected."));
 
-   //----------------------------------------------------------------
-   // add a little delay of 20 ms to make sure that initial data
-   // from the CANpie server is available
-   //
-   QThread::msleep(20);
+   clCanInfoT  = tr("Connected\n");
+   QCanServerSettings   clSettingsT;
+   //clCanInfoT += clSettingsT.networkName(teChannelP);
+   //clCanInfoT += "\n";
+   //clCanInfoT += clSettingsT.networkNominalBitrate(teChannelP);
 
-   if (pclSocketP->read(clCanDataT, &ubFrameTypeT) == true)
-   {
-      qDebug() << "QCanSocketDialog::onSocketConnected() - read data";
+   pclWidgetP->showInfoText(clCanInfoT);
+   pclWidgetP->enableButtonOk(true);
 
-      switch(ubFrameTypeT)
-      {
-         case QCanData::eTYPE_API:
-            if (clCanApiT.fromByteArray(clCanDataT) == true)
-            {
-               clCanInfoT = clCanApiT.toString();
-               qDebug() << clCanInfoT;
-            }
-            break;
-            
-         default:
+   btConnectFailP = false;
 
-            break;
-            
-      }
-   } 
 
    qDebug() << "QCanSocketDialog::onSocketConnected() - done";
 
@@ -624,6 +639,8 @@ void QCanSocketDialog::onSocketConnected(void)
 void QCanSocketDialog::onSocketDisconnected(void)
 {
    pclWidgetP->showInfoText(tr("Disconnected."));
+
+   btConnectFailP = true;
 
    qDebug() << "QCanSocketDialog::onSocketDisconnected()";
 }
@@ -639,6 +656,9 @@ void QCanSocketDialog::onSocketError(QAbstractSocket::SocketError teSocketErrorV
    pclTimerP->stop();
    pclWidgetP->enableConnectionWait(false);
    pclWidgetP->showInfoText(tr("Failed to connect."));
+   pclWidgetP->enableButtonOk(false);
+
+   btConnectFailP = true;
 
    qDebug() << "QCanSocketDialog::onSocketError()";
 }
@@ -660,10 +680,11 @@ QHostAddress QCanSocketDialog::peerAddress() const
 // QCanSocketDialog::show()                                                   //
 // Show the dialog and try to connect to the server                           //
 //----------------------------------------------------------------------------//
-void QCanSocketDialog::show()
+int QCanSocketDialog::exec()
 {
-   QDialog::show();
    this->connect();
+
+   return QDialog::exec();
 }
 
 

@@ -95,6 +95,7 @@ QCanSocket::QCanSocket(QObject * pclParentV)
    //
    slSocketErrorP = 0;
 
+   teCanStateP = eCAN_STATE_BUS_ACTIVE;
 }
 
 
@@ -237,6 +238,7 @@ bool QCanSocket::connectNetwork(CAN_Channel_e ubChannelV,
 void QCanSocket::disconnectNetwork(void)
 {
    qDebug() << "QCanSocket::disconnectNetwork() ";
+
    if (btIsLocalConnectionP == false)
    {
       pclTcpSockP->disconnectFromHost();
@@ -246,6 +248,8 @@ void QCanSocket::disconnectNetwork(void)
       disconnect(pclLocalSockP, 0, 0, 0);
       pclLocalSockP->disconnectFromServer();
    }
+
+   btIsConnectedP = false;
 }
 
 
@@ -433,59 +437,11 @@ void QCanSocket::onSocketReceive(void)
 }
 
 
-//----------------------------------------------------------------------------//
-// read()                                                                     //
-//                                                                            //
-//----------------------------------------------------------------------------//
-bool QCanSocket::read(QByteArray & clFrameDataR, 
-                      QCanData::Type_e * pubFrameTypeV)
-{
-   bool  btResultT = false;
-
-   if (framesAvailable() > 0)
-   {
-      if (btIsLocalConnectionP == false)
-      {
-         clFrameDataR = pclTcpSockP->read(QCAN_FRAME_ARRAY_SIZE);
-      }
-      else
-      {
-         clFrameDataR = pclLocalSockP->read(QCAN_FRAME_ARRAY_SIZE);
-      }
-
-      if (pubFrameTypeV != Q_NULLPTR)
-      {
-         switch (clFrameDataR.at(0) & 0xE0)
-         {
-            case 0x00:
-               *pubFrameTypeV = QCanData::eTYPE_CAN;
-               break;
-            
-            case 0x40:
-               *pubFrameTypeV = QCanData::eTYPE_API;
-               break;
-            
-            case 0x80:
-               *pubFrameTypeV = QCanData::eTYPE_ERROR;
-               break;
-               
-            default:
-               *pubFrameTypeV = QCanData::eTYPE_UNKNOWN;
-               break;
-         }
-      }
-      btResultT = true;
-   }
-   
-   return (btResultT);
-   
-}
-
-//----------------------------------------------------------------------------//
-// readFrame()                                                                //
-//                                                                            //
-//----------------------------------------------------------------------------//
-bool QCanSocket::readFrame(QCanFrame & clFrameR)
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanSocket::read                                                                                                   //
+// read CAN frame                                                                                                     //
+//--------------------------------------------------------------------------------------------------------------------//
+bool QCanSocket::read(QCanFrame & clFrameR)
 {
    bool        btResultT = false;
    QByteArray  clDatagramT;
@@ -502,6 +458,17 @@ bool QCanSocket::readFrame(QCanFrame & clFrameR)
       }
 
       btResultT = clFrameR.fromByteArray(clDatagramT);
+
+      //-------------------------------------------------------------------------------------------
+      // If the frame type is an error frame, store the for the actual CAN state
+      //
+      if (btResultT)
+      {
+         if (clFrameR.frameType() == QCanFrame::eFRAME_TYPE_ERROR)
+         {
+            teCanStateP = clFrameR.errorState();
+         }
+      }
    }
 
    return(btResultT);
@@ -533,7 +500,7 @@ void QCanSocket::setHostAddress(QHostAddress clHostAddressV)
 // writeFrame()                                                               //
 //                                                                            //
 //----------------------------------------------------------------------------//
-bool QCanSocket::writeFrame(const QCanFrame & clFrameR)
+bool QCanSocket::write(const QCanFrame & clFrameR)
 {
    bool  btResultT = false;
 
@@ -553,6 +520,7 @@ bool QCanSocket::writeFrame(const QCanFrame & clFrameR)
       {
          if (pclLocalSockP->write(clDatagramT) == QCAN_FRAME_ARRAY_SIZE)
          {
+            pclLocalSockP->flush();
             btResultT = true;
          }
       }
@@ -561,68 +529,4 @@ bool QCanSocket::writeFrame(const QCanFrame & clFrameR)
    return(btResultT);
 }
 
-//----------------------------------------------------------------------------//
-// writeFrame()                                                               //
-//                                                                            //
-//----------------------------------------------------------------------------//
-bool QCanSocket::writeFrame(const QCanFrameApi & clFrameR)
-{
-   bool  btResultT = false;
 
-   qDebug() << "QCanSocket::writeFrame(const QCanFrameApi)";
-
-   if (btIsConnectedP == true)
-   {
-      QByteArray  clDatagramT = clFrameR.toByteArray();
-
-      if (btIsLocalConnectionP == false)
-      {
-         if (pclTcpSockP->write(clDatagramT) == QCAN_FRAME_ARRAY_SIZE)
-         {
-            pclTcpSockP->flush();
-            btResultT = true;
-         }
-      }
-      else
-      {
-         qDebug() << "QCanSocket::writeFrame(const QCanFrameApi) - local";
-         if (pclLocalSockP->write(clDatagramT) == QCAN_FRAME_ARRAY_SIZE)
-         {
-            btResultT = true;
-         }
-      }
-   }
-
-   return(btResultT);
-}
-
-//----------------------------------------------------------------------------//
-// writeFrame()                                                               //
-//                                                                            //
-//----------------------------------------------------------------------------//
-bool QCanSocket::writeFrame(const QCanFrameError & clFrameR)
-{
-   bool  btResultT = false;
-
-   if (btIsConnectedP == true)
-   {
-      QByteArray  clDatagramT = clFrameR.toByteArray();
-      if (btIsLocalConnectionP == false)
-      {
-         if (pclTcpSockP->write(clDatagramT) == QCAN_FRAME_ARRAY_SIZE)
-         {
-            pclTcpSockP->flush();
-            btResultT = true;
-         }
-      }
-      else
-      {
-         if (pclLocalSockP->write(clDatagramT) == QCAN_FRAME_ARRAY_SIZE)
-         {
-            btResultT = true;
-         }
-      }
-   }
-
-   return(btResultT);
-}

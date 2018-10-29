@@ -1,6 +1,6 @@
 //====================================================================================================================//
-// File:          qcan_server_settings.cpp                                                                            //
-// Description:   QCAN classes - CAN server                                                                           //
+// File:          qcan_network_settings.cpp                                                                           //
+// Description:   QCAN classes - CAN network settings                                                                 //
 //                                                                                                                    //
 // Copyright (C) MicroControl GmbH & Co. KG                                                                           //
 // 53844 Troisdorf - Germany                                                                                          //
@@ -37,7 +37,7 @@
 #include <QtCore/QDateTime>
 
 #include "qcan_server_memory.hpp"
-#include "qcan_server_settings.hpp"
+#include "qcan_network_settings.hpp"
 
 
 /*--------------------------------------------------------------------------------------------------------------------*\
@@ -45,26 +45,27 @@
 **                                                                                                                    **
 \*--------------------------------------------------------------------------------------------------------------------*/
 
-#define  MAXIMUM_SERVER_TIME_DIFFERENCE      ((int64_t) 2000)
 
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// QCanServerSettings::QCanServerSettings()                                                                           //
+// QCanNetworkSettings::QCanNetworkSettings()                                                                         //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-QCanServerSettings::QCanServerSettings()
+QCanNetworkSettings::QCanNetworkSettings(const CAN_Channel_e teChannelV)
 {
    pclSettingsP = new QSharedMemory(QString(QCAN_MEMORY_KEY));
    pclSettingsP->attach(QSharedMemory::ReadOnly);
+
+   teChannelP = teChannelV;
 }
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// QCanServerSettings::~QCanServerSettings()                                                                          //
+// QCanNetworkSettings::~QCanNetworkSettings()                                                                        //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-QCanServerSettings::~QCanServerSettings()
+QCanNetworkSettings::~QCanNetworkSettings()
 {
    pclSettingsP->detach();
    delete (pclSettingsP);
@@ -72,119 +73,89 @@ QCanServerSettings::~QCanServerSettings()
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// QCanServerSettings::checkState()                                                                                   //
-// return the current state of the QCan server                                                                        //
+// QCanNetworkSettings::dataBitrate()                                                                                 //
+// return the data bit-rate of the current CAN interface                                                              //
 //--------------------------------------------------------------------------------------------------------------------//
-QCanServerSettings::State_e QCanServerSettings::state(void)
+int32_t QCanNetworkSettings::dataBitrate(void)
 {
-   State_e  teServerStateT = eSTATE_UNKNOWN;
+   int32_t  slResultT = eCAN_BITRATE_NONE;
 
    if (pclSettingsP->isAttached())
    {
       ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
 
-      if ( (QDateTime::currentMSecsSinceEpoch() - (ptsSettingsT->tsServer.sqDateTimeActual)) > MAXIMUM_SERVER_TIME_DIFFERENCE)
-      {
-         teServerStateT = eSTATE_CRASHED;
-      }
-      else
-      {
-         teServerStateT = eSTATE_ACTIVE;
-      }
+      //-------------------------------------------------------------------------------------------
+      // get data bit-rate value
+      //
+      slResultT = ptsSettingsT->atsNetwork[teChannelP - 1].slDatBitRate;
+   }
+
+   return (slResultT);
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanNetworkSettings::dataBitrateString()                                                                           //
+// return the data bit-rate of the current CAN interface                                                              //
+//--------------------------------------------------------------------------------------------------------------------//
+QString QCanNetworkSettings::dataBitrateString(void)
+{
+   QString  clResultT;
+   int32_t  slBitrateT;
+
+   slBitrateT = dataBitrate();
+
+   //---------------------------------------------------------------------------------------------------
+   // Test for unknown bit-rate first
+   //
+   if (slBitrateT == eCAN_BITRATE_NONE)
+   {
+      clResultT = "None";
    }
    else
    {
-      teServerStateT = eSTATE_INACTIVE;
-   }
-
-   return (teServerStateT);
-}
-
-
-
-
-
-//--------------------------------------------------------------------------------------------------------------------//
-// networkCount()                                                                                                     //
-// return number of supported CAN networks                                                                            //
-//--------------------------------------------------------------------------------------------------------------------//
-int QCanServerSettings::networkCount(void)
-{
-   int32_t  slCountT = 0;
-
-   if (pclSettingsP->isAttached())
-   {
-      ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
-      slCountT = ptsSettingsT->tsServer.slNetworkCount;
-   }
-
-   return (slCountT);
-}
-
-/*
-//--------------------------------------------------------------------------------------------------------------------//
-// networkDataBitrate()                                                                                               //
-//                                                                                                                    //
-//--------------------------------------------------------------------------------------------------------------------//
-QString QCanServerSettings::networkDataBitrate(const CAN_Channel_e teChannelV)
-{
-   QString  clDatBitRateT;
-
-   if ( (teChannelV > eCAN_CHANNEL_NONE) && (teChannelV <= QCAN_NETWORK_MAX))
-   {
-      ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
-
-      if (ptsSettingsT->atsNetwork[teChannelV - 1].slDatBitRate == eCAN_BITRATE_NONE)
+      if (slBitrateT < 1000000)
       {
-         clDatBitRateT = "None";
+         //-----------------------------------------------------------------------------------
+         // print values < 1000000 in kBit/s
+         //
+         clResultT = QString("%1 kBit/s").arg(slBitrateT / 1000);
       }
       else
       {
-         if (ptsSettingsT->atsNetwork[teChannelV - 1].slDatBitRate < 1000000)
-         {
-            //------------------------------------------------
-            // print values < 1000000 in kBit/s
-            //
-            clDatBitRateT = QString("%1 kBit/s").arg(ptsSettingsT->atsNetwork[teChannelV - 1].slDatBitRate / 1000);
-         }
-         else
-         {
-            //------------------------------------------------
-            // print values >= 1000000 in MBit/s
-            //
-            clDatBitRateT = QString("%1 MBit/s").arg(ptsSettingsT->atsNetwork[teChannelV - 1].slDatBitRate / 1000000);
-         }
+         //------------------------------------------------
+         // print values >= 1000000 in MBit/s
+         //
+         clResultT = QString("%1 MBit/s").arg(slBitrateT / 1000000);
       }
 
    }
-
-
-   return (clDatBitRateT);
+   return (clResultT);
 }
 
-
 //--------------------------------------------------------------------------------------------------------------------//
-// networkName()                                                                                                      //
-//                                                                                                                    //
+// QCanNetworkSettings::name()                                                                                        //
+// return the name of the current CAN interface                                                                       //
 //--------------------------------------------------------------------------------------------------------------------//
-QString QCanServerSettings::networkName(const CAN_Channel_e teChannelV)
+QString QCanNetworkSettings::name(void)
 {
    QString clResultT;
 
-   if ( (teChannelV > eCAN_CHANNEL_NONE) && (teChannelV <= QCAN_NETWORK_MAX))
+   if (pclSettingsP->isAttached())
    {
       ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
 
       //-------------------------------------------------------------------------------------------
       // calculate the size of the interface name, a name
       //
-      int slSizeT = strlen(ptsSettingsT->atsNetwork[teChannelV - 1].szInterfaceName);
+      int slSizeT = strlen(ptsSettingsT->atsNetwork[teChannelP - 1].szInterfaceName);
       if (slSizeT > QCAN_IF_NAME_LENGTH)
       {
          slSizeT = QCAN_IF_NAME_LENGTH;
       }
 
-      clResultT = QString::fromLatin1(&(ptsSettingsT->atsNetwork[teChannelV - 1].szInterfaceName[0]), slSizeT);
+      clResultT = QString::fromLatin1(&(ptsSettingsT->atsNetwork[teChannelP - 1].szInterfaceName[0]), slSizeT);
+
    }
 
    return (clResultT);
@@ -192,116 +163,129 @@ QString QCanServerSettings::networkName(const CAN_Channel_e teChannelV)
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// networkNominalBitrate()                                                                                            //
-//                                                                                                                    //
+// QCanNetworkSettings::nominalBitrate()                                                                              //
+// return the nominal bit-rate of the current CAN interface                                                           //
 //--------------------------------------------------------------------------------------------------------------------//
-QString QCanServerSettings::networkNominalBitrate(const CAN_Channel_e teChannelV)
+int32_t QCanNetworkSettings::nominalBitrate(void)
 {
-   QString  clNomBitRateT;
+   int32_t  slResultT = eCAN_BITRATE_NONE;
 
-   if ( (teChannelV > eCAN_CHANNEL_NONE) && (teChannelV <= QCAN_NETWORK_MAX))
+   if (pclSettingsP->isAttached())
    {
       ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
 
-      if (ptsSettingsT->atsNetwork[teChannelV - 1].slNomBitRate == eCAN_BITRATE_NONE)
+      //-------------------------------------------------------------------------------------------
+      // get nominal bit-rate value
+      //
+      slResultT = ptsSettingsT->atsNetwork[teChannelP - 1].slNomBitRate;
+   }
+
+   return (slResultT);
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanNetworkSettings::nominalBitrateString()                                                                        //
+// return the nominal bit-rate of the current CAN interface                                                           //
+//--------------------------------------------------------------------------------------------------------------------//
+QString QCanNetworkSettings::nominalBitrateString(void)
+{
+   QString  clResultT;
+   int32_t  slBitrateT;
+
+   slBitrateT = nominalBitrate();
+
+   //---------------------------------------------------------------------------------------------------
+   // Test for unknown bit-rate first
+   //
+   if (slBitrateT == eCAN_BITRATE_NONE)
+   {
+      clResultT = "None";
+   }
+   else
+   {
+      if (slBitrateT < 1000000)
       {
-         clNomBitRateT = "None";
+         //-----------------------------------------------------------------------------------
+         // print values < 1000000 in kBit/s
+         //
+         clResultT = QString("%1 kBit/s").arg(slBitrateT / 1000);
       }
       else
       {
          //------------------------------------------------
-         // print values < 1000000 in kBit/s
+         // print values >= 1000000 in MBit/s
          //
-         clNomBitRateT = QString("%1 kBit/s").arg(ptsSettingsT->atsNetwork[teChannelV - 1].slNomBitRate / 1000);
+         clResultT = QString("%1 MBit/s").arg(slBitrateT / 1000000);
       }
-   }
-
-   return (clNomBitRateT);
-}
-*/
-
-//--------------------------------------------------------------------------------------------------------------------//
-// QCanServerSettings::state()                                                                                        //
-//                                                                                                                    //
-//--------------------------------------------------------------------------------------------------------------------//
-QString QCanServerSettings::stateString(void)
-{
-   QString  clResultT;
-
-   switch (state())
-   {
-      case eSTATE_CRASHED:
-         clResultT = QObject::tr("is crashed");
-         break;
-
-      case eSTATE_INACTIVE:
-         clResultT = QObject::tr("is not active");
-         break;
-
-      case eSTATE_ACTIVE:
-         clResultT = QObject::tr("is active");
-         break;
-
-      default:
-         clResultT = QObject::tr("state is unknown");
-         break;
 
    }
-
    return (clResultT);
 }
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// versionBuild()                                                                                                     //
-// return build version                                                                                               //
+// QCanNetworkSettings::state()                                                                                       //
+// return CAN network state                                                                                           //
 //--------------------------------------------------------------------------------------------------------------------//
-int QCanServerSettings::versionBuild(void)
+CAN_State_e QCanNetworkSettings::state(void)
 {
-   int32_t  slVersionT = -1;
+   CAN_State_e teResultT = eCAN_STATE_STOPPED;
 
    if (pclSettingsP->isAttached())
    {
       ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
-      slVersionT = ptsSettingsT->tsServer.slVersionBuild;
+
+      //-------------------------------------------------------------------------------------------
+      // get CAN state value
+      //
+      teResultT = (CAN_State_e)(ptsSettingsT->atsNetwork[teChannelP - 1].slStatus);
    }
 
-   return (slVersionT);
+   return (teResultT);
 }
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// versionMajor()                                                                                                     //
-// return major version                                                                                               //
+// QCanNetworkSettings::stateString()                                                                                 //
+// return CAN network state                                                                                           //
 //--------------------------------------------------------------------------------------------------------------------//
-int QCanServerSettings::versionMajor(void)
+QString QCanNetworkSettings::stateString(void)
 {
-   int32_t  slVersionT = -1;
+   QString clResultT;
 
-   if (pclSettingsP->isAttached())
+   switch(state())
    {
-      ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
-      slVersionT = ptsSettingsT->tsServer.slVersionMajor;
+      case eCAN_STATE_STOPPED:
+         clResultT = "Stopped";
+         break;
+
+      case eCAN_STATE_SLEEPING:
+         clResultT = "Sleeping";
+         break;
+
+      case eCAN_STATE_BUS_ACTIVE:
+         clResultT = "Error active";
+         break;
+
+      case eCAN_STATE_BUS_WARN:
+         clResultT = "Warning";
+         break;
+
+      case eCAN_STATE_BUS_PASSIVE:
+         clResultT = "Error passive";
+         break;
+
+      case eCAN_STATE_BUS_OFF:
+         clResultT = "Bus-off";
+         break;
+
+      default:
+         clResultT = "Unknown";
+         break;
+
    }
 
-   return (slVersionT);
-}
-
-
-//--------------------------------------------------------------------------------------------------------------------//
-// versionMinor()                                                                                                     //
-// return minor version                                                                                               //
-//--------------------------------------------------------------------------------------------------------------------//
-int32_t QCanServerSettings::versionMinor(void)
-{
-   int32_t  slVersionT = -1;
-
-   if (pclSettingsP->isAttached())
-   {
-      ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
-      slVersionT = ptsSettingsT->tsServer.slVersionMinor;
-   }
-
-   return (slVersionT);
+   return (clResultT);
 }
 

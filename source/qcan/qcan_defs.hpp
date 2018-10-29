@@ -79,9 +79,18 @@
 ** This symbol defines the maximum number of sockets connected to
 ** the TCP server.
 */
-#define  QCAN_TCP_SOCKET_MAX        16
+#define  QCAN_TCP_SOCKET_MAX        64
 
-#define  QCAN_LOCAL_SOCKET_MAX      16
+//-------------------------------------------------------------------
+/*!
+** \def     QCAN_LOCAL_SOCKET_MAX
+** \ingroup QCAN_NW
+** \brief   Maximum number of local sockets
+**
+** This symbol defines the maximum number of local sockets connected to
+** the server.
+*/
+#define  QCAN_LOCAL_SOCKET_MAX      64
 
 //-------------------------------------------------------------------
 /*!
@@ -148,5 +157,5 @@
 */
 #define  QCAN_IF_SUPPORT_SPECIFIC_CONFIG  ((uint32_t) (0x00000008))
 
-
+#define  QCAN_IF_SUPPORT_MASK             ((uint32_t) (0x0000000F))
 #endif // QCAN_DEFS_HPP_

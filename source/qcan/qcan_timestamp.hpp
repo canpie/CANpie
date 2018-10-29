@@ -88,7 +88,7 @@
 **
 ** The QCanTimeStamp class provides the functionality for setting a time-stamp
 ** with a 1 ns (nano-seconds) resolution to a CAN frame 
-** (refer to #QCanFrame::clMsgTimeP). The time-stamp has two data fields:
+** (refer to #QCanFrame::setTimeStamp). The time-stamp has two data fields:
 ** \li A nanoseconds field with a valid value range from 0 to 
 **     #TIME_STAMP_NSEC_LIMIT
 ** \li A seconds field with a valid value range from 0 to 

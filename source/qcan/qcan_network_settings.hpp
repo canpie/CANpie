@@ -1,6 +1,6 @@
 //====================================================================================================================//
-// File:          qcan_plugin.hpp                                                                                     //
-// Description:   QCAN classes - CAN plug-in class                                                                    //
+// File:          qcan_network_settings.hpp                                                                           //
+// Description:   QCAN classes - CAN network settings                                                                 //
 //                                                                                                                    //
 // Copyright (C) MicroControl GmbH & Co. KG                                                                           //
 // 53844 Troisdorf - Germany                                                                                          //
@@ -28,81 +28,125 @@
 //====================================================================================================================//
 
 
+#ifndef QCAN_NETWORK_SETTINGS_HPP_
+#define QCAN_NETWORK_SETTINGS_HPP_
 
-
-#ifndef QCAN_PLUGIN_HPP_
-#define QCAN_PLUGIN_HPP_
 
 /*--------------------------------------------------------------------------------------------------------------------*\
 ** Include files                                                                                                      **
 **                                                                                                                    **
 \*--------------------------------------------------------------------------------------------------------------------*/
 
-#include "qcan_interface.hpp"
+#include <QtCore/QSharedMemory>
 
+#include "qcan_namespace.hpp"
 
+using namespace QCan;
 
 //----------------------------------------------------------------------------------------------------------------
 /*!
-** \class QCanPlugin
-** \brief CAN plug-in representation
+** \class QCanNetworkSettings
 **
-** The QCanPlugin class is the base class for CAN interface plug-ins, which can be used to add any kind of
-** CAN interface cards to the \ref page.cp_server.
-** <p>
-** For an example of the QCanPlugin class refer to the QCanPluginTemplate class located inside the
-** \c source/qcan/applications/plugins/qcan_template directory.
-** 
+** The QCanNetworkSettings provides the functionality to access parameters of a local QCanNetwork.
+**
 */
-class QCanPlugin : public QObject
+class QCanNetworkSettings
 {
 
 public:
-
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \param[in]  ubInterfaceV   Number of CAN interface
+   ** \param[in]  teChannelV - CAN channel
    **
-   ** \return     CAN interface class
-   **
-   ** The function returns a pointer to a QCanInterface class defined by the parameter \a  ubInterfaceV.
-   ** The first interface starts at index 0. If the number of available interfaces is exceeded the
-   ** function returns NULL.
+   ** Construct a QCanNetworkSettings object for the channel \a teChannelV.
    */
-   virtual QCanInterface * getInterface(uint8_t ubInterfaceV = 0) = 0;
+   QCanNetworkSettings(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1);
 
-   //---------------------------------------------------------------------------------------------------
-   /*!
-   ** \return     Icon of plug-in
-   **
-   ** The function returns the icon of the plug-in.
-   */
-   virtual QIcon           icon(void) = 0;
+   ~QCanNetworkSettings();
 
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \return     Number of CAN interfaces
+   ** \return  Data bit-rate
+   ** \see     dataBitrateString()
    **
-   ** The function returns the number of CAN interfaces that are available.
+   ** Return the current data bit-rate of the selected network in [bits/s]. If the bit-rate value
+   ** is not valid (not configured) the function returns QCan::eCAN_BITRATE_NONE. The result of this
+   ** function is equivalent to QCanNetwork::dataBitrate().
    */
-   virtual uint8_t         interfaceCount(void) = 0;
+   int32_t        dataBitrate(void);
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \return  Data bit-rate
+   ** \see     dataBitrate()
+   **
+   ** Return the current data bit-rate of the selected network as string object. If the bit-rate value
+   ** is not valid (not configured) the function returns "None".
+   */
+   QString        dataBitrateString(void);
 
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \return     Name of plug-in
+   ** \return  Network name
    **
-   ** The function returns the name of the plug-in.
+   ** Return the name of the selected network as string object. If a CAN interface is attached to the
+   ** network the function also returns the name of the CAN interface.
    */
-   virtual QString         name(void) = 0;
+   QString        name(void);
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \return  Nominal bit-rate
+   ** \see     nominalBitrateString()
+   **
+   ** Return the current nominal bit-rate of the selected network in [bits/s]. If the bit-rate value
+   ** is not valid (not configured) the function returns QCan::eCAN_BITRATE_NONE.
+   */
+   int32_t        nominalBitrate(void);
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \return  Nominal bit-rate
+   ** \see     nominalBitrate()
+   **
+   ** Return the current nominal bit-rate of the selected network as string object. If the bit-rate value
+   ** is not valid (not configured) the function returns "None".
+   */
+   QString        nominalBitrateString(void);
+
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]  teChannelR - CAN channel
+   **
+   ** Set the CAN channel for the QCanNetworkSettings object.
+   */
+   inline void    setChannel(const CAN_Channel_e & teChannelR) { teChannelP = teChannelR;    };
+
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \return  CAN state
+   ** \see     stateString()
+   **
+   ** Return the current CAN state of the selected network.
+   */
+   CAN_State_e    state(void);
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \return  CAN state
+   ** \see     state()
+   **
+   ** Return the current CAN state of the selected network as string object.
+   */
+   QString        stateString(void);
 
 private:
-
+   QSharedMemory *   pclSettingsP;
+   CAN_Channel_e     teChannelP;
 };
 
-#define QCanPlugin_iid "net.microcontrol.Qt.qcan.QCanPlugin"
-Q_DECLARE_INTERFACE(QCanPlugin, QCanPlugin_iid)
-
-
-#endif /*QCAN_PLUGIN_HPP_*/
+#endif // QCAN_NETWORK_SETTINGS_HPP_

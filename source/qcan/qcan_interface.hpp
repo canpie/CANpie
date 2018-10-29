@@ -40,8 +40,6 @@
 #include <stdint.h>
 #include "qcan_defs.hpp"
 #include "qcan_frame.hpp"
-#include "qcan_frame_api.hpp"
-#include "qcan_frame_error.hpp"
 
 using namespace QCan;
 
@@ -75,7 +73,7 @@ public:
    enum InterfaceError_e {
       eERROR_CHANNEL = -4,
 
-      /*! Access to library / plugin failed           */
+      /*! Access to library / plug-in failed          */
       eERROR_LIBRARY = -3,
 
       /*! CAN interface error                         */
@@ -105,6 +103,29 @@ public:
       eERROR_FIFO_TRM_FULL
    };
 
+   /*!
+   ** \enum    ConnectionState_e
+   **
+   ** This enumeration describes the state of a CAN interface connection.
+   */
+   enum ConnectionState_e {
+
+      /*! CAN interface is not connected.                      */
+      UnconnectedState = 0,
+
+      /*! Driver is attempting to connect the CAN interface.   */
+      ConnectingState,
+
+      /*! CAN interface is connected.                          */
+      ConnectedState,
+
+      /*! CAN interface is connected and will be closed.       */
+      ClosingState,
+
+      /*! CAN interface has a failure.                         */
+      FailureState
+   };
+
    //---------------------------------------------------------------------------------------------------
    /*!
    ** \return  true if the interface settings have been changed
@@ -122,7 +143,7 @@ public:
    **
    ** Connect to the physical CAN interface.
    */
-   virtual InterfaceError_e connect(void) = 0;
+   virtual InterfaceError_e   connect(void) = 0;
 
 
    //---------------------------------------------------------------------------------------------------
@@ -132,7 +153,7 @@ public:
    **
    ** The function returns \c true if the interface is connected.
    */
-   virtual bool connected(void) = 0;
+   virtual ConnectionState_e  connectionState(void) = 0;
 
 
    //---------------------------------------------------------------------------------------------------
@@ -142,7 +163,13 @@ public:
    **
    ** Disconnect from the physical CAN interface.
    */
-   virtual InterfaceError_e disconnect(void) = 0;
+   virtual InterfaceError_e   disconnect(void) = 0;
+
+
+   virtual void               disableFeatures(uint32_t ulFeatureMaskV) = 0;
+
+   virtual void               enableFeatures(uint32_t ulFeatureMaskV) = 0;
+
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -164,16 +191,16 @@ public:
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \param[out] clDataR  Message stream
+   ** \param[out] clFrameR CAN frame
    ** \return     Status code defined by InterfaceError_e
-   ** \see        read()
+   ** \see        write()
    **
    ** The functions reads a CAN message (data or error frame) from the CAN interface. The data is
    ** copied to the QByteArray \a clDataR. If no message is available, the function will return the
    ** value eERROR_FIFO_RCV_EMPTY. On success the function returns eERROR_NONE.
    **
    */
-   virtual InterfaceError_e   read( QByteArray &clDataR) = 0;
+   virtual InterfaceError_e   read(QCanFrame &clFrameR) = 0;
 
    
    //---------------------------------------------------------------------------------------------------
@@ -208,18 +235,21 @@ public:
    */
    virtual InterfaceError_e	   setMode(const CAN_Mode_e teModeV) = 0;
 
+   virtual CAN_State_e        state(void) = 0;
 
    virtual InterfaceError_e   statistic(QCanStatistic_ts &clStatisticR) = 0;
 
+   //---------------------------------------------------------------------------------------------------
    /*!
    ** \return     Bit-mask defined by \ref QCAN_IF
+   ** \sa         disableFeatures() , enableFeatures()
    **
-   ** The return value is a bit-mask using values defined in the header
-   ** file qcan_defs.hpp.
+   ** The functions returns information about the supported features of a CAN interface. Possible
+   ** features are CAN FD support, Listen-Only support or detection of Error Frames. The return value
+   ** is a bit-mask using values defined inside the header file qcan_defs.hpp.
    **
    */
    virtual uint32_t           supportedFeatures(void) = 0;
-	
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -233,7 +263,7 @@ public:
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \param[in]  clFrameR CAN data frame
+   ** \param[in]  clFrameR CAN frame
    ** \return     Status code defined by InterfaceError_e
    ** \see        read()
    **
@@ -248,14 +278,23 @@ Q_SIGNALS:
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \param[in]  clMessageV - Logging message
-   ** \param[in]  teLogLevel - Logging level
+   ** \param[in]  clMessageR  - Logging message
+   ** \param[in]  teLogLevelR - Logging level
    **
    ** This signal is emitted by the CAN interface to inform the application about status changes or
    ** error conditions.
    **
    */
-   void addLogMessage(const QString & clMessageR, const LogLevel_e & teLogLevelR = eLOG_LEVEL_NOTICE);
+   void addLogMessage(const QString & clMessageR, const LogLevel_e & teLogLevelR = eLOG_LEVEL_WARN);
+
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]  teConnectionStateR - CAN interface connection state
+   **
+   ** This signal is emitted once when the connection state of the interface changes.
+   */
+   void connectionChanged(const QCanInterface::ConnectionState_e & teConnectionStateR);
 
 
    //---------------------------------------------------------------------------------------------------
