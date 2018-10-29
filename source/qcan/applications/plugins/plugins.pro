@@ -18,19 +18,26 @@ QMAKE_PROJECT_NAME = "CANpie plugins"
 #
 TEMPLATE = subdirs
 
-CONFIG += debug_and_release 
-
 #---------------------------------------------------------------
 # list of sub directories
 #
-SUBDIRS  =  ./qcan_peak 
+SUBDIRS  =  ./qcan_peak  		\
+            ./qcan_template	\
+            ./qcan_usart
 
+#---------------------------------------------------------------
+# project configuration and compiler options
+#
+CONFIG += debug_and_release
+CONFIG += warn_on
+CONFIG += C++11
+CONFIG += silent
 
 #---------------------------------------------------------------
 # IXXAT plugin is only available for Windows
 #
-win32 {
-	SUBDIRS  +=  ./qcan_ixxat
-}
+#win32 {
+#	SUBDIRS  +=  ./qcan_ixxat
+#}
 
 
