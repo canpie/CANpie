@@ -11,20 +11,26 @@
 #---------------------------------------------------------------
 # Name of QMake project
 #
-QMAKE_PROJECT_NAME = "applications"
+QMAKE_PROJECT_NAME = "QCan applications"
 
 #---------------------------------------------------------------
 # template type: run qmake projects in sub-directories
 #
 TEMPLATE = subdirs
 
-CONFIG += debug_and_release 
+#---------------------------------------------------------------
+# project configuration and compiler options
+#
+CONFIG += debug_and_release
+CONFIG += warn_on
+CONFIG += C++11
+CONFIG += silent
+
 
 #---------------------------------------------------------------
 # list of sub directories
 #
-SUBDIRS  = ./can-config  \
-           ./can-dump    \
+SUBDIRS  = ./can-dump    \
            ./can-error   \
            ./can-send    \
            ./server		 \
