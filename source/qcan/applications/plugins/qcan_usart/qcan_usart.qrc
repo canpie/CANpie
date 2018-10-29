@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/usart_plugin_256.png</file>
+        <file>images/usart_plugin_fail_256.png</file>
+    </qresource>
+</RCC>
