@@ -157,7 +157,7 @@ typedef uint8_t (* CpErrHandler_Fn)(CpState_ts   *ptsErrV);
 
 
 /*!
-** \brief      Set bitrate of CAN controller
+** \brief      Set bit-rate of CAN controller
 ** \param[in]  ptsPortV       Pointer to CAN port structure
 ** \param[in]  slNomBitRateV  Nominal Bit Timing selection
 ** \param[in]  slDatBitRateV  Data Bit Timing selection
@@ -209,6 +209,10 @@ CpStatus_tv CpCoreBitrate(CpPort_ts *ptsPortV, int32_t slNomBitRateV,
 **
 ** An allocated transmit buffer can be sent via the function
 ** CpCoreBufferSend().
+** <p>
+** The function initialises the DLC value of a message buffer to 0,
+** a subsequent call of CpCoreBufferSetDlc() is necessary to change
+** the default value.
 */
 CpStatus_tv CpCoreBufferConfig(CpPort_ts *ptsPortV,
                                uint8_t   ubBufferIdxV,
