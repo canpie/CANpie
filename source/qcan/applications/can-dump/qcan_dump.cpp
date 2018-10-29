@@ -27,9 +27,11 @@
 //============================================================================//
 
 #include "qcan_dump.hpp"
+
+#include "qcan_network_settings.hpp"
 #include "qcan_server_settings.hpp"
 
-#include <QCanFrameError>
+
 
 #include <QtCore/QDebug>
 
@@ -54,9 +56,9 @@ int main(int argc, char *argv[])
 
 
    QCanServerSettings   clServerSettingsT;
-   if (clServerSettingsT.isServerActive() == false)
+   if (clServerSettingsT.state() < QCanServerSettings::eSTATE_ACTIVE)
    {
-      fprintf(stdout, "%s \n", qPrintable("No CANpie Server running"));
+      fprintf(stdout, "CANpie FD server %s \n", qPrintable(clServerSettingsT.stateString()));
       exit(0);
    }
 
@@ -288,7 +290,12 @@ void QCanDump::socketConnected()
 {
    qDebug() << "Connected to CAN " << ubChannelP;
    qDebug() << "Quit time" << ulQuitTimeP;
+   QCanNetworkSettings * pclNetworkSettingsT = new QCanNetworkSettings((CAN_Channel_e)ubChannelP);
    
+   fprintf(stdout, "bit-rate %d\n", pclNetworkSettingsT->nominalBitrate());
+   fprintf(stdout, "Actual CAN network state: %s\n", qPrintable(pclNetworkSettingsT->stateString()));
+
+
    if ((btQuitNeverP == false) && (ulQuitTimeP > 0))
    {
       clActivityTimerP.setInterval(ulQuitTimeP);
@@ -334,12 +341,8 @@ void QCanDump::socketError(QAbstractSocket::SocketError teSocketErrorV)
 //----------------------------------------------------------------------------//
 void QCanDump::socketReceive(uint32_t ulFrameCntV)
 {
-   QByteArray     clCanDataT;
    QCanFrame      clCanFrameT;
-   QCanFrameApi   clCanApiT;
-   QCanFrameError clCanErrorT;
    QString        clCanStringT;
-   QCanData::Type_e  ubFrameTypeT;
    
    if ((btQuitNeverP == false) && (ulQuitTimeP > 0))
    {
@@ -348,38 +351,10 @@ void QCanDump::socketReceive(uint32_t ulFrameCntV)
    
    while(ulFrameCntV)
    {
-      if(clCanSocketP.read(clCanDataT, &ubFrameTypeT) == true)
+      if (clCanSocketP.read(clCanFrameT) == true)
       {
-         switch(ubFrameTypeT)
-         {
-            case QCanData::eTYPE_API:
-               if (clCanApiT.fromByteArray(clCanDataT) == true)
-               {
-                  clCanStringT = clCanApiT.toString(btTimeStampP);
-                  fprintf(stderr, "%s\n", qPrintable(clCanStringT));
-               }
-               break;
-               
-            case QCanData::eTYPE_CAN:
-               if (clCanFrameT.fromByteArray(clCanDataT) == true)
-               {
-                  clCanStringT = clCanFrameT.toString(btTimeStampP);
-                  fprintf(stderr, "%s\n", qPrintable(clCanStringT));
-               }
-               break;
-
-            case QCanData::eTYPE_ERROR:
-               if (clCanErrorT.fromByteArray(clCanDataT) == true)
-               {
-                  clCanStringT = clCanErrorT.toString(btTimeStampP);
-                  fprintf(stderr, "%s\n", qPrintable(clCanStringT));
-               }
-               break;
-            default:
-
-               break;
-               
-         }
+         clCanStringT = clCanFrameT.toString(btTimeStampP);
+         fprintf(stderr, "%s\n", qPrintable(clCanStringT));
       }
       ulFrameCntV--;
       ulQuitCountP--;

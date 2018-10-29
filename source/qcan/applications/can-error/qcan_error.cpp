@@ -108,7 +108,7 @@ QCanError::QCanError(QObject *parent) :
    ulFrameGapP   = 0;
    ulFrameCountP = 0;
 
-   teErrorTypeP  = QCanFrameError::eERROR_TYPE_NONE;
+   teErrorTypeP  = QCanFrame::eERROR_TYPE_NONE;
 
    //----------------------------------------------------------------
    // connect signals for socket operations
@@ -280,31 +280,31 @@ void QCanError::runCmdParser(void)
    //
    if (clCmdParserP.value(clOptErrTypeT).contains("NONE", Qt::CaseInsensitive))
    {
-      teErrorTypeP = QCanFrameError::eERROR_TYPE_NONE;
+      teErrorTypeP = QCanFrame::eERROR_TYPE_NONE;
    }
    else if (clCmdParserP.value(clOptErrTypeT).contains("BIT0", Qt::CaseInsensitive))
    {
-      teErrorTypeP = QCanFrameError::eERROR_TYPE_BIT0;
+      teErrorTypeP = QCanFrame::eERROR_TYPE_BIT0;
    }
    else if (clCmdParserP.value(clOptErrTypeT).contains("BIT1", Qt::CaseInsensitive))
    {
-      teErrorTypeP = QCanFrameError::eERROR_TYPE_BIT1;
+      teErrorTypeP = QCanFrame::eERROR_TYPE_BIT1;
    }
    else if (clCmdParserP.value(clOptErrTypeT).contains("STUFF", Qt::CaseInsensitive))
    {
-      teErrorTypeP = QCanFrameError::eERROR_TYPE_STUFF;
+      teErrorTypeP = QCanFrame::eERROR_TYPE_STUFF;
    }
    else if (clCmdParserP.value(clOptErrTypeT).contains("FORM", Qt::CaseInsensitive))
    {
-      teErrorTypeP = QCanFrameError::eERROR_TYPE_FORM;
+      teErrorTypeP = QCanFrame::eERROR_TYPE_FORM;
    }
    else if (clCmdParserP.value(clOptErrTypeT).contains("CRC", Qt::CaseInsensitive))
    {
-      teErrorTypeP = QCanFrameError::eERROR_TYPE_CRC;
+      teErrorTypeP = QCanFrame::eERROR_TYPE_CRC;
    }
    else if (clCmdParserP.value(clOptErrTypeT).contains("ACK", Qt::CaseInsensitive))
    {
-      teErrorTypeP = QCanFrameError::eERROR_TYPE_ACK;
+      teErrorTypeP = QCanFrame::eERROR_TYPE_ACK;
    }
    else
    {
@@ -363,7 +363,7 @@ void QCanError::sendErrorFrame(void)
    clSystemTimeT = QTime::currentTime();
    clCanTimeT.fromMilliSeconds(clSystemTimeT.msec());
    clErrorFrameP.setTimeStamp(clCanTimeT);
-   clCanSocketP.writeFrame(clErrorFrameP);
+   clCanSocketP.write(clErrorFrameP);
    
    if (ulFrameCountP > 1)
    {
@@ -389,6 +389,7 @@ void QCanError::socketConnected()
    //----------------------------------------------------------------
    // initial setup of CAN error frame
    //
+   clErrorFrameP.setFrameType(QCanFrame::eFRAME_TYPE_ERROR);
    clErrorFrameP.setErrorCounterReceive(ubRcvErrorCntP);
    clErrorFrameP.setErrorCounterTransmit(ubTrmErrorCntP);
    clErrorFrameP.setErrorType(teErrorTypeP);

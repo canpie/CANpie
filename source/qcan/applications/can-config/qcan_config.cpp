@@ -28,10 +28,11 @@
 
 #include "qcan_config.hpp"
 
-#include <QTime>
-#include <QTimer>
-#include <QDebug>
+#include <QtCore/QDebug>
+#include <QtCore/QTimer>
 
+#include "qcan_network_settings.hpp"
+#include "qcan_server_settings.hpp"
 
 //----------------------------------------------------------------------------//
 // main()                                                                     //
@@ -129,32 +130,32 @@ void QCanConfig::quit()
 }
 
 
-//----------------------------------------------------------------------------//
-// runCmdParser()                                                             //
-// 10ms after the application starts this method will parse all commands      //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanConfig::runCmdParser()                                                                                         //
+// 10ms after the application starts this method will parse all commands                                              //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanConfig::runCmdParser(void)
 {
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // setup command line parser
    //
    clCmdParserP.setApplicationDescription(tr("Configure CAN interface"));
    clCmdParserP.addHelpOption();
    
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // argument <interface> is required
    //
    clCmdParserP.addPositionalArgument("interface", 
                                       tr("CAN interface, e.g. can1"));
 
-   //-----------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // command line option: -a 
    //
    QCommandLineOption clOptAllT(QStringList() << "a" << "all", 
          tr("Show all CAN interfaces"));
    clCmdParserP.addOption(clOptAllT);
    
-   //-----------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // command line option: -H <host>
    //
    QCommandLineOption clOptHostT("H", 
@@ -162,7 +163,7 @@ void QCanConfig::runCmdParser(void)
          tr("host"));
    clCmdParserP.addOption(clOptHostT);
    
-   //-----------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // command line option: -m <mode>
    //
    QCommandLineOption clOptModeT(QStringList() << "m" << "mode", 
@@ -170,7 +171,7 @@ void QCanConfig::runCmdParser(void)
          tr("start|stop|listen-only"));
    clCmdParserP.addOption(clOptModeT);
    
-   //-----------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // command line option: -nbtr <value>
    //
    QCommandLineOption clOptNomBtrT("nbtr", 
@@ -178,7 +179,7 @@ void QCanConfig::runCmdParser(void)
          tr("value"));
    clCmdParserP.addOption(clOptNomBtrT);
    
-   //-----------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // command line option: -dbtr <value>
    //
    QCommandLineOption clOptDatBtrT("dbtr", 
@@ -190,29 +191,52 @@ void QCanConfig::runCmdParser(void)
    
    clCmdParserP.addVersionOption();
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // Process the actual command line arguments given by the user
    //
    clCmdParserP.process(*pclAppP);
    
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // Test for --all option
    //
    if(clCmdParserP.isSet(clOptAllT))
    {
+      QCanServerSettings   clServerT;
+      if (clServerT.state() == QCanServerSettings::eSTATE_ACTIVE)
+      {
+         fprintf(stdout, "%s %d.%d.%d \n",
+                 qPrintable(tr("CANpie FD server active, version:")),
+                 clServerT.versionMajor(),
+                 clServerT.versionMinor(),
+                 clServerT.versionBuild() );
+
+         fprintf(stdout, "%s %d \n",
+                 qPrintable(tr("Supported CAN networks:")),
+                 clServerT.networkCount() );
+         for (uint8_t ubCanChannelT = eCAN_CHANNEL_1; ubCanChannelT <= clServerT.networkCount(); ubCanChannelT++)
+         {
+            showNetworkSettings((CAN_Channel_e) ubCanChannelT);
+         }
+      }
+      else
+      {
+         fprintf(stdout, "%s \n",
+                 qPrintable(tr("No CANpie FD server active")));
+      }
       quit();
+      return;
    }
    
    const QStringList clArgsT = clCmdParserP.positionalArguments();
    if (clArgsT.size() != 1) 
    {
-      fprintf(stderr, "%s\n", 
+      fprintf(stdout, "%s\n",
               qPrintable(tr("Error: Must specify CAN interface.\n")));
       clCmdParserP.showHelp(0);
    }
 
    
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // test format of argument <interface>
    //
    QString clInterfaceT = clArgsT.at(0);
@@ -224,7 +248,7 @@ void QCanConfig::runCmdParser(void)
       clCmdParserP.showHelp(0);
    }
    
-   //-----------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // convert CAN channel to uint8_t value
    //
    QString clIfNumT = clInterfaceT.right(clInterfaceT.size() - 3);
@@ -238,13 +262,13 @@ void QCanConfig::runCmdParser(void)
       clCmdParserP.showHelp(0);
    }
    
-   //-----------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // store CAN interface channel (CAN_Channel_e)
    //
    ubChannelP = (uint8_t) (slChannelT);
 
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // set bit-rate
    //
    btConfigBitrateP = false;
@@ -271,7 +295,7 @@ void QCanConfig::runCmdParser(void)
       }
    }
    
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // set host address for socket
    //
    if(clCmdParserP.isSet(clOptHostT))
@@ -280,7 +304,7 @@ void QCanConfig::runCmdParser(void)
       clCanSocketP.setHostAddress(clAddressT);
    }
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // connect to CAN interface
    //
    clCanSocketP.connectNetwork((CAN_Channel_e) ubChannelP);
@@ -295,11 +319,58 @@ void QCanConfig::sendCommand(void)
 {
    if (btConfigBitrateP)
    {
-      clCanApiP.setBitrate(slNomBitRateP, slDatBitRateP);
-      clCanSocketP.writeFrame(clCanApiP);
+      //clCanApiP.setBitrate(slNomBitRateP, slDatBitRateP);
+      //clCanSocketP.writeFrame(clCanApiP);
    }
    
    QTimer::singleShot(50, this, SLOT(quit()));
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanConfig::showNetworkSettings()                                                                                  //
+// show settings of selected CAN network                                                                              //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanConfig::showNetworkSettings(CAN_Channel_e teCanChannelV)
+{
+   QCanNetworkSettings clNetworkT;
+   clNetworkT.setChannel(teCanChannelV);
+
+   //---------------------------------------------------------------------------------------------------
+   // network name
+   //
+   fprintf(stdout, "Network   : %s \n", qPrintable(clNetworkT.name()) );
+
+   //---------------------------------------------------------------------------------------------------
+   // network state
+   //
+   fprintf(stdout, "CAN state : %s \n", qPrintable(clNetworkT.stateString()) );
+
+   //---------------------------------------------------------------------------------------------------
+   // bit-rate settings
+   //
+   if (clNetworkT.dataBitrate() == eCAN_BITRATE_NONE)
+   {
+      fprintf(stdout, "Bit-rate  : %s \n", qPrintable(clNetworkT.nominalBitrateString()) );
+   }
+   else
+   {
+      fprintf(stdout, "Bit-rate  : %s (nominal), %s (data) \n",
+              qPrintable(clNetworkT.nominalBitrateString()),
+              qPrintable(clNetworkT.dataBitrateString())        );
+   }
+
+   fprintf(stdout, "\n");
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanConfig::showServerSettings()                                                                                   //
+// show settings of CAN server                                                                                        //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanConfig::showServerSettings(void)
+{
+
 }
 
 

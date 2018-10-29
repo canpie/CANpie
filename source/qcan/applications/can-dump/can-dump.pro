@@ -111,10 +111,8 @@ HEADERS =   qcan_socket.hpp            \
 #---------------------------------------------------------------
 # source files of project 
 #
-SOURCES =   qcan_data.cpp              \
-            qcan_frame.cpp             \
-            qcan_frame_api.cpp         \
-            qcan_frame_error.cpp       \
+SOURCES =   qcan_frame.cpp             \
+            qcan_network_settings.cpp  \
             qcan_server_settings.cpp   \
             qcan_socket.cpp            \
             qcan_timestamp.cpp         \

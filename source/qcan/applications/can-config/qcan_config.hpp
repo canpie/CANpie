@@ -54,13 +54,15 @@ public slots:
    
 private:
 
+   void  showNetworkSettings(CAN_Channel_e teCanChannelV);
+   void  showServerSettings(void);
+
    QCoreApplication *   pclAppP;
 
    QCommandLineParser   clCmdParserP;
    QCanSocket           clCanSocketP;
    uint8_t              ubChannelP;
    
-   QCanFrameApi         clCanApiP;
    int32_t              slNomBitRateP;
    int32_t              slDatBitRateP;
    CAN_Mode_e           teCanModeP;

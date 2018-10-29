@@ -373,7 +373,7 @@ void QCanSend::sendFrame(void)
    clCanTimeT.fromMilliSeconds(clSystemTimeT.msec());
    clCanFrameP.setTimeStamp(clCanTimeT);
    
-   clCanSocketP.writeFrame(clCanFrameP);
+   clCanSocketP.write(clCanFrameP);
    
    if (ulFrameCountP > 1)
    {
@@ -467,7 +467,7 @@ void QCanSend::socketConnected()
    //----------------------------------------------------------------
    // initial setup of CAN frame
    //
-   clCanFrameP.setFrameFormat((QCanFrame::Format_e) ubFrameFormatP);
+   clCanFrameP.setFrameFormat((QCanFrame::FrameFormat_e) ubFrameFormatP);
    clCanFrameP.setIdentifier(ulFrameIdP);
    clCanFrameP.setDlc(ubFrameDlcP);
    for(uint8_t ubCntT = 0; ubCntT < clCanFrameP.dataSize(); ubCntT++)
