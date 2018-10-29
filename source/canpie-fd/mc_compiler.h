@@ -280,6 +280,7 @@ typedef  bool                 bool_t;
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   UNUSED_ ## x __attribute__((unused))
 #endif
+#define  CPP_NULL             0
 
 typedef  int8_t               Status_tv;
 
@@ -549,6 +550,14 @@ typedef  uint8_t              bool_t;
 #define  CPP_PARM_UNUSED(x)   x
 #endif
 
+//--------------------------------------------------------------
+// IAR C does not support the C99 standard, so the keywords
+// are defined here
+//
+#define  inline
+#define  true                 1
+#define  false                0
+
 #include <stdint.h>
 
 typedef  int32_t              Status_tv;
@@ -764,22 +773,31 @@ typedef  long long            int64_t;
 #define  CPP_CONST
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE
+#define  CPP_NULL             (void *) 0
 #define  CPP_PACK
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   __attribute__((unused)) x
 #endif
 
-typedef  short                Status_tv;
+//--------------------------------------------------------------
+// XC does not support the C99 standard, so the keywords
+// are defined here
+//
+#define  inline
+#define  true                 1
+#define  false                0
 
-typedef  unsigned char        bool_t;
-typedef  unsigned char        uint8_t;
-typedef  signed char          int8_t;
-typedef  unsigned short       uint16_t;
-typedef  short                int16_t;
-typedef  unsigned long        uint32_t;
-typedef  long                 int32_t;
-typedef  unsigned long long   uint64_t;
-typedef  long long            int64_t;
+#include <stdint.h>
+#include <stdbool.h>
+
+typedef  int32_t              Status_tv;
+
+#ifndef __cplusplus
+typedef  _Bool                bool_t;
+#else
+typedef  bool                 bool_t;
+#endif
+
 
 #endif
 // End of definition: __XC16
@@ -952,6 +970,14 @@ typedef  long                 int32_t;
 
 #define  CPP_NULL             (void *) 0
 
+//--------------------------------------------------------------
+// RX compiler does not support the C99 standard, so the keywords
+// are defined here
+//
+#define  inline
+#define  true                 1
+#define  false                0
+
 typedef  int32_t              Status_tv;
 
 #ifndef __cplusplus
@@ -1009,6 +1035,11 @@ typedef  long long            int64_t;
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
 #endif
+
+#define  CPP_NULL             (void *) 0
+
+#include <stdbool.h>
+
 
 typedef  short                Status_tv;
 
