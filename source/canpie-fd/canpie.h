@@ -273,7 +273,7 @@
 **
 ** This symbol defines the driver version minor value.
 */
-#define  CP_VERSION_MINOR           2
+#define  CP_VERSION_MINOR           4
 
 
 //-----------------------------------------------------------------------------
@@ -942,7 +942,14 @@ enum CpBufferDir_e
 */
 typedef struct CpTime_s
 {
+   /*!
+   ** Seconds since the year 1970
+   */
    uint32_t  ulSec1970;
+
+   /*!
+   ** Nano-seconds, with an overflow value of 999999999
+   */
    uint32_t  ulNanoSec;
 } CpTime_ts;
 
