@@ -324,10 +324,10 @@ void  CpMsgInit(CpCanMsg_ts *ptsCanMsgV, uint8_t ubFormatV)
 
 
 //----------------------------------------------------------------------------//
-// CpMsgIsBitrateSwitch()                                                     //
+// CpMsgIsBitrateSwitchSet()                                                  //
 //                                                                            //
 //----------------------------------------------------------------------------//
-bool_t  CpMsgIsBitrateSwitch(const CpCanMsg_ts *ptsCanMsgV)
+bool_t  CpMsgIsBitrateSwitchSet(const CpCanMsg_ts *ptsCanMsgV)
 {
    bool_t btResultT = false;
 
@@ -373,10 +373,10 @@ bool_t  CpMsgIsExtended(const CpCanMsg_ts *ptsCanMsgV)
 
 
 //----------------------------------------------------------------------------//
-// CpMsgIsFastData()                                                          //
+// CpMsgIsFdFrame()                                                           //
 //                                                                            //
 //----------------------------------------------------------------------------//
-bool_t  CpMsgIsFastData(const CpCanMsg_ts *ptsCanMsgV)
+bool_t  CpMsgIsFdFrame(const CpCanMsg_ts *ptsCanMsgV)
 {
    bool_t btResultT = false;
 

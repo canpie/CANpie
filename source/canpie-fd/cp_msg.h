@@ -264,7 +264,7 @@ void      CpMsgInit(CpCanMsg_ts *ptsCanMsgV, uint8_t ubFormatV);
 ** frame and the bit-rate switch (BRS) bit is set, the value \c true
 ** is returned.
 */
-bool_t    CpMsgIsBitrateSwitch(const CpCanMsg_ts *ptsCanMsgV);
+bool_t    CpMsgIsBitrateSwitchSet(const CpCanMsg_ts *ptsCanMsgV);
 
 
 //------------------------------------------------------------------------------
@@ -289,7 +289,7 @@ bool_t   CpMsgIsExtended(const CpCanMsg_ts *ptsCanMsgV);
 ** This function checks the frame type. If the frame is a CAN FD frame
 ** CAN 2.0B (Extended Frame), the value \c true is returned.
 */
-bool_t   CpMsgIsFastData(const CpCanMsg_ts *ptsCanMsgV);
+bool_t   CpMsgIsFdFrame(const CpCanMsg_ts *ptsCanMsgV);
 
 //------------------------------------------------------------------------------
 /*!
@@ -490,13 +490,13 @@ void  CpMsgSetTime(CpCanMsg_ts *ptsCanMsgV, const CpTime_ts *ptsTimeV);
             (MSG_PTR)->ubMsgDLC  = 0;                             \
          } while(0)
 
-#define  CpMsgIsBitrateSwitch(MSG_PTR)                            \
+#define  CpMsgIsBitrateSwitchSet(MSG_PTR)                         \
             ( (MSG_PTR)->ubMsgCtrl & CP_MSG_CTRL_BRS_BIT  )
 
 #define  CpMsgIsExtended(MSG_PTR)                                 \
             ( (MSG_PTR)->ubMsgCtrl & CP_MSG_CTRL_EXT_BIT )
 
-#define  CpMsgIsFastData(MSG_PTR)                                 \
+#define  CpMsgIsFdFrame(MSG_PTR)                                  \
             ( (MSG_PTR)->ubMsgCtrl & CP_MSG_CTRL_FDF_BIT  )
 
 #define  CpMsgIsOverrun(MSG_PTR)                                  \
