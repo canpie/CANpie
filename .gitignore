@@ -1,0 +1,26 @@
+#--------------------------------------------------------------------
+# ignore Mac OS files
+**/.DS_Store
+
+#--------------------------------------------------------------------
+# ignore Eclipse settings
+.settings/
+
+#--------------------------------------------------------------------
+# ignore the bin folder
+bin/
+
+#--------------------------------------------------------------------
+# ignore hidden qmake files
+**/.qmake.stash
+
+#--------------------------------------------------------------------
+# ignore html folder inside docs
+docs/html
+docs/.DS_Store
+
+#--------------------------------------------------------------------
+# ignore objs folder, except README.md which is maintained by hand
+objs
+!objs/README.md
+
