@@ -207,11 +207,12 @@ typedef  long                 int32_t;
 #include <stdbool.h>          // boolean definitions
 #include <stdint.h>           // data types uint8_t ... uint64_t
 
+#define  CPP_ALIGN(x)         __attribute__ ((aligned(x)))
 #define  CPP_COMPILER         __VERSION__
 #define  CPP_CONST            const
 #define  CPP_DATA_SIZE        64
 #define  CPP_INLINE           __inline
-#define  CPP_PACK             __attribute__ ((packed))
+#define  CPP_PACK             __attribute__((packed))
 #define  CPP_PARM_UNUSED(x)   UNUSED_ ## x __attribute__((unused))
 #define  CPP_NULL             (void *) 0
 
@@ -236,10 +237,11 @@ typedef  bool                 bool_t;
 #include <stdbool.h>
 #include <stdint.h>           // data types uint8_t ... uint64_t
 
+#define  CPP_ALIGN(x)         __attribute__ ((aligned(x)))
 #define  CPP_CONST            const
 #define  CPP_DATA_SIZE        64
 #define  CPP_INLINE           __inline
-#define  CPP_PACK             __attribute__ ((packed))
+#define  CPP_PACK             __attribute__((packed))
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   UNUSED_ ## x __attribute__((unused))
 #endif
@@ -358,15 +360,16 @@ typedef  uint8_t              bool_t;
 #include <stdint.h>        // data types uint8_t ... uint32_t, user space
 #endif
 
+
+#define  CPP_ALIGN(x)         __attribute__ ((aligned(x)))
+#define  CPP_COMPILER         __VERSION__
 #define  CPP_CONST            const
 #define  CPP_DATA_SIZE        64
 #define  CPP_INLINE           __inline
-#define  CPP_PACK             __attribute__ ((packed))
-#ifndef  CPP_PARM_UNUSED
+#define  CPP_PACK             __attribute__((packed))
 #define  CPP_PARM_UNUSED(x)   UNUSED_ ## x __attribute__((unused))
-#endif
+#define  CPP_NULL             (void *) 0
 
-#define  CPP_NULL             0
 #define  CPP_BIG_ENDIAN       0     // 0: Litte endian, 1: Big endian
 
 typedef  int32_t              Status_tv;
@@ -548,6 +551,7 @@ typedef  uint8_t              bool_t;
 #define  CPP_PACK
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
+#define  CPP_NULL             0
 #endif
 
 //--------------------------------------------------------------
