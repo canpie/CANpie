@@ -182,6 +182,12 @@ CpCanMsg_ts *CpFifoDataInPtr(CpFifo_ts *ptsFifoV);
 */
 CpCanMsg_ts *CpFifoDataOutPtr(CpFifo_ts *ptsFifoV);
 
+/*!
+** \brief   Get number of free elements
+** \param   ptsFifoV - Pointer to CAN message FIFO
+** \return  Number of free elements
+*/
+uint32_t CpFifoFree(CpFifo_ts *ptsFifoV);
 
 /*!
 ** \brief   Increment data in pointer
@@ -253,6 +259,12 @@ bool_t CpFifoIsEmpty(CpFifo_ts *ptsFifoV);
 */
 bool_t CpFifoIsFull(CpFifo_ts *ptsFifoV);
 
+/*!
+** \brief   Get number of pending elements
+** \param   ptsFifoV - Pointer to CAN message FIFO
+** \return  Number of pending elements
+*/
+uint32_t CpFifoPending(CpFifo_ts *ptsFifoV);
 
 
 //-------------------------------------------------------------------//

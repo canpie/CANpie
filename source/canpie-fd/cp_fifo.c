@@ -85,6 +85,37 @@ CPP_INLINE CpCanMsg_ts *CpFifoDataOutPtr(CpFifo_ts *ptsFifoV)
 
 
 //----------------------------------------------------------------------------//
+// CpFifoFree()                                                               //
+//                                                                            //
+//----------------------------------------------------------------------------//
+CPP_INLINE uint32_t CpFifoFree(CpFifo_ts *ptsFifoV)
+{
+   uint32_t ulFreeT;
+
+   if (ptsFifoV->ulState == 0x0001)
+   {
+      ulFreeT = ptsFifoV->ulIndexMax;
+   }
+   else if (ptsFifoV->ulState == 0x0002)
+   {
+      ulFreeT = 0;
+   }
+   else
+   {
+      if (ptsFifoV->ulIndexIn > ptsFifoV->ulIndexOut)
+      {
+         ulFreeT = (ptsFifoV->ulIndexMax - (ptsFifoV->ulIndexIn - ptsFifoV->ulIndexOut));
+      } else
+      {
+         ulFreeT = (ptsFifoV->ulIndexOut - ptsFifoV->ulIndexIn);
+      }
+   }
+
+   return (ulFreeT);
+}
+
+
+//----------------------------------------------------------------------------//
 // CpFifoIncIn()                                                              //
 //                                                                            //
 //----------------------------------------------------------------------------//
@@ -178,5 +209,36 @@ CPP_INLINE bool_t CpFifoIsFull(CpFifo_ts *ptsFifoV)
    return (btResultT);
 
 }
+
+//----------------------------------------------------------------------------//
+// CpFifoPending()                                                            //
+//                                                                            //
+//----------------------------------------------------------------------------//
+CPP_INLINE uint32_t CpFifoPending(CpFifo_ts *ptsFifoV)
+{
+   uint32_t ulPendingT;
+
+   if (ptsFifoV->ulState == 0x0001)
+   {
+      ulPendingT = 0;
+   }
+   else if (ptsFifoV->ulState == 0x0002)
+   {
+      ulPendingT = ptsFifoV->ulIndexMax;
+   }
+   else
+   {
+      if (ptsFifoV->ulIndexOut > ptsFifoV->ulIndexIn)
+      {
+         ulPendingT = (ptsFifoV->ulIndexMax - (ptsFifoV->ulIndexOut - ptsFifoV->ulIndexIn));
+      } else
+      {
+         ulPendingT = (ptsFifoV->ulIndexIn - ptsFifoV->ulIndexOut);
+      }
+   }
+
+   return (ulPendingT);
+}
+
 
 #endif   // CP_FIFO_MACRO == 0
