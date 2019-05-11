@@ -83,8 +83,10 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
+#ifndef  CP_PLATFORM
 #include "mc_compiler.h"
 #include "cp_platform.h"       // Architecture dependent definitions
+#endif
 
 
 /*----------------------------------------------------------------------------*\
@@ -273,7 +275,7 @@
 **
 ** This symbol defines the driver version minor value.
 */
-#define  CP_VERSION_MINOR           4
+#define  CP_VERSION_MINOR           6
 
 
 //-----------------------------------------------------------------------------
@@ -1070,12 +1072,12 @@ typedef struct CpHdi_s
 {
 
    /*!
-   ** Major version number of CANpie driver
+   ** Major version number of CANpie API
    */
    uint8_t  ubVersionMajor;
 
    /*!
-   ** Minor version number of CANpie driver
+   ** Minor version number of CANpie API
    */
    uint8_t  ubVersionMinor;
 
@@ -1118,9 +1120,19 @@ typedef struct CpHdi_s
    uint8_t ubBufferMax;
 
    /*!
+   ** Major version number of driver
+   */
+   uint8_t ubDriverMajor;
+
+   /*!
+   ** Minor version number of driver
+   */
+   uint8_t ubDriverMinor;
+
+   /*!
    ** reserved element (alignment)
    */
-   uint8_t uwReserved[3];
+   uint8_t ubReserved[1];
 
    /*!
    ** Resolution of optional time stamp in nano-seconds.
