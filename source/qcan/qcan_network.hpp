@@ -146,6 +146,7 @@ public:
    */
 	QString nominalBitrateString(void);
 
+   inline CAN_Channel_e channel()      { return ((CAN_Channel_e) ubIdP) ;  };
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -312,9 +313,6 @@ public:
    ** CANpie::CAN_Bitrate_e.
    */
 	void setBitrate(int32_t slNomBitRateV, int32_t slDatBitRateV = eCAN_BITRATE_NONE);
-
-
-	void setBitrateFrameEnabled(bool btEnableV = true)    { btBitrateFrameEnabledP = btEnableV; };
 
 
    //---------------------------------------------------------------------------------------------------
@@ -537,7 +535,6 @@ private:
       eFRAME_SOURCE_SOCKET_TCP
    };
 
-   inline CAN_Channel_e channel()      { return ((CAN_Channel_e) ubIdP) ;  };
 
    bool  handleCanFrame(enum FrameSource_e teFrameSrcV, const int32_t slSockSrcV, const QByteArray clSockDataV);
 
@@ -562,7 +559,7 @@ private:
 
    //----------------------------------------------------------------
    // Management of local sockets:  a QLocalServer (pclLocalSrvP) is
-   // used to handle a fixed number of QTcpSockets (pclTcpSockListP)
+   // used to handle a fixed number of QLocalSockets (pclLocalSockListP)
    //
    QPointer<QLocalServer>  pclLocalSrvP;
    QVector<QLocalSocket*>* pclLocalSockListP;
@@ -623,7 +620,7 @@ private:
    bool                    btFlexibleDataEnabledP;
    bool                    btListenOnlyEnabledP;
    bool                    btNetworkEnabledP;
-   bool                    btBitrateFrameEnabledP;
+   bool                    btBitrateChangeEnabledP;
 
    //----------------------------------------------------------------
    // Data exchange via shared memory

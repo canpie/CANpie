@@ -41,35 +41,40 @@
 
 #include "qcan_server_memory.hpp"
 
-/*----------------------------------------------------------------------------*\
-** Definitions                                                                **
-**                                                                            **
-\*----------------------------------------------------------------------------*/
 
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Definitions                                                                                                        **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
+
+
+//------------------------------------------------------------------------------------------------------
+// Defines the cycle time of the onTimerEvent() method
+//
 #define  REFRESH_TIMER_CYCLE_PERIOD          500
 
 
 
-/*----------------------------------------------------------------------------*\
-** Static variables                                                           **
-**                                                                            **
-\*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Static variables                                                                                                   **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
 uint8_t  QCanNetwork::ubNetIdP = 0;
 
 static uint32_t   aulDlc2Bitlength[] = { 0,  8,  16,  24,  32,  40,  48,  56, 
                                         64, 96, 128, 160, 192, 256, 384, 512  };
 
-/*----------------------------------------------------------------------------*\
-** Static functions                                                           **
-**                                                                            **
-\*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Static functions                                                                                                   **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
 
 
-//----------------------------------------------------------------------------//
-// getBitrate()                                                               //
-// The functions converts the enumeration value CAN_Bitrate_e to a value      //                                                                 
-// using the unit [bit/s]                                                     //                      
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// getBitrate()                                                                                                       //
+// The functions converts the enumeration value CAN_Bitrate_e to a value using the unit [bit/s]                       //
+//--------------------------------------------------------------------------------------------------------------------//
+
 static int32_t getBitrate(int32_t slPreDefValueV)
 {
    int32_t slBitrateT;
@@ -132,10 +137,11 @@ static int32_t getBitrate(int32_t slPreDefValueV)
    return (slBitrateT);
 }
 
-/*----------------------------------------------------------------------------*\
-** Class methods                                                              **
-**                                                                            **
-\*----------------------------------------------------------------------------*/
+
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Class methods                                                                                                      **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
 
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -211,7 +217,7 @@ QCanNetwork::QCanNetwork(QObject * pclParentV, uint16_t  uwPortV, QSharedMemory 
    btErrorFrameEnabledP    = false;
    btListenOnlyEnabledP    = false;
    btFlexibleDataEnabledP  = false;
-   btBitrateFrameEnabledP  = false;
+   btBitrateChangeEnabledP = false;
 
    //---------------------------------------------------------------------------------------------------
    // setup default bit-rate
@@ -240,13 +246,16 @@ QCanNetwork::QCanNetwork(QObject * pclParentV, uint16_t  uwPortV, QSharedMemory 
    if ((pclSettingsP != 0L) && pclSettingsP->isAttached() )
    {
       qDebug() << "QCanNetwork(" << channel() << ") -- Set default values in shared memory";
-      pclSettingsP->lock();
-      ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
+      if (pclSettingsP->lock())
+      {
+         ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
 
-      ptsSettingsT->atsNetwork[ubIdP - 1].slNomBitRate = slNomBitRateP;
-      ptsSettingsT->atsNetwork[ubIdP - 1].slDatBitRate = slDatBitRateP;
-      ptsSettingsT->atsNetwork[ubIdP - 1].slStatus     = teCanStateP;
-      strcpy(&(ptsSettingsT->atsNetwork[ubIdP - 1].szInterfaceName[0]), "Virtual CAN");
+         ptsSettingsT->atsNetwork[ubIdP - 1].slFlags      = 0;
+         ptsSettingsT->atsNetwork[ubIdP - 1].slStatus     = teCanStateP;
+         ptsSettingsT->atsNetwork[ubIdP - 1].slNomBitRate = slNomBitRateP;
+         ptsSettingsT->atsNetwork[ubIdP - 1].slDatBitRate = slDatBitRateP;
+         strcpy(&(ptsSettingsT->atsNetwork[ubIdP - 1].szInterfaceName[0]), "Virtual CAN");
+      }
       pclSettingsP->unlock();
    }
 
@@ -1175,6 +1184,19 @@ void QCanNetwork::onTimerEvent(void)
       //
       ulFrameCntSaveP = ulCntFrameCanP;
       
+      //--------------------------------------------------------------------------------------
+      // store values in shared memory
+      //
+      if ((pclSettingsP != 0L) && pclSettingsP->isAttached() )
+      {
+         pclSettingsP->lock();
+         ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
+
+         ptsSettingsT->atsNetwork[ubIdP - 1].ubBusLoad     = ubBusLoadP;
+         ptsSettingsT->atsNetwork[ubIdP - 1].ulCntFrameCan = ulCntFrameCanP;
+         ptsSettingsT->atsNetwork[ubIdP - 1].ulCntFrameErr = ulCntFrameErrP;
+         pclSettingsP->unlock();
+      }
 
       //--------------------------------------------------------------------------------------
       // set new value for start time
@@ -1182,7 +1204,6 @@ void QCanNetwork::onTimerEvent(void)
       clStatisticTimeP.restart();
    }
    
-
 }
 
 
@@ -1308,6 +1329,7 @@ void QCanNetwork::setBitrate(int32_t slNomBitRateV, int32_t slDatBitRateV)
 }
 
 
+
 //--------------------------------------------------------------------------------------------------------------------//
 // QCanNetwork::setCanState()                                                                                         //
 //                                                                                                                    //
@@ -1315,6 +1337,8 @@ void QCanNetwork::setBitrate(int32_t slNomBitRateV, int32_t slDatBitRateV)
 void QCanNetwork::setCanState(CAN_State_e teStateV)
 {
    teCanStateP = teStateV;
+
+   qDebug() << "QCanNetwork::setCanState(" << teStateV << ")";
 
    //---------------------------------------------------------------------------------------------------
    // store value in shared memory
@@ -1341,6 +1365,9 @@ void QCanNetwork::setCanState(CAN_State_e teStateV)
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanNetwork::setErrorFrameEnabled(bool btEnableV)
 {
+   qDebug() << "QCanNetwork::setErrorFrameEnabled(" << btEnableV << ")";
+
+
    //---------------------------------------------------------------------------------------------------
    // Test if error frame support is available before setting the private member
    //
@@ -1373,6 +1400,24 @@ void QCanNetwork::setErrorFrameEnabled(bool btEnableV)
       addLogMessage(CAN_Channel_e (id()), "CAN error frame support disabled", eLOG_LEVEL_INFO);
    }
 
+   //---------------------------------------------------------------------------------------------------
+   // update shared memory
+   //
+   if ((pclSettingsP != 0L) && pclSettingsP->isAttached() )
+   {
+      pclSettingsP->lock();
+      ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
+
+      if (btErrorFrameEnabledP)
+      {
+         ptsSettingsT->atsNetwork[ubIdP - 1].slFlags |= QCAN_NETWORK_FLAG_ERROR_FRAME;
+      }
+      else
+      {
+         ptsSettingsT->atsNetwork[ubIdP - 1].slFlags &= ~QCAN_NETWORK_FLAG_ERROR_FRAME;
+      }
+      pclSettingsP->unlock();
+   }
 }
 
 
@@ -1413,6 +1458,26 @@ void QCanNetwork::setFlexibleDataEnabled(bool btEnableV)
       }
       addLogMessage(CAN_Channel_e (id()), "CAN FD support disabled", eLOG_LEVEL_INFO);
    }
+
+   //---------------------------------------------------------------------------------------------------
+   // update shared memory
+   //
+   if ((pclSettingsP != 0L) && pclSettingsP->isAttached() )
+   {
+      pclSettingsP->lock();
+      ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
+
+      if (btFlexibleDataEnabledP)
+      {
+         ptsSettingsT->atsNetwork[ubIdP - 1].slFlags |= QCAN_NETWORK_FLAG_CAN_FD;
+      }
+      else
+      {
+         ptsSettingsT->atsNetwork[ubIdP - 1].slFlags &= ~QCAN_NETWORK_FLAG_CAN_FD;
+      }
+      pclSettingsP->unlock();
+   }
+
 }
 
 
@@ -1470,6 +1535,25 @@ void QCanNetwork::setListenOnlyEnabled(bool btEnableV)
       addLogMessage(CAN_Channel_e (id()), "Listen-only support disabled", eLOG_LEVEL_INFO);
    }
 
+   //---------------------------------------------------------------------------------------------------
+   // update shared memory
+   //
+   if ((pclSettingsP != 0L) && pclSettingsP->isAttached() )
+   {
+      pclSettingsP->lock();
+      ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
+
+      if (btListenOnlyEnabledP)
+      {
+         ptsSettingsT->atsNetwork[ubIdP - 1].slFlags |= QCAN_NETWORK_FLAG_LISTEN_ONLY;
+      }
+      else
+      {
+         ptsSettingsT->atsNetwork[ubIdP - 1].slFlags &= ~QCAN_NETWORK_FLAG_LISTEN_ONLY;
+      }
+      pclSettingsP->unlock();
+   }
+
 }
 
 
@@ -1485,7 +1569,7 @@ void QCanNetwork::setNetworkEnabled(bool btEnableV)
       //-------------------------------------------------------------------------------------------
       // limit the number of connections for local server
       //
-      pclLocalSrvP->setMaxPendingConnections(QCAN_TCP_SOCKET_MAX);
+      pclLocalSrvP->setMaxPendingConnections(QCAN_LOCAL_SOCKET_MAX);
       pclLocalSrvP->setSocketOptions(QLocalServer::WorldAccessOption);
       if(!pclLocalSrvP->listen(QString("CANpieServerChannel%1").arg(ubIdP)))
       {
@@ -1583,6 +1667,25 @@ void QCanNetwork::setNetworkEnabled(bool btEnableV)
 
    }
 
+   //---------------------------------------------------------------------------------------------------
+   // update shared memory
+   //
+   if ((pclSettingsP != 0L) && pclSettingsP->isAttached() )
+   {
+      pclSettingsP->lock();
+      ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
+
+      if (btNetworkEnabledP)
+      {
+         ptsSettingsT->atsNetwork[ubIdP - 1].slFlags |= QCAN_NETWORK_FLAG_ENABLED;
+      }
+      else
+      {
+         ptsSettingsT->atsNetwork[ubIdP - 1].slFlags &= ~QCAN_NETWORK_FLAG_ENABLED;
+      }
+      pclSettingsP->unlock();
+   }
+
 }
 
 
@@ -1666,6 +1769,7 @@ bool QCanNetwork::stopInterface(void)
 
    if (pclInterfaceP.isNull() == false)
    {
+      pclInterfaceP->setMode(eCAN_MODE_INIT);
       addLogMessage(CAN_Channel_e (id()),
                     "Remove CAN interface ... : " + pclInterfaceP->name(),
                     eLOG_LEVEL_INFO);
