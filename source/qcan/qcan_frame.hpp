@@ -99,6 +99,12 @@ using namespace QCan;
 
 
 //----------------------------------------------------------------------------------------------------------------
+// Define a forward reference to the structure CpCanMsg_s, which is defined inside the header canpie.h
+//
+struct CpCanMsg_s;
+
+
+//----------------------------------------------------------------------------------------------------------------
 /*!
 ** \class   QCanFrame
 **
@@ -435,10 +441,22 @@ public:
    ** \return     Conversion result
    ** \see        toByteArray()
    **
-   ** The function converts a QByteArray object to a QCanFrame object. On success, the functions returns
+   ** The function converts a QByteArray object to a QCanFrame object. On success, the function returns
    ** \c true, otherwise \c false.
    */
    bool        fromByteArray(const QByteArray & clByteArrayR);
+
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]  ptsCanMsgV   Pointer to CANpie message structure
+   ** \return     Conversion result
+   ** \see        toCpCanMsg()
+   **
+   ** The function converts a structure of type CpCanMsg_ts to a QCanFrame object. On success, the
+   ** function returns \c true, otherwise \c false.
+   */
+   bool        fromCpCanMsg(const struct CpCanMsg_s * ptsCanMsgV);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -718,8 +736,19 @@ public:
    ** The function converts a QCanFrame object to a QByteArray. The size of the array is defined by
    ** #QCAN_FRAME_ARRAY_SIZE.
    */
-   QByteArray  toByteArray() const;
+   QByteArray  toByteArray(void) const;
    
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]  ptsCanMsgV   Pointer to CANpie message structure
+   ** \return     Conversion result
+   ** \see        fromCpCanMsg()
+   **
+   ** The function converts a QCanFrame to a structure of type CpCanMsg_ts. On success, the
+   ** function returns \c true, otherwise \c false.
+   */
+   bool        toCpCanMsg(struct CpCanMsg_s * ptsCanMsgV) const;
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -746,11 +775,9 @@ public:
    
    uint32_t    user(void) const;
              
-   friend QDataStream & operator<< (QDataStream & clStreamR, 
-                                    const QCanFrame & clCanFrameR);
+   friend QDataStream & operator<< (QDataStream & clStreamR, const QCanFrame & clCanFrameR);
    
-   friend QDataStream & operator>> (QDataStream & clStreamR, 
-                                    QCanFrame & clCanFrameR);
+   friend QDataStream & operator>> (QDataStream & clStreamR, QCanFrame & clCanFrameR);
    
 private:
    
