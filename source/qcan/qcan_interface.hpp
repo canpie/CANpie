@@ -51,6 +51,9 @@ using namespace QCan;
 ** The QCanInterface class describes one physical CAN interface. The CAN interface is typically implemented
 ** inside a CAN plug-in (see QCanPlugin). After connection to the CAN interface (see connect()) the use can
 ** read and write CAN frames via this hardware.
+** <p>
+** If the QCanInterface class is used for console applications, (i.e. no Qt GUI support), the definition
+** QCAN_NO_QT_GUI must be set.
 */
 class QCanInterface : public QObject
 {
@@ -175,9 +178,12 @@ public:
    /*!
    ** \return     Icon
    **
-   ** The function returns an icon for the physical CAN interface.
+   ** The function returns an icon for the physical CAN interface. In case an application is compiled
+   ** without Qt GUI support, the definition QCAN_NO_QT_GUI must be set.
    */
+   #ifndef QCAN_NO_QT_GUI
    virtual QIcon icon(void) = 0;
+   #endif
 
 
    //---------------------------------------------------------------------------------------------------
