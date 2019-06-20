@@ -40,10 +40,28 @@
 **                                                                                                                    **
 \*--------------------------------------------------------------------------------------------------------------------*/
 
-#define  QCAN_MEMORY_KEY         "QCAN_SERVER_SHARED_KEY"
+#define  QCAN_MEMORY_KEY                  "QCAN_SERVER_SHARED_KEY"
 
-#define  QCAN_IF_NAME_LENGTH     64
+#define  QCAN_IF_NAME_LENGTH              64
 
+#define  QCAN_SERVER_FLAG_ALLOW_BITRATE   ((int32_t) 0x00000001)
+#define  QCAN_SERVER_FLAG_ALLOW_MODE      ((int32_t) 0x00000002)
+#define  QCAN_SERVER_FLAG_ALLOW_RECOVERY  ((int32_t) 0x00000004)
+
+#define  QCAN_NETWORK_FLAG_ENABLED        ((int32_t) 0x00000001)
+#define  QCAN_NETWORK_FLAG_LISTEN_ONLY    ((int32_t) 0x00000002)
+#define  QCAN_NETWORK_FLAG_ERROR_FRAME    ((int32_t) 0x00000004)
+#define  QCAN_NETWORK_FLAG_CAN_FD         ((int32_t) 0x00000008)
+
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Enumerations                                                                                                       **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
+enum Server_Command_e {
+   eSERVER_CMD_BITRATE = 1,
+   eSERVER_CMD_MODE,
+   eSERVER_CMD_RESET
+};
 
 /*--------------------------------------------------------------------------------------------------------------------*\
 ** Structures                                                                                                         **
@@ -87,21 +105,37 @@ typedef struct Server_s {
    //
    int64_t  sqDateTimeActual;
 
-   int32_t  slReserved[56];
+   int32_t  slFlags;
+   int32_t  slReserved[55];
 
 } Server_ts;
 
+//-----------------------------------------------------------------------------------------------------
+// Server command
+//
+typedef struct ServerSocketCommand_s {
+   uint8_t  ubCommand;
+   uint8_t  ubChannel;
+   uint8_t  ubReserved[2];
+   int32_t  slParameter[2];
+   uint32_t ulReserved[5];
+} ServerSocketCommand_ts;
 
 //-----------------------------------------------------------------------------------------------------
 // Network
 //
 typedef struct Network_s {
-   int32_t  slActive;
+   int32_t  slFlags;
    int32_t  slStatus;
    int32_t  slNomBitRate;
    int32_t  slDatBitRate;
    char     szInterfaceName[QCAN_IF_NAME_LENGTH];
-   int32_t  slReserved[108];
+   uint32_t ulCntFrameCan;
+   uint32_t ulCntFrameErr;
+   uint32_t ulReserved[6];
+   uint8_t  ubBusLoad;
+   uint8_t  ubReserved[7];
+   int32_t  slReserved[98];
 } Network_ts;
 
 typedef struct ServerSettings_s {
