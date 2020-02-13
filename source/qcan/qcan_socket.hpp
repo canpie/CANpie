@@ -180,6 +180,7 @@ public:
    */
    bool  read(QCanFrame & clFrameR);
 
+   bool  waitForReadyRead(int32_t slMilliSecondsV = 30000);
    
    //---------------------------------------------------------------------------------------------------
    /*!

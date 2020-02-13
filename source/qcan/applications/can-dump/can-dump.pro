@@ -22,6 +22,7 @@ TEMPLATE = app
 # Qt modules used
 #
 QT += core network
+QT -= gui
 
 #---------------------------------------------------------------
 # target file name
@@ -58,8 +59,8 @@ CONFIG += console
 # version of the application
 #
 VERSION_MAJOR = 0
-VERSION_MINOR = 82
-VERSION_BUILD = 1
+VERSION_MINOR = 86
+VERSION_BUILD = 04
 
 
 #---------------------------------------------------------------
@@ -104,7 +105,8 @@ VPATH += ./../../../qcan
 #---------------------------------------------------------------
 # header files of project 
 #
-HEADERS =   qcan_socket.hpp            \
+HEADERS =   qcan_server_settings.hpp   \
+            qcan_socket.hpp            \
             qcan_dump.hpp
                 
             
@@ -112,7 +114,6 @@ HEADERS =   qcan_socket.hpp            \
 # source files of project 
 #
 SOURCES =   qcan_frame.cpp             \
-            qcan_network_settings.cpp  \
             qcan_server_settings.cpp   \
             qcan_socket.cpp            \
             qcan_timestamp.cpp         \
@@ -153,6 +154,29 @@ macx {
    #
    QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
    
+   #--------------------------------------------------
+   # Specify the install directory for the target
+   # /usr/local/bin
+   #
+   target.path  = /usr/local/bin
+   INSTALLS += target
+}
+
+unix:!macx{
+   CONFIG(debug, debug|release) {
+      message("Building '$$QMAKE_PROJECT_NAME' DEBUG version for Linux ...")
+   } else {
+      message("Building '$$QMAKE_PROJECT_NAME' RELEASE version for Linux ...")
+      DEFINES += QT_NO_WARNING_OUTPUT
+      DEFINES += QT_NO_DEBUG_OUTPUT
+   }
+
+   #--------------------------------------------------
+   # Specify the install directory for the target
+   # /usr/local/bin
+   #
+   target.path  = /usr/local/bin
+   INSTALLS += target
 }
 
 win32 {

@@ -253,35 +253,71 @@ void QCanSocket::disconnectNetwork(void)
 }
 
 
-//----------------------------------------------------------------------------//
-// error()                                                                    //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanSocket::error()                                                                                                //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 QAbstractSocket::SocketError QCanSocket::error() const
 {
    return((QAbstractSocket::SocketError) slSocketErrorP);
 }
 
 
-//----------------------------------------------------------------------------//
-// errorString()                                                              //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanSocket::errorString()                                                                                          //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 QString QCanSocket::errorString() const
 {
-   if (btIsLocalConnectionP == false)
-   {
-      return (pclTcpSockP->errorString());
-   }
-   return (pclLocalSockP->errorString());
+   QString  clErrorT;
 
+   switch (slSocketErrorP)
+   {
+      case QAbstractSocket::ConnectionRefusedError:
+         clErrorT = qPrintable(tr("connection refused or timed out.")                           );
+         break;
+
+      case QAbstractSocket::RemoteHostClosedError:
+         clErrorT = qPrintable(tr("server closed the connection.")                              );
+         break;
+
+      case QAbstractSocket::HostNotFoundError:
+         clErrorT = qPrintable(tr("server address was not found.")                              );
+         break;
+
+      case QAbstractSocket::SocketAccessError:
+         clErrorT = qPrintable(tr("application lacked the required privileges.")                );
+         break;
+
+      case QAbstractSocket::SocketResourceError:
+         clErrorT = qPrintable(tr("local system ran out of resources.")                         );
+         break;
+
+      case QAbstractSocket::SocketTimeoutError:
+         clErrorT = qPrintable(tr("operation timed out.")                                       );
+         break;
+
+      case QAbstractSocket::NetworkError:
+         clErrorT = qPrintable(tr("error occurred with the network (e.g. cable plugged out.")   );
+         break;
+
+      case QAbstractSocket::AddressInUseError:
+         clErrorT = qPrintable(tr("address is already in use.")                                 );
+         break;
+
+      default:
+         clErrorT = qPrintable(tr("unknown reason")                                             );
+         break;
+   }
+
+   return (clErrorT);
 }
 
 
-//----------------------------------------------------------------------------//
-// framesAvailable()                                                          //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanSocket::framesAvailable()                                                                                      //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 int32_t QCanSocket::framesAvailable(void) const
 {
    uint32_t    ulFrameCountT;
@@ -494,6 +530,27 @@ void QCanSocket::setHostAddress(QHostAddress clHostAddressV)
          btIsLocalConnectionP = false;
       }
    }
+}
+
+bool QCanSocket::waitForReadyRead(int32_t slMilliSecondsV)
+{
+   bool  btResultT = false;
+
+   if (btIsConnectedP == true)
+   {
+
+      if (btIsLocalConnectionP == false)
+      {
+         btResultT = pclTcpSockP->waitForReadyRead(slMilliSecondsV);
+      }
+      else
+      {
+         btResultT = pclLocalSockP->waitForReadyRead(slMilliSecondsV);
+      }
+   }
+
+   return(btResultT);
+
 }
 
 //----------------------------------------------------------------------------//

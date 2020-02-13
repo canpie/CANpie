@@ -1,75 +1,75 @@
-//============================================================================//
-// File:          qcan_dump.cpp                                               //
-// Description:   Dump CAN messages                                           //
-//                                                                            //
-// Copyright (C) MicroControl GmbH & Co. KG                                   //
-// 53844 Troisdorf - Germany                                                  //
-// www.microcontrol.net                                                       //
-//                                                                            //
-//----------------------------------------------------------------------------//
-// Redistribution and use in source and binary forms, with or without         //
-// modification, are permitted provided that the following conditions         //
-// are met:                                                                   //
-// 1. Redistributions of source code must retain the above copyright          //
-//    notice, this list of conditions, the following disclaimer and           //
-//    the referenced file 'LICENSE'.                                          //
-// 2. Redistributions in binary form must reproduce the above copyright       //
-//    notice, this list of conditions and the following disclaimer in the     //
-//    documentation and/or other materials provided with the distribution.    //
-// 3. Neither the name of MicroControl nor the names of its contributors      //
-//    may be used to endorse or promote products derived from this software   //
-//    without specific prior written permission.                              //
-//                                                                            //
-// Provided that this notice is retained in full, this software may be        //
-// distributed under the terms of the GNU Lesser General Public License       //
-// ("LGPL") version 3 as distributed in the 'LICENSE' file.                   //
-//                                                                            //
-//============================================================================//
+//====================================================================================================================//
+// File:          qcan_dump.cpp                                                                                       //
+// Description:   Dump CAN messages                                                                                   //
+//                                                                                                                    //
+// Copyright (C) MicroControl GmbH & Co. KG                                                                           //
+// 53844 Troisdorf - Germany                                                                                          //
+// www.microcontrol.net                                                                                               //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the   //
+// following conditions are met:                                                                                      //
+// 1. Redistributions of source code must retain the above copyright notice, this list of conditions, the following   //
+//    disclaimer and the referenced file 'LICENSE'.                                                                   //
+// 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the       //
+//    following disclaimer in the documentation and/or other materials provided with the distribution.                //
+// 3. Neither the name of MicroControl nor the names of its contributors may be used to endorse or promote products   //
+//    derived from this software without specific prior written permission.                                           //
+//                                                                                                                    //
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance     //
+// with the License. You may obtain a copy of the License at                                                          //
+//                                                                                                                    //
+//    http://www.apache.org/licenses/LICENSE-2.0                                                                      //
+//                                                                                                                    //
+// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed   //
+// on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for  //
+// the specific language governing permissions and limitations under the License.                                     //
+//                                                                                                                    //
+//====================================================================================================================//
+
+
+
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Include files                                                                                                      **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
 
 #include "qcan_dump.hpp"
 
-#include "qcan_network_settings.hpp"
 #include "qcan_server_settings.hpp"
-
-
 
 #include <QtCore/QDebug>
 
 
 
-//----------------------------------------------------------------------------//
-// main()                                                                     //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// main()                                                                                                             //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 int main(int argc, char *argv[])
 {
    QCoreApplication clAppT(argc, argv);
    QCoreApplication::setApplicationName("can-dump");
    
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // get application version (defined in .pro file)
    //
    QString clVersionT;
-   clVersionT += QString("%1.%2.").arg(VERSION_MAJOR).arg(VERSION_MINOR);
-   clVersionT += QString("%1").arg(VERSION_BUILD);
+   clVersionT += QString("%1.").arg(VERSION_MAJOR);
+   clVersionT += QString("%1.").arg(VERSION_MINOR, 2, 10, QLatin1Char('0'));
+   clVersionT += QString("%1,").arg(VERSION_BUILD, 2, 10, QLatin1Char('0'));
+   clVersionT += " build on ";
+   clVersionT += __DATE__;
    QCoreApplication::setApplicationVersion(clVersionT);
 
 
-   QCanServerSettings   clServerSettingsT;
-   if (clServerSettingsT.state() < QCanServerSettings::eSTATE_ACTIVE)
-   {
-      fprintf(stdout, "CANpie FD server %s \n", qPrintable(clServerSettingsT.stateString()));
-      exit(0);
-   }
-
-
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // create the main class
    //
    QCanDump clMainT;
 
    
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // connect the signals
    //
    QObject::connect(&clMainT, SIGNAL(finished()),
@@ -79,10 +79,9 @@ int main(int argc, char *argv[])
                     &clMainT, SLOT(aboutToQuitApp()));
 
    
-   //----------------------------------------------------------------
-   // This code will start the messaging engine in QT and in 10 ms 
-   // it will start the execution in the clMainT.runCmdParser() 
-   // routine.
+   //---------------------------------------------------------------------------------------------------
+   // This code will start the messaging engine in QT and in 10 ms it will start the execution of the
+   // clMainT.runCmdParser() routine.
    //
    QTimer::singleShot(10, &clMainT, SLOT(runCmdParser()));
 
@@ -90,20 +89,20 @@ int main(int argc, char *argv[])
 }
 
 
-//----------------------------------------------------------------------------//
-// QCanDump()                                                                 //
-// constructor                                                                //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanDump()                                                                                                         //
+// constructor                                                                                                        //
+//--------------------------------------------------------------------------------------------------------------------//
 QCanDump::QCanDump(QObject *parent) :
-    QObject(parent)
+          QObject(parent)
 {
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // get the instance of the main application
    //
    pclAppP = QCoreApplication::instance();
 
    
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // connect signals for socket operations
    //
    QObject::connect(&clCanSocketP, SIGNAL(connected()),
@@ -117,24 +116,39 @@ QCanDump::QCanDump(QObject *parent) :
 
    QObject::connect(&clCanSocketP, SIGNAL(framesReceived(uint32_t)),
                     this, SLOT(socketReceive(uint32_t)));
+
+   //---------------------------------------------------------------------------------------------------
+   // set default values
+   //
+   ubChannelP         = eCAN_CHANNEL_NONE;
+   btTimeStampP       = false;
+   btErrorFramesP     = false;
+   btQuitNeverP       = false;
+   ulQuitTimeP        =  0;
+   ulQuitCountP       = 0;
+   btIsTcpConnectionP = false;
+
+   //---------------------------------------------------------------------------------------------------
+   // create QServerSettings object
+   //
+   pclServerP = new QCanServerSettings();
 }
 
 
-// shortly after quit is called the CoreApplication will signal this routine
-// this is a good place to delete any objects that were created in the
-// constructor and/or to stop any threads
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanDump::aboutToQuitApp()                                                                                         //
+// shortly after quit is called the CoreApplication will signal this routine: delete objects / clean up               //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanDump::aboutToQuitApp()
 {
-    // stop threads
-    // sleep(1);   // wait for threads to stop.
-    // delete any objects
+   delete (pclServerP);
 }
 
 
-//----------------------------------------------------------------------------//
-// quit()                                                                     //
-// call this routine to quit the application                                  //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanDump::quit()                                                                                                   //
+// call this routine to quit the application                                                                          //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanDump::quit()
 {
    if((btQuitNeverP == false) && (ulQuitTimeP > 0))
@@ -149,27 +163,31 @@ void QCanDump::quit()
 }
 
 
-//----------------------------------------------------------------------------//
-// runCmdParser()                                                             //
-// 10ms after the application starts this method will parse all commands      //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanDump::runCmdParser()                                                                                           //
+// 10ms after the application starts this method will parse all commands                                              //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanDump::runCmdParser()
 {
-   //----------------------------------------------------------------
-   // setup command line parser
+   //---------------------------------------------------------------------------------------------------
+   // setup command line parser, options are added in alphabetical order
    //
    clCmdParserP.setApplicationDescription(tr("Show messages of CAN interface"));
+
+
+   //---------------------------------------------------------------------------------------------------
+   // command line option: -h, --help
+   //
    clCmdParserP.addHelpOption();
-   clCmdParserP.addVersionOption();
 
    
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // argument <interface> is required
    //
    clCmdParserP.addPositionalArgument("interface", 
                                       tr("CAN interface, e.g. can1"));
 
-   //-----------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // command line option: -H <host>
    //
    QCommandLineOption clOptHostT("H", 
@@ -177,7 +195,7 @@ void QCanDump::runCmdParser()
          tr("host"));
    clCmdParserP.addOption(clOptHostT);
 
-   //-----------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // command line option: -n <count>
    //
    QCommandLineOption clOptCountT("n", 
@@ -185,14 +203,14 @@ void QCanDump::runCmdParser()
          tr("count"));
    clCmdParserP.addOption(clOptCountT);
    
-   //-----------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // command line option: -t 
    //
    QCommandLineOption clOptTimeStampT("t", 
          tr("Show time-stamp"));
    clCmdParserP.addOption(clOptTimeStampT);
 
-   //-----------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // command line option: -T 
    //
    QCommandLineOption clOptTimeOutT("T", 
@@ -201,8 +219,13 @@ void QCanDump::runCmdParser()
          "0");
    clCmdParserP.addOption(clOptTimeOutT);
 
+   //---------------------------------------------------------------------------------------------------
+   // command line option: -v, --version
+   //
+   clCmdParserP.addVersionOption();
 
-   //----------------------------------------------------------------
+
+   //---------------------------------------------------------------------------------------------------
    // Process the actual command line arguments given by the user
    //
    clCmdParserP.process(*pclAppP);
@@ -215,7 +238,7 @@ void QCanDump::runCmdParser()
    }
 
    
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // test format of argument <interface>
    //
    QString clInterfaceT = clArgsT.at(0);
@@ -227,7 +250,7 @@ void QCanDump::runCmdParser()
       clCmdParserP.showHelp(0);
    }
    
-   //-----------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // convert CAN channel to uint8_t value
    //
    QString clIfNumT = clInterfaceT.right(clInterfaceT.size() - 3);
@@ -241,19 +264,19 @@ void QCanDump::runCmdParser()
       clCmdParserP.showHelp(0);
    }
    
-   //-----------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // store CAN interface channel (CAN_Channel_e)
    //
    ubChannelP = (uint8_t) (slChannelT);
 
    
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // check for time-stamp
    //
    btTimeStampP = clCmdParserP.isSet(clOptTimeStampT);
 
    
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // check for termination options
    //
    btQuitNeverP = true;
@@ -265,16 +288,29 @@ void QCanDump::runCmdParser()
    }
    
    
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // set host address for socket
    //
-   if(clCmdParserP.isSet(clOptHostT))
+   if (clCmdParserP.isSet(clOptHostT))
    {
       QHostAddress clAddressT = QHostAddress(clCmdParserP.value(clOptHostT));
       clCanSocketP.setHostAddress(clAddressT);
+      btIsTcpConnectionP = true;
    }
+   else
+   {
+      //-------------------------------------------------------------------------------------------
+      // check to local server state and print error if it is not active
+      //
+      if (pclServerP->state() < QCanServerSettings::eSTATE_ACTIVE)
+      {
+         fprintf(stdout, "CANpie FD server %s \n", qPrintable(pclServerP->stateString()));
+         exit(0);
+      }
+   }
+
    
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // connect to CAN interface
    //
    clCanSocketP.connectNetwork((CAN_Channel_e) ubChannelP);
@@ -282,19 +318,79 @@ void QCanDump::runCmdParser()
 }
 
 
-//----------------------------------------------------------------------------//
-// socketConnected()                                                          //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanDump::showNetworkSettings()                                                                                    //
+// show settings of selected CAN network                                                                              //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanDump::showNetworkSettings(CAN_Channel_e teCanChannelV)
+{
+   if (teCanChannelV <= pclServerP->networkCount())
+   {
+      fprintf(stdout, "--------------------------------------------------------------------------------\n");
+
+      //-------------------------------------------------------------------------------------------
+      // network name
+      //
+      fprintf(stdout, "CAN %d         : %s \n", teCanChannelV,
+              qPrintable(pclServerP->networkName(teCanChannelV)) );
+
+      //-------------------------------------------------------------------------------------------
+      // network configuration
+      //
+      fprintf(stdout, "Configuration : %s \n",
+              qPrintable(pclServerP->networkConfigurationString(teCanChannelV)) );
+
+      //-------------------------------------------------------------------------------------------
+      // network state
+      //
+      fprintf(stdout, "CAN state     : %s \n",
+              qPrintable(pclServerP->networkStateString(teCanChannelV)) );
+
+      //-------------------------------------------------------------------------------------------
+      // bit-rate settings
+      //
+      if (pclServerP->networkDataBitrate() == eCAN_BITRATE_NONE)
+      {
+         fprintf(stdout, "Bit-rate      : %s \n",
+                 qPrintable(pclServerP->networkNominalBitrateString(teCanChannelV)) );
+      }
+      else
+      {
+         fprintf(stdout, "Bit-rate      : %s (nominal), %s (data) \n",
+                 qPrintable(pclServerP->networkNominalBitrateString(teCanChannelV)),
+                 qPrintable(pclServerP->networkDataBitrateString(teCanChannelV))        );
+      }
+
+      fprintf(stdout, "--------------------------------------------------------------------------------\n");
+   }
+   else
+   {
+      fprintf(stdout, "CAN interface not available\n");
+   }
+
+   fprintf(stdout, "\n");
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanDump::socketConnected()                                                                                        //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanDump::socketConnected()
 {
    qDebug() << "Connected to CAN " << ubChannelP;
    qDebug() << "Quit time" << ulQuitTimeP;
-   QCanNetworkSettings * pclNetworkSettingsT = new QCanNetworkSettings((CAN_Channel_e)ubChannelP);
-   
-   fprintf(stdout, "bit-rate %d\n", pclNetworkSettingsT->nominalBitrate());
-   fprintf(stdout, "Actual CAN network state: %s\n", qPrintable(pclNetworkSettingsT->stateString()));
 
+   if (btIsTcpConnectionP == false)
+   {
+      showNetworkSettings((CAN_Channel_e) ubChannelP);
+   }
+   else
+   {
+      fprintf(stdout, "--------------------------------------------------------------------------------\n");
+      fprintf(stdout, "Connected to remote server\n");
+      fprintf(stdout, "--------------------------------------------------------------------------------\n");
+   }
 
    if ((btQuitNeverP == false) && (ulQuitTimeP > 0))
    {
@@ -306,10 +402,10 @@ void QCanDump::socketConnected()
 }
 
 
-//----------------------------------------------------------------------------//
-// socketDisconnected()                                                       //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanDump::socketDisconnected()                                                                                     //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanDump::socketDisconnected()
 {
    qDebug() << "Disconnected from CAN " << ubChannelP;
@@ -317,28 +413,28 @@ void QCanDump::socketDisconnected()
 }
 
 
-//----------------------------------------------------------------------------//
-// socketError()                                                              //
-// show error message and quit                                                //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanDump::socketError()                                                                                            //
+// Show error message and quit                                                                                        //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanDump::socketError(QAbstractSocket::SocketError teSocketErrorV)
 {
-   Q_UNUSED(teSocketErrorV);  // parameter not used 
+   Q_UNUSED (teSocketErrorV);
    
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // show error message in case the connection to the network fails
    //
    fprintf(stderr, "%s %s\n", 
-           qPrintable(tr("Failed to connect to CAN interface:")),
+           qPrintable(tr("Connection to CAN network failed:")),
            qPrintable(clCanSocketP.errorString()));
    quit();
 }
 
 
-//----------------------------------------------------------------------------//
-// socketReceive()                                                            //
-// show messages that are available                                           //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanDump::socketReceive()                                                                                          //
+// Show messages that are available                                                                                   //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanDump::socketReceive(uint32_t ulFrameCntV)
 {
    QCanFrame      clCanFrameT;
@@ -364,12 +460,3 @@ void QCanDump::socketReceive(uint32_t ulFrameCntV)
       }
    }
 }
-
-
-
-
-
-
-
-
-

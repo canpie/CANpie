@@ -61,8 +61,6 @@
 \*----------------------------------------------------------------------------*/
 
 
-#define  CP_AUTOBAUD                0
-
 #define  CP_BUFFER_MAX              32
 
 #define  CP_CAN_FD                  1
@@ -80,6 +78,8 @@
 #define  CP_SMALL_CODE              0
 
 #define  CP_STATISTIC               1
+
+#define  CP_PLATFORM                1
 
 
 

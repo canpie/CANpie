@@ -39,6 +39,9 @@
 #include <QtCore/QObject>
 #include <QtCore/QSharedMemory>
 
+#include <QtNetwork/QLocalServer>
+#include <QtNetwork/QLocalSocket>
+
 #include "qcan_network.hpp"
 
 
@@ -77,6 +80,9 @@ public:
 
    void           enableBitrateChange(bool btEnabledV = true);
 
+   void           enableBusOffRecovery(bool btEnabledV = true);
+
+   void           enableModeChange(bool btEnabledV = true);
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -105,6 +111,7 @@ public:
    */
    QHostAddress  serverAddress(void)     { return (clServerAddressP);  };
 
+
    //---------------------------------------------------------------------------------------------------
    /*!
    ** \param[in]  clHostAddressV - Host address
@@ -114,23 +121,70 @@ public:
    void          setServerAddress(QHostAddress clHostAddressV);
 
 
-
-
 private slots:
 
    void          onTimerEvent(void);
 
 private:
 
-   void          initSettings(void);
+   void          initSettings();
 
    void          releaseSettings(void);
 
    QHostAddress               clServerAddressP;
    QVector<QCanNetwork *> *   pclListNetsP;
-   QSharedMemory *            pclSettingsP;
    QTimer *                   pclTimerP;
+
+   uint16_t                   uwPortStartP;
+   uint8_t                    ubNetworkMaxP;
+
+   //---------------------------------------------------------------------------------------------------
+   // The QCanServer allocates shared memory for data exchange between the server and clients.
+   // The shared memory is read-only for the clients, client access is done via QCanServerSettings.
+   //
+   QSharedMemory *            pclSettingsP;
    bool                       btMemoryAttachedP;
+
+   //---------------------------------------------------------------------------------------------------
+   // Management of local sockets:  a QLocalServer (pclLocalSrvP) is
+   // used to handle a fixed number of QLocalSockets (pclLocalSockListP)
+   //
+   QPointer<QLocalServer>     pclLocalSrvP;
+   QVector<QLocalSocket*>*    pclLocalSockListP;
+   QMutex                     clLocalSockMutexP;
+
+   //---------------------------------------------------------------------------------------------------
+   // This flag keeps the information if bit-rate change is possible via a local client, default
+   // value is 'false';
+   //
+   bool                       btAllowBitrateChangeP;
+
+   //---------------------------------------------------------------------------------------------------
+   // This flag keeps the information if a network can recover from bus-off state autonomously.
+   //
+   bool                       btAllowBusOffRecoverP;
+
+   //---------------------------------------------------------------------------------------------------
+   // This flag keeps the information if CAN mode change is possible via a local client, default
+   // value is 'false';
+   //
+   bool                       btAllowCanModeChangeP;
+
+private slots:
+   /*!
+   ** This slot is called upon local socket connection.
+   */
+   void onLocalSocketConnect(void);
+
+   /*!
+   ** This slot is called upon local socket disconnection.
+   */
+   void onLocalSocketDisconnect(void);
+
+   /*!
+   ** This slot is called when new data is available on any open local socket.
+   */
+   void onLocalSocketNewData(void);
 };
 
 #endif // QCAN_SERVER_HPP_

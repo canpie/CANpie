@@ -1,64 +1,74 @@
-//============================================================================//
-// File:          qcan_config.cpp                                             //
-// Description:   Configure CAN interface                                     //
-//                                                                            //
-// Copyright (C) MicroControl GmbH & Co. KG                                   //
-// 53844 Troisdorf - Germany                                                  //
-// www.microcontrol.net                                                       //
-//                                                                            //
-//----------------------------------------------------------------------------//
-// Redistribution and use in source and binary forms, with or without         //
-// modification, are permitted provided that the following conditions         //
-// are met:                                                                   //
-// 1. Redistributions of source code must retain the above copyright          //
-//    notice, this list of conditions, the following disclaimer and           //
-//    the referenced file 'LICENSE'.                                          //
-// 2. Redistributions in binary form must reproduce the above copyright       //
-//    notice, this list of conditions and the following disclaimer in the     //
-//    documentation and/or other materials provided with the distribution.    //
-// 3. Neither the name of MicroControl nor the names of its contributors      //
-//    may be used to endorse or promote products derived from this software   //
-//    without specific prior written permission.                              //
-//                                                                            //
-// Provided that this notice is retained in full, this software may be        //
-// distributed under the terms of the GNU Lesser General Public License       //
-// ("LGPL") version 3 as distributed in the 'LICENSE' file.                   //
-//                                                                            //
-//============================================================================//
+//====================================================================================================================//
+// File:          qcan_config.cpp                                                                                     //
+// Description:   Configure CAN interface                                                                             //
+//                                                                                                                    //
+// Copyright (C) MicroControl GmbH & Co. KG                                                                           //
+// 53844 Troisdorf - Germany                                                                                          //
+// www.microcontrol.net                                                                                               //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the   //
+// following conditions are met:                                                                                      //
+// 1. Redistributions of source code must retain the above copyright notice, this list of conditions, the following   //
+//    disclaimer and the referenced file 'LICENSE'.                                                                   //
+// 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the       //
+//    following disclaimer in the documentation and/or other materials provided with the distribution.                //
+// 3. Neither the name of MicroControl nor the names of its contributors may be used to endorse or promote products   //
+//    derived from this software without specific prior written permission.                                           //
+//                                                                                                                    //
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance     //
+// with the License. You may obtain a copy of the License at                                                          //
+//                                                                                                                    //
+//    http://www.apache.org/licenses/LICENSE-2.0                                                                      //
+//                                                                                                                    //
+// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed   //
+// on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for  //
+// the specific language governing permissions and limitations under the License.                                     //
+//                                                                                                                    //
+//====================================================================================================================//
+
+
+
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Include files                                                                                                      **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
 
 #include "qcan_config.hpp"
 
 #include <QtCore/QDebug>
 #include <QtCore/QTimer>
 
-#include "qcan_network_settings.hpp"
-#include "qcan_server_settings.hpp"
 
-//----------------------------------------------------------------------------//
-// main()                                                                     //
-//                                                                            //
-//----------------------------------------------------------------------------//
+
+//--------------------------------------------------------------------------------------------------------------------//
+// main()                                                                                                             //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 int main(int argc, char *argv[])
 {
    QCoreApplication clAppT(argc, argv);
    QCoreApplication::setApplicationName("can-config");
    
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // get application version (defined in .pro file)
    //
    QString clVersionT;
-   clVersionT += QString("%1.%2.").arg(VERSION_MAJOR).arg(VERSION_MINOR);
-   clVersionT += QString("%1").arg(VERSION_BUILD);
+   clVersionT += QString("%1.").arg(VERSION_MAJOR);
+   clVersionT += QString("%1.").arg(VERSION_MINOR, 2, 10, QLatin1Char('0'));
+   clVersionT += QString("%1,").arg(VERSION_BUILD, 2, 10, QLatin1Char('0'));
+   clVersionT += " build on ";
+   clVersionT += __DATE__;
    QCoreApplication::setApplicationVersion(clVersionT);
 
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // create the main class
    //
    QCanConfig clMainT;
 
    
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // connect the signals
    //
    QObject::connect(&clMainT, SIGNAL(finished()),
@@ -68,10 +78,9 @@ int main(int argc, char *argv[])
                     &clMainT, SLOT(aboutToQuitApp()));
 
    
-   //----------------------------------------------------------------
-   // This code will start the messaging engine in QT and in 10 ms 
-   // it will start the execution in the clMainT.runCmdParser() 
-   // routine.
+   //---------------------------------------------------------------------------------------------------
+   // This code will start the messaging engine in QT and in 10 ms  it will start the execution in the
+   // clMainT.runCmdParser() routine.
    //
    QTimer::singleShot(10, &clMainT, SLOT(runCmdParser()));
 
@@ -79,53 +88,51 @@ int main(int argc, char *argv[])
 }
 
 
-//----------------------------------------------------------------------------//
-// QCanConfig()                                                                 //
-// constructor                                                                //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanConfig()                                                                                                       //
+// constructor                                                                                                        //
+//--------------------------------------------------------------------------------------------------------------------//
 QCanConfig::QCanConfig(QObject *parent) :
     QObject(parent)
 {
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // get the instance of the main application
    //
    pclAppP = QCoreApplication::instance();
 
-   
-   //----------------------------------------------------------------
-   // connect signals for socket operations
+   //---------------------------------------------------------------------------------------------------
+   // set default values
    //
-   QObject::connect(&clCanSocketP, SIGNAL(connected()),
-                    this, SLOT(socketConnected()));
+   teCanChannelP    = eCAN_CHANNEL_NONE;
+   slNomBitRateP    = eCAN_BITRATE_NONE;
+   slDatBitRateP    = eCAN_BITRATE_NONE;
+   teCanModeP       = eCAN_MODE_SELF_TEST;
+   btConfigBitrateP = false;
+   btResetCanIfP    = false;
 
-   QObject::connect(&clCanSocketP, SIGNAL(disconnected()),
-                    this, SLOT(socketDisconnected()));
-   
-   QObject::connect(&clCanSocketP, SIGNAL(error(QAbstractSocket::SocketError)),
-                    this, SLOT(socketError(QAbstractSocket::SocketError)));
-   
+   //---------------------------------------------------------------------------------------------------
+   // create QServerSettings object
+   //
+   pclServerSettingsP = new QCanServerSettings();
 }
 
-// shortly after quit is called the CoreApplication will signal this routine
-// this is a good place to delete any objects that were created in the
-// constructor and/or to stop any threads
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanConfig::aboutToQuitApp()                                                                                       //
+// shortly after quit is called the CoreApplication will signal this routine: delete objects / clean up               //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanConfig::aboutToQuitApp()
 {
-    // stop threads
-    // sleep(1);   // wait for threads to stop.
-    // delete any objects
+   delete (pclServerSettingsP);
 }
 
 
-//----------------------------------------------------------------------------//
-// quit()                                                                     //
-// call this routine to quit the application                                  //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanConfig::quit()                                                                                                 //
+// call this routine to quit the application                                                                          //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanConfig::quit()
 {
-   //qDebug() << "I will quit soon";
-   clCanSocketP.disconnectNetwork();
-
    emit finished();
 }
 
@@ -137,9 +144,14 @@ void QCanConfig::quit()
 void QCanConfig::runCmdParser(void)
 {
    //---------------------------------------------------------------------------------------------------
-   // setup command line parser
+   // setup command line parser, options are added in alphabetical order
    //
    clCmdParserP.setApplicationDescription(tr("Configure CAN interface"));
+
+
+   //---------------------------------------------------------------------------------------------------
+   // command line option: -h, --help
+   //
    clCmdParserP.addHelpOption();
    
    //---------------------------------------------------------------------------------------------------
@@ -149,20 +161,31 @@ void QCanConfig::runCmdParser(void)
                                       tr("CAN interface, e.g. can1"));
 
    //---------------------------------------------------------------------------------------------------
-   // command line option: -a 
+   // command line option: -a, --all
    //
    QCommandLineOption clOptAllT(QStringList() << "a" << "all", 
          tr("Show all CAN interfaces"));
    clCmdParserP.addOption(clOptAllT);
    
-   //---------------------------------------------------------------------------------------------------
-   // command line option: -H <host>
-   //
-   QCommandLineOption clOptHostT("H", 
-         tr("Connect to <host>"),
-         tr("host"));
-   clCmdParserP.addOption(clOptHostT);
    
+   //---------------------------------------------------------------------------------------------------
+   // command line option: --btr-data <value>
+   //
+   QCommandLineOption clOptDatBtrT("btr-data",
+         tr("Set data bit-rate"),
+         tr("value"));
+   clCmdParserP.addOption(clOptDatBtrT);
+
+
+   //---------------------------------------------------------------------------------------------------
+   // command line option: --btr-nominal <value>
+   //
+   QCommandLineOption clOptNomBtrT("btr-nominal",
+         tr("Set nominal bit-rate"),
+         tr("value"));
+   clCmdParserP.addOption(clOptNomBtrT);
+
+
    //---------------------------------------------------------------------------------------------------
    // command line option: -m <mode>
    //
@@ -171,25 +194,20 @@ void QCanConfig::runCmdParser(void)
          tr("start|stop|listen-only"));
    clCmdParserP.addOption(clOptModeT);
    
-   //---------------------------------------------------------------------------------------------------
-   // command line option: -nbtr <value>
-   //
-   QCommandLineOption clOptNomBtrT("nbtr", 
-         tr("Set nominal bit-rate"),
-         tr("value"));
-   clCmdParserP.addOption(clOptNomBtrT);
    
    //---------------------------------------------------------------------------------------------------
-   // command line option: -dbtr <value>
+   // command line option: -r, --reset
    //
-   QCommandLineOption clOptDatBtrT("dbtr", 
-         tr("Set data bit-rate"),
-         tr("value"));
-   clCmdParserP.addOption(clOptDatBtrT);
+   QCommandLineOption clOptResetT(QStringList() << "r" << "reset",
+         tr("Reset CAN interface"));
+   clCmdParserP.addOption(clOptResetT);
 
    
-   
+   //---------------------------------------------------------------------------------------------------
+   // command line option: -v, --version
+   //
    clCmdParserP.addVersionOption();
+
 
    //---------------------------------------------------------------------------------------------------
    // Process the actual command line arguments given by the user
@@ -201,27 +219,10 @@ void QCanConfig::runCmdParser(void)
    //
    if(clCmdParserP.isSet(clOptAllT))
    {
-      QCanServerSettings   clServerT;
-      if (clServerT.state() == QCanServerSettings::eSTATE_ACTIVE)
+      showServerSettings();
+      for (uint8_t ubCanChannelT = eCAN_CHANNEL_1; ubCanChannelT <= pclServerSettingsP->networkCount(); ubCanChannelT++)
       {
-         fprintf(stdout, "%s %d.%d.%d \n",
-                 qPrintable(tr("CANpie FD server active, version:")),
-                 clServerT.versionMajor(),
-                 clServerT.versionMinor(),
-                 clServerT.versionBuild() );
-
-         fprintf(stdout, "%s %d \n",
-                 qPrintable(tr("Supported CAN networks:")),
-                 clServerT.networkCount() );
-         for (uint8_t ubCanChannelT = eCAN_CHANNEL_1; ubCanChannelT <= clServerT.networkCount(); ubCanChannelT++)
-         {
-            showNetworkSettings((CAN_Channel_e) ubCanChannelT);
-         }
-      }
-      else
-      {
-         fprintf(stdout, "%s \n",
-                 qPrintable(tr("No CANpie FD server active")));
+      	showNetworkSettings((CAN_Channel_e) ubCanChannelT);
       }
       quit();
       return;
@@ -265,13 +266,12 @@ void QCanConfig::runCmdParser(void)
    //---------------------------------------------------------------------------------------------------
    // store CAN interface channel (CAN_Channel_e)
    //
-   ubChannelP = (uint8_t) (slChannelT);
+   teCanChannelP = (CAN_Channel_e) (slChannelT);
 
 
    //---------------------------------------------------------------------------------------------------
    // set bit-rate
    //
-   btConfigBitrateP = false;
    slNomBitRateP = eCAN_BITRATE_NONE;
    slDatBitRateP = eCAN_BITRATE_NONE;
    
@@ -296,33 +296,112 @@ void QCanConfig::runCmdParser(void)
    }
    
    //---------------------------------------------------------------------------------------------------
-   // set host address for socket
+   // Check the "mode" option
    //
-   if(clCmdParserP.isSet(clOptHostT))
+   if (clCmdParserP.value(clOptModeT).contains("start", Qt::CaseInsensitive))
    {
-      QHostAddress clAddressT = QHostAddress(clCmdParserP.value(clOptHostT));
-      clCanSocketP.setHostAddress(clAddressT);
+      teCanModeP = eCAN_MODE_OPERATION;
+   }
+
+   if (clCmdParserP.value(clOptModeT).contains("stop", Qt::CaseInsensitive))
+   {
+      teCanModeP = eCAN_MODE_INIT;
+   }
+
+   if (clCmdParserP.value(clOptModeT).contains("listen-only", Qt::CaseInsensitive))
+   {
+      teCanModeP = eCAN_MODE_LISTEN_ONLY;
    }
 
    //---------------------------------------------------------------------------------------------------
-   // connect to CAN interface
+   // test for reset CAN interface option set
    //
-   clCanSocketP.connectNetwork((CAN_Channel_e) ubChannelP);
+   if (clCmdParserP.isSet(clOptResetT))
+   {
+      btResetCanIfP = true;
+   }
 
+
+   //---------------------------------------------------------------------------------------------------
+   // Test for active CANpie server
+   //
+   if (pclServerSettingsP->state() < QCanServerSettings::eSTATE_ACTIVE)
+   {
+      fprintf(stdout, "CANpie FD server %s \n", qPrintable(pclServerSettingsP->stateString()));
+      exit(0);
+   }
+
+
+   execCommand();
 }
 
-//----------------------------------------------------------------------------//
-// sendFrame()                                                                //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void QCanConfig::sendCommand(void)
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanConfig::execCommand()                                                                                          //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanConfig::execCommand(void)
 {
+   uint8_t  ubCmdExecutedT = 0;     // number of commands executed
+
+   //---------------------------------------------------------------------------------------------------
+   // update bit-rate settings if enabled
+   //
    if (btConfigBitrateP)
    {
-      //clCanApiP.setBitrate(slNomBitRateP, slDatBitRateP);
-      //clCanSocketP.writeFrame(clCanApiP);
+      qDebug() << "Set bit-rate: nominal" << slNomBitRateP << " ,data" << slDatBitRateP;
+      if (pclServerSettingsP->setNetworkBitrate(teCanChannelP, slNomBitRateP, slDatBitRateP) == false)
+      {
+         fprintf(stdout, "Bit-rate configuration failed, check CANpie server settings.\n");
+      }
+      else
+      {
+         fprintf(stdout, "Bit-rate configuration done.\n");
+      }
+      ubCmdExecutedT++;
    }
    
+   //---------------------------------------------------------------------------------------------------
+   // reset CAN interface if enabled
+   //
+   if (btResetCanIfP)
+   {
+      if (pclServerSettingsP->resetNetwork(teCanChannelP) == false)
+      {
+         fprintf(stdout, "CAN interface reset failed, check CANpie server settings.\n");
+      }
+      else
+      {
+         fprintf(stdout, "CAN interface reset done.\n");
+      }
+      ubCmdExecutedT++;
+   }
+
+   //---------------------------------------------------------------------------------------------------
+   // check if CAN interface state needs to be changed
+   //
+   if (teCanModeP != eCAN_MODE_SELF_TEST)
+   {
+      if (pclServerSettingsP->setNetworkMode(teCanChannelP, teCanModeP) == false)
+      {
+         fprintf(stdout, "Failed to changed CAN interface mode, check CANpie server settings.\n");
+      }
+      else
+      {
+         fprintf(stdout, "CAN interface mode changed.\n");
+      }
+      ubCmdExecutedT++;
+   }
+
+
+   //---------------------------------------------------------------------------------------------------
+   // if no command has been executed up to this line just show the configuration of the network
+   //
+   if (ubCmdExecutedT == 0)
+   {
+      showNetworkSettings(teCanChannelP);
+      showNetworkStatistics(teCanChannelP);
+   }
+
    QTimer::singleShot(50, this, SLOT(quit()));
 }
 
@@ -333,31 +412,78 @@ void QCanConfig::sendCommand(void)
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanConfig::showNetworkSettings(CAN_Channel_e teCanChannelV)
 {
-   QCanNetworkSettings clNetworkT;
-   clNetworkT.setChannel(teCanChannelV);
-
-   //---------------------------------------------------------------------------------------------------
-   // network name
-   //
-   fprintf(stdout, "Network   : %s \n", qPrintable(clNetworkT.name()) );
-
-   //---------------------------------------------------------------------------------------------------
-   // network state
-   //
-   fprintf(stdout, "CAN state : %s \n", qPrintable(clNetworkT.stateString()) );
-
-   //---------------------------------------------------------------------------------------------------
-   // bit-rate settings
-   //
-   if (clNetworkT.dataBitrate() == eCAN_BITRATE_NONE)
+   if (teCanChannelV <= pclServerSettingsP->networkCount())
    {
-      fprintf(stdout, "Bit-rate  : %s \n", qPrintable(clNetworkT.nominalBitrateString()) );
+      fprintf(stdout, "\n");
+
+      //-------------------------------------------------------------------------------------------
+      // network name
+      //
+      fprintf(stdout, "CAN %d         : %s \n", teCanChannelV,
+              qPrintable(pclServerSettingsP->networkName(teCanChannelV)) );
+
+      //-------------------------------------------------------------------------------------------
+      // network configuration
+      //
+      fprintf(stdout, "Configuration : %s \n",
+              qPrintable(pclServerSettingsP->networkConfigurationString(teCanChannelV)) );
+
+      //-------------------------------------------------------------------------------------------
+      // network state
+      //
+      fprintf(stdout, "CAN state     : %s \n",
+              qPrintable(pclServerSettingsP->networkStateString(teCanChannelV)) );
+
+      //-------------------------------------------------------------------------------------------
+      // bit-rate settings
+      //
+      if (pclServerSettingsP->networkDataBitrate() == eCAN_BITRATE_NONE)
+      {
+         fprintf(stdout, "Bit-rate      : %s \n",
+                 qPrintable(pclServerSettingsP->networkNominalBitrateString(teCanChannelV)) );
+      }
+      else
+      {
+         fprintf(stdout, "Bit-rate      : %s (nominal), %s (data) \n",
+                 qPrintable(pclServerSettingsP->networkNominalBitrateString(teCanChannelV)),
+                 qPrintable(pclServerSettingsP->networkDataBitrateString(teCanChannelV))        );
+      }
+
    }
    else
    {
-      fprintf(stdout, "Bit-rate  : %s (nominal), %s (data) \n",
-              qPrintable(clNetworkT.nominalBitrateString()),
-              qPrintable(clNetworkT.dataBitrateString())        );
+      fprintf(stdout, "CAN interface not available\n");
+   }
+
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanConfig::showNetworkStatistics()                                                                                //
+// show statistics of CAN interface                                                                                   //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanConfig::showNetworkStatistics(CAN_Channel_e teCanChannelV)
+{
+   if (teCanChannelV <= pclServerSettingsP->networkCount())
+   {
+      //-------------------------------------------------------------------------------------------
+      // network frame count
+      //
+      fprintf(stdout, "CAN frames    : %d \n",
+              pclServerSettingsP->networkFrameCount(teCanChannelV) );
+
+      //-------------------------------------------------------------------------------------------
+      // network error count
+      //
+      fprintf(stdout, "Error frames  : %d \n",
+              pclServerSettingsP->networkErrorCount(teCanChannelV) );
+
+      //-------------------------------------------------------------------------------------------
+      // network frame count
+      //
+      fprintf(stdout, "Bus load      : %d \n",
+              pclServerSettingsP->networkBusLoad(teCanChannelV) );
+
    }
 
    fprintf(stdout, "\n");
@@ -370,48 +496,22 @@ void QCanConfig::showNetworkSettings(CAN_Channel_e teCanChannelV)
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanConfig::showServerSettings(void)
 {
+   if (pclServerSettingsP->state() == QCanServerSettings::eSTATE_ACTIVE)
+   {
+      fprintf(stdout, "%s %d.%d.%d \n",
+              qPrintable(tr("CANpie FD server active, version:")),
+              pclServerSettingsP->versionMajor(),
+              pclServerSettingsP->versionMinor(),
+              pclServerSettingsP->versionBuild() );
 
-}
+      fprintf(stdout, "%s %d \n",
+              qPrintable(tr("Supported CAN networks:")),
+              pclServerSettingsP->networkCount() );
+   }
+   else
+   {
+      fprintf(stdout, "CANpie FD server %s \n", qPrintable(pclServerSettingsP->stateString()));
+      exit(0);
+   }
 
-
-//----------------------------------------------------------------------------//
-// socketConnected()                                                          //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void QCanConfig::socketConnected()
-{
-   //----------------------------------------------------------------
-   // initial setup of CAN frame
-   //
-    
-   QTimer::singleShot(10, this, SLOT(sendCommand()));
-}
-
-
-//----------------------------------------------------------------------------//
-// socketDisconnected()                                                       //
-// show error message and quit                                                //
-//----------------------------------------------------------------------------//
-void QCanConfig::socketDisconnected()
-{
-   qDebug() << "Disconnected from CAN " << ubChannelP;
-   
-}
-
-
-//----------------------------------------------------------------------------//
-// socketError()                                                              //
-// show error message and quit                                                //
-//----------------------------------------------------------------------------//
-void QCanConfig::socketError(QAbstractSocket::SocketError teSocketErrorV)
-{
-   Q_UNUSED(teSocketErrorV);  // parameter not used 
-   
-   //----------------------------------------------------------------
-   // show error message in case the connection to the network fails
-   //
-   fprintf(stderr, "%s %s\n", 
-           qPrintable(tr("Failed to connect to CAN interface:")),
-           qPrintable(clCanSocketP.errorString()));
-   quit();
 }

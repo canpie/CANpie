@@ -37,7 +37,10 @@
 **                                                                                                                    **
 \*--------------------------------------------------------------------------------------------------------------------*/
 
+#include <QtCore/QPointer>
 #include <QtCore/QSharedMemory>
+
+#include <QtNetwork/QLocalSocket>
 
 #include "qcan_namespace.hpp"
 
@@ -47,8 +50,8 @@ using namespace QCan;
 /*!
 ** \class QCanServerSettings
 **
-** The QCanServerSettings provides the functionality to test the current state of a local QCanServer. For
-** access to parameters of a single CAN network please refer to QCanNetworkSettings.
+** The QCanServerSettings provides the functionality to test the current state of a local QCanServer and
+** each individual QCanNetwork within this server.
 ** <p>
 ** The following code shows an example how to test for a local QCanServer:
 ** \code
@@ -61,15 +64,16 @@ using namespace QCan;
 **
 ** \endcode
 */
-class QCanServerSettings
+class QCanServerSettings : public QObject
 {
+   Q_OBJECT
 
 public:
    //---------------------------------------------------------------------------------------------------
    /*!
    ** Construct a QCanServerSettings object
    */
-   QCanServerSettings();
+   QCanServerSettings(QObject * pclParentV = Q_NULLPTR);
 
    ~QCanServerSettings();
 
@@ -94,6 +98,12 @@ public:
    };
 
 
+   uint8_t        networkBusLoad(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1);
+
+   int32_t        networkConfiguration(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1);
+
+   QString        networkConfigurationString(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1);
+
    //---------------------------------------------------------------------------------------------------
    /*!
    **
@@ -102,6 +112,109 @@ public:
    ** Return the number of networks (i.e. QCanNetwork) managed by the QCanServer class.
    */
    int32_t        networkCount(void);
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \return  Data bit-rate
+   ** \see     networkDataBitrateString()
+   **
+   ** Return the current data bit-rate of the selected network in [bits/s]. If the bit-rate value
+   ** is not valid (not configured) the function returns QCan::eCAN_BITRATE_NONE. The result of this
+   ** function is equivalent to QCanNetwork::dataBitrate().
+   */
+   int32_t        networkDataBitrate(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1);
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \return  Data bit-rate
+   ** \see     networkDataBitrate()
+   **
+   ** Return the current data bit-rate of the selected network as string object. If the bit-rate value
+   ** is not valid (not configured) the function returns "None".
+   */
+   QString        networkDataBitrateString(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1);
+
+   uint32_t       networkErrorCount(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1);
+
+   uint32_t       networkFrameCount(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1);
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]  teChannelV     CAN channel
+   **
+   ** \return     Network name
+   **
+   ** Return the name of the selected network as string object. If a CAN interface is attached to the
+   ** network the function also returns the name of the CAN interface.
+   */
+   QString        networkName(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1);
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]  teChannelV     CAN channel
+   **
+   ** \return     Nominal bit-rate
+   ** \see        networkNominalBitrateString()
+   **
+   ** Return the current nominal bit-rate of the selected network in [bits/s]. If the bit-rate value
+   ** is not valid (not configured) the function returns QCan::eCAN_BITRATE_NONE.
+   */
+   int32_t        networkNominalBitrate(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1);
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]  teChannelV     CAN channel
+   ** \return     Nominal bit-rate
+   ** \see        networkNominalBitrate()
+   **
+   ** Return the current nominal bit-rate of the selected network as string object. If the bit-rate value
+   ** is not valid (not configured) the function returns "None".
+   */
+   QString        networkNominalBitrateString(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1);
+
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \return  CAN state
+   ** \see     networkStateString()
+   **
+   ** Return the current CAN state of the selected network.
+   */
+   CAN_State_e    networkState(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1);
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \return  CAN state
+   ** \see     networkState()
+   **
+   ** Return the current CAN state of the selected network as string object.
+   */
+   QString        networkStateString(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1);
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]  teChannelV     CAN channel
+   **
+   ** Set the CAN mode of the network denoted by parameter \a teChannelV.
+   */
+   bool           resetNetwork(const CAN_Channel_e teChannelV);
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]  teChannelV     CAN channel
+   **
+   ** Set the bit-rate of the network denoted by parameter \a teChannelV.
+   */
+   bool           setNetworkBitrate(const CAN_Channel_e teChannelV,
+                                    int32_t slNomBitRateV, int32_t slDatBitRateV = eCAN_BITRATE_NONE);
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]  teChannelV     CAN channel
+   **
+   ** Set the CAN mode of the network denoted by parameter \a teChannelV.
+   */
+   bool           setNetworkMode(const CAN_Channel_e teChannelV, const CAN_Mode_e teModeV);
 
    bool           startServer(void);
 
@@ -148,7 +261,18 @@ public:
    int32_t        versionMinor(void);
 
 private:
-   QSharedMemory *   pclSettingsP;
+   QSharedMemory *         pclSettingsP;
+
+   QPointer<QLocalSocket>  pclLocalSockP;
+   bool                    btIsConnectedP;
+   int32_t                 slSocketErrorP;
+
+private slots:
+   void           onSocketConnect(void);
+   void           onSocketDisconnect(void);
+   void           onSocketError(QLocalSocket::LocalSocketError teSocketErrorV);
+   void           onSocketReceive(void);
+
 };
 
 #endif // QCAN_SERVER_SETTINGS_HPP_

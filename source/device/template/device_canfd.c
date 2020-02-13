@@ -2,7 +2,7 @@
 // File:          device_can_fd.c                                             //
 // Description:   CANpie core functions                                       //
 //                                                                            //
-// Copyright 2017 MicroControl GmbH & Co. KG                                  //
+// Copyright (C) MicroControl GmbH & Co. KG                                   //
 // 53844 Troisdorf - Germany                                                  //
 // www.microcontrol.net                                                       //
 //                                                                            //
@@ -20,17 +20,10 @@
 //    may be used to endorse or promote products derived from this software   //
 //    without specific prior written permission.                              //
 //                                                                            //
-// Licensed under the Apache License, Version 2.0 (the "License");            //
-// you may not use this file except in compliance with the License.           //
-// You may obtain a copy of the License at                                    //
+// Provided that this notice is retained in full, this software may be        //
+// distributed under the terms of the GNU Lesser General Public License       //
+// ("LGPL") version 3 as distributed in the 'LICENSE' file.                   //
 //                                                                            //
-//    http://www.apache.org/licenses/LICENSE-2.0                              //
-//                                                                            //
-// Unless required by applicable law or agreed to in writing, software        //
-// distributed under the License is distributed on an "AS IS" BASIS,          //
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   //
-// See the License for the specific language governing permissions and        //
-// limitations under the License.                                             //
 //============================================================================//
 
 
@@ -51,6 +44,26 @@
 ** Definitions                                                                **
 **                                                                            **
 \*----------------------------------------------------------------------------*/
+
+
+//-------------------------------------------------------------------
+/*!
+** \def     CP_DRIVER_MAJOR
+** \ingroup CP_VERSION
+**
+** Major version number of CANpie driver implementation.
+*/
+#define  CP_DRIVER_MAJOR          1
+
+//-------------------------------------------------------------------
+/*!
+** \def     CP_DRIVER_MINOR
+** \ingroup CP_VERSION
+**
+** Minor version number of CANpie driver implementation.
+*/
+#define  CP_DRIVER_MINOR          0
+
 
 
 enum DrvInfo_e {
@@ -202,7 +215,7 @@ CpStatus_tv CpCoreBufferConfig( CpPort_ts * ptsPortV,
       //--------------------------------------------------------
       // test message format and mask identifier
       //
-      switch(ubFormatV & CP_MASK_MSG_FORMAT)
+      switch (ubFormatV & CP_MASK_MSG_FORMAT)
       {
          case CP_MSG_FORMAT_CBFF:
          case CP_MSG_FORMAT_FBFF:
@@ -215,15 +228,19 @@ CpStatus_tv CpCoreBufferConfig( CpPort_ts * ptsPortV,
             ulIdentifierV = ulIdentifierV & CP_MASK_EXT_FRAME;
             ulAcceptMaskV = ulAcceptMaskV & CP_MASK_EXT_FRAME;
             break;
+
+         default:
+
+            break;
       }      
 
-      switch(ubDirectionV)
+      switch (ubDirectionV)
       {
          case eCP_BUFFER_DIR_RCV:
             aulAccMaskS[ubBufferIdxV] = ulAcceptMaskV;
             break;
 
-         case eCP_BUFFER_DIR_TRM:
+         default:
 
             break;
       }
@@ -738,6 +755,9 @@ CpStatus_tv CpCoreHDI(CpPort_ts * ptsPortV, CpHdi_ts * ptsHdiV)
             //
             ptsHdiV->ubVersionMajor = CP_VERSION_MAJOR;
             ptsHdiV->ubVersionMinor = CP_VERSION_MINOR;
+
+            ptsHdiV->ubDriverMajor = CP_DRIVER_MAJOR;
+            ptsHdiV->ubDriverMinor = CP_DRIVER_MINOR;
 
             ptsHdiV->ubCanFeatures    = 0;
             ptsHdiV->ubDriverFeatures = 0;

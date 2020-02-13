@@ -33,10 +33,8 @@
 // limitations under the License.                                             //
 //============================================================================//
 
-
 #ifndef  CP_PLATFORM_H_
 #define  CP_PLATFORM_H_
-
 
 
 //-----------------------------------------------------------------------------
@@ -54,7 +52,6 @@
 \*----------------------------------------------------------------------------*/
 
 
-
 /*----------------------------------------------------------------------------*\
 ** Definitions & Enumerations                                                 **
 **                                                                            **
@@ -66,8 +63,7 @@
 **
 ** The CANpie driver can be configured during compile time via
 ** several configuration options. They are typically defined in
-** the \c cp_platform.h configuration file. The symbol #CP_TARGET is used
-** to select an existing definition scheme from this file.
+** the \c cp_platform.h configuration file.
 ** <p>
 ** If symbols are not defined, they get a default value which is
 ** assigned in the \c canpie.h header file.
@@ -97,7 +93,7 @@
 ** functions (e.g. CpCoreBufferInit(), etc.) return the error code
 ** #CpErr_NOT_SUPPORTED.
 */
-#define  CP_BUFFER_MAX              8
+#define  CP_BUFFER_MAX              32
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -109,7 +105,7 @@
 ** - 1 = enable ISO CAN FD support
 */
 #ifndef  CP_CAN_FD
-#define  CP_CAN_FD                  1
+#define  CP_CAN_FD                  0
 #endif
 
 /*-------------------------------------------------------------------*/

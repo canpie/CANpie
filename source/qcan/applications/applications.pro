@@ -30,7 +30,8 @@ CONFIG += silent
 #---------------------------------------------------------------
 # list of sub directories
 #
-SUBDIRS  = ./can-dump    \
+SUBDIRS  = ./can-config  \
+           ./can-dump    \
            ./can-error   \
            ./can-send    \
            ./server		 \

@@ -58,8 +58,8 @@ CONFIG += console
 # version of the application
 #
 VERSION_MAJOR = 0
-VERSION_MINOR = 10
-VERSION_BUILD = 1
+VERSION_MINOR = 86
+VERSION_BUILD = 04
 
 
 #---------------------------------------------------------------
