@@ -1,0 +1,136 @@
+#--------------------------------------------------------------------
+# Include paths
+#
+-I.
+-I../../canpie-fd
+-I../../misc
+
+#--------------------------------------------------------------------
+# Definitions
+#
+-D__GNUC__
+-D__APPLE__
+
+#--------------------------------------------------------------------
+# standard testing level
+#
+-standard
+
+#--------------------------------------------------------------------
+# Show file names are they are processed.
+#
++show-scan
+
+#--------------------------------------------------------------------
+# Show statistic information at end of parsing.
+#
++stats
+
+#--------------------------------------------------------------------
+# Show a summary of all errors reported and suppressed. 
+#
++show-summary
+
+#--------------------------------------------------------------------
+# Warn on reserved C++ names
+#  
++cpp-names
+
+#--------------------------------------------------------------------
+# Warn if internal name is reserved for system use 
+# by ISO C99 standard
+#  
++iso-reserved-internal
+
+#--------------------------------------------------------------------
+# Set 31 significant characters in an external / internal name
+#
++external-name-len 31
++internal-name-len 31
+
+#--------------------------------------------------------------------
+# Function, variable, iterator or constant declared 
+# but never defined.
+#
++decl-undef
+
+#--------------------------------------------------------------------
+# Use strict version of the ANSI standard library
+#
++strict-lib
+
+#--------------------------------------------------------------------
+# do not test a complete program
+#
++partial
+
+#--------------------------------------------------------------------
+# Warn if operand to a bitwise operator is not an unsigned value
+#
++bitwise-signed
+
+#--------------------------------------------------------------------
+# Warn if a declaration / variable is exported but does not appear 
+# in a header file
+#
++export-header
++export-header-var
+
+#--------------------------------------------------------------------
+# Warn if an identifier is declared more than once
+#
++redecl
+
+#--------------------------------------------------------------------
+# Warn if a function is declared without a parameter list prototype
+#
++noparams
+
+#--------------------------------------------------------------------
+# Parameter in a function definition must match the name
+#
++proto-param-match
+
+#--------------------------------------------------------------------
+# Warn on arithmetic involving pointer and integer
+#
++ptr-arith
++nullptrarith
+
+#--------------------------------------------------------------------
+# Body of a for / if / while statement is not a block
+#
++all-block
+
+#--------------------------------------------------------------------
+# for / while statement has no body
+#
++for-empty
++while-empty
+
+#--------------------------------------------------------------------
+# There is no final else following an else if construct
+#
++elseif-complete
+
+#--------------------------------------------------------------------
+# Do not ignore return values (CERT C EXP12-C)
+#
++ret-val
+
+#--------------------------------------------------------------------
+# Report use and modification errors for globals not annotated 
+# with unchecked
+#
++all-globs
+
+#--------------------------------------------------------------------
+# Macros defined with parameter lists are not expanded and are 
+# checked as functions
+#
++fcn-macros
+
+#--------------------------------------------------------------------
+# Report qualifier mismatches
+#
+-relax-quals
