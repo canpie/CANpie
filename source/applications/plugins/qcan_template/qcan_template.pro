@@ -33,10 +33,10 @@ TARGET          = $$qtLibraryTarget(QCanTemplate)
 # directory for target file
 #
 macx {
-   DESTDIR = ../../../../../bin/CANpieServer.app/Contents/PlugIns
+   DESTDIR = ../../../../bin/CANpieServer.app/Contents/PlugIns
 }
 win32 {
-   DESTDIR = ../../../../../bin/plugins
+   DESTDIR = ../../../../bin/plugins
 }
 
 #---------------------------------------------------------------
@@ -60,7 +60,7 @@ CONFIG += silent
 #
 VERSION_MAJOR = 1
 VERSION_MINOR = 00
-VERSION_BUILD = 01
+VERSION_BUILD = 02
 
 
 #---------------------------------------------------------------
@@ -92,15 +92,14 @@ RESOURCES = qcan_template.qrc
 # include directory search path
 #
 INCLUDEPATH  = .
-INCLUDEPATH += ./include
-INCLUDEPATH += ./../../..
+INCLUDEPATH += ./../../../qcan
 
 
 #---------------------------------------------------------------
 # search path for source files
 #
 VPATH  = .
-VPATH += ./../../..
+VPATH += ./../../../qcan
 
 
 #---------------------------------------------------------------
