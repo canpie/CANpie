@@ -31,7 +31,7 @@ TARGET = CANpieServer
 #---------------------------------------------------------------
 # directory for target file
 #
-DESTDIR = ../../../../bin
+DESTDIR = ../../../bin
 
 # Do not use a common /objs folder together with MSVC compiler.
 # If more than one application is compiled from qcan with MSVC
@@ -40,14 +40,14 @@ DESTDIR = ../../../../bin
 # are mixed. This occurs especially when one application is
 # compiled as a release and others as a debug version.
 !win32-msvc* {
-MOC_DIR = ../../../../objs
-RCC_DIR = ../../../../objs
-
-asdfasdf
+MOC_DIR = ../../../objs
+RCC_DIR = ../../../objs
+}
+else {
 #--------------------------------------------------------------------
 # Objects directory
 #
-OBJECTS_DIR = ../../../../objs
+OBJECTS_DIR = ../../../objs
 }
 
 #---------------------------------------------------------------
@@ -64,7 +64,7 @@ CONFIG += silent
 #
 VERSION_MAJOR = 0
 VERSION_MINOR = 99
-VERSION_BUILD = 05
+VERSION_BUILD = 06
 
 
 #---------------------------------------------------------------
@@ -108,17 +108,15 @@ RESOURCES = server.qrc
 # include directory search path
 #
 INCLUDEPATH  = .
-INCLUDEPATH += ./../../
-INCLUDEPATH += ./../../../qcan
-INCLUDEPATH += ./../../../canpie-fd
+INCLUDEPATH += ./../../qcan
+INCLUDEPATH += ./../../canpie-fd
 
 #---------------------------------------------------------------
 # search path for source files
 #
 VPATH  = .
-VPATH += ./../..
-VPATH += ./../../../qcan
-VPATH += ./../../../canpie-fd
+VPATH += ./../../qcan
+
 
 #---------------------------------------------------------------
 # Common header files of project 
