@@ -1,3 +1,6 @@
+/.DS_Store
+/.qmake.stash
 /Makefile*
-/objs/
+/debug
+/release
 /moc_*.cpp
