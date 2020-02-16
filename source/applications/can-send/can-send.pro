@@ -32,7 +32,7 @@ TARGET = can-send
 #---------------------------------------------------------------
 # Directory for target file
 #
-DESTDIR = ../../../../bin
+DESTDIR = ../../../bin
 
 # Do not use a common /objs folder together with MSVC compiler.
 # If more than one application is compiled from qcan with MSVC
@@ -44,12 +44,12 @@ DESTDIR = ../../../../bin
 #---------------------------------------------------------------
 # Directory for intermediate moc files
 # 
-MOC_DIR = ../../../../objs
+MOC_DIR = ../../../objs
 
 #--------------------------------------------------------------------
 # Directory for object files
 #
-OBJECTS_DIR = ../../../../objs
+OBJECTS_DIR = ../../../objs
 }
 
 
@@ -68,7 +68,7 @@ CONFIG += silent
 #
 VERSION_MAJOR = 0
 VERSION_MINOR = 99
-VERSION_BUILD = 05
+VERSION_BUILD = 06
 
 
 #---------------------------------------------------------------
@@ -100,15 +100,13 @@ RESOURCES =
 # include directory search path
 #
 INCLUDEPATH  = .
-INCLUDEPATH += ./../../
-INCLUDEPATH += ./../../../qcan
+INCLUDEPATH += ./../../qcan
 
 #---------------------------------------------------------------
 # search path for source files
 #
 VPATH  = .
-VPATH += ./../..
-VPATH += ./../../../qcan
+VPATH += ./../../qcan
 
 #---------------------------------------------------------------
 # header files of project 
