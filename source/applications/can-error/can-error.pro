@@ -31,17 +31,17 @@ TARGET = can-error
 #---------------------------------------------------------------
 # Directory for target file
 #
-DESTDIR = ../../../../bin
+DESTDIR = ../../../bin
 
 #---------------------------------------------------------------
 # Directory for intermediate moc files
 # 
-MOC_DIR = ../../../../objs
+MOC_DIR = ../../../objs
 
 #--------------------------------------------------------------------
 # Directory for object files
 #
-OBJECTS_DIR = ../../../../objs
+OBJECTS_DIR = ../../../objs
 
 
 #---------------------------------------------------------------
@@ -59,7 +59,7 @@ CONFIG += console
 #
 VERSION_MAJOR = 0
 VERSION_MINOR = 99
-VERSION_BUILD = 05
+VERSION_BUILD = 06
 
 
 #---------------------------------------------------------------
@@ -91,15 +91,13 @@ RESOURCES =
 # include directory search path
 #
 INCLUDEPATH  = .
-INCLUDEPATH += ./../../
-INCLUDEPATH += ./../../../qcan
+INCLUDEPATH += ./../../qcan
 
 #---------------------------------------------------------------
 # search path for source files
 #
 VPATH  = .
-VPATH += ./../..
-VPATH += ./../../../qcan
+VPATH += ./../../qcan
 
 #---------------------------------------------------------------
 # header files of project 
