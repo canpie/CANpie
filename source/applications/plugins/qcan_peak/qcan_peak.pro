@@ -44,25 +44,25 @@ TARGET          = $$qtLibraryTarget(QCanPeak)
 # directory for target file
 #
 macx {
-   DESTDIR  = ../../../../../bin/CANpieServer.app/Contents/PlugIns
+   DESTDIR  = ../../../../bin/CANpieServer.app/Contents/PlugIns
 
 	#-------------------------------------------------------
 	# copy PCBUSB library
 	#   
-	LIB_DIR  = ../../../../../bin/CANpieServer.app/Contents/Frameworks/
+	LIB_DIR  = ../../../../bin/CANpieServer.app/Contents/Frameworks/
 	LIB_FILE = ./libs/osx/libPCBUSB.dylib 
 	
    QMAKE_POST_LINK += mkdir -p $$LIB_DIR && cp $$LIB_FILE $$LIB_DIR
 }
 win32 {
-   DESTDIR = ../../../../../bin/plugins
+   DESTDIR = ../../../../bin/plugins
 }
 #---------------------------------------------------------------
 # Objects directory
 #
-OBJECTS_DIR = ../../../../objs
-MOC_DIR     = .../../../../objs
-RCC_DIR     = ../../../../objs
+OBJECTS_DIR = ./objs
+MOC_DIR     = ./objs
+RCC_DIR     = ./objs
 
 #---------------------------------------------------------------
 # project configuration and compiler options
@@ -77,8 +77,8 @@ CONFIG += silent
 # version of the application
 #
 VERSION_MAJOR = 0
-VERSION_MINOR = 89
-VERSION_BUILD = 2
+VERSION_MINOR = 99
+VERSION_BUILD = 1
 
 
 #---------------------------------------------------------------
@@ -111,14 +111,14 @@ RESOURCES = qcan_peak.qrc
 #
 INCLUDEPATH  = .
 INCLUDEPATH += ./include
-INCLUDEPATH += ./../../..
+INCLUDEPATH += ./../../../qcan
 
 
 #---------------------------------------------------------------
 # search path for source files
 #
 VPATH  = .
-VPATH += ./../../..
+VPATH += ./../../../qcan
 
 
 #---------------------------------------------------------------
