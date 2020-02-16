@@ -2,7 +2,6 @@
 /.DS_Store
 /.qmake.stash
 /include
-/*.pro.user
 /Makefile*
 /moc_*.cpp
 /qrc_*.cpp

@@ -51,7 +51,7 @@
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// QCanServerLogger::QCanServerLogger()                                                                               //
+// QCanServerLoggerView::QCanServerLoggerView()                                                                       //
 // constructor                                                                                                        //
 //--------------------------------------------------------------------------------------------------------------------//
 QCanServerLoggerView::QCanServerLoggerView(QCanServer * pclServerV)
@@ -97,7 +97,7 @@ QCanServerLoggerView::QCanServerLoggerView(QCanServer * pclServerV)
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// QCanServerLogger::~QCanServerLogger()                                                                              //
+// QCanServerLoggerView::~QCanServerLoggerView()                                                                      //
 // destructor                                                                                                         //
 //--------------------------------------------------------------------------------------------------------------------//
 QCanServerLoggerView::~QCanServerLoggerView()

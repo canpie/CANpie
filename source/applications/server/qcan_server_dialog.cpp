@@ -39,6 +39,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QString>
 
+#include <QtWidgets/QMessageBox>
 #include <QtWidgets/QTreeWidgetItem>
 
 /*--------------------------------------------------------------------------------------------------------------------*\
@@ -94,7 +95,7 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    // Add logging: this must be done before the QCanInterfaceWidget and QCanNetwork classes are
    // initialised
    //
-   pclLoggerP = new QCanServerLogger();
+   pclLoggerP = new QCanServerLoggerView(pclCanServerP);
 
    //---------------------------------------------------------------------------------------------------
    // Hide some elements:
@@ -103,6 +104,7 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    //
    ui.pclLblSrvPortM->hide();
    ui.pclEdtSrvPortM->hide();
+   ui.pclChkDisableNetworkM->hide();
    ui.pclTabConfigM->removeTab(TAB_CONFIG_PLUGIN);
 
    //---------------------------------------------------------------------------------------------------
@@ -121,8 +123,6 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
                &QCanInterfaceWidget::interfaceChanged,
                this,
                &QCanServerDialog::onInterfaceChange);
-
-      pclLoggerP->addLoggingSource(apclCanIfWidgetP[ubNetworkIdxT]);
    }
 
 
@@ -165,6 +165,11 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    QHostAddress clHostAddrT = QHostAddress(pclSettingsP->value("hostAddress",
                                              "127.0.0.1").toString());
    pclCanServerP->setServerAddress(clHostAddrT);
+
+   pclCanServerP->enableBitrateChange(true);
+   pclCanServerP->enableBusOffRecovery(true);
+   pclCanServerP->enableModeChange(true);
+
    pclSettingsP->endGroup();
 
    //---------------------------------------------------------------------------------------------------
@@ -173,7 +178,6 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    for (ubNetworkIdxT = 0; ubNetworkIdxT < pclCanServerP->maximumNetwork(); ubNetworkIdxT++)
    {
       pclNetworkT = pclCanServerP->network(ubNetworkIdxT);
-      pclLoggerP->addLoggingSource(pclNetworkT);
       clNetNameT  = "CAN_" + QString("%1").arg(ubNetworkIdxT+1);
       pclSettingsP->beginGroup(clNetNameT);
 
@@ -954,6 +958,16 @@ void QCanServerDialog::onServerSetDefault(bool btCheckedV)
    ui.pclChkServerRemoteAccessM->setChecked(false);
 
    //---------------------------------------------------------------------------------------------------
+   // do not allow bit-rate change
+   //
+   ui.pclChkChangeBitrateM->setChecked(false);
+
+   //---------------------------------------------------------------------------------------------------
+   // do not allow mode change
+   //
+   ui.pclChkChangeModeM->setChecked(false);
+
+   //---------------------------------------------------------------------------------------------------
    // all networks are enabled
    //
    QCanNetwork *     pclNetworkT = 0L;
@@ -967,6 +981,11 @@ void QCanServerDialog::onServerSetDefault(bool btCheckedV)
          pclNetworkT->setNetworkEnabled(true);
       }
    }
+
+   //---------------------------------------------------------------------------------------------------
+   // recover from bus-off is disabled
+   //
+   ui.pclChkBusOffRecoverM->setChecked(false);
 
    //---------------------------------------------------------------------------------------------------
    // notification are possible
@@ -1005,8 +1024,13 @@ void QCanServerDialog::setIcon(void)
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanServerDialog::setupNetworks(void)
 {
-   pclCanServerP = new QCanServer(this, QCAN_TCP_DEFAULT_PORT, QCAN_NETWORK_MAX);
+   pclCanServerP = new QCanServer(this, QCAN_WEB_SOCKET_DEFAULT_PORT, QCAN_NETWORK_MAX, true);
+   if (pclCanServerP->state() == QCanServer::eERROR_ACTIVE)
+   {
+      QMessageBox::warning(0L, "CANpie FD Server", "CANpie Server is already running.");
+               exit(0);
 
+   }
 }
 
 
@@ -1154,16 +1178,13 @@ void QCanServerDialog::updateUI(const CAN_Channel_e & ubChannelR)
    //---------------------------------------------------------------------------------------------------
    // update server tab
    //
-   if(pclNetworkT != Q_NULLPTR)
+   QHostAddress clHostAddrT = pclCanServerP->serverAddress();
+   if (clHostAddrT == QHostAddress(QHostAddress::Any))
    {
-      QHostAddress clHostAddrT = pclNetworkT->serverAddress();
-      if(clHostAddrT == QHostAddress(QHostAddress::Any))
-      {
-         ui.pclChkServerRemoteAccessM->setCheckState(Qt::Checked);
-      }
-      else
-      {
-         ui.pclChkServerRemoteAccessM->setCheckState(Qt::Unchecked);
-      }
+      ui.pclChkServerRemoteAccessM->setCheckState(Qt::Checked);
+   }
+   else
+   {
+      ui.pclChkServerRemoteAccessM->setCheckState(Qt::Unchecked);
    }
 }

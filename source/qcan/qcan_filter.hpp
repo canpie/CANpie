@@ -1,6 +1,6 @@
 //====================================================================================================================//
-// File:          qcan_server_memeory.hpp                                                                             //
-// Description:   QCAN classes - CAN server                                                                           //
+// File:          qcan_filter.hpp                                                                                     //
+// Description:   QCAN classes - CAN message filter                                                                   //
 //                                                                                                                    //
 // Copyright (C) MicroControl GmbH & Co. KG                                                                           //
 // 53844 Troisdorf - Germany                                                                                          //
@@ -28,118 +28,127 @@
 //====================================================================================================================//
 
 
+#ifndef QCAN_FILTER_HPP_
+#define QCAN_FILTER_HPP_
+
+
 /*--------------------------------------------------------------------------------------------------------------------*\
 ** Include files                                                                                                      **
 **                                                                                                                    **
 \*--------------------------------------------------------------------------------------------------------------------*/
 
-#include "qcan_defs.hpp"
+#include "qcan_frame.hpp"
+
 
 /*--------------------------------------------------------------------------------------------------------------------*\
 ** Definitions                                                                                                        **
 **                                                                                                                    **
 \*--------------------------------------------------------------------------------------------------------------------*/
 
-#define  QCAN_MEMORY_KEY                  "QCAN_SERVER_SHARED_KEY"
 
-#define  QCAN_IF_NAME_LENGTH              64
 
-#define  QCAN_SERVER_FLAG_ALLOW_BITRATE   ((int32_t) 0x00000001)
-#define  QCAN_SERVER_FLAG_ALLOW_MODE      ((int32_t) 0x00000002)
-#define  QCAN_SERVER_FLAG_ALLOW_RECOVERY  ((int32_t) 0x00000004)
 
-#define  QCAN_NETWORK_FLAG_ENABLED        ((int32_t) 0x00000001)
-#define  QCAN_NETWORK_FLAG_LISTEN_ONLY    ((int32_t) 0x00000002)
-#define  QCAN_NETWORK_FLAG_ERROR_FRAME    ((int32_t) 0x00000004)
-#define  QCAN_NETWORK_FLAG_CAN_FD         ((int32_t) 0x00000008)
+//----------------------------------------------------------------------------------------------------------------
+/*!
+** \class   QCanFilter
+**
+** <p>
+*/
+class QCanFilter
+{
+public:
+   
 
-/*--------------------------------------------------------------------------------------------------------------------*\
-** Enumerations                                                                                                       **
-**                                                                                                                    **
-\*--------------------------------------------------------------------------------------------------------------------*/
-enum Server_Command_e {
-   eSERVER_CMD_BITRATE = 1,
-   eSERVER_CMD_MODE,
-   eSERVER_CMD_RESET
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \enum    FilterType_e
+   **
+   ** This enumeration defines possible filter types.
+   */
+   typedef enum FilterType_e {
+
+      eFILTER_OFF = 0,
+
+      /*! Accept: CAN frames meeting the condition will pass the filter                */
+      eFILTER_ACCEPT,
+
+      /*! Reject:  CAN frames meeting the condition will be rejected by the filter     */
+      eFILTER_REJECT
+
+   } FilterType_te;
+
+
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** Constructs an empty filter
+   */
+   QCanFilter();
+   
+   QCanFilter(const QCanFilter &clOtherR);
+
+   virtual ~QCanFilter();
+   
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]  clFrameR - CAN frame
+   **
+   ** \return     \c TRUE if parameter values are valid
+   ** \see        match()
+   **
+   ** The function configures an acceptance filter for CAN frames with a frame format defined by
+   ** \c teFormatR. All CAN frames with an identifier value within the range from \c ulIdentifierLowV
+   ** to \c ulIdentifierHighV will match the filter condition.
+   ** <p>
+   ** In case the supplied parameters for \c ulIdentifierLowV and \c ulIdentifierHighV are not valid
+   ** (e.g. identifier value > #QCAN_FRAME_ID_MASK_STD for Extended frames) the function will return
+   ** \c FALSE and the filter type is set to QCanFilter::eFILTER_OFF.
+   **
+   */
+   bool           acceptFrame(const QCanFrame::FrameFormat_e & teFormatR,
+                              const uint32_t ulIdentifierLowV, const uint32_t ulIdentifierHighV);
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]  clFrameR - CAN frame
+   **
+   ** \return  \c TRUE if filter condition is met
+   **
+   ** The function tests the CAN frame \c clFrameR with regards to to configured filter type.
+   ** For an acceptance filter (QCanFilter::eFILTER_ACCEPT) the function returns \c TRUE if
+   ** the CAN frame meets the acceptance condition (e.g. identifier value).
+   ** <p>
+   ** For a rejection filter (QCanFilter::eFILTER_REJECT) the function returns \c TRUE if
+   ** the CAN frame meets the rejection condition (e.g. identifier value).
+   **
+   */
+   bool           match(const QCanFrame & clFrameR) const;
+
+   bool           rejectFrame(const QCanFrame::FrameFormat_e & teFormatR,
+                              const uint32_t ulIdentifierLowV, const uint32_t ulIdentifierHighV);
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \return  Current filter type
+   **
+   ** The function returns the current filter type, which is implicitly set by the functions
+   ** acceptFrame() or rejectFrame().
+   */
+   FilterType_te  type(void) const        {  return (teFilterTypeP);    };
+
+private:
+   
+   FilterType_e               teFilterTypeP;
+   QCanFrame::FrameFormat_e   teFormatP;
+   uint32_t                   ulIdentifierLowP;
+   uint32_t                   ulIdentifierHighP;
+
 };
 
-/*--------------------------------------------------------------------------------------------------------------------*\
-** Structures                                                                                                         **
-**                                                                                                                    **
-\*--------------------------------------------------------------------------------------------------------------------*/
 
-//-----------------------------------------------------------------------------------------------------
-// Server
-//
-typedef struct Server_s {
 
-   //--------------------------------------------------------------------------
-   // Server version: major
-   //
-   int32_t  slVersionMajor;
 
-   //--------------------------------------------------------------------------
-   // Server version: minor
-   //
-   int32_t  slVersionMinor;
 
-   //--------------------------------------------------------------------------
-   // Server version: build
-   //
-   int32_t  slVersionBuild;
-
-   //--------------------------------------------------------------------------
-   // Number of CAN networks supported by the server
-   //
-   int32_t  slNetworkCount;
-
-   //--------------------------------------------------------------------------
-   // Stores the start date / time of the server in milliseconds that have
-   // passed since 1970-01-01T00:00:00.000
-   //
-   int64_t  sqDateTimeStart;
-
-   //--------------------------------------------------------------------------
-   // Stores the actual date / time of the server in milliseconds that have
-   // passed since 1970-01-01T00:00:00.000
-   //
-   int64_t  sqDateTimeActual;
-
-   int32_t  slFlags;
-   int32_t  slReserved[55];
-
-} Server_ts;
-
-//-----------------------------------------------------------------------------------------------------
-// Server command
-//
-typedef struct ServerSocketCommand_s {
-   uint8_t  ubCommand;
-   uint8_t  ubChannel;
-   uint8_t  ubReserved[2];
-   int32_t  slParameter[2];
-   uint32_t ulReserved[5];
-} ServerSocketCommand_ts;
-
-//-----------------------------------------------------------------------------------------------------
-// Network
-//
-typedef struct Network_s {
-   int32_t  slFlags;
-   int32_t  slStatus;
-   int32_t  slNomBitRate;
-   int32_t  slDatBitRate;
-   char     szInterfaceName[QCAN_IF_NAME_LENGTH];
-   uint32_t ulCntFrameCan;
-   uint32_t ulCntFrameErr;
-   uint32_t ulReserved[6];
-   uint8_t  ubBusLoad;
-   uint8_t  ubReserved[7];
-   int32_t  slReserved[98];
-} Network_ts;
-
-typedef struct ServerSettings_s {
-   Server_ts   tsServer;
-   Network_ts  atsNetwork[QCAN_NETWORK_MAX];
-} ServerSettings_ts;
+#endif   // QCAN_FILTER_HPP_
 

@@ -35,11 +35,13 @@
 
 #include <QtCore/QDebug>
 
+#include <QtCore/QJsonObject>
+#include <QtCore/QJsonDocument>
+
 #include "qcan_defs.hpp"
 #include "qcan_interface.hpp"
 #include "qcan_network.hpp"
 
-#include "qcan_server_memory.hpp"
 
 
 /*--------------------------------------------------------------------------------------------------------------------*\
@@ -61,7 +63,7 @@
 \*--------------------------------------------------------------------------------------------------------------------*/
 uint8_t  QCanNetwork::ubNetIdP = 0;
 
-static uint32_t   aulDlc2Bitlength[] = { 0,  8,  16,  24,  32,  40,  48,  56, 
+static uint32_t   aulDlc2Bitlength[] = { 0,  8,  16,  24,  32,  40,  48,  56,
                                         64, 96, 128, 160, 192, 256, 384, 512  };
 
 /*--------------------------------------------------------------------------------------------------------------------*\
@@ -78,37 +80,37 @@ static uint32_t   aulDlc2Bitlength[] = { 0,  8,  16,  24,  32,  40,  48,  56,
 static int32_t getBitrate(int32_t slPreDefValueV)
 {
    int32_t slBitrateT;
-   
+
    switch (slPreDefValueV)
    {
       case eCAN_BITRATE_10K:
          slBitrateT = 10000;
          break;
-         
+
       case eCAN_BITRATE_20K:
          slBitrateT = 20000;
          break;
-      
+
       case eCAN_BITRATE_50K:
          slBitrateT = 50000;
          break;
-         
+
       case eCAN_BITRATE_100K:
          slBitrateT = 100000;
          break;
-         
+
       case eCAN_BITRATE_125K:
          slBitrateT = 125000;
          break;
-         
+
       case eCAN_BITRATE_250K:
          slBitrateT = 250000;
          break;
-         
+
       case eCAN_BITRATE_500K:
          slBitrateT = 500000;
          break;
-         
+
       case eCAN_BITRATE_800K:
          slBitrateT = 800000;
          break;
@@ -116,11 +118,11 @@ static int32_t getBitrate(int32_t slPreDefValueV)
       case eCAN_BITRATE_1M:
          slBitrateT = 1000000;
          break;
-         
+
       case eCAN_BITRATE_2M:
          slBitrateT = 2000000;
          break;
-         
+
       case eCAN_BITRATE_4M:
          slBitrateT = 4000000;
          break;
@@ -133,7 +135,7 @@ static int32_t getBitrate(int32_t slPreDefValueV)
          slBitrateT = eCAN_BITRATE_NONE;
          break;
    }
-   
+
    return (slBitrateT);
 }
 
@@ -148,7 +150,7 @@ static int32_t getBitrate(int32_t slPreDefValueV)
 // QCanNetwork()                                                                                                      //
 // constructor                                                                                                        //
 //--------------------------------------------------------------------------------------------------------------------//
-QCanNetwork::QCanNetwork(QObject * pclParentV, uint16_t  uwPortV, QSharedMemory * pclSettingsV)
+QCanNetwork::QCanNetwork(QObject * pclParentV)
 {
    //---------------------------------------------------------------------------------------------------
    // set the parent
@@ -176,24 +178,16 @@ QCanNetwork::QCanNetwork(QObject * pclParentV, uint16_t  uwPortV, QSharedMemory 
    pclLocalSrvP = new QLocalServer();
 
    //---------------------------------------------------------------------------------------------------
-   // create initial local socket list
+   // configure initial local socket list
    //
-   pclLocalSockListP = new QVector<QLocalSocket*>;
-   pclLocalSockListP->reserve(QCAN_LOCAL_SOCKET_MAX);
+   clLocalSockListP.reserve(QCAN_LOCAL_SOCKET_MAX);
 
 
    //---------------------------------------------------------------------------------------------------
-   // setup a new TCP server which is listening to the default network name
+   // configure initial WebSocket list for CAN frames and settings
    //
-   pclTcpSrvP = new QTcpServer();
-   clTcpHostAddrP = QHostAddress(QHostAddress::LocalHost);
-   uwTcpPortP = uwPortV;
-
-   //---------------------------------------------------------------------------------------------------
-   // create initial TCP socket list
-   //
-   pclTcpSockListP = new QVector<QTcpSocket *>;
-   pclTcpSockListP->reserve(QCAN_TCP_SOCKET_MAX);
+   clWebSockListP.reserve(QCAN_WEB_SOCKET_MAX);
+   clSettingsListP.reserve(QCAN_WEB_SOCKET_MAX);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -238,27 +232,6 @@ QCanNetwork::QCanNetwork(QObject * pclParentV, uint16_t  uwPortV, QSharedMemory 
    connect(&clRefreshTimerP, SIGNAL(timeout()), this, SLOT(onTimerEvent()));
    clRefreshTimerP.start(REFRESH_TIMER_CYCLE_PERIOD);
 
-
-   //---------------------------------------------------------------------------------------------------
-   // store initial values in shared memory
-   //
-   pclSettingsP = pclSettingsV;
-   if ((pclSettingsP != 0L) && pclSettingsP->isAttached() )
-   {
-      qDebug() << "QCanNetwork(" << channel() << ") -- Set default values in shared memory";
-      if (pclSettingsP->lock())
-      {
-         ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
-
-         ptsSettingsT->atsNetwork[ubIdP - 1].slFlags      = 0;
-         ptsSettingsT->atsNetwork[ubIdP - 1].slStatus     = teCanStateP;
-         ptsSettingsT->atsNetwork[ubIdP - 1].slNomBitRate = slNomBitRateP;
-         ptsSettingsT->atsNetwork[ubIdP - 1].slDatBitRate = slDatBitRateP;
-         strcpy(&(ptsSettingsT->atsNetwork[ubIdP - 1].szInterfaceName[0]), "Virtual CAN");
-      }
-      pclSettingsP->unlock();
-   }
-
 }
 
 
@@ -270,6 +243,13 @@ QCanNetwork::~QCanNetwork()
 {
 
    //---------------------------------------------------------------------------------------------------
+   // clear list for local socket and web socket
+   //
+   clLocalSockListP.clear();
+   clWebSockListP.clear();
+   clSettingsListP.clear();
+
+   //---------------------------------------------------------------------------------------------------
    // close local server
    //
    if (pclLocalSrvP->isListening())
@@ -278,21 +258,16 @@ QCanNetwork::~QCanNetwork()
    }
    delete (pclLocalSrvP);
 
-   //---------------------------------------------------------------------------------------------------
-   // close TCP server
-   //
-   if (pclTcpSrvP->isListening())
-   {
-      pclTcpSrvP->close();
-   }
-   delete (pclTcpSrvP);
 
+   //---------------------------------------------------------------------------------------------------
+   // decrement internal network number
+   //
    ubNetIdP--;
 }
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// addInterface()                                                                                                     //
+// QCanNetwork::addInterface()                                                                                        //
 // add physical CAN interface (plug-in)                                                                               //
 //--------------------------------------------------------------------------------------------------------------------//
 bool QCanNetwork::addInterface(QCanInterface * pclCanIfV)
@@ -327,27 +302,6 @@ bool QCanNetwork::addInterface(QCanInterface * pclCanIfV)
       connect(pclInterfaceP, SIGNAL(stateChanged(CAN_State_e)),
               this,          SLOT(onInterfaceStateChange(CAN_State_e) ));
 
-      //---------------------------------------------------------------------------------------------------
-      // store interface name in shared memory
-      //
-      if ((pclSettingsP != 0L) && pclSettingsP->isAttached() )
-      {
-         pclSettingsP->lock();
-         ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
-
-         int32_t slStringSizeT = pclCanIfV->name().size();
-         if (slStringSizeT > QCAN_IF_NAME_LENGTH)
-         {
-            slStringSizeT = QCAN_IF_NAME_LENGTH;
-         }
-
-         for (int32_t slCntT = 0; slCntT < slStringSizeT; slCntT++)
-         {
-            ptsSettingsT->atsNetwork[ubIdP - 1].szInterfaceName[slCntT] = pclCanIfV->name().at(slCntT).toLatin1();
-         }
-
-         pclSettingsP->unlock();
-      }
 
       btResultT = true;
    }
@@ -357,7 +311,61 @@ bool QCanNetwork::addInterface(QCanInterface * pclCanIfV)
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// dataBitrateString()                                                                                                //
+// QCanNetwork::attachWebSocket()                                                                                     //
+// attach web socket to list                                                                                          //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanNetwork::attachWebSocket(QWebSocket * pclSocketV, enum SocketType_e teSocketTypeV)
+{
+
+   if (teSocketTypeV == eSOCKET_TYPE_CAN_FRAME)
+   {
+      //-------------------------------------------------------------------------------------------
+      // add this socket to the the socket list
+      //
+      clWebSockMutexP.lock();
+      clWebSockListP.append(pclSocketV);
+      clWebSockMutexP.unlock();
+
+      //-------------------------------------------------------------------------------------------
+      // Prepare log message and send it
+      //
+      emit showSocketState(channel(), clLocalSockListP.size(), clWebSockListP.size());
+      logSocketState("Open WebSocket    -");
+
+      //-------------------------------------------------------------------------------------------
+      // Add slots that handle data reception and disconnection of the socket from the server
+      //
+      connect(pclSocketV, &QWebSocket::binaryMessageReceived,  this, &QCanNetwork::onWebSocketBinaryData);
+      connect(pclSocketV, &QWebSocket::disconnected,           this, &QCanNetwork::onWebSocketDisconnect);
+
+   }
+   else
+   {
+      //-------------------------------------------------------------------------------------------
+      // add this socket to the the socket list
+      //
+      clSettingsListP.append(pclSocketV);
+
+      //-------------------------------------------------------------------------------------------
+      // Prepare log message and send it
+      //
+      QString clSockOpenT = QString("total open: %1").arg(clSettingsListP.size());
+      emit addLogMessage(CAN_Channel_e (id()), "Open WebSocket for settings - " + clSockOpenT, eLOG_LEVEL_DEBUG);
+
+      //-------------------------------------------------------------------------------------------
+      // Add slots that handle data reception and disconnection of the socket from the server
+      //
+      connect(pclSocketV, &QWebSocket::textMessageReceived,    this, &QCanNetwork::onWebSocketTextData);
+      connect(pclSocketV, &QWebSocket::disconnected,           this, &QCanNetwork::onWebSocketDisconnect);
+      sendNetworkSettings();
+   }
+   
+
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanNetwork::dataBitrateString()                                                                                   //
 // return QString value for data bit-rate                                                                             //
 //--------------------------------------------------------------------------------------------------------------------//
 QString QCanNetwork::dataBitrateString(void)
@@ -385,27 +393,28 @@ QString QCanNetwork::dataBitrateString(void)
          clDatBitRateT = QString("%1 MBit/s").arg(slDatBitRateP / 1000000);
       }
    }
-   
-   
+
+
    return (clDatBitRateT);
 
 }
 
-//----------------------------------------------------------------------------//
-// hasErrorFrameSupport()                                                    //
-// Check if the CAN interface has error frame support                         //
-//----------------------------------------------------------------------------//
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanNetwork::hasErrorFrameSupport()                                                                                //
+// Check if the CAN interface has error frame support                                                                 //
+//--------------------------------------------------------------------------------------------------------------------//
 bool QCanNetwork::hasErrorFrameSupport(void)
 {
    bool btResultT;
-   
-   //----------------------------------------------------------------
-   // If no physical CAN interface is connected, the virtual CAN 
-   // network can support error frames. Hence the default is TRUE.
+
+   //---------------------------------------------------------------------------------------------------
+   // If no physical CAN interface is connected, the virtual CAN network can support error frames.
+   // Hence the default is TRUE.
    //
-   btResultT = true;  
-   
-   //----------------------------------------------------------------
+   btResultT = true;
+
+   //---------------------------------------------------------------------------------------------------
    // Check supported features of physical CAN interface.
    //
    if (!pclInterfaceP.isNull())
@@ -424,21 +433,21 @@ bool QCanNetwork::hasErrorFrameSupport(void)
 }
 
 
-//----------------------------------------------------------------------------//
-// hasFlexibleDataSupport()                                                   //
-// Check if the CAN interface has CAN FD support                              //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanNetwork::hasFlexibleDataSupport()                                                                              //
+// Check if the CAN interface has CAN FD support                                                                      //
+//--------------------------------------------------------------------------------------------------------------------//
 bool QCanNetwork::hasFlexibleDataSupport(void)
 {
    bool btResultT;
-   
-   //----------------------------------------------------------------
-   // If no physical CAN interface is connected, the virtual CAN 
+
+   //---------------------------------------------------------------------------------------------------
+   // If no physical CAN interface is connected, the virtual CAN
    // network can support FD frames. Hence the default is TRUE.
    //
-   btResultT = true;  
-   
-   //----------------------------------------------------------------
+   btResultT = true;
+
+   //---------------------------------------------------------------------------------------------------
    // Check supported features of physical CAN interface.
    //
    if (!pclInterfaceP.isNull())
@@ -452,26 +461,26 @@ bool QCanNetwork::hasFlexibleDataSupport(void)
          btResultT = false;
       }
    }
-   
+
    return(btResultT);
 }
 
 
-//----------------------------------------------------------------------------//
-// hasListenOnlySupport()                                                     //
-// Check if the CAN interface has Listen-Only support                         //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanNetwork::hasListenOnlySupport()                                                                                //
+// Check if the CAN interface has Listen-Only support                                                                 //
+//--------------------------------------------------------------------------------------------------------------------//
 bool QCanNetwork::hasListenOnlySupport(void)
 {
    bool btResultT;
-   
-   //----------------------------------------------------------------
-   // If no physical CAN interface is connected, the virtual CAN 
-   // network can not support Listen-Only. Hence the default is FALSE.
+
+   //---------------------------------------------------------------------------------------------------
+   // If no physical CAN interface is connected, the virtual CAN network can not support Listen-Only.
+   // Hence the default is FALSE.
    //
-   btResultT = false;  
-   
-   
+   btResultT = false;
+
+
    if (!pclInterfaceP.isNull())
    {
       if (pclInterfaceP->supportedFeatures() & QCAN_IF_SUPPORT_LISTEN_ONLY)
@@ -483,14 +492,15 @@ bool QCanNetwork::hasListenOnlySupport(void)
          btResultT = false;
       }
    }
-   
+
    return(btResultT);
 }
 
-//----------------------------------------------------------------------------//
-// hasSpecificConfigurationSupport()                                          //
-// Check if the CAN interface has Devuce Specific Configuration support       //
-//----------------------------------------------------------------------------//
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanNetwork::hasSpecificConfigurationSupport()                                                                     //
+// Check if the CAN interface has Devuce Specific Configuration support                                               //
+//--------------------------------------------------------------------------------------------------------------------//
 bool QCanNetwork::hasSpecificConfigurationSupport(void)
 {
    bool btResultT = false;
@@ -507,28 +517,26 @@ bool QCanNetwork::hasSpecificConfigurationSupport(void)
 }
 
 
-//----------------------------------------------------------------------------//
-// frameSize()                                                                //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanNetwork::frameSize()                                                                                           //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 uint32_t QCanNetwork::frameSize(const QByteArray & clSockDataR)
 {
    uint32_t ulBitCountT = 0;
-   
-   //----------------------------------------------------------------
+
+   //---------------------------------------------------------------------------------------------------
    // test for CAN data frame
    //
    if ((clSockDataR.at(0) & 0xE0) == 0x00)
    {
-      //--------------------------------------------------------
-      // check the DLC value and convert to the number of
-      // data bits inside this frame
+      //-------------------------------------------------------------------------------------------
+      // check the DLC value and convert to the number of data bits inside this frame
       //
       ulBitCountT = aulDlc2Bitlength[(clSockDataR.at(4) & 0x0F)];
 
-      //--------------------------------------------------------
-      // add the number of bits for the protocol header, 
-      // including possible stuff bits
+      //-------------------------------------------------------------------------------------------
+      // add the number of bits for the protocol header, including possible stuff bits
       //
       switch (clSockDataR.at(5) & 0x03)
       {
@@ -561,7 +569,7 @@ uint32_t QCanNetwork::frameSize(const QByteArray & clSockDataR)
             break;
       }
    }
-   
+
    return (ulBitCountT);
 }
 
@@ -574,9 +582,10 @@ bool  QCanNetwork::handleCanFrame(enum FrameSource_e teFrameSrcV, const int32_t 
 {
    int32_t        slSockIdxT;
    bool           btResultT = false;
-   QLocalSocket * pclLocalSockS;
-   QTcpSocket *   pclTcpSockS;
+   QLocalSocket * pclLocalSockT;
+   QWebSocket *   pclWebSockT;
 
+   
    //---------------------------------------------------------------------------------------------------
    // If a CAN interface is present and the source of this data is not the CAN interface: convert to a
    // QCanFrame and write it to the interface
@@ -584,20 +593,28 @@ bool  QCanNetwork::handleCanFrame(enum FrameSource_e teFrameSrcV, const int32_t 
    if ((pclInterfaceP.isNull() == false) && (teFrameSrcV != eFRAME_SOURCE_CAN_IF))
    {
       clCanFrameOutP.fromByteArray(clSockDataV);
-      pclInterfaceP->write(clCanFrameOutP);
+
+      //-------------------------------------------------------------------------------------------
+      // Check if it was possible to write the CAN message, if not we return immediately here.
+      //
+      if (pclInterfaceP->write(clCanFrameOutP) != QCanInterface::eERROR_NONE)
+      {
+         return (false);
+      }
+
    }
 
 
    //---------------------------------------------------------------------------------------------------
    // check all open local sockets and write CAN frame
    //
-   for (slSockIdxT = 0; slSockIdxT < pclLocalSockListP->size(); slSockIdxT++)
+   for (slSockIdxT = 0; slSockIdxT < clLocalSockListP.size(); slSockIdxT++)
    {
       //-------------------------------------------------------------------------------------------
       // If the frame source is a local socket AND the socket source value is equal to the socket
       // index: don't copy message
       //
-      if ( (teFrameSrcV == eFRAME_SOURCE_SOCKET_LOCAL) && (slSockIdxT == slSockSrcV))
+      if ( (teFrameSrcV == eFRAME_SOURCE_LOCAL_SOCKET) && (slSockIdxT == slSockSrcV))
       {
          //-----------------------------------------------------------------------------------
          // do not copy data back to source
@@ -608,22 +625,22 @@ bool  QCanNetwork::handleCanFrame(enum FrameSource_e teFrameSrcV, const int32_t 
          //-----------------------------------------------------------------------------------
          // copy data to socket
          //
-         pclLocalSockS = pclLocalSockListP->at(slSockIdxT);
-         pclLocalSockS->write(clSockDataV);
+         pclLocalSockT = clLocalSockListP.at(slSockIdxT);
+         pclLocalSockT->write(clSockDataV);
          btResultT = true;
       }
    }
 
    //---------------------------------------------------------------------------------------------------
-   // check all open TCP sockets and write CAN frame
+   // check all open web sockets and write CAN frame
    //
-   for (slSockIdxT = 0; slSockIdxT < pclTcpSockListP->size(); slSockIdxT++)
+   for (slSockIdxT = 0; slSockIdxT < clWebSockListP.size(); slSockIdxT++)
    {
       //-------------------------------------------------------------------------------------------
-      // If the frame source is a TCP socket AND the socket source value is equal to the socket
+      // If the frame source is a web socket AND the socket source value is equal to the socket
       // index: don't copy message
       //
-      if ( (teFrameSrcV == eFRAME_SOURCE_SOCKET_TCP) && (slSockIdxT == slSockSrcV))
+      if ( (teFrameSrcV == eFRAME_SOURCE_WEB_SOCKET) && (slSockIdxT == slSockSrcV))
       {
          //-----------------------------------------------------------------------------------
          // do not copy data back to source
@@ -634,9 +651,9 @@ bool  QCanNetwork::handleCanFrame(enum FrameSource_e teFrameSrcV, const int32_t 
          //-----------------------------------------------------------------------------------
          // copy data to socket
          //
-         pclTcpSockS = pclTcpSockListP->at(slSockIdxT);
-         pclTcpSockS->write(clSockDataV);
-         pclTcpSockS->flush();
+         pclWebSockT = clWebSockListP.at(slSockIdxT);
+         pclWebSockT->sendBinaryMessage(clSockDataV);
+         pclWebSockT->flush();
          btResultT = true;
       }
    }
@@ -655,7 +672,7 @@ bool  QCanNetwork::handleCanFrame(enum FrameSource_e teFrameSrcV, const int32_t 
    }
    ulCntBitCurP = ulCntBitCurP + frameSize(clSockDataV);
 
-   return(btResultT);
+   return (btResultT);
 }
 
 
@@ -702,13 +719,18 @@ void QCanNetwork::reset(void)
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// QCanNetwork::serverAddress()                                                                                       //
-//                                                                                                                    //
+// QCanNetwork::logSocketState()                                                                                      //
+//return nominal bit-rate as QString value                                                                            //
 //--------------------------------------------------------------------------------------------------------------------//
-QHostAddress QCanNetwork::serverAddress(void)
+void QCanNetwork::logSocketState(const QString & clInfoR)
 {
-   qDebug() << "QCanNetwork::serverAddress" << pclTcpSrvP->serverAddress();
-   return (pclTcpSrvP->serverAddress());
+   int32_t slLocalSocketNumT = clLocalSockListP.size();
+   int32_t slWebSocketNumT   = clWebSockListP.size();
+
+   QString clSockOpenT = QString(" total open: %1").arg(slLocalSocketNumT + slWebSocketNumT, 2);
+   clSockOpenT += QString(" -  Local socket: %1").arg(slLocalSocketNumT, 2);
+   clSockOpenT += QString(" -  WebSocket: %1").arg(slWebSocketNumT, 2);
+   emit addLogMessage(channel(), clInfoR + clSockOpenT, eLOG_LEVEL_DEBUG);
 }
 
 
@@ -888,19 +910,14 @@ void QCanNetwork::onLocalSocketConnect(void)
    //
    pclSocketT =  pclLocalSrvP->nextPendingConnection();
    clLocalSockMutexP.lock();
-   pclLocalSockListP->append(pclSocketT);
+   clLocalSockListP.append(pclSocketT);
    clLocalSockMutexP.unlock();
 
    //---------------------------------------------------------------------------------------------------
    // Prepare log message and send it
    //
-   emit showSocketState(channel(), pclLocalSockListP->size(), pclTcpSockListP->size());
-   QString clSockOpenT = QString("total open: %1").arg(pclLocalSockListP->size() + pclTcpSockListP->size());
-   clSockOpenT += QString(" (Local: %1,").arg(pclLocalSockListP->size());
-   clSockOpenT += QString(" TCP: %1)   ").arg(pclTcpSockListP->size());
-   emit addLogMessage(channel(),
-                      "Local socket connected, " + clSockOpenT,
-                      eLOG_LEVEL_DEBUG);
+  emit showSocketState(channel(), clLocalSockListP.size(), clWebSockListP.size()); 
+   logSocketState("Open LocalSocket  -");
 
    //---------------------------------------------------------------------------------------------------
    // Add a slot that handles the disconnection of the socket from the local server
@@ -942,12 +959,12 @@ void QCanNetwork::onLocalSocketDisconnect(void)
    // remove sender from socket list
    //
    clLocalSockMutexP.lock();
-   for(slSockIdxT = 0; slSockIdxT < pclLocalSockListP->size(); slSockIdxT++)
+   for(slSockIdxT = 0; slSockIdxT < clLocalSockListP.size(); slSockIdxT++)
    {
-      pclSockT = pclLocalSockListP->at(slSockIdxT);
+      pclSockT = clLocalSockListP.at(slSockIdxT);
       if (pclSockT == pclSenderT)
       {
-         pclLocalSockListP->remove(slSockIdxT);
+         clLocalSockListP.remove(slSockIdxT);
          break;
       }
    }
@@ -956,13 +973,8 @@ void QCanNetwork::onLocalSocketDisconnect(void)
    //---------------------------------------------------------------------------------------------------
    // Prepare log message and send it
    //
-   emit showSocketState(channel(), pclLocalSockListP->size(), pclTcpSockListP->size());
-   QString clSockOpenT = QString("total open: %1").arg(pclLocalSockListP->size() + pclTcpSockListP->size());
-   clSockOpenT += QString(" (Local: %1,").arg(pclLocalSockListP->size());
-   clSockOpenT += QString(" TCP: %1)   ").arg(pclTcpSockListP->size());
-   emit addLogMessage(channel(),
-                      "Local socket disconnected, " + clSockOpenT,
-                      eLOG_LEVEL_DEBUG);
+   emit showSocketState(channel(), clLocalSockListP.size(), clWebSockListP.size());
+   logSocketState("Close LocalSocket -");
 }
 
 
@@ -972,7 +984,7 @@ void QCanNetwork::onLocalSocketDisconnect(void)
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanNetwork::onLocalSocketNewData(void)
 {
-   QLocalSocket *    pclLocalSockT;
+   QLocalSocket *    pclLocalSockT = qobject_cast<QLocalSocket *>(sender());
    int32_t           slSockIdxT;
    int32_t           slListSizeT;
    uint32_t          ulFrameMaxT;
@@ -988,17 +1000,19 @@ void QCanNetwork::onLocalSocketNewData(void)
    //---------------------------------------------------------------------------------------------------
    // check all open local sockets and read messages
    //
-   slListSizeT = pclLocalSockListP->size();
+   slListSizeT = clLocalSockListP.size();
    for(slSockIdxT = 0; slSockIdxT < slListSizeT; slSockIdxT++)
    {
-      pclLocalSockT = pclLocalSockListP->at(slSockIdxT);
-      ulFrameMaxT = (pclLocalSockT->bytesAvailable()) / QCAN_FRAME_ARRAY_SIZE;
-      while (ulFrameMaxT > 0)
+      if (pclLocalSockT == clLocalSockListP.at(slSockIdxT))
       {
-         clSockDataT = pclLocalSockT->read(QCAN_FRAME_ARRAY_SIZE);
-         handleCanFrame(eFRAME_SOURCE_SOCKET_LOCAL, slSockIdxT, clSockDataT);
-
          ulFrameMaxT = (pclLocalSockT->bytesAvailable()) / QCAN_FRAME_ARRAY_SIZE;
+         while (ulFrameMaxT > 0)
+         {
+            clSockDataT = pclLocalSockT->read(QCAN_FRAME_ARRAY_SIZE);
+            handleCanFrame(eFRAME_SOURCE_LOCAL_SOCKET, slSockIdxT, clSockDataT);
+
+            ulFrameMaxT = (pclLocalSockT->bytesAvailable()) / QCAN_FRAME_ARRAY_SIZE;
+         }
       }
    }
 
@@ -1009,128 +1023,165 @@ void QCanNetwork::onLocalSocketNewData(void)
 }
 
 
+
 //--------------------------------------------------------------------------------------------------------------------//
-// onTcpSocketConnect()                                                                                               //
-// slot that manages a new TCP server connection                                                                      //
+// QCanNetwork::onWebSocketBinaryData()                                                                               //
+// handle reception of new data on web socket                                                                         //
 //--------------------------------------------------------------------------------------------------------------------//
-void QCanNetwork::onTcpSocketConnect(void)
+void QCanNetwork::onWebSocketBinaryData(const QByteArray &clMessageR)
 {
-   QTcpSocket *   pclSocketT;
-   
-   //----------------------------------------------------------------
-   // Get next pending connect and add this socket to the
-   // the socket list
+
+   QWebSocket *   pclSocketT = qobject_cast<QWebSocket *>(sender());
+   int32_t        slListSizeT;
+
+   //---------------------------------------------------------------------------------------------------
+   // lock web socket mutex
    //
-   pclSocketT =  pclTcpSrvP->nextPendingConnection();
-   clTcpSockMutexP.lock();
-   pclTcpSockListP->append(pclSocketT);
-   clTcpSockMutexP.unlock();
+   clWebSockMutexP.lock();
 
-   //----------------------------------------------------------------
-   // Prepare log message and send it
+   //---------------------------------------------------------------------------------------------------
+   // check all open web sockets and get socket index
    //
-   QString clSockOpenT = QString("total open: %1").arg(pclLocalSockListP->size() + pclTcpSockListP->size());
-   clSockOpenT += QString(" (Local: %1),").arg(pclLocalSockListP->size());
-   clSockOpenT += QString(" (TCP: %1)   ").arg(pclTcpSockListP->size());
-   emit addLogMessage(CAN_Channel_e (id()),
-                      "Socket connected, " + clSockOpenT,
-                      eLOG_LEVEL_DEBUG);
-
-   //----------------------------------------------------------------
-   // Add a slot that handles the disconnection of the socket
-   // from the local server
-   //
-   connect( pclSocketT,
-            SIGNAL(disconnected()),
-            this,
-            SLOT(onTcpSocketDisconnect())   );
-   
-   //----------------------------------------------------------------
-   // Todo: Send information to client:
-}
-
-
-//----------------------------------------------------------------------------//
-// onTcpSocketDisconnect()                                                    //
-// remove local socket from list                                              //
-//----------------------------------------------------------------------------//
-void QCanNetwork::onTcpSocketDisconnect(void)
-{
-   int32_t      slSockIdxT;
-   QTcpSocket * pclSockT;
-   QTcpSocket * pclSenderT;
-
-
-   //----------------------------------------------------------------
-   // get sender of signal
-   //
-   pclSenderT = (QTcpSocket* ) QObject::sender();
-
-   clTcpSockMutexP.lock();
-   for(slSockIdxT = 0; slSockIdxT < pclTcpSockListP->size(); slSockIdxT++)
+   slListSizeT = clWebSockListP.size();
+   for(int32_t slSockIdxT = 0; slSockIdxT < slListSizeT; slSockIdxT++)
    {
-      pclSockT = pclTcpSockListP->at(slSockIdxT);
-      if(pclSockT == pclSenderT)
+      if (clWebSockListP.at(slSockIdxT) == pclSocketT)
       {
-         pclTcpSockListP->remove(slSockIdxT);
+         handleCanFrame(eFRAME_SOURCE_WEB_SOCKET, slSockIdxT, clMessageR);
          break;
       }
    }
-   clTcpSockMutexP.unlock();
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
+   // unlock web socket mutex
+   //
+   clWebSockMutexP.unlock();
+
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+// onWebSocketDisconnect()                                                                                            //
+// remove web socket from list                                                                                        //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanNetwork::onWebSocketDisconnect(void)
+{
+   int32_t      slSockIdxT;
+   QWebSocket * pclSockT;
+   QWebSocket * pclSenderT;
+
+
+   //---------------------------------------------------------------------------------------------------
+   // get sender of signal
+   //
+   pclSenderT = (QWebSocket* ) QObject::sender();
+
+   clWebSockMutexP.lock();
+   for(slSockIdxT = 0; slSockIdxT < clWebSockListP.size(); slSockIdxT++)
+   {
+      pclSockT = clWebSockListP.at(slSockIdxT);
+      if(pclSockT == pclSenderT)
+      {
+         clWebSockListP.remove(slSockIdxT);
+         break;
+      }
+   }
+   clWebSockMutexP.unlock();
+
+   //---------------------------------------------------------------------------------------------------
    // Prepare log message and send it
    //
-   QString clSockOpenT = QString("total open: %1").arg(pclTcpSockListP->size());
-   emit addLogMessage(CAN_Channel_e (id()),
-                      "Socket disconnect, " + clSockOpenT,
-                      eLOG_LEVEL_DEBUG);
+   emit showSocketState(channel(), clLocalSockListP.size(), clWebSockListP.size());
+   logSocketState("Close WebSocket   -");
 }
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// onTcpSocketNewData()                                                                                               //
-// handle reception of new data on TCP socket                                                                         //
+// onWebSocketTextData()                                                                                              //
+// handle settings message (JSON)                                                                                     //
 //--------------------------------------------------------------------------------------------------------------------//
-void QCanNetwork::onTcpSocketNewData()
+void QCanNetwork::onWebSocketTextData(const QString &clMessageR)
 {
-   QTcpSocket *   pclTcpSockT;
-   int32_t        slSockIdxT;
-   int32_t        slListSizeT;
-   uint32_t       ulFrameMaxT;
-   QByteArray     clSockDataT;
-
+   qDebug() << "QCanNetwork::onWebSocketTextData()" << clMessageR;
+   bool btValidDataT = false;
 
    //---------------------------------------------------------------------------------------------------
-   // lock socket list
+   // The message that we receive here is a JSON object, convert it into a JSON document first
+   // and then check the validity.
    //
-   clTcpSockMutexP.lock();
-
-
-   //---------------------------------------------------------------------------------------------------
-   // check all open TCP sockets and read messages
-   //
-   slListSizeT = pclTcpSockListP->size();
-   for(slSockIdxT = 0; slSockIdxT < slListSizeT; slSockIdxT++)
+   QJsonParseError clJsonErrorT;
+   QJsonDocument clJsonDocumentT = QJsonDocument::fromJson(clMessageR.toUtf8(), &clJsonErrorT);
+   if ( (clJsonErrorT.error == QJsonParseError::NoError) && clJsonDocumentT.isObject())
    {
-      pclTcpSockT = pclTcpSockListP->at(slSockIdxT);
-      ulFrameMaxT = (pclTcpSockT->bytesAvailable()) / QCAN_FRAME_ARRAY_SIZE;
-      while (ulFrameMaxT > 0)
+      //-------------------------------------------------------------------------------------------
+      // Check for "channel" inside JSON object, this must have the same value of this network
+      // instance.
+      //
+      if (clJsonDocumentT.object().contains("channel"))
       {
-         clSockDataT = pclTcpSockT->read(QCAN_FRAME_ARRAY_SIZE);
-         handleCanFrame(eFRAME_SOURCE_SOCKET_TCP, slSockIdxT, clSockDataT);
-         ulFrameMaxT = (pclTcpSockT->bytesAvailable()) / QCAN_FRAME_ARRAY_SIZE;
-
+         if (clJsonDocumentT.object().value("channel").toInt() == this->id())
+         {
+            btValidDataT = true;
+         }
       }
    }
 
-
    //---------------------------------------------------------------------------------------------------
-   // unlock mutex
+   // Execute command only if the data structure is valid
    //
-   clTcpSockMutexP.unlock();
+   if (btValidDataT)
+   {
+      //-------------------------------------------------------------------------------------------
+      // Check for "bitrateData" and "bitrateNominal" inside JSON object
+      //
+      if (clJsonDocumentT.object().contains("bitrateData") && clJsonDocumentT.object().contains("bitrateNominal"))
+      {
+         setBitrate( clJsonDocumentT.object().value("bitrateNominal").toInt(), 
+                     clJsonDocumentT.object().value("bitrateData").toInt()    );
+      }
 
+      //-------------------------------------------------------------------------------------------
+      // Check for "mode" inside JSON object
+      //
+      if (clJsonDocumentT.object().contains("mode"))
+      {
+         CAN_Mode_e  teModeT = (CAN_Mode_e) clJsonDocumentT.object().value("mode").toInt();
+         switch(teModeT)
+         {
+            case eCAN_MODE_INIT:
+               setNetworkEnabled(false);
+               break;
+
+            case eCAN_MODE_OPERATION:
+               setNetworkEnabled(true);
+               setListenOnlyEnabled(false);
+               break;
+
+            case eCAN_MODE_LISTEN_ONLY:
+               setNetworkEnabled(true);
+               setListenOnlyEnabled(true);
+               break;
+
+            default:
+
+               break;
+
+         }
+      }
+
+      //-------------------------------------------------------------------------------------------
+      // Check for "reset" inside JSON object
+      //
+      if (clJsonDocumentT.object().contains("reset"))
+      {
+         if (clJsonDocumentT.object().value("reset").toBool())
+         {
+            reset();
+         }
+      }
+
+   }
 }
+
 
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -1154,7 +1205,7 @@ void QCanNetwork::onTimerEvent(void)
       //
       showCanFrames(CAN_Channel_e (id()), ulCntFrameCanP);
       showErrFrames(CAN_Channel_e (id()), ulCntFrameErrP);
-      
+
       //--------------------------------------------------------------------------------------
       // calculate messages per second
       //
@@ -1183,27 +1234,13 @@ void QCanNetwork::onTimerEvent(void)
       // store actual frame counter value
       //
       ulFrameCntSaveP = ulCntFrameCanP;
-      
-      //--------------------------------------------------------------------------------------
-      // store values in shared memory
-      //
-      if ((pclSettingsP != 0L) && pclSettingsP->isAttached() )
-      {
-         pclSettingsP->lock();
-         ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
-
-         ptsSettingsT->atsNetwork[ubIdP - 1].ubBusLoad     = ubBusLoadP;
-         ptsSettingsT->atsNetwork[ubIdP - 1].ulCntFrameCan = ulCntFrameCanP;
-         ptsSettingsT->atsNetwork[ubIdP - 1].ulCntFrameErr = ulCntFrameErrP;
-         pclSettingsP->unlock();
-      }
 
       //--------------------------------------------------------------------------------------
       // set new value for start time
       //
       clStatisticTimeP.restart();
    }
-   
+
 }
 
 
@@ -1221,21 +1258,60 @@ void QCanNetwork::removeInterface(void)
       disconnect(pclInterfaceP, 0, 0, 0);
 
       pclInterfaceP.clear();
-
-      //-------------------------------------------------------------------------------------------
-      // store interface name in shared memory
-      //
-      if ((pclSettingsP != 0L) && pclSettingsP->isAttached() )
-      {
-         pclSettingsP->lock();
-         ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
-
-         strcpy(&(ptsSettingsT->atsNetwork[ubIdP - 1].szInterfaceName[0]), "Virtual CAN");
-
-         pclSettingsP->unlock();
-      }
-
    }
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanNetwork::sendNetworkSettings                                                                                   //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void  QCanNetwork::sendNetworkSettings(uint32_t flags)
+{
+   Q_UNUSED(flags);
+
+   //---------------------------------------------------------------------------------------------------
+   // Create JSON object containing all information about the network
+   //
+   QJsonObject clJsonNetworkT;
+   
+   clJsonNetworkT["apiVersion"]           = "1.0";
+   clJsonNetworkT["channel"]              = (int32_t) this->channel();
+   clJsonNetworkT["bitrateData"]          = (int32_t) this->dataBitrate();
+   clJsonNetworkT["bitrateNominal"]       = (int32_t) this->nominalBitrate();
+   clJsonNetworkT["enabled"]              = (bool)    this->isNetworkEnabled();
+   clJsonNetworkT["errorFrameEnabled"]    = (bool)    this->isErrorFrameEnabled();
+   clJsonNetworkT["errorFrameSupport"]    = (bool)    this->hasErrorFrameSupport();
+   clJsonNetworkT["flexibleDataEnabled"]  = (bool)    this->isFlexibleDataEnabled();
+   clJsonNetworkT["flexibleDataSupport"]  = (bool)    this->hasFlexibleDataSupport();
+   clJsonNetworkT["frameCount"]           = (int32_t) this->frameCount();
+   clJsonNetworkT["frameCountError"]      = (int32_t) this->frameCountError();
+   clJsonNetworkT["listenOnlyEnabled"]    = (bool)    this->isErrorFrameEnabled();
+   clJsonNetworkT["listenOnlySupport"]    = (bool)    this->isListenOnlyEnabled();
+   clJsonNetworkT["name"]                 = (QString) this->name();
+   clJsonNetworkT["state"]                = (int32_t) this->state();
+
+   if (pclInterfaceP.isNull() == false)
+   {
+      clJsonNetworkT["interfaceName"]     = (QString) pclInterfaceP->name();
+      clJsonNetworkT["interfaceVersion"]  = (QString) pclInterfaceP->version();
+   }
+   else
+   {
+      clJsonNetworkT["interfaceName"]     = "Virtual CAN";
+   }
+   
+   
+   //---------------------------------------------------------------------------------------------------
+   // create JSON document in text format and send it via all open sockets
+   //
+   QJsonDocument clJsonDocumentT(clJsonNetworkT);
+
+   for (int32_t slListIndexT = 0; slListIndexT < clSettingsListP.size(); slListIndexT++)
+   {
+      clSettingsListP.at(slListIndexT)->sendTextMessage(clJsonDocumentT.toJson());
+   }
+
 }
 
 
@@ -1258,9 +1334,9 @@ void QCanNetwork::setBitrate(int32_t slNomBitRateV, int32_t slDatBitRateV)
    {
       slDatBitRateV = getBitrate(slDatBitRateV);
    }
-   
+
    qDebug() << "QCanNetwork::setBitrate()" << slNomBitRateV << slDatBitRateV;
-   
+
    //---------------------------------------------------------------------------------------------------
    // test if the new values differ from the currently stored values
    //
@@ -1279,7 +1355,7 @@ void QCanNetwork::setBitrate(int32_t slNomBitRateV, int32_t slDatBitRateV)
       {
          slDatBitRateP  = eCAN_BITRATE_NONE;
       }
-      
+
       //-------------------------------------------------------------------------------------------
       // If there is an active CAN interface, configure the new bit-rate
       //
@@ -1308,19 +1384,6 @@ void QCanNetwork::setBitrate(int32_t slNomBitRateV, int32_t slDatBitRateV)
       }
 
       //-------------------------------------------------------------------------------------------
-      // store bit-rate values in shared memory
-      //
-      if ((pclSettingsP != 0L) && pclSettingsP->isAttached() )
-      {
-         pclSettingsP->lock();
-         ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
-
-         ptsSettingsT->atsNetwork[ubIdP - 1].slNomBitRate = slNomBitRateP;
-         ptsSettingsT->atsNetwork[ubIdP - 1].slDatBitRate = slDatBitRateP;
-         pclSettingsP->unlock();
-      }
-
-      //-------------------------------------------------------------------------------------------
       // signal that bit-rate has been changed
       //
       emit showBitrate(CAN_Channel_e (id()), slNomBitRateP, slDatBitRateP);
@@ -1339,18 +1402,6 @@ void QCanNetwork::setCanState(CAN_State_e teStateV)
    teCanStateP = teStateV;
 
    qDebug() << "QCanNetwork::setCanState(" << teStateV << ")";
-
-   //---------------------------------------------------------------------------------------------------
-   // store value in shared memory
-   //
-   if ((pclSettingsP != 0L) && pclSettingsP->isAttached() )
-   {
-      pclSettingsP->lock();
-      ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
-
-      ptsSettingsT->atsNetwork[ubIdP - 1].slStatus = teCanStateP;
-      pclSettingsP->unlock();
-   }
 
    //---------------------------------------------------------------------------------------------------
    // signal the new state to destination
@@ -1400,24 +1451,6 @@ void QCanNetwork::setErrorFrameEnabled(bool btEnableV)
       addLogMessage(CAN_Channel_e (id()), "CAN error frame support disabled", eLOG_LEVEL_INFO);
    }
 
-   //---------------------------------------------------------------------------------------------------
-   // update shared memory
-   //
-   if ((pclSettingsP != 0L) && pclSettingsP->isAttached() )
-   {
-      pclSettingsP->lock();
-      ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
-
-      if (btErrorFrameEnabledP)
-      {
-         ptsSettingsT->atsNetwork[ubIdP - 1].slFlags |= QCAN_NETWORK_FLAG_ERROR_FRAME;
-      }
-      else
-      {
-         ptsSettingsT->atsNetwork[ubIdP - 1].slFlags &= ~QCAN_NETWORK_FLAG_ERROR_FRAME;
-      }
-      pclSettingsP->unlock();
-   }
 }
 
 
@@ -1459,24 +1492,6 @@ void QCanNetwork::setFlexibleDataEnabled(bool btEnableV)
       addLogMessage(CAN_Channel_e (id()), "CAN FD support disabled", eLOG_LEVEL_INFO);
    }
 
-   //---------------------------------------------------------------------------------------------------
-   // update shared memory
-   //
-   if ((pclSettingsP != 0L) && pclSettingsP->isAttached() )
-   {
-      pclSettingsP->lock();
-      ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
-
-      if (btFlexibleDataEnabledP)
-      {
-         ptsSettingsT->atsNetwork[ubIdP - 1].slFlags |= QCAN_NETWORK_FLAG_CAN_FD;
-      }
-      else
-      {
-         ptsSettingsT->atsNetwork[ubIdP - 1].slFlags &= ~QCAN_NETWORK_FLAG_CAN_FD;
-      }
-      pclSettingsP->unlock();
-   }
 
 }
 
@@ -1535,24 +1550,6 @@ void QCanNetwork::setListenOnlyEnabled(bool btEnableV)
       addLogMessage(CAN_Channel_e (id()), "Listen-only support disabled", eLOG_LEVEL_INFO);
    }
 
-   //---------------------------------------------------------------------------------------------------
-   // update shared memory
-   //
-   if ((pclSettingsP != 0L) && pclSettingsP->isAttached() )
-   {
-      pclSettingsP->lock();
-      ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
-
-      if (btListenOnlyEnabledP)
-      {
-         ptsSettingsT->atsNetwork[ubIdP - 1].slFlags |= QCAN_NETWORK_FLAG_LISTEN_ONLY;
-      }
-      else
-      {
-         ptsSettingsT->atsNetwork[ubIdP - 1].slFlags &= ~QCAN_NETWORK_FLAG_LISTEN_ONLY;
-      }
-      pclSettingsP->unlock();
-   }
 
 }
 
@@ -1589,26 +1586,6 @@ void QCanNetwork::setNetworkEnabled(bool btEnableV)
       connect( pclLocalSrvP, SIGNAL(newConnection()),
                this, SLOT(onLocalSocketConnect()));
 
-      //-------------------------------------------------------------------------------------------
-      // limit the number of connections for TCP server
-      //
-      pclTcpSrvP->setMaxPendingConnections(QCAN_TCP_SOCKET_MAX);
-
-      if(!pclTcpSrvP->listen(clTcpHostAddrP, uwTcpPortP))
-      {
-         btNetworkEnabledP =  false;
-
-         addLogMessage(CAN_Channel_e (id()),
-                       "Failed to open TCP server ", eLOG_LEVEL_ERROR);
-
-         return;
-      }
-
-      //-------------------------------------------------------------------------------------------
-      // a new connection is handled by the onTcpSrvNewConnection() method
-      //
-      connect( pclTcpSrvP, SIGNAL(newConnection()),
-               this, SLOT(onTcpSocketConnect()));
 
 
       //-------------------------------------------------------------------------------------------
@@ -1639,15 +1616,12 @@ void QCanNetwork::setNetworkEnabled(bool btEnableV)
       disconnect( pclLocalSrvP, SIGNAL(newConnection()),
                   this, SLOT(onLocalSocketConnect()));
 
-      disconnect( pclTcpSrvP, SIGNAL(newConnection()),
-                  this, SLOT(onTcpSocketConnect()));
 
 
       //-------------------------------------------------------------------------------------------
       // close local and TCP server
       //
       pclLocalSrvP->close();
-      pclTcpSrvP->close();
 
       //-------------------------------------------------------------------------------------------
       // set flag for further operations
@@ -1667,48 +1641,7 @@ void QCanNetwork::setNetworkEnabled(bool btEnableV)
 
    }
 
-   //---------------------------------------------------------------------------------------------------
-   // update shared memory
-   //
-   if ((pclSettingsP != 0L) && pclSettingsP->isAttached() )
-   {
-      pclSettingsP->lock();
-      ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
 
-      if (btNetworkEnabledP)
-      {
-         ptsSettingsT->atsNetwork[ubIdP - 1].slFlags |= QCAN_NETWORK_FLAG_ENABLED;
-      }
-      else
-      {
-         ptsSettingsT->atsNetwork[ubIdP - 1].slFlags &= ~QCAN_NETWORK_FLAG_ENABLED;
-      }
-      pclSettingsP->unlock();
-   }
-
-}
-
-
-//--------------------------------------------------------------------------------------------------------------------//
-// setServerAddress()                                                                                                 //
-//                                                                                                                    //
-//--------------------------------------------------------------------------------------------------------------------//
-bool QCanNetwork::setServerAddress(QHostAddress clHostAddressV)
-{
-   bool  btResultT = false;
-
-   addLogMessage(CAN_Channel_e (id()),
-                 QString("Set server address to " + clHostAddressV.toString()), eLOG_LEVEL_INFO);
-   //----------------------------------------------------------------
-   // host address can only be changed when network is disabled
-   //
-   if(btNetworkEnabledP == false)
-   {
-      clTcpHostAddrP = clHostAddressV;
-      btResultT = true;
-   }
-
-   return(btResultT);
 }
 
 

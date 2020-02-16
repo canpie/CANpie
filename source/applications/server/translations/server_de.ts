@@ -20,52 +20,68 @@
 <context>
     <name>QCanServerDialog</name>
     <message>
-        <location filename="../qcan_server_dialog.cpp" line="341"/>
+        <location filename="../qcan_server_dialog.cpp" line="363"/>
         <source>&amp;Configuration ...</source>
         <translation>&amp;Konfiguration ...</translation>
     </message>
     <message>
-        <location filename="../qcan_server_dialog.cpp" line="349"/>
+        <location filename="../qcan_server_dialog.cpp" line="371"/>
         <source>&amp;Quit</source>
         <translation>&amp;Beenden</translation>
     </message>
     <message>
-        <location filename="../qcan_server_dialog.cpp" line="452"/>
+        <location filename="../qcan_server_dialog.cpp" line="412"/>
+        <source>Number of local connections / number of TCP connections</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qcan_server_dialog.cpp" line="552"/>
         <source>Failed to add CAN interface</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_dialog.cpp" line="741"/>
+        <location filename="../qcan_server_dialog.cpp" line="582"/>
+        <location filename="../qcan_server_dialog.cpp" line="893"/>
+        <source>Error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qcan_server_dialog.cpp" line="582"/>
+        <source>CAN interface has been removed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qcan_server_dialog.cpp" line="857"/>
         <source>Stopped</source>
         <translatorcomment>Fester Begriff CAN State Machine</translatorcomment>
         <translation>Stopped</translation>
     </message>
     <message>
-        <location filename="../qcan_server_dialog.cpp" line="745"/>
+        <location filename="../qcan_server_dialog.cpp" line="861"/>
         <source>Sleeping</source>
         <translatorcomment>Fester Begriff CAN State Machine</translatorcomment>
         <translation>Sleeping</translation>
     </message>
     <message>
-        <location filename="../qcan_server_dialog.cpp" line="750"/>
+        <location filename="../qcan_server_dialog.cpp" line="866"/>
         <source>OK (error active)</source>
         <translatorcomment>Fester Begriff CAN State Machine</translatorcomment>
         <translation>OK (error active)</translation>
     </message>
     <message>
-        <location filename="../qcan_server_dialog.cpp" line="755"/>
+        <location filename="../qcan_server_dialog.cpp" line="871"/>
         <source>Warning</source>
         <translatorcomment>Fester Begriff CAN State Machine</translatorcomment>
         <translation>Warning</translation>
     </message>
     <message>
-        <location filename="../qcan_server_dialog.cpp" line="760"/>
+        <location filename="../qcan_server_dialog.cpp" line="876"/>
         <source>Error passive</source>
         <translatorcomment>Fester Begriff CAN State Machine</translatorcomment>
         <translation>Error Passive</translation>
     </message>
     <message>
-        <location filename="../qcan_server_dialog.cpp" line="765"/>
+        <location filename="../qcan_server_dialog.cpp" line="881"/>
         <source>Bus-off</source>
         <translation type="unfinished"></translation>
     </message>
@@ -73,97 +89,97 @@
 <context>
     <name>QCanServerLogger</name>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="219"/>
+        <location filename="../qcan_server_logger.cpp" line="220"/>
         <source>Save File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="221"/>
+        <location filename="../qcan_server_logger.cpp" line="222"/>
         <source>Log file (*.log)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="260"/>
+        <location filename="../qcan_server_logger.cpp" line="261"/>
         <source>Clear all</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="276"/>
+        <location filename="../qcan_server_logger.cpp" line="277"/>
         <source>Log to file ..</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="282"/>
+        <location filename="../qcan_server_logger.cpp" line="283"/>
         <source>Log level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="285"/>
+        <location filename="../qcan_server_logger.cpp" line="286"/>
         <source>Fatal</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="309"/>
+        <location filename="../qcan_server_logger.cpp" line="310"/>
         <source>Info</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="435"/>
+        <location filename="../qcan_server_logger.cpp" line="436"/>
         <source>Set log level: Trace</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="439"/>
+        <location filename="../qcan_server_logger.cpp" line="440"/>
         <source>Set log level: All</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="301"/>
+        <location filename="../qcan_server_logger.cpp" line="302"/>
         <source>Warning</source>
         <translation type="unfinished">Warning</translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="293"/>
+        <location filename="../qcan_server_logger.cpp" line="294"/>
         <source>Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="317"/>
+        <location filename="../qcan_server_logger.cpp" line="318"/>
         <source>Debug</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="325"/>
+        <location filename="../qcan_server_logger.cpp" line="326"/>
         <source>Trace</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="411"/>
+        <location filename="../qcan_server_logger.cpp" line="412"/>
         <source>Set log level: Off</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="415"/>
+        <location filename="../qcan_server_logger.cpp" line="416"/>
         <source>Set log level: Fatal</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="427"/>
+        <location filename="../qcan_server_logger.cpp" line="428"/>
         <source>Set log level: Info</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="423"/>
+        <location filename="../qcan_server_logger.cpp" line="424"/>
         <source>Set log level: Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="419"/>
+        <location filename="../qcan_server_logger.cpp" line="420"/>
         <source>Set log level: Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qcan_server_logger.cpp" line="431"/>
+        <location filename="../qcan_server_logger.cpp" line="432"/>
         <source>Set log level: Debug</source>
         <translation type="unfinished"></translation>
     </message>
@@ -171,22 +187,22 @@
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../../../qcan_server_settings.cpp" line="234"/>
+        <location filename="../../../qcan_server_settings.cpp" line="758"/>
         <source>is crashed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qcan_server_settings.cpp" line="238"/>
+        <location filename="../../../qcan_server_settings.cpp" line="762"/>
         <source>is not active</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qcan_server_settings.cpp" line="242"/>
+        <location filename="../../../qcan_server_settings.cpp" line="766"/>
         <source>is active</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qcan_server_settings.cpp" line="246"/>
+        <location filename="../../../qcan_server_settings.cpp" line="770"/>
         <source>state is unknown</source>
         <translation type="unfinished"></translation>
     </message>
@@ -214,137 +230,142 @@
         <translation>Nominale Bitrate</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="127"/>
         <source>Enable network</source>
-        <translation>Netzwerk aktivieren</translation>
+        <translation type="vanished">Netzwerk aktivieren</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="143"/>
+        <location filename="../forms/ServerConfig.ui" line="127"/>
         <source>Error frames</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="159"/>
+        <location filename="../forms/ServerConfig.ui" line="143"/>
         <source>CAN-FD support</source>
-        <translation type="unfinished"></translation>
+        <translation>CAN-FD</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="175"/>
+        <location filename="../forms/ServerConfig.ui" line="159"/>
         <source>Listen-only</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="191"/>
+        <location filename="../forms/ServerConfig.ui" line="175"/>
         <source>Data Bit-rate</source>
         <translation>Daten Bitrate</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="220"/>
+        <location filename="../forms/ServerConfig.ui" line="204"/>
         <source>Device Configuration</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="249"/>
+        <location filename="../forms/ServerConfig.ui" line="233"/>
         <source>Bus load in percent</source>
-        <translation type="unfinished"></translation>
+        <translation>Bus-Last in Prozent</translation>
+    </message>
+    <message>
+        <location filename="../forms/ServerConfig.ui" line="249"/>
+        <source>Messages / sec:</source>
+        <translation>Botschaften / sec:</translation>
     </message>
     <message>
         <location filename="../forms/ServerConfig.ui" line="265"/>
-        <source>Messages / sec:</source>
-        <translation type="unfinished">Botschaften / sec:</translation>
-    </message>
-    <message>
-        <location filename="../forms/ServerConfig.ui" line="281"/>
         <source>Error frames:</source>
         <translation>Fehler:</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="297"/>
+        <location filename="../forms/ServerConfig.ui" line="281"/>
         <source>CAN frames:</source>
         <translation>CAN Botschaften:</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="387"/>
+        <location filename="../forms/ServerConfig.ui" line="371"/>
         <source>Error active</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="456"/>
+        <location filename="../forms/ServerConfig.ui" line="440"/>
         <source>Set default values</source>
-        <translation type="unfinished"></translation>
+        <translation>Standardeinstellungen</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="475"/>
+        <location filename="../forms/ServerConfig.ui" line="459"/>
         <source>Access via network</source>
-        <translation type="unfinished">Netzwerk Zugriff</translation>
+        <translation>Zugriff über Netzwerk</translation>
+    </message>
+    <message>
+        <location filename="../forms/ServerConfig.ui" line="471"/>
+        <source>Allow access to server from remote computer</source>
+        <translation>Erlaube Zugriff über die Netzwerk Schnittstelle</translation>
     </message>
     <message>
         <location filename="../forms/ServerConfig.ui" line="487"/>
-        <source>Allow access to server from remote computer</source>
-        <translation type="unfinished">Erlaube Zugriff über die Netzwerk Schnittstelle</translation>
-    </message>
-    <message>
-        <location filename="../forms/ServerConfig.ui" line="503"/>
         <source>CANpie FD server port</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="536"/>
+        <location filename="../forms/ServerConfig.ui" line="520"/>
         <source>CAN network </source>
-        <translation type="unfinished">CAN Netzwerk Simulation </translation>
+        <translation>CAN Netzwerk Konfiguration</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="551"/>
+        <location filename="../forms/ServerConfig.ui" line="535"/>
         <source>Allow to disable a network </source>
-        <translation type="unfinished">CAN Netzwerk kann deaktiviert werden </translation>
+        <translation>CAN Netzwerk kann deaktiviert werden </translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="564"/>
+        <location filename="../forms/ServerConfig.ui" line="548"/>
         <source>Suppress notifications (bus-off, error conditions)</source>
-        <translation type="unfinished">Hinweise ausblenden (Bus off, Fehler)</translation>
+        <translation>Hinweise ausblenden (Bus off, Fehler)</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="578"/>
+        <location filename="../forms/ServerConfig.ui" line="561"/>
+        <source>Recover from bus-off automatically</source>
+        <translation>Bus-Off Zustand automatisch beheben</translation>
+    </message>
+    <message>
+        <location filename="../forms/ServerConfig.ui" line="575"/>
         <source>Access via application</source>
-        <translation type="unfinished"></translation>
+        <translation>Zugriff über Applikation</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="590"/>
+        <location filename="../forms/ServerConfig.ui" line="587"/>
         <source>Allow application to change bit-rate settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Applikation darf Bitrate ändern</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="642"/>
+        <location filename="../forms/ServerConfig.ui" line="600"/>
+        <source>Allow application to change operation mode (e.g. listen-only)</source>
+        <translation>Applikation darf CAN Modus ändern (Listen-only etc.)</translation>
+    </message>
+    <message>
+        <location filename="../forms/ServerConfig.ui" line="655"/>
         <source>CAN</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="647"/>
+        <location filename="../forms/ServerConfig.ui" line="660"/>
         <source>Connections</source>
-        <translation type="unfinished"></translation>
+        <translation>Verbindungen</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="652"/>
+        <location filename="../forms/ServerConfig.ui" line="665"/>
         <source>Interface</source>
-        <translation type="unfinished"></translation>
+        <translation>Schnttstelle</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="657"/>
-        <source>Disable</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../forms/ServerConfig.ui" line="664"/>
+        <location filename="../forms/ServerConfig.ui" line="677"/>
         <source>Plugins</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="677"/>
+        <location filename="../forms/ServerConfig.ui" line="690"/>
         <source>Plug-In</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="682"/>
+        <location filename="../forms/ServerConfig.ui" line="670"/>
+        <location filename="../forms/ServerConfig.ui" line="695"/>
         <source>Version</source>
         <translation type="unfinished"></translation>
     </message>
@@ -354,24 +375,24 @@
         <translation>CAN Konfiguration</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="234"/>
+        <location filename="../forms/ServerConfig.ui" line="218"/>
         <source>CAN statistics</source>
         <translation>CAN Statistik</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="375"/>
+        <location filename="../forms/ServerConfig.ui" line="359"/>
         <source>CAN status</source>
         <translation>CAN Status</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="444"/>
+        <location filename="../forms/ServerConfig.ui" line="428"/>
         <source>Server configuration</source>
         <translation>Server Konfiguration</translation>
     </message>
     <message>
-        <location filename="../forms/ServerConfig.ui" line="597"/>
+        <location filename="../forms/ServerConfig.ui" line="607"/>
         <source>Information</source>
-        <translation type="unfinished">Information</translation>
+        <translation>Information</translation>
     </message>
 </context>
 </TS>

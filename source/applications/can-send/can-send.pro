@@ -21,7 +21,7 @@ TEMPLATE = app
 #---------------------------------------------------------------
 # Qt modules used
 #
-QT += core network
+QT += core network websockets
 QT -= gui
 
 #---------------------------------------------------------------
@@ -34,6 +34,13 @@ TARGET = can-send
 #
 DESTDIR = ../../../../bin
 
+# Do not use a common /objs folder together with MSVC compiler.
+# If more than one application is compiled from qcan with MSVC
+# and common object folder is used, this can lead to linking
+# errors because some object files build with different settings
+# are mixed. This occurs especially when one application is
+# compiled as a release and others as a debug version.
+!win32-msvc* {
 #---------------------------------------------------------------
 # Directory for intermediate moc files
 # 
@@ -43,6 +50,7 @@ MOC_DIR = ../../../../objs
 # Directory for object files
 #
 OBJECTS_DIR = ../../../../objs
+}
 
 
 #---------------------------------------------------------------
@@ -59,8 +67,8 @@ CONFIG += silent
 # version of the application
 #
 VERSION_MAJOR = 0
-VERSION_MINOR = 86
-VERSION_BUILD = 06
+VERSION_MINOR = 99
+VERSION_BUILD = 05
 
 
 #---------------------------------------------------------------

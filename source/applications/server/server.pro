@@ -21,7 +21,7 @@ TEMPLATE = app
 #---------------------------------------------------------------
 # Qt modules used
 #
-QT += core gui network widgets
+QT += core gui network websockets widgets
 
 #---------------------------------------------------------------
 # target file name
@@ -33,14 +33,22 @@ TARGET = CANpieServer
 #
 DESTDIR = ../../../../bin
 
+# Do not use a common /objs folder together with MSVC compiler.
+# If more than one application is compiled from qcan with MSVC
+# and common object folder is used, this can lead to linking
+# errors because some object files build with different settings
+# are mixed. This occurs especially when one application is
+# compiled as a release and others as a debug version.
+!win32-msvc* {
 MOC_DIR = ../../../../objs
 RCC_DIR = ../../../../objs
 
-
+asdfasdf
 #--------------------------------------------------------------------
 # Objects directory
 #
 OBJECTS_DIR = ../../../../objs
+}
 
 #---------------------------------------------------------------
 # project configuration and compiler options
@@ -55,8 +63,8 @@ CONFIG += silent
 # version of the application
 #
 VERSION_MAJOR = 0
-VERSION_MINOR = 90
-VERSION_BUILD = 00
+VERSION_MINOR = 99
+VERSION_BUILD = 05
 
 
 #---------------------------------------------------------------
@@ -113,29 +121,38 @@ VPATH += ./../../../qcan
 VPATH += ./../../../canpie-fd
 
 #---------------------------------------------------------------
-# header files of project 
+# Common header files of project 
 #
-HEADERS =   qcan_interface_widget.hpp  \
-            qcan_interface.hpp         \
-            qcan_network.hpp           \
-            qcan_server.hpp            \
-            qcan_server_dialog.hpp     \
-            qcan_server_logger.hpp
-                
-            
-#---------------------------------------------------------------
-# source files of project 
-#
-SOURCES =   qcan_interface_widget.cpp  \
-            qcan_frame.cpp             \
-            qcan_timestamp.cpp         \
-            qcan_network.cpp           \
-            qcan_server.cpp            \
-            qcan_server_dialog.cpp     \
-            qcan_server_logger.cpp     \
-            qcan_server_settings.cpp   \
-            server_main.cpp
+HEADERS =   qcan_defs.hpp               \
+            qcan_frame.hpp              \
+            qcan_interface.hpp         	\
+            qcan_network.hpp           	\
+            qcan_server.hpp            	\
+            qcan_server_logger.hpp     	\
+            qcan_server_logger_view.hpp
 
+#---------------------------------------------------------------
+# Specific header files of project 
+#
+HEADERS +=  qcan_interface_widget.hpp  	\
+            qcan_server_dialog.hpp
+                        
+#---------------------------------------------------------------
+# Common source files of project 
+#
+SOURCES =   qcan_frame.cpp             	\
+            qcan_network.cpp           	\
+            qcan_server.cpp            	\
+            qcan_server_logger.cpp     	\
+            qcan_server_logger_view.cpp   \
+            qcan_timestamp.cpp
+
+#---------------------------------------------------------------
+# Specific source files of project 
+#
+SOURCES +=  qcan_interface_widget.cpp  	\
+            qcan_server_dialog.cpp     	\
+            server_main.cpp
 
 
 #---------------------------------------------------------------
@@ -171,7 +188,7 @@ macx {
    # the symbolic link in this directory:
    # /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
    #
-   QMAKE_MAC_SDK = macosx10.14
+   QMAKE_MAC_SDK = macosx10.12
    
    #--------------------------------------------------
    # Minimum OS X version for submission is 10.9
@@ -187,6 +204,14 @@ macx {
 	# Use Foundation framework for App Nap suspender 
 	#
    LIBS += -framework Foundation
+   
+   #--------------------------------------------------
+   # Specify the install directory for the target
+   # /usr/local/bin
+   #
+   target.files = $$DESTDIR/$$TARGET.app/*
+   target.path  = /usr/local/bin
+   INSTALLS += target
 }
 
 win32 {

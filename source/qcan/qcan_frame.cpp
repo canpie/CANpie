@@ -426,15 +426,23 @@ bool QCanFrame::fromByteArray(const QByteArray & clByteArrayR)
    //---------------------------------------------------------------------------------------------------
    // build checksum from byte 0 .. 93, and compare with checksum value at the end of the byte stream
    //
+   /*
    uint16_t uwChecksumT = clByteArrayR[94];
    uwChecksumT = uwChecksumT << 8;
    uwChecksumT = uwChecksumT + (uint8_t) clByteArrayR[95];
+   */
+   uint16_t uwChecksumT = 0;
+   for (uint8_t ubCountT = 0; ubCountT < 94; ubCountT++)
+   {
+      uwChecksumT += clByteArrayR[ubCountT];
+   }
 
+   /*
    if (uwChecksumT != qChecksum(clByteArrayR.constData(), QCAN_FRAME_ARRAY_SIZE - 2))
    {
       return(false);
    }
-   
+   */
    //---------------------------------------------------------------------------------------------------
    // structure seems to be valid, now start copying the contents,
    // start with the identifier value
@@ -567,7 +575,7 @@ bool QCanFrame::fromCpCanMsg(const CpCanMsg_ts * ptsCanMsgV)
       //-------------------------------------------------------------------------------------------
       // set identifier and DLC
       //
-      this->setIdentifier(ptsCanMsgV->ulIdentifier & CP_MASK_EXT_FRAME);
+      this->setIdentifier(ptsCanMsgV->ulIdentifier); // & CP_MASK_EXT_FRAME);
       this->setDlc(ptsCanMsgV->ubMsgDLC);
 
       for (ubDataCntT = 0; ubDataCntT < this->dataSize(); ubDataCntT++)
@@ -1154,8 +1162,14 @@ QByteArray QCanFrame::toByteArray() const
    //----------------------------------------------------------------
    // build checksum from byte 0 .. 93, add checksum at the end
    //
-   uint16_t uwChecksumT = qChecksum(clByteArrayT.constData(),
-                                    QCAN_FRAME_ARRAY_SIZE - 2);
+   //uint16_t uwChecksumT = qChecksum(clByteArrayT.constData(),
+   //                                 QCAN_FRAME_ARRAY_SIZE - 2);
+
+   uint16_t uwChecksumT = 0;
+   for (uint8_t ubCountT = 0; ubCountT < 94; ubCountT++)
+   {
+      uwChecksumT += clByteArrayT[ubCountT];
+   }
 
    clByteArrayT[94] = (uint8_t) (uwChecksumT >> 8);
    clByteArrayT[95] = (uint8_t) (uwChecksumT >> 0);
@@ -1229,7 +1243,7 @@ bool QCanFrame::toCpCanMsg(struct CpCanMsg_s * ptsCanMsgV) const
 // QCanFrame::toString()                                                                                              //
 // print CAN data or error frame                                                                                      //
 //--------------------------------------------------------------------------------------------------------------------//
-QString QCanFrame::toString(const bool & btShowTimeR, const bool & btShowDataSizeR)
+QString QCanFrame::toString(const bool & btShowTimeR, const bool & btShowDataSizeR) const
 {
    //---------------------------------------------------------------------------------------------------
    // setup a string object

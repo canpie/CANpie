@@ -31,16 +31,20 @@
 #ifndef QCAN_SOCKET_HPP_
 #define QCAN_SOCKET_HPP_
 
-
-#include <QtCore/QString>
-#include <QtCore/QVector>
+#include <QtCore/QMutex>
 #include <QtCore/QPointer>
+#include <QtCore/QQueue>
+#include <QtCore/QString>
+#include <QtCore/QUuid>
+#include <QtCore/QVector>
 
 #include <QtNetwork/QHostAddress>
 #include <QtNetwork/QLocalSocket>
-#include <QtNetwork/QTcpSocket>
+
+#include <QtWebSockets/QWebSocket>
 
 #include "qcan_defs.hpp"
+#include "qcan_filter_list.hpp"
 #include "qcan_frame.hpp"
 
 
@@ -50,8 +54,9 @@
 ** \class QCanSocket
 ** \brief CAN socket
 ** 
-** A QCanSocket is used for connection to an existing QCanNetwork. The number of sockets that can be connected
-** to a QCanNetwork is limited by the symbol #QCAN_TCP_SOCKET_MAX during compile time.
+** A QCanSocket is used for connection to an existing QCanNetwork. Connection can be made eiter via LocalSockets
+** or WebSockets. The number of either socket type that can be connected to a QCanNetwork is limited by the 
+** symbols #QCAN_LOCAL_SOCKET_MAX and #QCAN_WEB_SOCKET_MAX during compile time.
 **
 ** Upon creation, the socket is in an unconnected state. The current socket state can be evaluated with
 ** isConnected() and error(). Each CAN socket has an unique identifier for socket management (uuidString()).
@@ -74,6 +79,7 @@ public:
 	
 	virtual ~QCanSocket();
 
+
    //---------------------------------------------------------------------------------------------------
    /*!
    ** \param[in]  teChannelV     CAN channel
@@ -84,13 +90,12 @@ public:
    ** Connect the CAN socket to a CAN network (class QCanNetwork). The signal connected() is used on
    ** connection to the CAN network. On failure, the reason can be evaluated by the error() signal.
    ** A socket can connect only once to a single CAN network. If the socket is already connected,
-   ** the method returns \c false. The optional parameter \a slMilliSecsV defines how many milli-seconds
-   ** the method shall wait until a connection has been established.
+   ** the method returns \c false. 
    ** <p>
-   ** The connection is made to QHostAddress::LocalHost, using the port #QCAN_TCP_DEFAULT_PORT. The host
-   ** address can be changed with setHostAddress().
+   ** The connection is made to QHostAddress::LocalHost, using the port #QCAN_WEB_SOCKET_DEFAULT_PORT. 
+   ** The host address can be changed with setHostAddress().
    */
-   bool connectNetwork(CAN_Channel_e teChannelV, const int32_t slMilliSecsV = 0);
+   bool                 connectNetwork(const CAN_Channel_e & teChannelR);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -100,7 +105,7 @@ public:
    ** Disconnect the CAN socket from a CAN network (class QCanNetwork). The signal disconnected() is
    ** used on disconnection from the CAN network.
    */
-   void disconnectNetwork(void);
+   void                 disconnectNetwork(void);
 
    
    //---------------------------------------------------------------------------------------------------
@@ -118,17 +123,16 @@ public:
    **
    ** Returns a description of error that last occurred.
    */
-   QString  errorString() const;
-   
+   QString              errorString() const;
    
    //---------------------------------------------------------------------------------------------------
    /*!
    ** \return     Number of CAN frames available
+   ** \see        read()
    **
    ** Returns the number of CAN frames available on the socket.
    */
-   int32_t  framesAvailable(void) const;
-
+   int32_t              framesAvailable(void) const;
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -137,36 +141,7 @@ public:
    ** The function returns the connection state of the socket: \c true if connected to a CAN network,
    ** \c false if not connected.
    */
-   bool isConnected(void);
-
-
-   //---------------------------------------------------------------------------------------------------
-   /*!
-   ** \return     UUID string
-   **
-   ** Get the Universal unique identifier of the CAN socket.
-   */
-   QString  uuidString(void);
-
-
-   //---------------------------------------------------------------------------------------------------
-   /*!
-   ** \param[in]  clHostAddressV    Host address
-   ** \see        connectNetwork()
-   **
-   ** Set the host address of the CAN network. The host address can only be modified in unconnected
-   ** state.
-   */
-   void  setHostAddress(QHostAddress clHostAddressV);
-
-
-   //---------------------------------------------------------------------------------------------------
-   /*!
-   ** \return  CAN error state
-   **
-   ** Get the actual CAN error state, which is defined by the QCan::CAN_State_e enumeration.
-   */
-   inline CAN_State_e state(void) const   { return teCanStateP; };
+   inline bool          isConnected(void) const          { return (btIsConnectedP);       };
 
 
    //---------------------------------------------------------------------------------------------------
@@ -178,23 +153,59 @@ public:
    ** The function reads a CAN frame from the socket and places the result in \a clFrameDataR. If no
    ** CAN frame is available, the function returns \c false.
    */
-   bool  read(QCanFrame & clFrameR);
+   bool                 read(QCanFrame & clFrameR);
 
-   bool  waitForReadyRead(int32_t slMilliSecondsV = 30000);
-   
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]  clHostAddressV    Host address
+   ** \param[in]  uwPortV           Port number of server
+   ** \see        connectNetwork()
+   **
+   ** Set the host address of the CAN server. The host address can only be modified in unconnected
+   ** state.
+   */
+   void                 setHostAddress(const QHostAddress clHostAddressV, 
+                                       const uint16_t uwPortV = QCAN_WEB_SOCKET_DEFAULT_PORT);
+
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \return  CAN error state
+   **
+   ** Get the actual CAN error state, which is defined by the QCan::CAN_State_e enumeration.
+   */
+   inline CAN_State_e   state(void) const                { return teCanStateP; };
+
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \return     UUID
+   **
+   ** Get the Universal unique identifier of the CAN socket.
+   */
+   inline QUuid         uuid(void) const                 { return (clUuidP);              };
+
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \return     UUID string
+   **
+   ** Get the Universal unique identifier of the CAN socket.
+   */
+   QString              uuidString(void) const           { return (clUuidP.toString());   };
+
+
    //---------------------------------------------------------------------------------------------------
    /*!
    ** \param[in]  clFrameR       Reference to CAN frame
    ** \return     \c true if CAN frame was written
-   ** \see  readFrame()
+   ** \see  read()
    **
    ** The function writes the CAN frame \a clFrameR to the CAN socket. If writing fails, the function
    ** returns \c false.
    */
-   bool  write(const QCanFrame & clFrameR);
-
-
-public slots:
+   bool                 write(const QCanFrame & clFrameR);
 
 
 
@@ -205,52 +216,60 @@ signals:
    ** This signal is emitted after connectNetwork() has been called and a connection has been
    ** successfully established.
    */
-   void  connected(void);
+   void                 connected(void);
+
 
    //---------------------------------------------------------------------------------------------------
    /*!
    ** This signal is emitted when the socket has been disconnected.
    */
-   void  disconnected(void);
+   void                 disconnected(void);
+
 
    //---------------------------------------------------------------------------------------------------
    /*!
    ** \param[in]  teSockErrorV   Type of error
    **
-   ** This signal is emitted after an error occurred. The \c teSockErrorV parameter describes the type
+   ** This signal is emitted after an error occurred. The \a teSockErrorV parameter describes the type
    ** of error that occurred.
    */
-   void  error(QAbstractSocket::SocketError teSockErrorV);
+   void                 error(QAbstractSocket::SocketError teSockErrorV);
 
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \param[in]  ulFrameCntV    Number of CAN frames
    **
-   ** This signal is emitted when CAN frames are available for reading from the socket. The
-   ** \a ulFrameCntV parameter holds the number of available CAN frames.
+   ** This signal is emitted when CAN frames are available for reading from the socket. 
    */
-   void  framesReceived(uint32_t ulFrameCntV);
+   void                 readyRead(void);
 
 protected:
 
 private:
 
-   QPointer<QLocalSocket>  pclLocalSockP;
-   QPointer<QTcpSocket>    pclTcpSockP;
-   QHostAddress            clTcpHostAddrP;
-   uint16_t                uwTcpPortP;
+   QPointer<QLocalSocket>  pclLocalSocketP;
+   QPointer<QWebSocket>    pclWebSocketP;
+   QHostAddress            clServerHostAddrP;
+   uint16_t                uwServerPortP;
    bool                    btIsConnectedP;
    bool                    btIsLocalConnectionP;
    int32_t                 slSocketErrorP;
    CAN_State_e             teCanStateP;
+   QUuid                   clUuidP;
+
+   QByteArray              clReceiveDataP;
+   QCanFrame               clReceiveFrameP;
+   QMutex                  clReceiveMutexP;
+   QQueue<QCanFrame>       clReceiveFifoP;
+   
 
 private slots:
-   virtual void   onSocketConnect(void);
-   virtual void   onSocketDisconnect(void);
-   void           onSocketErrorLocal(QLocalSocket::LocalSocketError teSocketErrorV);
-   void           onSocketErrorTcp(QAbstractSocket::SocketError teSocketErrorV);
-   virtual void   onSocketReceive(void);
+   void                 onSocketConnect(void);
+   void                 onSocketDisconnect(void);
+   void                 onSocketErrorLocal(QLocalSocket::LocalSocketError teSocketErrorV);
+   void                 onSocketErrorWeb(QAbstractSocket::SocketError teSocketErrorV);
+   void                 onSocketReceiveLocal(void);
+   void                 onSocketReceiveWeb(const QByteArray &clMessageR);
 };
 
 #endif   // QCAN_SOCKET_HPP_

@@ -40,14 +40,12 @@
 #include <QtCore/QDateTime>
 #include <QtCore/QMutex>
 #include <QtCore/QPointer>
-#include <QtCore/QSharedMemory>
 #include <QtCore/QTimer>
 
 #include <QtNetwork/QLocalServer>
 #include <QtNetwork/QLocalSocket>
 
-#include <QtNetwork/QTcpServer>
-#include <QtNetwork/QTcpSocket>
+#include <QtWebSockets/QWebSocket>
 
 #include "qcan_frame.hpp"
 #include "qcan_interface.hpp"
@@ -67,7 +65,7 @@ using namespace QCan;
 /*!
 ** \class QCanNetwork
 ** \brief CAN network representation
-** 
+**
 ** This class represents a CAN network with a unique bit-rate. It supports one physical CAN interface (see class
 ** QCanInterface), which can be attached during run-time to the CAN network and a limited number of virtual CAN
 ** interfaces (sockets).
@@ -93,7 +91,7 @@ class QCanNetwork : public QObject
 {
    Q_OBJECT
 public:
-   
+
    //---------------------------------------------------------------------------------------------------
    /*!
    ** \param[in]  pclParentV     Pointer to QObject parent class
@@ -101,10 +99,15 @@ public:
    **
    ** Create new CAN network with unique channel number.
    */
-   QCanNetwork(QObject * pclParentV = Q_NULLPTR, uint16_t  uwPortV = QCAN_TCP_DEFAULT_PORT, QSharedMemory * pclSettingsV = 0);
-	
-	
+   QCanNetwork(QObject * pclParentV = Q_NULLPTR);
+
+
 	~QCanNetwork();
+
+   enum SocketType_e {
+      eSOCKET_TYPE_CAN_FRAME = 1,
+      eSOCKET_TYPE_SETTINGS  = 2
+   };
 
    //---------------------------------------------------------------------------------------------------
 	/*!
@@ -120,6 +123,18 @@ public:
 	** The function returns \c true if the CAN interface is added, otherwise it will return \c false.
 	*/
 	bool addInterface(QCanInterface * pclCanIfV);
+
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]  pclSocketV     Pointer to WebSocket 
+   ** \param[in]  teSocketTypeV  WebSocket type
+   **
+   ** This function attaches a WebSocket to the CAN network. The WebSocket can either be used to
+   ** exchange CAN frames or to retrieve and alter the CAN network settings. The WebSocket type is
+   ** defined by the parameter \a teSocketTypeV.
+   */
+   void  attachWebSocket(QWebSocket * pclSocketV, enum SocketType_e teSocketTypeV = eSOCKET_TYPE_CAN_FRAME);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -288,21 +303,13 @@ public:
    */
 	void removeInterface(void);
 
-   //---------------------------------------------------------------------------------------------------
-   /*!
-   ** \return  Server address
-   ** \see     setServerAddress()
-   **
-   ** The method returns the configured server address.
-   */
-   QHostAddress serverAddress(void);
 
    //---------------------------------------------------------------------------------------------------
    /*!
    ** \param[in]  slNomBitRateV  Nominal Bit-rate value
    ** \param[in]  slDatBitRateV  Data Bit-rate value
    ** \see        dataBitrate(), nominalBitrate()
-   ** 
+   **
    ** This function sets the bit-rate for the CAN network. For <b>Classical CAN</b>, the parameter
    ** \c slNomBitRateV defines the bit-rate for the complete frame, the parameter \c slDatBitRateV is
    ** not evaluated in that case. For <b>CAN FD</b> the parameter \c slNomBitRateV defines the
@@ -357,18 +364,6 @@ public:
    */
    void setNetworkEnabled(bool btEnableV = true);
 
-
-   //---------------------------------------------------------------------------------------------------
-   /*!
-   ** \param[in]  clHostAddressV Server address
-   ** \return     \c true if server address is accepted
-   ** \see        serverAddress()
-   **
-   ** This method sets the server address. The server address can only be modified when the network is
-   ** not enabled (see isNetworkEnabled()). The method returns \c true is the new server address is
-   ** accepted, otherwise \c false.
-   */
-   bool setServerAddress(QHostAddress clHostAddressV);
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -497,20 +492,19 @@ private slots:
    void onLocalSocketNewData(void);
 
    /*!
-   ** This slot is called upon TCP socket connection.
+   ** This slot is called when new data is available on any open web socket.
    */
-   void onTcpSocketConnect(void);
+   void onWebSocketBinaryData(const QByteArray &clMessageR);
 
    /*!
-   ** This slot is called upon TCP socket disconnection.
+   ** This slot is called upon WebSocket disconnection.
    */
-   void onTcpSocketDisconnect(void);
+   void onWebSocketDisconnect(void);
 
    /*!
-   ** This slot is called when new data is available on any open TCP socket.
+   ** This slot is called when new data is available on any open web socket.
    */
-   void onTcpSocketNewData(void);
-
+   void onWebSocketTextData(const QString &clMessageR);
 
    void onTimerEvent(void);
 
@@ -520,97 +514,97 @@ protected:
 
 private:
 
-   //----------------------------------------------------------------
-   // returns number of bits inside a data frame for static
-   // calculations
-   //
-   uint32_t          frameSize(const QByteArray & clSockDataR);
-
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // This enumeration defines the source of the frame
    //
    enum FrameSource_e {
       eFRAME_SOURCE_CAN_IF = 1,
-      eFRAME_SOURCE_SOCKET_LOCAL,
-      eFRAME_SOURCE_SOCKET_TCP
+      eFRAME_SOURCE_LOCAL_SOCKET,
+      eFRAME_SOURCE_WEB_SOCKET
    };
 
+   //---------------------------------------------------------------------------------------------------
+   // returns number of bits inside a data frame for static calculations
+   //
+   uint32_t frameSize(const QByteArray & clSockDataR);
 
-   bool  handleCanFrame(enum FrameSource_e teFrameSrcV, const int32_t slSockSrcV, const QByteArray clSockDataV);
+   bool     handleCanFrame(enum FrameSource_e teFrameSrcV, const int32_t slSockSrcV, const QByteArray clSockDataV);
 
-   void  setCanState(CAN_State_e teStateV);
+   void     logSocketState(const QString & clInfoR);
+   
+   void     sendNetworkSettings(uint32_t flags = 0);
 
-   //----------------------------------------------------------------
+   void     setCanState(CAN_State_e teStateV);
+
+   //---------------------------------------------------------------------------------------------------
    // unique network ID, ubNetIdP is used to manage a unique id
    // for all networks, ubIdP holds the id of the current instance
    //
    static uint8_t          ubNetIdP;
    uint8_t                 ubIdP;
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // unique network name
    //
    QString                 clNetNameP;
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // pointer to QCanInterface class, see method addInterface()
    //
    QPointer<QCanInterface> pclInterfaceP;
 
-   //----------------------------------------------------------------
-   // Management of local sockets:  a QLocalServer (pclLocalSrvP) is
-   // used to handle a fixed number of QLocalSockets (pclLocalSockListP)
+   //---------------------------------------------------------------------------------------------------
+   // Management of local sockets:  a QLocalServer (pclLocalSrvP) is used to handle a fixed number of 
+   // QLocalSockets (pclLocalSockListP)
    //
    QPointer<QLocalServer>  pclLocalSrvP;
-   QVector<QLocalSocket*>* pclLocalSockListP;
-
+   QVector<QLocalSocket*>  clLocalSockListP;
    QMutex                  clLocalSockMutexP;
 
-   //----------------------------------------------------------------
-   // Management of TCP sockets:  a QTcpServer (pclTcpServer) is used
-   // to handle a fixed number of QTcpSockets (pclTcpSockListP)
+   //---------------------------------------------------------------------------------------------------
+   // Management of WebSockets for CAN frames: a fixed number of QWebSockets (pclWebSockListP) is kept 
+   // in a list
    //
-   QPointer<QTcpServer>    pclTcpSrvP;
-   QVector<QTcpSocket *> * pclTcpSockListP;
-   QHostAddress            clTcpHostAddrP;
-   uint16_t                uwTcpPortP;
+   QVector<QWebSocket *>   clWebSockListP;
+   QMutex                  clWebSockMutexP;
 
-   QMutex                  clTcpSockMutexP;
+   //---------------------------------------------------------------------------------------------------
+   // Management of WebSockets for network settings 
+   //
+   QVector<QWebSocket *>   clSettingsListP;
 
    QTimer                  clRefreshTimerP;
 
-   //----------------------------------------------------------------
-   // bit-rate settings: the variables hold the bit-rate in
-   // bit/s, if no bit-rate is configured the value is
-   // eCAN_BITRATE_NONE 
+   //---------------------------------------------------------------------------------------------------
+   // bit-rate settings: the variables hold the bit-rate in bit/s, if no bit-rate is configured the 
+   // value is eCAN_BITRATE_NONE
    //
    int32_t                 slNomBitRateP;
    int32_t                 slDatBitRateP;
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // status of CAN bus
    //
    CAN_State_e             teCanStateP;
-   
-   QCanFrame               clCanFrameInP;
+
    QCanFrame               clCanFrameOutP;
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // statistic frame counter
    //
    uint32_t                ulCntFrameCanP;
    uint32_t                ulCntFrameErrP;
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // statistic bit counter
    //
    uint32_t                ulCntBitCurP;
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // statistic timing
    //
    QTime                   clStatisticTimeP;
-   
+
    uint32_t                ulStatisticTimeP;
    uint32_t                ulFramePerSecMaxP;
    uint32_t                ulFrameCntSaveP;
@@ -621,11 +615,6 @@ private:
    bool                    btListenOnlyEnabledP;
    bool                    btNetworkEnabledP;
    bool                    btBitrateChangeEnabledP;
-
-   //----------------------------------------------------------------
-   // Data exchange via shared memory
-   //
-   QPointer<QSharedMemory> pclSettingsP;
 
 };
 

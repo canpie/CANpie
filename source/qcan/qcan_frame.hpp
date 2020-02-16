@@ -163,7 +163,7 @@ struct CpCanMsg_s;
 class QCanFrame
 {
 public:
-   
+
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -243,7 +243,7 @@ public:
    ** DLC value of 0.
    */
    QCanFrame();
-   
+
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -264,10 +264,10 @@ public:
    ** value of \c ubDlcR.
    */
    QCanFrame(const FrameFormat_e & ubFormatR, const uint32_t & ulIdentifierR = 0, const uint8_t & ubDlcR = 0);
-   
- 
+
+
    virtual ~QCanFrame();
-   
+
    //---------------------------------------------------------------------------------------------------
    /*!
    ** \return  \c true if bit-rate switch is set
@@ -301,7 +301,7 @@ public:
    ** \endcode
    */
    uint8_t     data(const uint8_t & ubPosR) const;
-   
+
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -334,7 +334,7 @@ public:
    ** The function returns an unsigned 16-bit value (uint16_t) starting at position \a ubPosR of the
    ** CAN payload.
    */
-   uint16_t    dataUInt16(const uint8_t & ubPosR, const bool & btMsbFirstR = 0) const;
+   uint16_t    dataUInt16(const uint8_t & ubPosR, const bool & btMsbFirstR = false) const;
 
 
    //---------------------------------------------------------------------------------------------------
@@ -347,7 +347,7 @@ public:
    ** The function returns an unsigned 32-bit value (uint32_t) starting at position \a ubPosR of the
    ** CAN payload.
    */
-   uint32_t    dataUInt32(const uint8_t & ubPosR, const bool & btMsbFirstR = 0) const;
+   uint32_t    dataUInt32(const uint8_t & ubPosR, const bool & btMsbFirstR = false) const;
 
 
    //---------------------------------------------------------------------------------------------------
@@ -737,7 +737,7 @@ public:
    ** #QCAN_FRAME_ARRAY_SIZE.
    */
    QByteArray  toByteArray(void) const;
-   
+
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -771,17 +771,17 @@ public:
    ** \endcode
    **
    */
-   virtual QString    toString(const bool & btShowTimeR = false, const bool & btShowDataSizeR = false);
-   
+   virtual QString    toString(const bool & btShowTimeR = false, const bool & btShowDataSizeR = false) const;
+
    uint32_t    user(void) const;
-             
+
    friend QDataStream & operator<< (QDataStream & clStreamR, const QCanFrame & clCanFrameR);
-   
+
    friend QDataStream & operator>> (QDataStream & clStreamR, QCanFrame & clCanFrameR);
-   
+
 private:
-   
-   
+
+
    /*!
    ** The identifier field may have 11 bits for standard frames
    ** (CAN specification 2.0A) or 29 bits for extended frames
@@ -846,5 +846,4 @@ private:
 
 
 
-#endif   // QCAN_FRAME_HPP_ 
-
+#endif   // QCAN_FRAME_HPP_

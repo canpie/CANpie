@@ -37,32 +37,46 @@
 **                                                                                                                    **
 \*--------------------------------------------------------------------------------------------------------------------*/
 
+#include <QtCore/QJsonObject>
 #include <QtCore/QPointer>
-#include <QtCore/QSharedMemory>
 
-#include <QtNetwork/QLocalSocket>
+#include <QtWebSockets/QWebSocket>
 
+#include "qcan_defs.hpp"
 #include "qcan_namespace.hpp"
 
 using namespace QCan;
+
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Structures                                                                                                         **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
+
 
 //----------------------------------------------------------------------------------------------------------------
 /*!
 ** \class QCanServerSettings
 **
-** The QCanServerSettings provides the functionality to test the current state of a local QCanServer and
-** each individual QCanNetwork within this server.
+** The QCanServerSettings provides the functionality to test the current state of a QCanServer, its version
+** number and the number of supported CAN networks. Communication between an instance of the QCanServer class
+** and the QCanServerSettings class is done via WebSockets using JSON.
 ** <p>
-** The following code shows an example how to test for a local QCanServer:
+** The following code shows an example how to establish a connection to a local QCanServer:
 ** \code
 ** QCanServerSettings   clServerSettingsT;
-** if (clServerSettingsT.state() < QCanServerSettings::eSTATE_ACTIVE)
-** {
-**    fprintf(stdout, "CANpie FD server %s \n", qPrintable(clServerSettingsT.stateString()));
-**    exit(0);
-** }
-**
+** clServerSettingsT.connectToServer();      // connect to local server
 ** \endcode
+** <p>
+** Connection to a QCanServer running on a different machine is only possible if remote access was granted
+** by calling QCanServer::setServerAddress().
+** \code
+** QCanServerSettings   clServerSettingsT;
+** clServerSettingsT.connectToServer(QHostAddress("192.168.2.12"));      // connect to remote server
+** \endcode
+** <p>
+** A state change of the QCanServer class is signalled via stateChanged(). Data from the QCanServer class
+** is in JSON format, new data can be inspected via objectReceived().
+
 */
 class QCanServerSettings : public QObject
 {
@@ -97,12 +111,35 @@ public:
       eSTATE_ACTIVE   = 1
    };
 
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in] clServerAddressV - IPv4 or IPv6 address of QCanServer class
+   ** \param[in] uwPortV          - port number of QCanServer class
+   ** \param[in] clOriginR        - origin of the client
+   ** \param[in] flags            - reserved
+   **
+   ** The method opens a WebSocket connection to a QCanServer class defined by \a  clServerAddressV and 
+   ** \a uwPortV.
+   ** <p>
+   ** The origin of the client defined by \a clOriginR is as specified in RFC 6454. The origin is not 
+   ** required for non-web browser clients (see RFC 6455). The origin may not contain new line 
+   ** characters, otherwise the connection will be aborted immediately during the handshake phase.
+   */
+   void           connectToServer(const QHostAddress clServerAddressV = QHostAddress::LocalHost, 
+                                  const uint16_t uwPortV = QCAN_WEB_SOCKET_DEFAULT_PORT, 
+                                  const QString & clOriginR = "", const uint32_t flags = 0);
 
-   uint8_t        networkBusLoad(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1);
+   void           closeConnection(void);
 
-   int32_t        networkConfiguration(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1);
-
-   QString        networkConfigurationString(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1);
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   **
+   ** \return  \c True if valid data available
+   **
+   ** The function returns \c True if a connection has been established to a QCanServer and the
+   ** received JSON data has a vaild format.
+   */
+   bool           isValid(void);
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -113,110 +150,6 @@ public:
    */
    int32_t        networkCount(void);
 
-   //---------------------------------------------------------------------------------------------------
-   /*!
-   ** \return  Data bit-rate
-   ** \see     networkDataBitrateString()
-   **
-   ** Return the current data bit-rate of the selected network in [bits/s]. If the bit-rate value
-   ** is not valid (not configured) the function returns QCan::eCAN_BITRATE_NONE. The result of this
-   ** function is equivalent to QCanNetwork::dataBitrate().
-   */
-   int32_t        networkDataBitrate(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1);
-
-   //---------------------------------------------------------------------------------------------------
-   /*!
-   ** \return  Data bit-rate
-   ** \see     networkDataBitrate()
-   **
-   ** Return the current data bit-rate of the selected network as string object. If the bit-rate value
-   ** is not valid (not configured) the function returns "None".
-   */
-   QString        networkDataBitrateString(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1);
-
-   uint32_t       networkErrorCount(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1);
-
-   uint32_t       networkFrameCount(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1);
-
-   //---------------------------------------------------------------------------------------------------
-   /*!
-   ** \param[in]  teChannelV     CAN channel
-   **
-   ** \return     Network name
-   **
-   ** Return the name of the selected network as string object. If a CAN interface is attached to the
-   ** network the function also returns the name of the CAN interface.
-   */
-   QString        networkName(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1);
-
-   //---------------------------------------------------------------------------------------------------
-   /*!
-   ** \param[in]  teChannelV     CAN channel
-   **
-   ** \return     Nominal bit-rate
-   ** \see        networkNominalBitrateString()
-   **
-   ** Return the current nominal bit-rate of the selected network in [bits/s]. If the bit-rate value
-   ** is not valid (not configured) the function returns QCan::eCAN_BITRATE_NONE.
-   */
-   int32_t        networkNominalBitrate(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1);
-
-   //---------------------------------------------------------------------------------------------------
-   /*!
-   ** \param[in]  teChannelV     CAN channel
-   ** \return     Nominal bit-rate
-   ** \see        networkNominalBitrate()
-   **
-   ** Return the current nominal bit-rate of the selected network as string object. If the bit-rate value
-   ** is not valid (not configured) the function returns "None".
-   */
-   QString        networkNominalBitrateString(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1);
-
-
-   //---------------------------------------------------------------------------------------------------
-   /*!
-   ** \return  CAN state
-   ** \see     networkStateString()
-   **
-   ** Return the current CAN state of the selected network.
-   */
-   CAN_State_e    networkState(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1);
-
-   //---------------------------------------------------------------------------------------------------
-   /*!
-   ** \return  CAN state
-   ** \see     networkState()
-   **
-   ** Return the current CAN state of the selected network as string object.
-   */
-   QString        networkStateString(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1);
-
-   //---------------------------------------------------------------------------------------------------
-   /*!
-   ** \param[in]  teChannelV     CAN channel
-   **
-   ** Set the CAN mode of the network denoted by parameter \a teChannelV.
-   */
-   bool           resetNetwork(const CAN_Channel_e teChannelV);
-
-   //---------------------------------------------------------------------------------------------------
-   /*!
-   ** \param[in]  teChannelV     CAN channel
-   **
-   ** Set the bit-rate of the network denoted by parameter \a teChannelV.
-   */
-   bool           setNetworkBitrate(const CAN_Channel_e teChannelV,
-                                    int32_t slNomBitRateV, int32_t slDatBitRateV = eCAN_BITRATE_NONE);
-
-   //---------------------------------------------------------------------------------------------------
-   /*!
-   ** \param[in]  teChannelV     CAN channel
-   **
-   ** Set the CAN mode of the network denoted by parameter \a teChannelV.
-   */
-   bool           setNetworkMode(const CAN_Channel_e teChannelV, const CAN_Mode_e teModeV);
-
-   bool           startServer(void);
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -232,46 +165,87 @@ public:
    ** \return  State of local QCanServer
    ** \see     state()
    **
-   ** Return the state of a local QCanServer as a QString object.
+   ** Return the state of a local QCanServer as a QString object. 
    */
    QString        stateString(void);
 
    //---------------------------------------------------------------------------------------------------
    /*!
    ** \return  Build version
+   ** \see     isValid()
    **
-   ** Return the build version of the active QCanServer.
+   ** Return the build version of the active QCanServer. A return value of -1 denotes that either no 
+   ** connection could be establed to a QCanServer or the received JSON object was not valid.
    */
    int32_t        versionBuild(void);
 
    //---------------------------------------------------------------------------------------------------
    /*!
    ** \return  Major version
+   ** \see     isValid()
    **
-   ** Return the major version of the active QCanServer.
+   ** Return the major version of the active QCanServer. A return value of -1 denotes that either no 
+   ** connection could be establed to a QCanServer or the received JSON object was not valid.
    */
    int32_t        versionMajor(void);
 
    //---------------------------------------------------------------------------------------------------
    /*!
    ** \return  Minor version
+   ** \see     isValid()
    **
-   ** Return the minor version of the active QCanServer.
+   ** Return the minor version of the active QCanServer. A return value of -1 denotes that either no 
+   ** connection could be establed to a QCanServer or the received JSON object was not valid.
    */
    int32_t        versionMinor(void);
 
-private:
-   QSharedMemory *         pclSettingsP;
+signals:
 
-   QPointer<QLocalSocket>  pclLocalSockP;
-   bool                    btIsConnectedP;
-   int32_t                 slSocketErrorP;
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]  teStateV - Server state
+   ** \see        state()
+   **
+   ** This signal is emitted after a state change from a QCanServer. 
+   */
+   void           stateChanged(enum QCanServerSettings::State_e teStateV);
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]  clServerSettingsV - JSON data
+   **
+   ** This signal is emitted after a new object was received from an active QCanServer. The JSON data
+   ** has the following format:
+   ** \code
+   ** {
+   **    "allowBitrateChange": true,
+   **    "allowBusOffRecovery": true,
+   **    "allowModeChange": true,
+   **    "apiVersion": "1.0",
+   **    "networkCount": 8,
+   **    "serverLocalTime": "2020-01-21T16:30:36",
+   **    "serverUptime": 15010,
+   **    "versionBuild": 0,
+   **    "versionMajor": 1,
+   **    "versionMinor": 0
+   ** }
+   ** \endcode
+   */
+   void           objectReceived(QJsonObject clServerSettingsV);
+
+private:
+
+   QPointer<QWebSocket>    pclWebSocketP;
+   State_e                 teServerStateP;
+   uint32_t                ulUpdateRateP;
+
+   QJsonObject             clJsonServerP;
 
 private slots:
    void           onSocketConnect(void);
    void           onSocketDisconnect(void);
-   void           onSocketError(QLocalSocket::LocalSocketError teSocketErrorV);
-   void           onSocketReceive(void);
+   void           onSocketError(QAbstractSocket::SocketError clErrorV);
+   void           onSocketMessageReceived(const QString & clMessageR);
 
 };
 

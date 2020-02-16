@@ -39,14 +39,13 @@
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
-#include <QtCore/QCommandlineParser>
+#include <QtCore/QCommandLineParser>
 #include <QtCore/QLocale>
 #include <QtCore/QTranslator>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMessageBox>
 
 #include "qcan_server_dialog.hpp"
-#include "qcan_server_settings.hpp"
 
 
 #ifdef Q_OS_MACOS
@@ -79,6 +78,7 @@ int main(int argc, char *argv[])
    // Process the actual command line arguments given by the user
    clCmdParserT.process(clAppT);
 
+   /*
    if (clCmdParserT.isSet(clCmdOptionCleanT) == false)
    {
       QCanServerSettings   clServerSettingsT;
@@ -91,7 +91,8 @@ int main(int argc, char *argv[])
          exit(0);
       }
    }
-   
+   */
+  
    //----------------------------------------------------------------
    // load translation
    //

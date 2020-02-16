@@ -175,6 +175,41 @@ namespace QCan {
 
    //----------------------------------------------------------------------------------------------
    /*!
+   ** \enum CAN_Mode_e
+   ** 
+   ** The enumeration CAN_Mode_e defines possible modes of the CAN
+   ** protocol engine.
+   */
+   enum CAN_Mode_e {
+
+      /*!   Set controller into 'Initialization' mode
+      */
+      eCAN_MODE_INIT = 0,
+
+      eCAN_MODE_STOP = 0,     // deprecated definition
+
+
+      /*!   Set controller into Operation' mode
+      */
+      eCAN_MODE_OPERATION = 1,
+
+      eCAN_MODE_START = 1,    // deprecated definition
+
+      /*!   Set controller into 'Listen-only' mode
+      */
+      eCAN_MODE_LISTEN_ONLY = 2,
+
+      /*!   Set controller into 'Sleep' (power-down) mode
+      */
+      eCAN_MODE_SLEEP = 3,
+
+      /*!   Set controller into 'Self-test' mode
+      */
+      eCAN_MODE_SELF_TEST = 4
+   };
+
+   //----------------------------------------------------------------------------------------------
+   /*!
    ** \enum CAN_State_e
    ** 
    ** The enumeration CAN_State_e defines possible states of the CAN
@@ -215,40 +250,6 @@ namespace QCan {
       eCAN_STATE_BUS_OFF
    };
 
-   //----------------------------------------------------------------------------------------------
-   /*!
-   ** \enum CAN_Mode_e
-   ** 
-   ** The enumeration CAN_Mode_e defines possible modes of the CAN
-   ** protocol engine.
-   */
-   enum CAN_Mode_e {
-
-      /*!   Set controller into 'Initialization' mode
-      */
-      eCAN_MODE_INIT = 0,
-
-      eCAN_MODE_STOP = 0,     // deprecated definition
-
-
-      /*!   Set controller into Operation' mode
-      */
-      eCAN_MODE_OPERATION = 1,
-
-      eCAN_MODE_START = 1,    // deprecated definition
-
-      /*!   Set controller into 'Listen-only' mode
-      */
-      eCAN_MODE_LISTEN_ONLY = 2,
-
-      /*!   Set controller into 'Sleep' (power-down) mode
-      */
-      eCAN_MODE_SLEEP = 3,
-
-      /*!   Set controller into 'Self-test' mode
-      */
-      eCAN_MODE_SELF_TEST = 4
-   };
 
 
    //----------------------------------------------------------------------------------------------

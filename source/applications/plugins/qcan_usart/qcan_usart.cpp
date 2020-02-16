@@ -53,7 +53,7 @@ int32_t McUsartInit(uint8_t ubPortV, uint32_t ulBaudV, uint8_t ubModeV)
 // McUsartSetRcvBufferSize()                                                  //
 //                                                                            //
 //----------------------------------------------------------------------------//
-int32_t McUsartSetRcvBufferSize(uint8_t ubPortV, uint32_t ulSizeV)
+int32_t McUsartSetRcvBufferSize(uint8_t ubPortV, uint32_t ulSizeV, uint8_t * pubBufferV)
 {
    Q_UNUSED(ubPortV);
 

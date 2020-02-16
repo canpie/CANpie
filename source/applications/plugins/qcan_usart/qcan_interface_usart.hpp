@@ -26,21 +26,26 @@
 //                                                                            //
 //============================================================================//
 
-#ifndef QCAN_INTERFACE_USART_H_
-#define QCAN_INTERFACE_USART_H_
+#ifndef QCAN_INTERFACE_USART_HPP_
+#define QCAN_INTERFACE_USART_HPP_
 
-#include <QObject>
-#include <QtPlugin>
-#include <QLibrary>
-#include <QCanInterface>
+#include <QtCore/QLibrary>
+#include <QtCore/QObject>
+#include <QtCore/QtPlugin>
+#include <QtCore/QTimer>
+
 #include <QIcon>
 #include <QDialog>
-#include "qcan_usart.hpp"
-#include <QTimer>
-
-#include "canpie.h"
-#include "qcan_config.hpp"
 #include <QWidget>
+
+#include <QCanInterface>
+
+//#include "canpie.h"
+
+#include "qcan_usart.hpp"
+
+
+#include "qcan_config.hpp"
 //----------------------------------------------------------------------------//
 // QCanPeakUsb                                                                //
 //                                                                            //

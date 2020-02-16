@@ -36,11 +36,14 @@
 ** Include files                                                                                                      **
 **                                                                                                                    **
 \*--------------------------------------------------------------------------------------------------------------------*/
+
+#include <QtCore/QJsonObject>
 #include <QtCore/QObject>
 #include <QtCore/QSharedMemory>
 
-#include <QtNetwork/QLocalServer>
-#include <QtNetwork/QLocalSocket>
+#include <QtWebSockets/QWebSocket>
+#include <QtWebSockets/QWebSocketServer>
+
 
 #include "qcan_network.hpp"
 
@@ -51,10 +54,12 @@
 **
 ** This class represents a CAN server, which incorporates up to #QCAN_NETWORK_MAX number of CAN networks
 ** (QCanNetwork). It is only possible to run one instance of a QCanServer on a machine. In order to avoid
-** multiple instances, the QCanServer class initialises a shared memory region which can be accessed using
-** the QCanServerSettings class.
+** multiple instances, the QCanServer class initialises a shared memory region.
 ** <p>
-**
+** <h2>Remote access</h2>
+** Access to the CAN server is granted via a WebSocket interface running on the default port
+** #QCAN_WEB_SOCKET_DEFAULT_PORT. By default, access is granted only to processes running
+** on the local machine. Remote access can be granted by calling setServerAddress(QHostAddress::AnyIPv4).
 **
 */
 class QCanServer : public QObject
@@ -66,18 +71,43 @@ public:
    //---------------------------------------------------------------------------------------------------
    /*!
    ** \param[in]  pclParentV     Pointer to QObject parent class
-   ** \param[in]  uwPortStartV   Port number for TCP access
-   ** \param[in]  ubNetworkNumV  Number of supported
+   ** \param[in]  uwPortV        Port number for WebSocket access
+   ** \param[in]  ubNetworkNumV  Number of supported CAN networks
    **
    ** Create new QCanServer object. The parameter \a ubNetworkNumV defines the maximum number of
    ** CAN networks (class QCanNetwork).
    */
-   QCanServer( QObject * pclParentV = Q_NULLPTR,
-               uint16_t  uwPortStartV = QCAN_TCP_DEFAULT_PORT,
-               uint8_t   ubNetworkNumV = QCAN_NETWORK_MAX);
+   QCanServer( QObject * pclParentV = Q_NULLPTR, uint16_t  uwPortNumberV = QCAN_WEB_SOCKET_DEFAULT_PORT,
+               uint8_t   ubNetworkNumV = QCAN_NETWORK_MAX, bool btClearServerV = false);
 
    ~QCanServer();
 
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \enum    Error_e
+   **
+   ** This enumeration describes possible error conditions of the server.
+   */
+   enum Error_e {
+
+      /*! No error.                                   */
+      eERROR_NONE = 0,
+
+      /*! Server is crashed                           */
+      eERROR_CRASHED,
+
+      /*! Server is active                            */
+      eERROR_ACTIVE
+   };
+
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]  btEnabledV - Enable / disable bit-rate change via application
+   **
+   ** This function enables the setting of bit-rate via any application if \a btEnable 
+   ** is \c true, it is disabled on \c false.
+   */
    void           enableBitrateChange(bool btEnabledV = true);
 
    void           enableBusOffRecovery(bool btEnabledV = true);
@@ -93,7 +123,7 @@ public:
    ** The function returns a pointer to a QCanNetwork class stored at index \a ubNetworkIndexV. The
    ** first network is stored at index value 0.
    */
-   QCanNetwork * network(uint8_t ubNetworkIndexV);
+   QCanNetwork *  network(uint8_t ubNetworkIndexV);
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -101,7 +131,7 @@ public:
    **
    ** The function returns the number of networks.
    */
-   uint8_t       maximumNetwork(void) const;
+   uint8_t        maximumNetwork(void) const;
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -109,7 +139,7 @@ public:
    **
    ** The function returns the host address of the server.
    */
-   QHostAddress  serverAddress(void)     { return (clServerAddressP);  };
+   QHostAddress   serverAddress(void)     { return (clServerAddressP);  };
 
 
    //---------------------------------------------------------------------------------------------------
@@ -118,40 +148,40 @@ public:
    **
    ** The function configures the host address of the server.
    */
-   void          setServerAddress(QHostAddress clHostAddressV);
+   void           setServerAddress(const QHostAddress clHostAddressV, 
+                                   const uint16_t uwPortV = QCAN_WEB_SOCKET_DEFAULT_PORT);
 
+   Error_e        state(void)    { return (teErrorP); };
+
+signals:
+
+   void           error(enum QCanServer::Error_e teErrorV);
 
 private slots:
 
-   void          onTimerEvent(void);
+   void           onTimerEvent(void);
 
 private:
 
-   void          initSettings();
+   void           checkServerSettings(bool btClearServerV);
+   void           sendServerSettings(QWebSocket * pclSocketV, uint32_t flags = 0);
 
-   void          releaseSettings(void);
+   Error_e                    teErrorP;
 
    QHostAddress               clServerAddressP;
-   QVector<QCanNetwork *> *   pclListNetsP;
+   uint16_t                   uwServerPortP;
+   QVector<QCanNetwork *>     clNetworkListP;
    QTimer *                   pclTimerP;
-
-   uint16_t                   uwPortStartP;
    uint8_t                    ubNetworkMaxP;
 
-   //---------------------------------------------------------------------------------------------------
-   // The QCanServer allocates shared memory for data exchange between the server and clients.
-   // The shared memory is read-only for the clients, client access is done via QCanServerSettings.
-   //
-   QSharedMemory *            pclSettingsP;
-   bool                       btMemoryAttachedP;
 
    //---------------------------------------------------------------------------------------------------
-   // Management of local sockets:  a QLocalServer (pclLocalSrvP) is
-   // used to handle a fixed number of QLocalSockets (pclLocalSockListP)
+   // Management of web sockets:  a QWebSocketServer (pclSocketServerP) is used to handle a fixed 
+   // number of QWebSockets (pclWebSocketListP) for configuration and data inspection
    //
-   QPointer<QLocalServer>     pclLocalSrvP;
-   QVector<QLocalSocket*>*    pclLocalSockListP;
-   QMutex                     clLocalSockMutexP;
+   QPointer<QWebSocketServer> pclWebSocketServerP;
+   QVector<QWebSocket*>       clWebSocketListP;
+   QMutex                     clWebSocketMutexP;
 
    //---------------------------------------------------------------------------------------------------
    // This flag keeps the information if bit-rate change is possible via a local client, default
@@ -170,21 +200,36 @@ private:
    //
    bool                       btAllowCanModeChangeP;
 
+   //---------------------------------------------------------------------------------------------------
+   // The QCanServer allocates shared memory to make sure it is initialised only once
+   //
+   QSharedMemory *            pclServerConfigurationP;
+
+   int64_t                    sqDateTimeStartP;
+
+   int64_t                    sqUptimeMillisecondsP;
+   
+   QJsonObject                clJsonServerP;
+   
 private slots:
-   /*!
-   ** This slot is called upon local socket connection.
-   */
-   void onLocalSocketConnect(void);
+
+   void           onSocketDisconnect(void);
 
    /*!
-   ** This slot is called upon local socket disconnection.
+   ** This slot is called upon WebSocket disconnection.
    */
-   void onLocalSocketDisconnect(void);
+   void           onWebSocketServerClose(void);
 
    /*!
-   ** This slot is called when new data is available on any open local socket.
+   ** This slot is called upon a new WebSocket connection.
    */
-   void onLocalSocketNewData(void);
+   void           onWebSocketServerConnect(void);
+
+   /*!
+   ** This slot is called when an error is emitted on the WebSocket.
+   */
+   void           onWebSocketServerError(QWebSocketProtocol::CloseCode teCloseCodeV);
+
 };
 
 #endif // QCAN_SERVER_HPP_

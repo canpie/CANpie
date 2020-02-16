@@ -196,6 +196,15 @@ static CpRcvHandler_Fn  apfnRcvHandlerS[CP_CHANNEL_MAX];
 static CpTrmHandler_Fn  apfnTrmHandlerS[CP_CHANNEL_MAX];
 static CpErrHandler_Fn  apfnErrHandlerS[CP_CHANNEL_MAX];
 
+/*!
+ * \brief ubUsartRcvBufferS
+ *
+ * This buffer was introduced to adapt the implementation to the new USART API.
+ * Finally, only the API was adapted, the buffer is currently not used,
+ * because the qcan_usart implementation manages its own buffer internally.
+ */
+static uint8_t ubUsartRcvBufferS[128];
+
 /*----------------------------------------------------------------------------*\
 ** Internal function declaration                                              **
 **                                                                            **
@@ -735,7 +744,7 @@ CpStatus_tv CpCoreCanMode(CpPort_ts *ptsPortV, uint8_t ubModeV)
             // Start the CAN controller (active on the bus)
             //
             case eCP_MODE_START:
-               McUsartSetRcvBufferSize(CpPortToUsart(ptsPortV), sizeof(CpUsartFrame_ts));
+               McUsartSetRcvBufferSize(CpPortToUsart(ptsPortV), sizeof(CpUsartFrame_ts), &ubUsartRcvBufferS[0]);
                McUsartSetDir(CpPortToUsart(ptsPortV), eUSART_DIR_RXTX);
                ubCanModeS = ubModeV;
                break;
@@ -744,7 +753,7 @@ CpStatus_tv CpCoreCanMode(CpPort_ts *ptsPortV, uint8_t ubModeV)
             // Start the CAN controller (Listen-Only)
             //
             case eCP_MODE_LISTEN_ONLY:
-               McUsartSetRcvBufferSize(CpPortToUsart(ptsPortV), sizeof(CpUsartFrame_ts));
+               McUsartSetRcvBufferSize(CpPortToUsart(ptsPortV), sizeof(CpUsartFrame_ts), &ubUsartRcvBufferS[0]);
                McUsartSetDir(CpPortToUsart(ptsPortV), eUSART_DIR_RX);
                ubCanModeS = ubModeV;
                break;

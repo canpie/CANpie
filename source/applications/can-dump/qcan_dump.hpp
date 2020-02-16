@@ -37,14 +37,16 @@
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QCommandLineParser>
+#include <QtCore/QFile>
 #include <QtCore/QTimer>
 
 #include "qcan_namespace.hpp"
 
+#include <QCanNetworkSettings>
 #include <QCanServerSettings>
 #include <QCanSocket>
 
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------
 /*!
 ** \anchor can-dump
 ** \class QCanDump
@@ -65,39 +67,44 @@ public:
 signals:
    void finished();
 
-public slots:
-   void aboutToQuitApp(void);
+private slots:
+   void  aboutToQuitApp(void);
+
+   void  onNetworkObjectReceived(const CAN_Channel_e teChannelV, QJsonObject clNetworkConfigV);
+   void  onServerObjectReceived(QJsonObject clServerConfigV);
+   void  onServerStateChanged(enum QCanServerSettings::State_e teStateV);
+
+   void  onSocketConnected(void);
+   void  onSocketDisconnected(void);
+   void  onSocketError(QAbstractSocket::SocketError teSocketErrorV);
+   void  onSocketReceive(void);
 
    /*!
    ** The function evaluates the command parameters of the ..
    */
-   void runCmdParser(void);
+   void  runCmdParser(void);
 
-   void socketConnected();
-   void socketDisconnected();
-   void socketError(QAbstractSocket::SocketError teSocketErrorV);
-   void socketReceive(uint32_t ulFrameCntV);
-   void quit();
+   void  quit();
    
 private:
 
-   void  showNetworkSettings(CAN_Channel_e teCanChannelV);
+   QCoreApplication *      pclAppP;
 
-   QCoreApplication *   pclAppP;
+   QCommandLineParser      clCmdParserP;
+   QCanNetworkSettings *   pclNetworkSettingsP;
+   QCanServerSettings *    pclServerSettingsP;
 
-   QCommandLineParser   clCmdParserP;
-   QCanServerSettings * pclServerP;
-
-   QCanSocket           clCanSocketP;
-   uint8_t              ubChannelP;
+   QCanSocket              clCanSocketP;
+   CAN_Channel_e           teChannelP;
    
-   QTimer               clActivityTimerP;
-   bool                 btIsTcpConnectionP;
-   bool                 btTimeStampP;
-   bool                 btErrorFramesP;
-   bool                 btQuitNeverP;
-   uint32_t             ulQuitTimeP;
-   uint32_t             ulQuitCountP;
+   QTimer                  clActivityTimerP;
+   bool                    btIsWebConnectionP;
+   bool                    btTimeStampP;
+   bool                    btErrorFramesP;
+   bool                    btQuitNeverP;
+
+   uint32_t                ulQuitTimeP;
+   uint32_t                ulQuitCountP;
 };
 
 

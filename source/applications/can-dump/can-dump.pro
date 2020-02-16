@@ -21,7 +21,7 @@ TEMPLATE = app
 #---------------------------------------------------------------
 # Qt modules used
 #
-QT += core network
+QT += core network websockets
 QT -= gui
 
 #---------------------------------------------------------------
@@ -59,8 +59,8 @@ CONFIG += console
 # version of the application
 #
 VERSION_MAJOR = 0
-VERSION_MINOR = 86
-VERSION_BUILD = 04
+VERSION_MINOR = 99
+VERSION_BUILD = 05
 
 
 #---------------------------------------------------------------
@@ -105,19 +105,24 @@ VPATH += ./../../../qcan
 #---------------------------------------------------------------
 # header files of project 
 #
-HEADERS =   qcan_server_settings.hpp   \
-            qcan_socket.hpp            \
-            qcan_dump.hpp
+HEADERS =   qcan_dump.hpp              \
+            qcan_network_settings.hpp  \
+            qcan_server_settings.hpp   \
+            qcan_socket.hpp
+            
                 
             
 #---------------------------------------------------------------
 # source files of project 
 #
-SOURCES =   qcan_frame.cpp             \
+SOURCES =   qcan_dump.cpp              \
+            qcan_filter.cpp            \
+            qcan_filter_list.cpp       \
+            qcan_frame.cpp             \
+            qcan_network_settings.cpp  \
             qcan_server_settings.cpp   \
             qcan_socket.cpp            \
-            qcan_timestamp.cpp         \
-            qcan_dump.cpp
+            qcan_timestamp.cpp
                
 #---------------------------------------------------------------
 # OS specific settings 

@@ -18,24 +18,27 @@ QMAKE_PROJECT_NAME = "QCan applications"
 #
 TEMPLATE = subdirs
 
-#---------------------------------------------------------------
-# project configuration and compiler options
-#
-CONFIG += debug_and_release
-CONFIG += warn_on
-CONFIG += C++11
-CONFIG += silent
-
+CONFIG  += debug_and_release
 
 #---------------------------------------------------------------
-# list of sub directories
+# list of sub directories depending on used OS
 #
-SUBDIRS  = ./can-config  \
-           ./can-dump    \
-           ./can-error   \
-           ./can-send    \
-           ./server		 \
-           ./plugins
+SUBDIRS  = ./can-config    \
+           ./can-dump      \
+           ./can-error     \
+           ./can-send      \
+           ./server-daemon
+
+macx {
+SUBDIRS += ./plugins       \
+           ./server
+}
+
+win32 {
+SUBDIRS += ./plugins       \
+           ./server
+}
+
 
 message("--------------------------------------------------------------------------------")
 message("Compile all QCan applications ..                                                ")

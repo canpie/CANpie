@@ -38,7 +38,9 @@
 #include <QtCore/QCommandLineParser>
 
 #include "qcan_namespace.hpp"
-#include "qcan_server_settings.hpp"
+
+#include <QCanNetworkSettings>
+#include <QCanServerSettings>
 
 
 using namespace QCan;
@@ -59,31 +61,40 @@ public:
 signals:
    void finished();
 
-public slots:
-   void aboutToQuitApp(void);
+private slots:
+   void  aboutToQuitApp(void);
 
-   void runCmdParser(void);
+   void  execCommand(void);
 
-   void execCommand(void);
-   void quit();
+   void  onNetworkObjectReceived(const CAN_Channel_e teChannelV, QJsonObject clNetworkConfigV);
+   void  onServerObjectReceived(QJsonObject clServerConfigV);
+   void  onServerStateChanged(enum QCanServerSettings::State_e teStateV);
    
+   void  runCmdParser(void);
+
+   void  quit(void);
+
 private:
 
-   void  showNetworkSettings(CAN_Channel_e teCanChannelV);
-   void  showNetworkStatistics(CAN_Channel_e teCanChannelV);
+   void  showNetworkSettings(void);
+   void  showNetworkStatistics(void);
    void  showServerSettings(void);
 
    QCoreApplication *   pclAppP;
 
    QCommandLineParser   clCmdParserP;
-   QCanServerSettings * pclServerSettingsP;
+   QCanNetworkSettings  clNetworkSettingsP;
+   QCanServerSettings   clServerSettingsP;
+   QHostAddress         clHostAddressP;
+
    CAN_Channel_e        teCanChannelP;
    
    int32_t              slNomBitRateP;
    int32_t              slDatBitRateP;
    CAN_Mode_e           teCanModeP;
-   bool                 btConfigBitrateP;
-   bool                 btResetCanIfP;
+
+   uint32_t             ulCommandFlagsP;
+
 };
 
 

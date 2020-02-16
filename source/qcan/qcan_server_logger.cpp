@@ -54,7 +54,7 @@
 #endif
 
 #ifdef   Q_OS_WIN32
-#define  QCAN_LOG_PATH            "c:\TEMP\\"
+#define  QCAN_LOG_PATH            "./log/canpie/"
 #endif
 
 
@@ -157,10 +157,8 @@ void QCanServerLogger::appendMessage(const CAN_Channel_e ubChannelV, const QStri
 }
 
 
-
-
 //--------------------------------------------------------------------------------------------------------------------//
-// logLevel()                                                                                                         //
+// QCanServerLogger::logLevel()                                                                                       //
 // return log level of selected CAN channel                                                                           //
 //--------------------------------------------------------------------------------------------------------------------//
 LogLevel_e QCanServerLogger::logLevel(const CAN_Channel_e teChannelV)
@@ -216,9 +214,9 @@ bool QCanServerLogger::setFileName(const CAN_Channel_e teChannelV, QString clFil
       {
          delete (pclLogFileT);
          apclLogFileP[teChannelV - 1] = Q_NULLPTR;
+         btResultT = false;
       }
 
-      return true;
    }
 
    return btResultT;

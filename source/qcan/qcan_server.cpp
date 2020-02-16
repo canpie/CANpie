@@ -36,7 +36,8 @@
 #include <QtCore/QDebug>
 
 #include "qcan_server.hpp"
-#include "qcan_server_memory.hpp"
+
+#include <QtCore/QJsonDocument>
 
 
 /*--------------------------------------------------------------------------------------------------------------------*\
@@ -44,7 +45,72 @@
 **                                                                                                                    **
 \*--------------------------------------------------------------------------------------------------------------------*/
 
+#define  QCAN_MEMORY_KEY                     "QCAN_SERVER_SHARED_KEY"
 
+#define  MAXIMUM_SERVER_TIME_DIFFERENCE      ((int64_t) 2000)
+
+//------------------------------------------------------------------------------------------------------
+// Version information is controller via qmake project file, the following defintions are only
+// placeholders
+//
+#ifndef  VERSION_MAJOR
+#define  VERSION_MAJOR                       1
+#endif
+
+#ifndef  VERSION_MINOR
+#define  VERSION_MINOR                       0
+#endif
+
+#ifndef  VERSION_BUILD
+#define  VERSION_BUILD                       0
+#endif
+
+
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Structures                                                                                                         **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
+
+
+//-----------------------------------------------------------------------------------------------------
+// Server signature inside shared memory
+//
+typedef struct CanServerSharedMemory_s {
+
+   //--------------------------------------------------------------------------
+   // Server version: major
+   //
+   int32_t  slVersionMajor;
+
+   //--------------------------------------------------------------------------
+   // Server version: minor
+   //
+   int32_t  slVersionMinor;
+
+   //--------------------------------------------------------------------------
+   // Server version: build
+   //
+   int32_t  slVersionBuild;
+
+   //--------------------------------------------------------------------------
+   // Number of CAN networks supported by the server
+   //
+   int32_t  slNetworkCount;
+
+   //--------------------------------------------------------------------------
+   // Stores the start date / time of the server in milliseconds that have
+   // passed since 1970-01-01T00:00:00.000
+   //
+   int64_t  sqDateTimeStart;
+
+   //--------------------------------------------------------------------------
+   // Stores the actual date / time of the server in milliseconds that have
+   // passed since 1970-01-01T00:00:00.000
+   //
+   int64_t  sqDateTimeActual;
+
+
+} CanServerSharedMemory_ts;
 
 
 /*--------------------------------------------------------------------------------------------------------------------*\
@@ -57,9 +123,8 @@
 // QCanServer()                                                                                                       //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-QCanServer::QCanServer( QObject * pclParentV, uint16_t  uwPortStartV, uint8_t ubNetworkNumV)
+QCanServer::QCanServer( QObject * pclParentV, uint16_t uwPortNumberV, uint8_t ubNetworkNumV, bool btClearServerV)
 {
-   QCanNetwork *  pclCanNetT;
 
    //---------------------------------------------------------------------------------------------------
    // set the parent
@@ -75,65 +140,84 @@ QCanServer::QCanServer( QObject * pclParentV, uint16_t  uwPortStartV, uint8_t ub
    }
 
    //---------------------------------------------------------------------------------------------------
+   // disable all feature changes by default
    //
    btAllowBitrateChangeP = false;
    btAllowBusOffRecoverP = false;
    btAllowCanModeChangeP = false;
 
-   //------------------------------------------------------------------------------------
-   // save the supplied parameters
+   //---------------------------------------------------------------------------------------------------
+   // access is only granted from local host by default
    //
-   uwPortStartP  = uwPortStartV;
+   clServerAddressP      = QHostAddress::LocalHost;
+
+   //---------------------------------------------------------------------------------------------------
+   // set pointers to NULL
+   //
+   pclServerConfigurationP = Q_NULLPTR;
+   pclTimerP               = Q_NULLPTR;
+   
+   //---------------------------------------------------------------------------------------------------
+   // store the supplied parameters of the constructor 
+   //
+   uwServerPortP = uwPortNumberV;
    ubNetworkMaxP = ubNetworkNumV;
 
    //---------------------------------------------------------------------------------------------------
-   // setup a new local server which is listening to the
+   // assume no error before checking the server configuration
    //
-   pclLocalSrvP = new QLocalServer();
+   teErrorP = QCanServer::eERROR_NONE;
 
    //---------------------------------------------------------------------------------------------------
-   // create initial local socket list
+   // create list for CAN networks
    //
-   pclLocalSockListP = new QVector<QLocalSocket*>;
-   pclLocalSockListP->reserve(QCAN_LOCAL_SOCKET_MAX);
+   clNetworkListP.reserve(ubNetworkNumV);
 
-   //-------------------------------------------------------------------------------------------
-   // limit the number of connections for local server
+
+   //---------------------------------------------------------------------------------------------------
+   // check if the server is already active
    //
-   pclLocalSrvP->setMaxPendingConnections(QCAN_LOCAL_SOCKET_MAX);
-   pclLocalSrvP->setSocketOptions(QLocalServer::WorldAccessOption);
-   if(pclLocalSrvP->listen(QString("CANpieServer")))
+   checkServerSettings(btClearServerV);
+   if (teErrorP == eERROR_NONE)
    {
       //-------------------------------------------------------------------------------------------
-      // a new connection is handled by the onLocalSocketConnect() method
+      // setup a new web socket server 
       //
-      connect( pclLocalSrvP, SIGNAL(newConnection()),
-               this, SLOT(onLocalSocketConnect()));
+      pclWebSocketServerP  = new QWebSocketServer("CANpie-Server", QWebSocketServer::NonSecureMode);
+
+      connect( pclWebSocketServerP, &QWebSocketServer::newConnection,
+               this, &QCanServer::onWebSocketServerConnect);
+
+      connect( pclWebSocketServerP, &QWebSocketServer::closed,
+               this, &QCanServer::onWebSocketServerClose);
+
+      connect( pclWebSocketServerP, &QWebSocketServer::serverError,
+               this, &QCanServer::onWebSocketServerError);
+
+      pclWebSocketServerP->setMaxPendingConnections(QCAN_WEB_SOCKET_MAX);
+      pclWebSocketServerP->listen(clServerAddressP, uwServerPortP);
+
+      clWebSocketListP.clear();
+
+      //-------------------------------------------------------------------------------------------
+      // create CAN networks
+      //
+      QCanNetwork *  pclCanNetT;
+
+      for(uint8_t ubNetCntT = 0; ubNetCntT < ubNetworkNumV; ubNetCntT++)
+      {
+         pclCanNetT = new QCanNetwork(pclParentV);
+         clNetworkListP.append(pclCanNetT);
+      }
+
+
+      //-------------------------------------------------------------------------------------------
+      // start timer that calls onTimerEvent() every second
+      //
+      pclTimerP = new QTimer();
+      connect(pclTimerP, &QTimer::timeout, this, &QCanServer::onTimerEvent);
+      pclTimerP->start(1000);
    }
-
-   //------------------------------------------------------------------------------------
-   // setup shared memory for data exchange
-   //
-   initSettings();
-
-   //------------------------------------------------------------------------------------
-   // create CAN networks
-   //
-   pclListNetsP = new QVector<QCanNetwork *>;
-   pclListNetsP->reserve(ubNetworkNumV);
-
-   for(uint8_t ubNetCntT = 0; ubNetCntT < ubNetworkNumV; ubNetCntT++)
-   {
-      pclCanNetT = new QCanNetwork(pclParentV, uwPortStartV + ubNetCntT, pclSettingsP);
-      pclListNetsP->append(pclCanNetT);
-   }
-
-   //------------------------------------------------------------------------------------
-   // start timer that calls onTimerEvent() every second
-   //
-   pclTimerP = new QTimer();
-   connect(pclTimerP, SIGNAL(timeout()), this, SLOT(onTimerEvent()));
-   pclTimerP->start(1000);
 }
 
 
@@ -144,21 +228,110 @@ QCanServer::QCanServer( QObject * pclParentV, uint16_t  uwPortStartV, uint8_t ub
 QCanServer::~QCanServer()
 {
    //---------------------------------------------------------------------------------------------------
-   // close local server
+   // close web socket server
    //
-   if (pclLocalSrvP->isListening())
+   if (pclWebSocketServerP != Q_NULLPTR)
    {
-      pclLocalSrvP->close();
+      if (pclWebSocketServerP->isListening())
+      {
+         pclWebSocketServerP->close();
+      }
+      delete (pclWebSocketServerP);
    }
-   delete (pclLocalSrvP);
+   
 
-   //------------------------------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
+   // remove all networks
+   //
+   for(uint8_t ubNetCntT = 0; ubNetCntT < clNetworkListP.size(); ubNetCntT++)
+   {
+      delete(clNetworkListP.at(ubNetCntT));
+   }
+   clNetworkListP.clear();
+
+   //---------------------------------------------------------------------------------------------------
    // stop timer
    //
-   pclTimerP->stop();
-   delete (pclTimerP);
+   if (pclTimerP != Q_NULLPTR)
+   {
+      pclTimerP->stop();
+      delete (pclTimerP);
+   }
 
-   releaseSettings();
+   //---------------------------------------------------------------------------------------------------
+   // Detaches the process from the shared memory segment
+   //
+   if (pclServerConfigurationP != Q_NULLPTR)
+   {
+      pclServerConfigurationP->detach();
+   }
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServer::checkServerSettings()                                                                                  //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServer::checkServerSettings(bool btClearServerV)
+{
+   pclServerConfigurationP = new QSharedMemory(QString(QCAN_MEMORY_KEY));
+ 
+   //---------------------------------------------------------------------------------------------------
+   // Check if the shared memory could be attached, if not test the flag btClearServerV and try to
+   // attach it again.
+   //
+   if (pclServerConfigurationP->create(sizeof(CanServerSharedMemory_ts), QSharedMemory::ReadWrite) == false)
+   {
+      if (pclServerConfigurationP->error() == QSharedMemory::AlreadyExists)
+      {
+         teErrorP = QCanServer::eERROR_ACTIVE;
+         if (pclServerConfigurationP->attach() == true)
+         {
+            CanServerSharedMemory_ts * ptsConfigurationT = (CanServerSharedMemory_ts *)pclServerConfigurationP->data();
+            if ((QDateTime::currentMSecsSinceEpoch() - (ptsConfigurationT->sqDateTimeActual)) > MAXIMUM_SERVER_TIME_DIFFERENCE)
+            {
+               teErrorP = QCanServer::eERROR_CRASHED;
+               emit error(teErrorP);
+            }
+         }
+      }
+   }
+
+   //---------------------------------------------------------------------------------------------------
+   // If the momory has been attached to the process clear it first and then setup server values
+   //
+   if ( (teErrorP == QCanServer::eERROR_NONE) ||
+        (btClearServerV && (teErrorP == QCanServer::eERROR_CRASHED)) )
+   {
+      if (pclServerConfigurationP->lock() == true)
+      {
+         //-----------------------------------------------------------------------------------
+         // clear all memory initially
+         //
+         memset(pclServerConfigurationP->data(), 0, sizeof(CanServerSharedMemory_ts));
+
+         //-----------------------------------------------------------------------------------
+         // setup the shared memory
+         //
+         CanServerSharedMemory_ts * ptsConfigurationT = (CanServerSharedMemory_ts *) pclServerConfigurationP->data();
+
+         ptsConfigurationT->slVersionMajor = VERSION_MAJOR;
+         ptsConfigurationT->slVersionMinor = VERSION_MINOR;
+         ptsConfigurationT->slVersionBuild = VERSION_BUILD;
+         ptsConfigurationT->slNetworkCount = ubNetworkMaxP;
+
+         sqDateTimeStartP = QDateTime::currentMSecsSinceEpoch();
+         ptsConfigurationT->sqDateTimeStart  = sqDateTimeStartP;
+         ptsConfigurationT->sqDateTimeActual = sqDateTimeStartP;
+         sqUptimeMillisecondsP = 0;
+
+         pclServerConfigurationP->unlock();
+         teErrorP = QCanServer::eERROR_NONE;
+      } 
+   }
+
+   emit error(teErrorP);
+
 }
 
 
@@ -168,34 +341,9 @@ QCanServer::~QCanServer()
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanServer::enableBitrateChange(bool btEnabledV)
 {
+   qDebug() << " QCanServer::enableBitrateChange()" << btEnabledV;
    btAllowBitrateChangeP = btEnabledV;
 
-   if (btMemoryAttachedP)
-   {
-      if (pclSettingsP->lock())
-      {
-
-         //-----------------------------------------------------------------------------------
-         // get access to data of shared memory
-         //
-         ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
-
-
-         //-----------------------------------------------------------------------------------
-         // modify server flags
-         //
-         if (btAllowBitrateChangeP)
-         {
-            ptsSettingsT->tsServer.slFlags |= QCAN_SERVER_FLAG_ALLOW_BITRATE;
-         }
-         else
-         {
-            ptsSettingsT->tsServer.slFlags &= ~QCAN_SERVER_FLAG_ALLOW_BITRATE;
-         }
-      }
-
-      pclSettingsP->unlock();
-   }
 }
 
 
@@ -207,32 +355,6 @@ void QCanServer::enableBusOffRecovery(bool btEnabledV)
 {
    btAllowBusOffRecoverP = btEnabledV;
 
-   if (btMemoryAttachedP)
-   {
-      if (pclSettingsP->lock())
-      {
-
-         //-----------------------------------------------------------------------------------
-         // get access to data of shared memory
-         //
-         ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
-
-
-         //-----------------------------------------------------------------------------------
-         // modify server flags
-         //
-         if (btAllowBusOffRecoverP)
-         {
-            ptsSettingsT->tsServer.slFlags |= QCAN_SERVER_FLAG_ALLOW_RECOVERY;
-         }
-         else
-         {
-            ptsSettingsT->tsServer.slFlags &= ~QCAN_SERVER_FLAG_ALLOW_RECOVERY;
-         }
-      }
-
-      pclSettingsP->unlock();
-   }
 }
 
 
@@ -244,79 +366,6 @@ void QCanServer::enableModeChange(bool btEnabledV)
 {
    btAllowCanModeChangeP = btEnabledV;
 
-   if (btMemoryAttachedP)
-   {
-      if (pclSettingsP->lock())
-      {
-
-         //-----------------------------------------------------------------------------------
-         // get access to data of shared memory
-         //
-         ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
-
-
-         //-----------------------------------------------------------------------------------
-         // modify server flags
-         //
-         if (btAllowCanModeChangeP)
-         {
-            ptsSettingsT->tsServer.slFlags |= QCAN_SERVER_FLAG_ALLOW_MODE;
-         }
-         else
-         {
-            ptsSettingsT->tsServer.slFlags &= ~QCAN_SERVER_FLAG_ALLOW_MODE;
-         }
-      }
-
-      pclSettingsP->unlock();
-   }
-}
-
-
-//--------------------------------------------------------------------------------------------------------------------//
-// QCanServer::initSettings()                                                                                         //
-//                                                                                                                    //
-//--------------------------------------------------------------------------------------------------------------------//
-void QCanServer::initSettings(void)
-{
-
-   pclSettingsP = new QSharedMemory(QString(QCAN_MEMORY_KEY));
-   btMemoryAttachedP = pclSettingsP->create(sizeof(ServerSettings_ts), QSharedMemory::ReadWrite);
-
-   if (btMemoryAttachedP)
-   {
-      if (pclSettingsP->lock())
-      {
-         //-----------------------------------------------------------------------------------
-         // clear all memory initially
-         //
-         memset(pclSettingsP->data(), 0, sizeof(ServerSettings_ts));
-
-         //-----------------------------------------------------------------------------------
-         // setup the shared memory
-         //
-         ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
-
-         ptsSettingsT->tsServer.slVersionMajor = VERSION_MAJOR;
-         ptsSettingsT->tsServer.slVersionMinor = VERSION_MINOR;
-         ptsSettingsT->tsServer.slVersionBuild = VERSION_BUILD;
-         ptsSettingsT->tsServer.slNetworkCount = ubNetworkMaxP;
-
-         ptsSettingsT->tsServer.sqDateTimeStart  = QDateTime::currentMSecsSinceEpoch();
-         ptsSettingsT->tsServer.sqDateTimeActual = QDateTime::currentMSecsSinceEpoch();
-
-         ptsSettingsT->tsServer.slFlags        = 0;
-      }
-
-      pclSettingsP->unlock();
-   }
-   else
-   {
-      qDebug() << pclSettingsP->errorString();
-      btMemoryAttachedP = pclSettingsP->attach();
-   }
-
-   qDebug() << "QCanServer::initSettings() - memory attached =" << btMemoryAttachedP;
 }
 
 
@@ -326,7 +375,7 @@ void QCanServer::initSettings(void)
 //--------------------------------------------------------------------------------------------------------------------//
 uint8_t QCanServer::maximumNetwork(void) const
 {
-   return(ubNetworkMaxP);
+   return (ubNetworkMaxP);
 }
 
 
@@ -336,147 +385,14 @@ uint8_t QCanServer::maximumNetwork(void) const
 //--------------------------------------------------------------------------------------------------------------------//
 QCanNetwork * QCanServer::network(uint8_t ubNetworkIdxV)
 {
-   return(pclListNetsP->at(ubNetworkIdxV));
-}
+   QCanNetwork * pclNetworkT = (QCanNetwork *) 0L;
 
-//--------------------------------------------------------------------------------------------------------------------//
-// onLocalSocketConnect()                                                                                             //
-// slot that manages a new local server connection                                                                    //
-//--------------------------------------------------------------------------------------------------------------------//
-void QCanServer::onLocalSocketConnect(void)
-{
-   QLocalSocket * pclSocketT;
-
-   //---------------------------------------------------------------------------------------------------
-   // Get next pending connect and add this socket to the the socket list
-   //
-   pclSocketT =  pclLocalSrvP->nextPendingConnection();
-   clLocalSockMutexP.lock();
-   pclLocalSockListP->append(pclSocketT);
-   clLocalSockMutexP.unlock();
-
-   //---------------------------------------------------------------------------------------------------
-   // Add a slot that handles the disconnection of the socket from the local server
-   //
-   connect( pclSocketT, SIGNAL(disconnected()),
-            this,       SLOT(onLocalSocketDisconnect())   );
-
-   //---------------------------------------------------------------------------------------------------
-   // Add a slot that handles when new data is available
-   //
-   connect( pclSocketT, SIGNAL(readyRead()),
-            this,       SLOT(onLocalSocketNewData())   );
-
-}
-
-
-//--------------------------------------------------------------------------------------------------------------------//
-// onLocalSocketDisconnect()                                                                                          //
-// remove local socket from list                                                                                      //
-//--------------------------------------------------------------------------------------------------------------------//
-void QCanServer::onLocalSocketDisconnect(void)
-{
-   int32_t        slSockIdxT;
-   QLocalSocket * pclSockT;
-   QLocalSocket * pclSenderT;
-
-
-   //---------------------------------------------------------------------------------------------------
-   // get sender of signal
-   //
-   pclSenderT = (QLocalSocket* ) QObject::sender();
-
-   //---------------------------------------------------------------------------------------------------
-   // Disconnect everything connected to the sender
-   //
-   disconnect(pclSenderT, 0, 0, 0);
-
-   //---------------------------------------------------------------------------------------------------
-   // remove sender from socket list
-   //
-   clLocalSockMutexP.lock();
-   for(slSockIdxT = 0; slSockIdxT < pclLocalSockListP->size(); slSockIdxT++)
+   if (ubNetworkIdxV < clNetworkListP.size())
    {
-      pclSockT = pclLocalSockListP->at(slSockIdxT);
-      if (pclSockT == pclSenderT)
-      {
-         pclLocalSockListP->remove(slSockIdxT);
-         break;
-      }
-   }
-   clLocalSockMutexP.unlock();
-
-}
-
-
-//--------------------------------------------------------------------------------------------------------------------//
-// onLocalSocketNewData()                                                                                             //
-// handle reception of new data on local socket                                                                       //
-//--------------------------------------------------------------------------------------------------------------------//
-void QCanServer::onLocalSocketNewData(void)
-{
-   QLocalSocket *    pclLocalSockT;
-   QCanNetwork *     pclNetworkT;
-   int32_t           slSockIdxT;
-   int32_t           slListSizeT;
-
-
-   //---------------------------------------------------------------------------------------------------
-   // lock socket list
-   //
-   clLocalSockMutexP.lock();
-
-
-   //---------------------------------------------------------------------------------------------------
-   // check all open local sockets and read messages
-   //
-   slListSizeT = pclLocalSockListP->size();
-   for(slSockIdxT = 0; slSockIdxT < slListSizeT; slSockIdxT++)
-   {
-      pclLocalSockT = pclLocalSockListP->at(slSockIdxT);
-      uint32_t ulCmdMaxT = (pclLocalSockT->bytesAvailable()) / sizeof(ServerSocketCommand_ts);
-      while (ulCmdMaxT > 0)
-      {
-         ServerSocketCommand_ts  tsCommandT;
-         pclLocalSockT->read((char *) &tsCommandT, sizeof(ServerSocketCommand_ts));
-         pclNetworkT = network(tsCommandT.ubChannel - 1);
-         if (pclNetworkT != (QCanNetwork *) 0L)
-         {
-            switch(tsCommandT.ubCommand)
-            {
-               case eSERVER_CMD_BITRATE:
-                  pclNetworkT->setBitrate(tsCommandT.slParameter[0], tsCommandT.slParameter[1]);
-                  break;
-
-               case eSERVER_CMD_MODE:
-                  if (tsCommandT.slParameter[0] == eCAN_MODE_INIT)
-                  {
-                     pclNetworkT->stopInterface();
-                  }
-                  if (tsCommandT.slParameter[0] == eCAN_MODE_OPERATION)
-                  {
-                     pclNetworkT->startInterface();
-                  }
-                  if (tsCommandT.slParameter[0] == eCAN_MODE_LISTEN_ONLY)
-                  {
-                     pclNetworkT->setListenOnlyEnabled(true);
-                     pclNetworkT->startInterface();
-                  }
-                  break;
-
-               case eSERVER_CMD_RESET:
-                  pclNetworkT->reset();
-                  break;
-            }
-         }
-         ulCmdMaxT = (pclLocalSockT->bytesAvailable()) / sizeof(ServerSocketCommand_ts);
-      }
+      pclNetworkT = clNetworkListP.at(ubNetworkIdxV);
    }
 
-   //---------------------------------------------------------------------------------------------------
-   // unlock mutex
-   //
-   clLocalSockMutexP.unlock();
+   return(pclNetworkT);
 }
 
 
@@ -486,31 +402,215 @@ void QCanServer::onLocalSocketNewData(void)
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanServer::onTimerEvent(void)
 {
-   if (btMemoryAttachedP)
+   if (teErrorP == QCanServer::eERROR_NONE)
    {
-      pclSettingsP->lock();
+      int64_t sqCurrentMSecsT = QDateTime::currentMSecsSinceEpoch();
+
+      pclServerConfigurationP->lock();
 
       //-------------------------------------------------------------------------------------------
-      // update the system time
+      // update the system time in shared memorys
       //
-      ServerSettings_ts * ptsSettingsT = (ServerSettings_ts *) pclSettingsP->data();
-      if (ptsSettingsT != (ServerSettings_ts *) 0L)
+      CanServerSharedMemory_ts * ptsConfigurationT = (CanServerSharedMemory_ts *) pclServerConfigurationP->data();
+      if (ptsConfigurationT != (CanServerSharedMemory_ts *) 0L)
       {
-         ptsSettingsT->tsServer.sqDateTimeActual = QDateTime::currentMSecsSinceEpoch();
+         ptsConfigurationT->sqDateTimeActual = sqCurrentMSecsT;
       }
 
-      pclSettingsP->unlock();
+      pclServerConfigurationP->unlock();
+
+      sqUptimeMillisecondsP = sqCurrentMSecsT - sqDateTimeStartP;
    }
 }
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// QCanServer::releaseSettings()                                                                                      //
-//                                                                                                                    //
+// QCanServer::onSocketDisconnect()                                                                                   //
+// remove socket from list                                                                                            //
 //--------------------------------------------------------------------------------------------------------------------//
-void QCanServer::releaseSettings(void)
+void QCanServer::onSocketDisconnect(void)
 {
-   pclSettingsP->detach();
+   qDebug() << "QCanServer::onSocketDisconnect()";
+
+   QWebSocket * pclSocketT = qobject_cast<QWebSocket *>(sender());
+
+   //---------------------------------------------------------------------------------------------------
+   // search for this socket pointer inside the list
+   //
+   for (int32_t slCountT = 0; slCountT < clWebSocketListP.size(); slCountT++)
+   {
+      if (clWebSocketListP.at(slCountT) == pclSocketT)
+      {
+
+         //-----------------------------------------------------------------------------------
+         // remove all signal / slot connections
+         //
+         pclSocketT->disconnect();
+
+         //-----------------------------------------------------------------------------------
+         // remove entry from list
+         //
+         clWebSocketListP.removeAt(slCountT);
+
+         pclSocketT->close();
+         break;
+      }
+   }
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServer::onWebSocketConnect()                                                                                   //
+// slot that manages a new local server connection                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServer::onWebSocketServerConnect(void)
+{
+   QWebSocket * pclSocketT;
+   bool         btCloseSocketT = true;
+
+
+   //---------------------------------------------------------------------------------------------------
+   // Get next pending connection
+   //
+   pclSocketT = pclWebSocketServerP->nextPendingConnection();
+
+
+   //---------------------------------------------------------------------------------------------------
+   // Get the URL path and test if it is valid:
+   // URL = <server>/settings       -> access the QCanServer class, settings
+   // URL = <server>/<num>          -> access CAN network with number <num>, data exchange
+   // URL = <server>/<num>/settings -> access CAN network with number <num>, settings
+   //
+   if (pclSocketT->requestUrl().isValid())
+   {
+
+      QString clSocketPathT  = pclSocketT->requestUrl().path();
+
+      //-------------------------------------------------------------------------------------------
+      // Split path in two sections
+      //
+      QString clSectionOneT = clSocketPathT.section('/', 0, 0, QString::SectionSkipEmpty);
+      QString clSectionTwoT = clSocketPathT.section('/', 1, 1, QString::SectionSkipEmpty);
+
+      if (clSectionOneT.compare("settings") == 0)
+      {
+         //-----------------------------------------------------------------------------------
+         // access the QCanServer class
+         //
+         btCloseSocketT = false;
+         clWebSocketListP.append(pclSocketT);
+
+
+         connect( pclSocketT, &QWebSocket::disconnected,
+                  this,       &QCanServer::onSocketDisconnect);
+
+         sendServerSettings(pclSocketT);
+
+      }
+      else
+      {
+         //-----------------------------------------------------------------------------------
+         // Access to network: the first section holds a valid network number > 0. If the
+         // conversion fails the method toInt() returns 0.
+         //
+         int32_t slNetNumberT = clSectionOneT.toInt();
+
+         if (slNetNumberT > 0)
+         {
+            QCanNetwork * pclNetworkT = network(slNetNumberT - 1);
+            if (clSectionTwoT.compare("settings") == 0)
+            {
+               if (pclNetworkT != Q_NULLPTR)
+               {
+                  pclNetworkT->attachWebSocket(pclSocketT, QCanNetwork::eSOCKET_TYPE_SETTINGS);
+                  btCloseSocketT = false;
+               }
+            }
+            else
+            {
+               if (pclNetworkT != Q_NULLPTR)
+               {
+                  pclNetworkT->attachWebSocket(pclSocketT, QCanNetwork::eSOCKET_TYPE_CAN_FRAME);
+                  btCloseSocketT = false;
+               }
+            }
+         }
+      }
+   }
+
+   //---------------------------------------------------------------------------------------------------
+   // if the request failed close the socket
+   //
+   if (btCloseSocketT)
+   {
+      pclSocketT->close(QWebSocketProtocol::CloseCodeDatatypeNotSupported);
+   }
+
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServer::onWebSocketClose()                                                                                     //
+// close WebSocket server                                                                                             //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServer::onWebSocketServerClose(void)
+{
+   qDebug() << "QCanServer::onWebSocketServerClose()";
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServer::onWebSocketServerError()                                                                               //
+// react on error from WebSocket server                                                                               //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServer::onWebSocketServerError(QWebSocketProtocol::CloseCode teCloseCodeV)
+{
+   qDebug() << "QCanServer::onWebSocketServerError()" << teCloseCodeV;
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServer::sendServerSettings()                                                                                   //
+// send information about server via WebSocket                                                                        //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServer::sendServerSettings(QWebSocket * pclSocketV, uint32_t flags)
+{
+   Q_UNUSED(flags);
+
+   
+   //---------------------------------------------------------------------------------------------------
+   // Create JSON object containing all information about the server. Structure is
+   // {
+   //    "apiVersion" : "1.0",
+   //     <serverOject>  
+   // }
+   //
+   clJsonServerP["apiVersion"]          = "1.0";
+
+   clJsonServerP["allowBitrateChange"]  = btAllowBitrateChangeP;
+   clJsonServerP["allowModeChange"]     = btAllowCanModeChangeP;
+   clJsonServerP["allowBusOffRecovery"] = btAllowBusOffRecoverP;
+
+   clJsonServerP["networkCount"]        = (int) ubNetworkMaxP;
+   clJsonServerP["serverLocalTime"]     = QDateTime::currentDateTime().toString(Qt::ISODate);
+   clJsonServerP["serverUptime"]        = sqUptimeMillisecondsP;
+
+   clJsonServerP["versionMajor"]        = (int) VERSION_MAJOR;
+   clJsonServerP["versionMinor"]        = (int) VERSION_MINOR;
+   clJsonServerP["versionBuild"]        = (int) VERSION_BUILD;
+
+
+   //---------------------------------------------------------------------------------------------------
+   // create JSON document in text format and send it via the socket
+   //
+   QJsonDocument clJsonDocumentT(clJsonServerP);
+
+   if (pclSocketV != Q_NULLPTR)
+   {
+         qDebug() << "sendServerSettings";
+
+      pclSocketV->sendTextMessage(clJsonDocumentT.toJson());
+   }
 }
 
 
@@ -518,41 +618,18 @@ void QCanServer::releaseSettings(void)
 // QCanServer::setServerAddress()                                                                                     //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-void QCanServer::setServerAddress(QHostAddress clHostAddressV)
+void QCanServer::setServerAddress(const QHostAddress clHostAddressV, const uint16_t uwPortV)
 {
-   QCanNetwork *  pclNetworkT;
-
-   if (!clHostAddressV.isEqual(clServerAddressP))
+   if (pclWebSocketServerP != Q_NULLPTR)
    {
-      clServerAddressP = clHostAddressV;
-
-      qDebug() << "QCanServer::setServerAddress()" << clHostAddressV;
-
-      for(uint8_t ubNetCntT = 0; ubNetCntT < maximumNetwork(); ubNetCntT++)
+      if (pclWebSocketServerP->isListening())
       {
-         pclNetworkT = network(ubNetCntT);
+         pclWebSocketServerP->close();
 
-         //-------------------------------------------------------------
-         // check current state of network
-         //
-         if(pclNetworkT->isNetworkEnabled() == true)
-         {
-            //-----------------------------------------------------
-            // assign new host address
-            //
-            pclNetworkT->setNetworkEnabled(false);
-            pclNetworkT->setServerAddress(clHostAddressV);
-            pclNetworkT->setNetworkEnabled(true);
-         }
-         else
-         {
-            //-----------------------------------------------------
-            // assign new host address
-            //
-            pclNetworkT->setServerAddress(clHostAddressV);
-         }
+         clServerAddressP = clHostAddressV;
+         uwServerPortP    = uwPortV;
+         qDebug() << "QCanServer::setServerAddress(" << clHostAddressV << "," << uwPortV << ")";
+         pclWebSocketServerP->listen(clServerAddressP, uwServerPortP);
       }
    }
 }
-
-

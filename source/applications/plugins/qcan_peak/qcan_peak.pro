@@ -44,7 +44,15 @@ TARGET          = $$qtLibraryTarget(QCanPeak)
 # directory for target file
 #
 macx {
-   DESTDIR = ../../../../../bin/CANpieServer.app/Contents/PlugIns
+   DESTDIR  = ../../../../../bin/CANpieServer.app/Contents/PlugIns
+
+	#-------------------------------------------------------
+	# copy PCBUSB library
+	#   
+	LIB_DIR  = ../../../../../bin/CANpieServer.app/Contents/Frameworks/
+	LIB_FILE = ./libs/osx/libPCBUSB.dylib 
+	
+   QMAKE_POST_LINK += mkdir -p $$LIB_DIR && cp $$LIB_FILE $$LIB_DIR
 }
 win32 {
    DESTDIR = ../../../../../bin/plugins
@@ -52,9 +60,9 @@ win32 {
 #---------------------------------------------------------------
 # Objects directory
 #
-OBJECTS_DIR = ./objs
-MOC_DIR     = ./objs
-RCC_DIR     = ./objs
+OBJECTS_DIR = ../../../../objs
+MOC_DIR     = .../../../../objs
+RCC_DIR     = ../../../../objs
 
 #---------------------------------------------------------------
 # project configuration and compiler options

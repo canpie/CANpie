@@ -21,7 +21,7 @@ TEMPLATE = app
 #---------------------------------------------------------------
 # Qt modules used
 #
-QT += core network
+QT += core network websockets
 
 #---------------------------------------------------------------
 # target file name
@@ -58,8 +58,8 @@ CONFIG += console
 # version of the application
 #
 VERSION_MAJOR = 0
-VERSION_MINOR = 86
-VERSION_BUILD = 04
+VERSION_MINOR = 99
+VERSION_BUILD = 05
 
 
 #---------------------------------------------------------------
@@ -151,6 +151,24 @@ macx {
    #
    QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
    
+}
+
+
+unix:!macx{
+   CONFIG(debug, debug|release) {
+      message("Building '$$QMAKE_PROJECT_NAME' DEBUG version for Linux ...")
+   } else {
+      message("Building '$$QMAKE_PROJECT_NAME' RELEASE version for Linux ...")
+      DEFINES += QT_NO_WARNING_OUTPUT
+      DEFINES += QT_NO_DEBUG_OUTPUT
+   }
+
+   #--------------------------------------------------
+   # Specify the install directory for the target
+   # /usr/local/bin
+   #
+   target.path  = /usr/local/bin
+   INSTALLS += target
 }
 
 win32 {

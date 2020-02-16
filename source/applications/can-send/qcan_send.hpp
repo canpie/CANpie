@@ -70,7 +70,7 @@ private:
    QCoreApplication *   pclAppP;
 
    QCommandLineParser   clCmdParserP;
-   QCanServerSettings * pclServerP;
+   QCanServerSettings   clServerP;
 
    QCanSocket           clCanSocketP;
    uint8_t              ubChannelP;

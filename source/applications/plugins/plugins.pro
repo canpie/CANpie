@@ -25,13 +25,6 @@ SUBDIRS  =  ./qcan_peak  		\
             ./qcan_template	\
             ./qcan_usart
 
-#---------------------------------------------------------------
-# project configuration and compiler options
-#
-CONFIG += debug_and_release
-CONFIG += warn_on
-CONFIG += C++11
-CONFIG += silent
 
 #---------------------------------------------------------------
 # IXXAT plugin is only available for Windows

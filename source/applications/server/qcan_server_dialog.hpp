@@ -47,7 +47,7 @@
 
 #include "ui_ServerConfig.h"
 #include "qcan_server.hpp"
-#include "qcan_server_logger.hpp"
+#include "qcan_server_logger_view.hpp"
 #include "qcan_interface_widget.hpp"
 
 using namespace QCan;
@@ -144,7 +144,7 @@ private:
 
    QToolBox *              pclTbxNetworkP;
    QCanInterfaceWidget *   apclCanIfWidgetP[QCAN_NETWORK_MAX];
-   QCanServerLogger *      pclLoggerP;
+   QCanServerLoggerView *  pclLoggerP;
 
 };
 

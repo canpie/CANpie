@@ -129,10 +129,6 @@ QCanSend::QCanSend(QObject *parent) :
    btIncDataP     = false;
    ulFrameCountP  = 0;
 
-   //---------------------------------------------------------------------------------------------------
-   // create QServerSettings object
-   //
-   pclServerP = new QCanServerSettings();
 }
 
 
@@ -142,7 +138,7 @@ QCanSend::QCanSend(QObject *parent) :
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanSend::aboutToQuitApp()
 {
-   delete (pclServerP);
+
 }
 
 
@@ -388,6 +384,7 @@ void QCanSend::runCmdParser(void)
    }
    else
    {
+      /*
       //-------------------------------------------------------------------------------------------
       // check to local server state and print error if it is not active
       //
@@ -396,6 +393,7 @@ void QCanSend::runCmdParser(void)
          fprintf(stdout, "CANpie FD server %s \n", qPrintable(pclServerP->stateString()));
          exit(0);
       }
+      */
    }
 
 

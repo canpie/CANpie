@@ -1,43 +1,37 @@
-//============================================================================//
-// File:          qcan_network.cpp                                            //
-// Description:   QCAN classes - CAN network                                  //
-//                                                                            //
-// Copyright 2017 MicroControl GmbH & Co. KG                                  //
-// 53844 Troisdorf - Germany                                                  //
-// www.microcontrol.net                                                       //
-//                                                                            //
-//----------------------------------------------------------------------------//
-// Redistribution and use in source and binary forms, with or without         //
-// modification, are permitted provided that the following conditions         //
-// are met:                                                                   //
-// 1. Redistributions of source code must retain the above copyright          //
-//    notice, this list of conditions, the following disclaimer and           //
-//    the referenced file 'LICENSE'.                                          //
-// 2. Redistributions in binary form must reproduce the above copyright       //
-//    notice, this list of conditions and the following disclaimer in the     //
-//    documentation and/or other materials provided with the distribution.    //
-// 3. Neither the name of MicroControl nor the names of its contributors      //
-//    may be used to endorse or promote products derived from this software   //
-//    without specific prior written permission.                              //
-//                                                                            //
-// Licensed under the Apache License, Version 2.0 (the "License");            //
-// you may not use this file except in compliance with the License.           //
-// You may obtain a copy of the License at                                    //
-//                                                                            //
-//    http://www.apache.org/licenses/LICENSE-2.0                              //
-//                                                                            //
-// Unless required by applicable law or agreed to in writing, software        //
-// distributed under the License is distributed on an "AS IS" BASIS,          //
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   //
-// See the License for the specific language governing permissions and        //
-// limitations under the License.                                             //
-//============================================================================//
+//====================================================================================================================//
+// File:          qcan_socket.cpp                                                                                     //
+// Description:   CAN socket class                                                                                    //
+//                                                                                                                    //
+// Copyright (C) MicroControl GmbH & Co. KG                                                                           //
+// 53844 Troisdorf - Germany                                                                                          //
+// www.microcontrol.net                                                                                               //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the   //
+// following conditions are met:                                                                                      //
+// 1. Redistributions of source code must retain the above copyright notice, this list of conditions, the following   //
+//    disclaimer and the referenced file 'LICENSE'.                                                                   //
+// 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the       //
+//    following disclaimer in the documentation and/or other materials provided with the distribution.                //
+// 3. Neither the name of MicroControl nor the names of its contributors may be used to endorse or promote products   //
+//    derived from this software without specific prior written permission.                                           //
+//                                                                                                                    //
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance     //
+// with the License. You may obtain a copy of the License at                                                          //
+//                                                                                                                    //
+//    http://www.apache.org/licenses/LICENSE-2.0                                                                      //
+//                                                                                                                    //
+// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed   //
+// on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for  //
+// the specific language governing permissions and limitations under the License.                                     //
+//                                                                                                                    //
+//====================================================================================================================//
 
 
-/*----------------------------------------------------------------------------*\
-** Include files                                                              **
-**                                                                            **
-\*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Include files                                                                                                      **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
 
 #include "qcan_socket.hpp"
 
@@ -46,23 +40,23 @@
 
 #include <QtNetwork/QNetworkInterface>
 
-/*----------------------------------------------------------------------------*\
-** Definitions                                                                **
-**                                                                            **
-\*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Definitions                                                                                                        **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
 
 
 
-/*----------------------------------------------------------------------------*\
-** Class methods                                                              **
-**                                                                            **
-\*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Class methods                                                                                                      **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
 
 
-//----------------------------------------------------------------------------//
-// QCanSocket()                                                               //
-// constructor                                                                //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanSocket()                                                                                                       //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 QCanSocket::QCanSocket(QObject * pclParentV)
 {
    if (pclParentV != Q_NULLPTR)
@@ -70,56 +64,57 @@ QCanSocket::QCanSocket(QObject * pclParentV)
       this->setParent(pclParentV);
    }
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // set default values for host address and port
    //
-   clTcpHostAddrP = QHostAddress(QHostAddress::LocalHost);
-   uwTcpPortP     = QCAN_TCP_DEFAULT_PORT;
+   clServerHostAddrP = QHostAddress(QHostAddress::LocalHost);
+   uwServerPortP     = QCAN_WEB_SOCKET_DEFAULT_PORT;
 
-   //----------------------------------------------------------------
-   // create a local and a TCP socket by default, the selection
-   // which one is used will be done in setHostAddress().
+   //---------------------------------------------------------------------------------------------------
+   // create a local and a TCP socket by default, the selection which one is used will be done in 
+   // setHostAddress().
    //
-   pclLocalSockP = new QLocalSocket(this);
-   pclTcpSockP   = new QTcpSocket(this);
+   pclLocalSocketP = new QLocalSocket(this);
+   pclWebSocketP   = new QWebSocket("", QWebSocketProtocol::VersionLatest, this);
 
-   //----------------------------------------------------------------
-   // the socket is not connected yet and the default connection
-   // method is "local"
+   //---------------------------------------------------------------------------------------------------
+   // the socket is not connected yet and the default connection method is "local"
    //
    btIsLocalConnectionP = true;
    btIsConnectedP       = false;
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // No socket errors available yet
    //
    slSocketErrorP = 0;
 
+   clUuidP = QUuid::createUuid();
+
    teCanStateP = eCAN_STATE_BUS_ACTIVE;
+
 }
 
 
-//----------------------------------------------------------------------------//
-// QCanSocket()                                                               //
-// destructor                                                                 //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanSocket()                                                                                                       //
+// destructor                                                                                                         //
+//--------------------------------------------------------------------------------------------------------------------//
 QCanSocket::~QCanSocket()
 {
-   delete (pclLocalSockP);
-   delete (pclTcpSockP);
+   delete (pclLocalSocketP);
+   delete (pclWebSocketP);
 }
 
 
-//----------------------------------------------------------------------------//
-// connectNetwork()                                                           //
-//                                                                            //
-//----------------------------------------------------------------------------//
-bool QCanSocket::connectNetwork(CAN_Channel_e ubChannelV, 
-                                const int32_t slMilliSecsV)
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanSocket::connectNetwork()                                                                                       //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+bool QCanSocket::connectNetwork(const CAN_Channel_e & teChannelR)
 {
    bool btResultT = false;
 
-   //---------------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // create a new socket
    //
    if (btIsConnectedP == false)
@@ -127,103 +122,59 @@ bool QCanSocket::connectNetwork(CAN_Channel_e ubChannelV,
 
       if (btIsLocalConnectionP == false)
       {
-         qDebug() << "QCanSocket::connectNetwork(" << ubChannelV << "," << slMilliSecsV << ") - TCP";
+         qDebug() << "QCanSocket::connectNetwork(" << teChannelR << "- WebSocket";
 
-         //----------------------------------------------------------
-         // create new TCP socket
+         //----------------------------------------------------------------------------------------
+         // create new WebSocket
          //
-         pclTcpSockP->abort();
-         pclTcpSockP->connectToHost(clTcpHostAddrP, uwTcpPortP + ubChannelV - 1);
+         pclWebSocketP->abort();
+         QString clSocketUrlT = QString("ws://") + clServerHostAddrP.toString() + QString(":%1").arg(uwServerPortP);
+         clSocketUrlT += QString("/%1").arg(teChannelR);
+         qDebug() << "QCanSocket::connectNetwork(" << teChannelR << ") -" << clSocketUrlT;
+         pclWebSocketP->open(clSocketUrlT);
 
-         //----------------------------------------------------------
-         // make signal / slot connection for TCP socket
+         //----------------------------------------------------------------------------------------
+         // make signal / slot connection for WebSocket
          //
-         connect( pclTcpSockP, SIGNAL(connected()),
-                  this, SLOT(onSocketConnect()));
+         connect( pclWebSocketP, &QWebSocket::connected,             this, &QCanSocket::onSocketConnect);
 
-         connect( pclTcpSockP, SIGNAL(disconnected()),
-                  this, SLOT(onSocketDisconnect()));
+         connect( pclWebSocketP, &QWebSocket::disconnected,          this, &QCanSocket::onSocketDisconnect);
 
-         connect( pclTcpSockP, SIGNAL(error(QAbstractSocket::SocketError)),
-                  this, SLOT(onSocketErrorTcp(QAbstractSocket::SocketError)));
+         connect( pclWebSocketP, QOverload<QAbstractSocket::SocketError>::of(&QWebSocket::error),
+                  this, &QCanSocket::onSocketErrorWeb);
 
-         connect( pclTcpSockP, SIGNAL(readyRead()),
-                  this, SLOT(onSocketReceive()));
+         connect( pclWebSocketP, &QWebSocket::binaryMessageReceived, this, &QCanSocket::onSocketReceiveWeb);
 
-         //----------------------------------------------------------
-         // if the parameter slMilliSecsV is 0 we do not wait for a
-         // connection here
-         //
-         if (slMilliSecsV == 0)
-         {
-            btResultT = true;
-         }
-         else
-         {
-            //--------------------------------------------------
-            // wait for a connection for a time frame of
-            // 'slMilliSecsV' milli-seconds. This is a busy
-            // wait, so be careful with this function
-            //
-            if (pclTcpSockP->waitForConnected(slMilliSecsV))
-            {
-               qDebug() << "QCanSocket::connectNetwork()  : connected";
-               btResultT = true;
-            }
-         }
+         btResultT = true;
       }
       else
       {
-         qDebug() << "QCanSocket::connectNetwork(" << ubChannelV << "," << slMilliSecsV << ") - Local";
+         qDebug() << "QCanSocket::connectNetwork(" << teChannelR << ") - LocalSocket";
 
-         //----------------------------------------------------------
+         //----------------------------------------------------------------------------------------
          // create new local socket
          //
-         pclLocalSockP->abort();
+         pclLocalSocketP->abort();
 
-         //----------------------------------------------------------
+         //----------------------------------------------------------------------------------------
          // make signal / slot connection for local socket
          //
-         connect( pclLocalSockP, SIGNAL(connected()),
-                  this, SLOT(onSocketConnect()));
+         connect( pclLocalSocketP, &QLocalSocket::connected,      this, &QCanSocket::onSocketConnect);
 
-         connect( pclLocalSockP, SIGNAL(disconnected()),
-                  this, SLOT(onSocketDisconnect()));
+         connect( pclLocalSocketP, &QLocalSocket::disconnected,   this, &QCanSocket::onSocketDisconnect);
 
-         connect( pclLocalSockP, SIGNAL(error(QLocalSocket::LocalSocketError)),
-                  this, SLOT(onSocketErrorLocal(QLocalSocket::LocalSocketError)));
+         connect( pclLocalSocketP, QOverload<QLocalSocket::LocalSocketError>::of(&QLocalSocket::error), 
+                  this, &QCanSocket::onSocketErrorLocal);
 
-         connect( pclLocalSockP, SIGNAL(readyRead()),
-                  this, SLOT(onSocketReceive()));
+         connect( pclLocalSocketP, &QLocalSocket::readyRead,      this, &QCanSocket::onSocketReceiveLocal);
 
-         //----------------------------------------------------------
+         //----------------------------------------------------------------------------------------
          // connect to local server
          //
-         pclLocalSockP->connectToServer(QString("CANpieServerChannel%1").arg(ubChannelV));
-         qDebug() << "QCanSocket::connectNetwork() -" << pclLocalSockP->fullServerName();
+         pclLocalSocketP->connectToServer(QString("CANpieServerChannel%1").arg(teChannelR));
+         qDebug() << "QCanSocket::connectNetwork() -" << pclLocalSocketP->fullServerName();
 
-         //----------------------------------------------------------
-         // if the parameter slMilliSecsV is 0 we do not wait for a
-         // connection here
-         //
-         if (slMilliSecsV == 0)
-         {
-            btResultT = true;
-         }
-         else
-         {
-            //--------------------------------------------------
-            // wait for a connection for a time frame of
-            // 'slMilliSecsV' milli-seconds. This is a busy
-            // wait, so be careful with this function
-            //
-            if (pclLocalSockP->waitForConnected(slMilliSecsV))
-            {
-               qDebug() << "QCanSocket::connectNetwork()  : connected";
-               btResultT = true;
-            }
-         }
-
+         btResultT = true;
       }
    }
 
@@ -231,22 +182,22 @@ bool QCanSocket::connectNetwork(CAN_Channel_e ubChannelV,
 }
 
 
-//----------------------------------------------------------------------------//
-// disconnectNetwork()                                                        //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanSocket::disconnectNetwork()                                                                                    //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanSocket::disconnectNetwork(void)
 {
    qDebug() << "QCanSocket::disconnectNetwork() ";
 
    if (btIsLocalConnectionP == false)
    {
-      pclTcpSockP->disconnectFromHost();
+      pclWebSocketP->disconnect();
    }
    else
    {
-      disconnect(pclLocalSockP, 0, 0, 0);
-      pclLocalSockP->disconnectFromServer();
+      disconnect(pclLocalSocketP, 0, 0, 0);
+      pclLocalSocketP->disconnectFromServer();
    }
 
    btIsConnectedP = false;
@@ -320,84 +271,60 @@ QString QCanSocket::errorString() const
 //--------------------------------------------------------------------------------------------------------------------//
 int32_t QCanSocket::framesAvailable(void) const
 {
-   uint32_t    ulFrameCountT;
-
-   if (btIsLocalConnectionP == false)
-   {
-      ulFrameCountT = pclTcpSockP->bytesAvailable() / QCAN_FRAME_ARRAY_SIZE;
-   }
-   else
-   {
-      ulFrameCountT = pclLocalSockP->bytesAvailable() / QCAN_FRAME_ARRAY_SIZE;
-   }
-
-   return (ulFrameCountT);
+   return (clReceiveFifoP.size());
 }
 
 
-//----------------------------------------------------------------------------//
-// isConnected()                                                              //
-//                                                                            //
-//----------------------------------------------------------------------------//
-bool QCanSocket::isConnected(void)
-{
-   return (btIsConnectedP);
-}
-
-
-//----------------------------------------------------------------------------//
-// onSocketConnect()                                                          //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanSocket::onSocketConnect()                                                                                      //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanSocket::onSocketConnect(void)
 {
    qDebug() << "QCanSocket::onSocketConnect() ";
 
-   //----------------------------------------------------------------
-   // send signal about connection state and keep it in local
-   // variable
+   //---------------------------------------------------------------------------------------------------
+   // send signal about connection state and keep it in local variable
    //
    btIsConnectedP = true;
    emit connected();
 }
 
 
-//----------------------------------------------------------------------------//
-// onSocketDisconnect()                                                       //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanSocket::onSocketDisconnect()                                                                                   //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanSocket::onSocketDisconnect(void)
 {
    qDebug() << "QCanSocket::onSocketDisconnect() ";
 
-   //----------------------------------------------------------------
-   // send signal about connection state and keep it in local
-   // variable
+   //---------------------------------------------------------------------------------------------------
+   // send signal about connection state and keep it in local variable
    //
    btIsConnectedP = false;
    emit disconnected();
 }
 
 
-
-//----------------------------------------------------------------------------//
-// onSocketError()                                                            //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanSocket::onSocketErrorLocal()                                                                                   //
+// handle error conditions of local socket                                                                            //
+//--------------------------------------------------------------------------------------------------------------------//
 void QCanSocket::onSocketErrorLocal(QLocalSocket::LocalSocketError teSocketErrorV)
 {
 
    qDebug() << "QCanSocket::onSocketErrorLocal() " << teSocketErrorV;
-   qDebug() << pclLocalSockP->errorString();
+   qDebug() << pclLocalSocketP->errorString();
 
    switch(teSocketErrorV)
    {
-      //-------------------------------------------------------------
+      //-------------------------------------------------------------------------------------------
       // abort all operations and disconnect socket
       //
       case QLocalSocket::PeerClosedError:
       case QLocalSocket::ConnectionError:
-         pclLocalSockP->abort();
+         pclLocalSocketP->abort();
          btIsConnectedP = false;
          emit disconnected();
          break;
@@ -408,24 +335,23 @@ void QCanSocket::onSocketErrorLocal(QLocalSocket::LocalSocketError teSocketError
 
    }
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // Store socket error and send signal:
-   // Since the enumeration values for LocalSocketError are derived
-   // from QAbstractSocket::SocketError inside the header file
-   // QtNetwork/qlocalsocket.h we can simply cast it.
+   // Since the enumeration values for LocalSocketError are derived from QAbstractSocket::SocketError 
+   // inside the header file QtNetwork/qlocalsocket.h we can simply cast it.
    //
    slSocketErrorP = teSocketErrorV;
    emit error( (QAbstractSocket::SocketError) teSocketErrorV);
 }
 
 
-//----------------------------------------------------------------------------//
-// onSocketError()                                                            //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void QCanSocket::onSocketErrorTcp(QAbstractSocket::SocketError teSocketErrorV)
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanSocket::onSocketErrorWeb()                                                                                     //
+//  handle error conditions of WebSocket                                                                              //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanSocket::onSocketErrorWeb(QAbstractSocket::SocketError teSocketErrorV)
 {
-   qDebug() << "QCanSocket::onSocketErrorTcp() " << teSocketErrorV;
+   qDebug() << "QCanSocket::onSocketErrorWeb()   -" << teSocketErrorV;
 
    switch(teSocketErrorV)
    {
@@ -434,7 +360,7 @@ void QCanSocket::onSocketErrorTcp(QAbstractSocket::SocketError teSocketErrorV)
       //
       case QAbstractSocket::RemoteHostClosedError:
       case QAbstractSocket::NetworkError:
-         pclTcpSockP->abort();
+         pclWebSocketP->abort();
          btIsConnectedP = false;
          emit disconnected();
          break;
@@ -453,73 +379,126 @@ void QCanSocket::onSocketErrorTcp(QAbstractSocket::SocketError teSocketErrorV)
 }
 
 
-//----------------------------------------------------------------------------//
-// onSocketReceive()                                                          //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void QCanSocket::onSocketReceive(void)
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanSocket::onSocketReceiveLocal()                                                                                 //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanSocket::onSocketReceiveLocal(void)
 {
    uint32_t    ulFrameCountT;
+   bool        btValidFrameT     = false;
+   bool        btSignalNewFrameT = false;
 
-   if (btIsLocalConnectionP == false)
+   ulFrameCountT = pclLocalSocketP->bytesAvailable() / QCAN_FRAME_ARRAY_SIZE;
+   while (ulFrameCountT)
    {
-      ulFrameCountT = pclTcpSockP->bytesAvailable() / QCAN_FRAME_ARRAY_SIZE;
+      clReceiveDataP = pclLocalSocketP->read(QCAN_FRAME_ARRAY_SIZE);
+      btValidFrameT  = clReceiveFrameP.fromByteArray(clReceiveDataP);
+      if (btValidFrameT)
+      {
+         //-----------------------------------------------------------------------------------
+         // Store frame in FIFO
+         //
+         clReceiveMutexP.lock();
+         clReceiveFifoP.enqueue(clReceiveFrameP);
+         btSignalNewFrameT = true;
+         clReceiveMutexP.unlock();
+
+         //-----------------------------------------------------------------------------------
+         // If the frame type is an error frame, store the for the actual CAN state
+         //
+         if (clReceiveFrameP.frameType() == QCanFrame::eFRAME_TYPE_ERROR)
+         {
+            teCanStateP = clReceiveFrameP.errorState();
+         }
+      }
+
+      ulFrameCountT--;
    }
-   else
+
+
+   //---------------------------------------------------------------------------------------------------
+   // Emit signal only once when new data arrived. The flag 'btReceiveSignalSendP' is cleared inside
+   // the read() method.
+   //
+   if (btSignalNewFrameT == true)
    {
-      ulFrameCountT = pclLocalSockP->bytesAvailable() / QCAN_FRAME_ARRAY_SIZE;
+      emit readyRead();
    }
-   framesReceived(ulFrameCountT);
 }
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// QCanSocket::read                                                                                                   //
-// read CAN frame                                                                                                     //
+// QCanSocket::onSocketReceiveWeb()                                                                                   //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanSocket::onSocketReceiveWeb(const QByteArray &clMessageR)
+{
+   bool        btValidFrameT     = false;
+   bool        btSignalNewFrameT = false;
+
+   btValidFrameT  = clReceiveFrameP.fromByteArray(clMessageR);
+   if (btValidFrameT)
+   {
+      //-----------------------------------------------------------------------------------
+      // Store frame in FIFO
+      //
+      clReceiveMutexP.lock();
+      clReceiveFifoP.enqueue(clReceiveFrameP);
+      btSignalNewFrameT = true;
+      clReceiveMutexP.unlock();
+
+      //-----------------------------------------------------------------------------------
+      // If the frame type is an error frame, store the for the actual CAN state
+      //
+      if (clReceiveFrameP.frameType() == QCanFrame::eFRAME_TYPE_ERROR)
+      {
+         teCanStateP = clReceiveFrameP.errorState();
+      }
+   }
+
+   //---------------------------------------------------------------------------------------------------
+   // Emit signal only once when new data arrived. The flag 'btReceiveSignalSendP' is cleared inside
+   // the read() method.
+   //
+   if (btSignalNewFrameT == true) 
+   {
+      emit readyRead();
+   }
+
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanSocket::read()                                                                                                 //
+//                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
 bool QCanSocket::read(QCanFrame & clFrameR)
 {
-   bool        btResultT = false;
-   QByteArray  clDatagramT;
+   bool btResultT = false;
 
-   if (framesAvailable() > 0)
+   clReceiveMutexP.lock();
+   if (clReceiveFifoP.size() > 0)
    {
-      if (btIsLocalConnectionP == false)
-      {
-         clDatagramT = pclTcpSockP->read(QCAN_FRAME_ARRAY_SIZE);
-      }
-      else
-      {
-         clDatagramT = pclLocalSockP->read(QCAN_FRAME_ARRAY_SIZE);
-      }
-
-      btResultT = clFrameR.fromByteArray(clDatagramT);
-
-      //-------------------------------------------------------------------------------------------
-      // If the frame type is an error frame, store the for the actual CAN state
-      //
-      if (btResultT)
-      {
-         if (clFrameR.frameType() == QCanFrame::eFRAME_TYPE_ERROR)
-         {
-            teCanStateP = clFrameR.errorState();
-         }
-      }
+      clFrameR = clReceiveFifoP.dequeue();         // read message from queue
+      btResultT = true;                            // message has been updated
    }
+   clReceiveMutexP.unlock();
 
-   return(btResultT);
+   return (btResultT);
 }
 
 
-//----------------------------------------------------------------------------//
-// setHostAddress()                                                           //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void QCanSocket::setHostAddress(QHostAddress clHostAddressV)
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanSocket::setHostAddress()                                                                                       //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanSocket::setHostAddress(QHostAddress clHostAddressV, uint16_t uwPortV)
 {
    if(btIsConnectedP == false)
    {
-      clTcpHostAddrP = clHostAddressV;
+      clServerHostAddrP = clHostAddressV;
+      uwServerPortP     = uwPortV;
 
       if (clHostAddressV == QHostAddress::LocalHost)
       {
@@ -532,52 +511,32 @@ void QCanSocket::setHostAddress(QHostAddress clHostAddressV)
    }
 }
 
-bool QCanSocket::waitForReadyRead(int32_t slMilliSecondsV)
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanSocket::write()                                                                                                //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+bool QCanSocket::write(const QCanFrame & clFrameR)
 {
    bool  btResultT = false;
 
    if (btIsConnectedP == true)
    {
-
-      if (btIsLocalConnectionP == false)
-      {
-         btResultT = pclTcpSockP->waitForReadyRead(slMilliSecondsV);
-      }
-      else
-      {
-         btResultT = pclLocalSockP->waitForReadyRead(slMilliSecondsV);
-      }
-   }
-
-   return(btResultT);
-
-}
-
-//----------------------------------------------------------------------------//
-// writeFrame()                                                               //
-//                                                                            //
-//----------------------------------------------------------------------------//
-bool QCanSocket::write(const QCanFrame & clFrameR)
-{
-   bool  btResultT = false;
-
-   if(btIsConnectedP == true)
-   {
       QByteArray  clDatagramT = clFrameR.toByteArray();
 
       if (btIsLocalConnectionP == false)
       {
-         if (pclTcpSockP->write(clDatagramT) == QCAN_FRAME_ARRAY_SIZE)
+         if (pclWebSocketP->sendBinaryMessage(clDatagramT) == QCAN_FRAME_ARRAY_SIZE)
          {
-            pclTcpSockP->flush();
+            pclWebSocketP->flush();
             btResultT = true;
          }
       }
       else
       {
-         if (pclLocalSockP->write(clDatagramT) == QCAN_FRAME_ARRAY_SIZE)
+         if (pclLocalSocketP->write(clDatagramT) == QCAN_FRAME_ARRAY_SIZE)
          {
-            pclLocalSockP->flush();
+            pclLocalSocketP->flush();
             btResultT = true;
          }
       }

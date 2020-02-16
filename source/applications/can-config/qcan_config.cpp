@@ -37,8 +37,23 @@
 #include "qcan_config.hpp"
 
 #include <QtCore/QDebug>
+#include <QtCore/QJsonDocument>
 #include <QtCore/QTimer>
 
+
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Definitions                                                                                                        **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
+
+#define  COMMAND_FLAG_NONE          ((uint32_t) 0x00000000)
+#define  COMMAND_FLAG_SET_BITRATE   ((uint32_t) 0x00000001)
+#define  COMMAND_FLAG_SET_MODE      ((uint32_t) 0x00000002)
+#define  COMMAND_FLAG_RESET         ((uint32_t) 0x00000004)
+#define  COMMAND_FLAG_MASK          ((uint32_t) 0x000000FF)
+
+#define  COMMAND_FLAG_SHOW_ALL      ((uint32_t) 0x00000100)
+#define  COMMAND_FLAG_SHOW_VERBOSE  ((uint32_t) 0x00000200)
 
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -103,17 +118,24 @@ QCanConfig::QCanConfig(QObject *parent) :
    //---------------------------------------------------------------------------------------------------
    // set default values
    //
-   teCanChannelP    = eCAN_CHANNEL_NONE;
-   slNomBitRateP    = eCAN_BITRATE_NONE;
-   slDatBitRateP    = eCAN_BITRATE_NONE;
-   teCanModeP       = eCAN_MODE_SELF_TEST;
-   btConfigBitrateP = false;
-   btResetCanIfP    = false;
+   teCanChannelP      = eCAN_CHANNEL_NONE;
+   slNomBitRateP      = eCAN_BITRATE_NONE;
+   slDatBitRateP      = eCAN_BITRATE_NONE;
+   teCanModeP         = eCAN_MODE_SELF_TEST;
+
+   ulCommandFlagsP    = COMMAND_FLAG_NONE;
 
    //---------------------------------------------------------------------------------------------------
-   // create QServerSettings object
+   // connect QServerSettings object
    //
-   pclServerSettingsP = new QCanServerSettings();
+   connect(&clServerSettingsP, &QCanServerSettings::stateChanged, 
+           this,               &QCanConfig::onServerStateChanged);
+
+   connect(&clServerSettingsP, &QCanServerSettings::objectReceived, 
+           this,               &QCanConfig::onServerObjectReceived);
+
+   connect(&clNetworkSettingsP, &QCanNetworkSettings::objectReceived, 
+           this,                &QCanConfig::onNetworkObjectReceived);
 }
 
 
@@ -123,7 +145,176 @@ QCanConfig::QCanConfig(QObject *parent) :
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanConfig::aboutToQuitApp()
 {
-   delete (pclServerSettingsP);
+
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanConfig::execCommand()                                                                                          //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanConfig::execCommand(void)
+{
+   showServerSettings();
+
+   //---------------------------------------------------------------------------------------------------
+   // update bit-rate settings if enabled
+   //
+   if ((ulCommandFlagsP & COMMAND_FLAG_SET_BITRATE) > 0)
+   {
+      clNetworkSettingsP.setBitrate(slNomBitRateP, slDatBitRateP);
+   }
+
+   //---------------------------------------------------------------------------------------------------
+   // update mode settings if enabled
+   //
+   if ((ulCommandFlagsP & COMMAND_FLAG_SET_MODE) > 0)
+   {
+      clNetworkSettingsP.setMode(teCanModeP);
+   }
+
+   //---------------------------------------------------------------------------------------------------
+   // update bit-rate settings if enabled
+   //
+   if ((ulCommandFlagsP & COMMAND_FLAG_RESET) > 0)
+   {
+      clNetworkSettingsP.reset();
+   }
+
+   clNetworkSettingsP.send();
+
+
+   QTimer::singleShot(50, this, SLOT(quit()));
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanConfig::onServerObjectReceived()                                                                               //
+// handle JSON object from CANpie FD Server                                                                           //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanConfig::onNetworkObjectReceived(const CAN_Channel_e teChannelV, QJsonObject clNetworkConfigV)
+{
+
+   if (teChannelV == teCanChannelP)
+   {
+      //------------------------------------------------------------------------------------------------
+      // show all networks ?
+      //
+      if ((ulCommandFlagsP & COMMAND_FLAG_SHOW_ALL) > 0)
+      {
+         fprintf(stdout, "--------------------------------------------------------------------------------\n");
+
+         //----------------------------------------------------------------------------------------
+         // in verbose mode we also show the JSON document
+         //
+         if ((ulCommandFlagsP & COMMAND_FLAG_SHOW_VERBOSE) > 0)
+         {
+            fprintf(stdout, "%s %d %s \n", qPrintable("Network"), teChannelV, qPrintable("JSON object:"));
+            QJsonDocument clJsonDocumentT(clNetworkConfigV);
+            fprintf(stdout, "%s\n", qPrintable(clJsonDocumentT.toJson()));
+         }
+
+         showNetworkSettings();
+         clNetworkSettingsP.closeConnection();
+         if (teCanChannelP < clServerSettingsP.networkCount())
+         {
+            teCanChannelP = static_cast<CAN_Channel_e>(static_cast<uint8_t>(teCanChannelP) + 1);
+            clNetworkSettingsP.setChannel(teCanChannelP);
+            clNetworkSettingsP.connectToServer(clHostAddressP);
+         }
+         else
+         {
+            quit();
+         }
+      }
+
+      //------------------------------------------------------------------------------------------------
+      // show single network?
+      //
+      else if ((ulCommandFlagsP & COMMAND_FLAG_MASK) > 0)
+      {
+         execCommand();
+      }
+      else
+      {
+         fprintf(stdout, "\n");
+
+         showNetworkSettings();
+         showNetworkStatistics();
+         quit();
+      }
+
+   }
+   
+
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanConfig::onServerObjectReceived()                                                                               //
+// handle JSON object from CANpie FD Server                                                                           //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanConfig::onServerObjectReceived(QJsonObject clServerConfigV)
+{
+   if ((ulCommandFlagsP & COMMAND_FLAG_SHOW_VERBOSE) > 0)
+   {
+      fprintf(stdout, "%s\n", qPrintable("Server JSON object:"));
+      QJsonDocument clJsonDocumentT(clServerConfigV);
+      fprintf(stdout, "%s\n", qPrintable(clJsonDocumentT.toJson()));
+   }
+
+   showServerSettings();
+   if (teCanChannelP <= clServerSettingsP.networkCount())
+   {
+      clNetworkSettingsP.setChannel(teCanChannelP);
+      clNetworkSettingsP.connectToServer(clHostAddressP);
+   }
+   else
+   {
+      fprintf(stdout, "%s%d %s \n", qPrintable("CAN interface can"), teCanChannelP, qPrintable("not available"));
+      quit();
+   }
+
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanConfig::onStateChange()                                                                                        //
+// check for new state of the CANpie FD Server                                                                        //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanConfig::onServerStateChanged(enum QCanServerSettings::State_e teStateV)
+{  
+   bool btQuitProgramT = false;
+
+   switch (teStateV)
+   {
+      case QCanServerSettings::eSTATE_CRASHED:
+         fprintf(stdout, "CANpie FD server %s \n", qPrintable(clServerSettingsP.stateString()));
+         btQuitProgramT = true;
+         break;
+
+      case QCanServerSettings::eSTATE_UNKNOWN:
+         fprintf(stdout, "CANpie FD server %s \n", qPrintable(clServerSettingsP.stateString()));
+         btQuitProgramT = true;
+         break;
+
+      case QCanServerSettings::eSTATE_INACTIVE:
+         fprintf(stdout, "CANpie FD server %s \n", qPrintable(clServerSettingsP.stateString()));
+         btQuitProgramT = true;
+         break;
+
+      case QCanServerSettings::eSTATE_ACTIVE:
+         break;
+
+      default:
+         btQuitProgramT = true;
+         break;
+   }
+
+   if (btQuitProgramT)
+   {
+      this->quit();
+   }
 }
 
 
@@ -133,6 +324,18 @@ void QCanConfig::aboutToQuitApp()
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanConfig::quit()
 {
+   //---------------------------------------------------------------------------------------------------
+   // disconnect all signals first before we close the WebSocket connections
+   //
+   clServerSettingsP.disconnect();
+   clNetworkSettingsP.disconnect();
+
+   //---------------------------------------------------------------------------------------------------
+   // close the WebSocket connections
+   //
+   clNetworkSettingsP.closeConnection();
+   clServerSettingsP.closeConnection();
+
    emit finished();
 }
 
@@ -154,11 +357,22 @@ void QCanConfig::runCmdParser(void)
    //
    clCmdParserP.addHelpOption();
    
+  
    //---------------------------------------------------------------------------------------------------
    // argument <interface> is required
    //
    clCmdParserP.addPositionalArgument("interface", 
                                       tr("CAN interface, e.g. can1"));
+
+
+   //---------------------------------------------------------------------------------------------------
+   // command line option: -H <host>
+   //
+   QCommandLineOption clOptHostT(QStringList() << "H" << "host",
+         tr("Connect to <host>"),
+         tr("host"));
+   clCmdParserP.addOption(clOptHostT);
+
 
    //---------------------------------------------------------------------------------------------------
    // command line option: -a, --all
@@ -202,6 +416,13 @@ void QCanConfig::runCmdParser(void)
          tr("Reset CAN interface"));
    clCmdParserP.addOption(clOptResetT);
 
+   //---------------------------------------------------------------------------------------------------
+   // command line option: --verbose
+   //
+   QCommandLineOption clOptVerboseT("verbose",
+         tr("Show more details"));
+   clCmdParserP.addOption(clOptVerboseT);
+
    
    //---------------------------------------------------------------------------------------------------
    // command line option: -v, --version
@@ -215,16 +436,47 @@ void QCanConfig::runCmdParser(void)
    clCmdParserP.process(*pclAppP);
    
    //---------------------------------------------------------------------------------------------------
+   // set host address for socket
+   //
+   if (clCmdParserP.isSet(clOptHostT))
+   {
+      clHostAddressP = QHostAddress(clCmdParserP.value(clOptHostT));
+   }
+   else
+   {
+      clHostAddressP.setAddress(QHostAddress::LocalHost);
+   }
+   
+
+   //---------------------------------------------------------------------------------------------------
+   // check for valid server host address
+   //
+   if (clHostAddressP.isNull())
+   {
+      fprintf(stdout, "No valid address for CANpie FD Server\n");
+      quit();
+   }
+
+   //---------------------------------------------------------------------------------------------------
+   // test for verbose option set
+   //
+   if (clCmdParserP.isSet(clOptVerboseT))
+   {
+      ulCommandFlagsP |= COMMAND_FLAG_SHOW_VERBOSE;
+   }
+
+   //---------------------------------------------------------------------------------------------------
    // Test for --all option
    //
-   if(clCmdParserP.isSet(clOptAllT))
+   if (clCmdParserP.isSet(clOptAllT))
    {
-      showServerSettings();
-      for (uint8_t ubCanChannelT = eCAN_CHANNEL_1; ubCanChannelT <= pclServerSettingsP->networkCount(); ubCanChannelT++)
-      {
-      	showNetworkSettings((CAN_Channel_e) ubCanChannelT);
-      }
-      quit();
+      //-------------------------------------------------------------------------------------------
+      // start with first channel
+      //
+      teCanChannelP = eCAN_CHANNEL_1;
+
+      ulCommandFlagsP |= COMMAND_FLAG_SHOW_ALL;
+      clServerSettingsP.connectToServer(clHostAddressP);
       return;
    }
    
@@ -278,7 +530,7 @@ void QCanConfig::runCmdParser(void)
    if (clCmdParserP.isSet(clOptNomBtrT))
    {
       slNomBitRateP  = clCmdParserP.value(clOptNomBtrT).toInt(Q_NULLPTR, 10);    
-      btConfigBitrateP = true;
+      ulCommandFlagsP |= COMMAND_FLAG_SET_BITRATE;
    }
    
    if (clCmdParserP.isSet(clOptDatBtrT))
@@ -301,16 +553,19 @@ void QCanConfig::runCmdParser(void)
    if (clCmdParserP.value(clOptModeT).contains("start", Qt::CaseInsensitive))
    {
       teCanModeP = eCAN_MODE_OPERATION;
+      ulCommandFlagsP |= COMMAND_FLAG_SET_MODE;
    }
 
    if (clCmdParserP.value(clOptModeT).contains("stop", Qt::CaseInsensitive))
    {
       teCanModeP = eCAN_MODE_INIT;
+      ulCommandFlagsP |= COMMAND_FLAG_SET_MODE;
    }
 
    if (clCmdParserP.value(clOptModeT).contains("listen-only", Qt::CaseInsensitive))
    {
       teCanModeP = eCAN_MODE_LISTEN_ONLY;
+      ulCommandFlagsP |= COMMAND_FLAG_SET_MODE;
    }
 
    //---------------------------------------------------------------------------------------------------
@@ -318,91 +573,11 @@ void QCanConfig::runCmdParser(void)
    //
    if (clCmdParserP.isSet(clOptResetT))
    {
-      btResetCanIfP = true;
+      ulCommandFlagsP |= COMMAND_FLAG_RESET;
    }
 
 
-   //---------------------------------------------------------------------------------------------------
-   // Test for active CANpie server
-   //
-   if (pclServerSettingsP->state() < QCanServerSettings::eSTATE_ACTIVE)
-   {
-      fprintf(stdout, "CANpie FD server %s \n", qPrintable(pclServerSettingsP->stateString()));
-      exit(0);
-   }
-
-
-   execCommand();
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
-// QCanConfig::execCommand()                                                                                          //
-//                                                                                                                    //
-//--------------------------------------------------------------------------------------------------------------------//
-void QCanConfig::execCommand(void)
-{
-   uint8_t  ubCmdExecutedT = 0;     // number of commands executed
-
-   //---------------------------------------------------------------------------------------------------
-   // update bit-rate settings if enabled
-   //
-   if (btConfigBitrateP)
-   {
-      qDebug() << "Set bit-rate: nominal" << slNomBitRateP << " ,data" << slDatBitRateP;
-      if (pclServerSettingsP->setNetworkBitrate(teCanChannelP, slNomBitRateP, slDatBitRateP) == false)
-      {
-         fprintf(stdout, "Bit-rate configuration failed, check CANpie server settings.\n");
-      }
-      else
-      {
-         fprintf(stdout, "Bit-rate configuration done.\n");
-      }
-      ubCmdExecutedT++;
-   }
-   
-   //---------------------------------------------------------------------------------------------------
-   // reset CAN interface if enabled
-   //
-   if (btResetCanIfP)
-   {
-      if (pclServerSettingsP->resetNetwork(teCanChannelP) == false)
-      {
-         fprintf(stdout, "CAN interface reset failed, check CANpie server settings.\n");
-      }
-      else
-      {
-         fprintf(stdout, "CAN interface reset done.\n");
-      }
-      ubCmdExecutedT++;
-   }
-
-   //---------------------------------------------------------------------------------------------------
-   // check if CAN interface state needs to be changed
-   //
-   if (teCanModeP != eCAN_MODE_SELF_TEST)
-   {
-      if (pclServerSettingsP->setNetworkMode(teCanChannelP, teCanModeP) == false)
-      {
-         fprintf(stdout, "Failed to changed CAN interface mode, check CANpie server settings.\n");
-      }
-      else
-      {
-         fprintf(stdout, "CAN interface mode changed.\n");
-      }
-      ubCmdExecutedT++;
-   }
-
-
-   //---------------------------------------------------------------------------------------------------
-   // if no command has been executed up to this line just show the configuration of the network
-   //
-   if (ubCmdExecutedT == 0)
-   {
-      showNetworkSettings(teCanChannelP);
-      showNetworkStatistics(teCanChannelP);
-   }
-
-   QTimer::singleShot(50, this, SLOT(quit()));
+   clServerSettingsP.connectToServer(clHostAddressP);
 }
 
 
@@ -410,81 +585,51 @@ void QCanConfig::execCommand(void)
 // QCanConfig::showNetworkSettings()                                                                                  //
 // show settings of selected CAN network                                                                              //
 //--------------------------------------------------------------------------------------------------------------------//
-void QCanConfig::showNetworkSettings(CAN_Channel_e teCanChannelV)
+void QCanConfig::showNetworkSettings(void)
 {
-   if (teCanChannelV <= pclServerSettingsP->networkCount())
+
+   //-------------------------------------------------------------------------------------------
+   // network name
+   //
+   fprintf(stdout, "CAN %d         : %s \n", teCanChannelP, qPrintable(clNetworkSettingsP.name())     );
+
+
+   //-------------------------------------------------------------------------------------------
+   // network state
+   //
+   fprintf(stdout, "CAN state     : %s \n", qPrintable(clNetworkSettingsP.stateString())              );
+
+   //-------------------------------------------------------------------------------------------
+   // bit-rate settings
+   //
+   if (clNetworkSettingsP.dataBitrate() == eCAN_BITRATE_NONE)
    {
-      fprintf(stdout, "\n");
-
-      //-------------------------------------------------------------------------------------------
-      // network name
-      //
-      fprintf(stdout, "CAN %d         : %s \n", teCanChannelV,
-              qPrintable(pclServerSettingsP->networkName(teCanChannelV)) );
-
-      //-------------------------------------------------------------------------------------------
-      // network configuration
-      //
-      fprintf(stdout, "Configuration : %s \n",
-              qPrintable(pclServerSettingsP->networkConfigurationString(teCanChannelV)) );
-
-      //-------------------------------------------------------------------------------------------
-      // network state
-      //
-      fprintf(stdout, "CAN state     : %s \n",
-              qPrintable(pclServerSettingsP->networkStateString(teCanChannelV)) );
-
-      //-------------------------------------------------------------------------------------------
-      // bit-rate settings
-      //
-      if (pclServerSettingsP->networkDataBitrate() == eCAN_BITRATE_NONE)
-      {
-         fprintf(stdout, "Bit-rate      : %s \n",
-                 qPrintable(pclServerSettingsP->networkNominalBitrateString(teCanChannelV)) );
-      }
-      else
-      {
-         fprintf(stdout, "Bit-rate      : %s (nominal), %s (data) \n",
-                 qPrintable(pclServerSettingsP->networkNominalBitrateString(teCanChannelV)),
-                 qPrintable(pclServerSettingsP->networkDataBitrateString(teCanChannelV))        );
-      }
-
+      fprintf(stdout, "Bit-rate      : %s \n", qPrintable(clNetworkSettingsP.nominalBitrateString())  );
    }
    else
    {
-      fprintf(stdout, "CAN interface not available\n");
+      fprintf(stdout, "Bit-rate      : %s (nominal), %s (data) \n",
+              qPrintable(clNetworkSettingsP.nominalBitrateString()),
+              qPrintable(clNetworkSettingsP.dataBitrateString())                                      );
    }
-
 }
-
 
 //--------------------------------------------------------------------------------------------------------------------//
 // QCanConfig::showNetworkStatistics()                                                                                //
 // show statistics of CAN interface                                                                                   //
 //--------------------------------------------------------------------------------------------------------------------//
-void QCanConfig::showNetworkStatistics(CAN_Channel_e teCanChannelV)
+void QCanConfig::showNetworkStatistics(void)
 {
-   if (teCanChannelV <= pclServerSettingsP->networkCount())
-   {
-      //-------------------------------------------------------------------------------------------
-      // network frame count
-      //
-      fprintf(stdout, "CAN frames    : %d \n",
-              pclServerSettingsP->networkFrameCount(teCanChannelV) );
+   //---------------------------------------------------------------------------------------------------
+   // network frame count
+   //
+   fprintf(stdout, "CAN frames    : %d \n"   , clNetworkSettingsP.frameCount()      );
 
-      //-------------------------------------------------------------------------------------------
-      // network error count
-      //
-      fprintf(stdout, "Error frames  : %d \n",
-              pclServerSettingsP->networkErrorCount(teCanChannelV) );
+   //---------------------------------------------------------------------------------------------------
+   // network error count
+   //
+   fprintf(stdout, "Error frames  : %d \n"   , clNetworkSettingsP.errorCount()      );
 
-      //-------------------------------------------------------------------------------------------
-      // network frame count
-      //
-      fprintf(stdout, "Bus load      : %d \n",
-              pclServerSettingsP->networkBusLoad(teCanChannelV) );
-
-   }
 
    fprintf(stdout, "\n");
 }
@@ -496,21 +641,21 @@ void QCanConfig::showNetworkStatistics(CAN_Channel_e teCanChannelV)
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanConfig::showServerSettings(void)
 {
-   if (pclServerSettingsP->state() == QCanServerSettings::eSTATE_ACTIVE)
+   if (clServerSettingsP.state() == QCanServerSettings::eSTATE_ACTIVE)
    {
       fprintf(stdout, "%s %d.%d.%d \n",
               qPrintable(tr("CANpie FD server active, version:")),
-              pclServerSettingsP->versionMajor(),
-              pclServerSettingsP->versionMinor(),
-              pclServerSettingsP->versionBuild() );
+              clServerSettingsP.versionMajor(),
+              clServerSettingsP.versionMinor(),
+              clServerSettingsP.versionBuild() );
 
       fprintf(stdout, "%s %d \n",
               qPrintable(tr("Supported CAN networks:")),
-              pclServerSettingsP->networkCount() );
+              clServerSettingsP.networkCount() );
    }
    else
    {
-      fprintf(stdout, "CANpie FD server %s \n", qPrintable(pclServerSettingsP->stateString()));
+      fprintf(stdout, "CANpie FD server %s \n", qPrintable(clServerSettingsP.stateString()));
       exit(0);
    }
 
