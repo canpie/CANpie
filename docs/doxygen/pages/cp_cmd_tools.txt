@@ -9,16 +9,21 @@ the \ref page.cp_server.
 <table class="function" style="width:800px">
 
 <tr class="odd">
+   <td class="entry" style="width:25%">\ref page.cp_cmd_config</td>
+   <td class="desc">Configure CAN channel</td>
+</tr>
+
+<tr>
    <td class="entry" style="width:25%">\ref page.cp_cmd_dump</td>
    <td class="desc">Display CAN frames</td>
 </tr>
 
-<tr>
+<tr class="odd">
    <td class="entry" style="width:25%">\ref page.cp_cmd_error</td>
    <td class="desc">Send CAN error frames</td>
 </tr>
 
-<tr class="odd">
+<tr>
    <td class="entry" style="width:25%">\ref page.cp_cmd_send</td>
    <td class="desc">Send CAN data frames</td>
 </tr>
