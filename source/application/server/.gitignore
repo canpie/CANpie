@@ -1,8 +1,5 @@
-/.DS_Store
-/.qmake.stash
 /translations/*.qm
 /ui_*.h
 /debug
 /release
-Makefile*
 qrc_server.cpp
