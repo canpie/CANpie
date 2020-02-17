@@ -29,14 +29,18 @@
 #ifndef QCAN_PLUGIN_USART_H_
 #define QCAN_PLUGIN_USART_H_
 
-#include <QObject>
-#include <QtPlugin>
-#include <QLibrary>
+#include <QtCore/QList>
+#include <QtCore/QObject>
+#include <QtCore/QtPlugin>
+#include <QtCore/QLibrary>
+
+#include <QtGui/QIcon>
+
+#include <QtSerialPort/QSerialPort>
+#include <QtSerialPort/QSerialPortInfo>
+
 #include <QCanPlugin>
-#include <QtWidgets>
-#include <QList>
-#include <QSerialPort>
-#include <QSerialPortInfo>
+
 
 #include "qcan_usart.hpp"
 #include "qcan_interface_usart.hpp"

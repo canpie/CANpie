@@ -34,9 +34,10 @@
 #include <QtCore/QtPlugin>
 #include <QtCore/QTimer>
 
-#include <QIcon>
-#include <QDialog>
-#include <QWidget>
+#include <QtGui/QIcon>
+
+#include <QtWidgets/QDialog>
+#include <QtWidgets/QWidget>
 
 #include <QCanInterface>
 
@@ -46,8 +47,9 @@
 
 
 #include "qcan_config.hpp"
+
 //----------------------------------------------------------------------------//
-// QCanPeakUsb                                                                //
+// QCanInterfaceUsart                                                         //
 //                                                                            //
 //----------------------------------------------------------------------------//
 class QCanInterfaceUsart : public QCanInterface

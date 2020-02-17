@@ -35,8 +35,9 @@
 #include <QtCore/QLibrary>
 #include <QtCore/QDebug>
 #include <QtCore/QTimer>
-#include <QSerialPort>
-#include <QSerialPortInfo>
+
+#include <QtSerialPort/QSerialPort>
+#include <QtSerialPort/QSerialPortInfo>
 
 #include "cp_core.h"
 #include "cp_fifo.h"
