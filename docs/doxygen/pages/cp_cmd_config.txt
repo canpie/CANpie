@@ -2,43 +2,57 @@
 /*!
 ** \page page.cp_cmd_config    can-config
 
-The purpose of the command line tool \c can-dump is to show CAN frames from an
-active \ref page.cp_server channel.
+The purpose of the command line tool \c can-config is to show current settings
+of a \ref page.cp_server and to modify e.g. bit-rate settings.
 
 <h2>Description</h2>
 
-    can-dump [options] interface
+    can-config [options] interface
 
 The options are as follows:
  
-    -h, --help     Displays this help
-    -H <host>      Connect to <host>
-    -n <count>     Terminate after reception of <count> CAN frames
-    -t             Show time-stamp
-    -T <msec>      Terminate after <msec> without reception
-    -v, --version  Displays version information
+    -h, --help                           Displays this help.
+    -H, --host <host>                    Connect to <host>
+    -a, --all                            Show all CAN interfaces
+    --btr-data <value>                   Set data bit-rate
+    --btr-nominal <value>                Set nominal bit-rate
+    -m, --mode <start|stop|listen-only>  Set mode of CAN interface
+    -r, --reset                          Reset CAN interface
+    --verbose                            Show more details
+    -v, --version                        Displays version information
 
-The command requires a CAN interface as argument, where \c can1 is the first
-CAN interface. 
+Except for the \c -a option the command requires a CAN interface as argument, 
+where \c can1 is the first CAN interface. 
 
 
 <h2>Examples</h2>
 
-Show CAN messages from CAN interface 2 and stop after 20 messages:
+Show configuration of all CAN interfaces:
 
-    can-dump -n 20 can2
+    can-config -a
 
-Connect to CAN channel 1 of a CANpie server running on a remote host with IP 
-address 192.168.40.44, terminate after 2 seconds without reception of CAN 
-messages:
+    CANpie FD server active, version: 0.99.6 
+    Supported CAN networks: 1 
+    --------------------------------------------------------------------------------
+    CAN 1         : CAN 1 - Virtual CAN 
+    CAN state     : Error active 
+    Bit-rate      : 250 kBit/s 
+    --------------------------------------------------------------------------------
+    CAN 2         : CAN 2 - Virtual CAN 
+    CAN state     : Error active 
+    Bit-rate      : 250 kBit/s 
 
-    can-dump -H 192.168.40.44 -T 2000 can1
+
+Reset CAN channel 1 of a CANpie server running on a remote host with IP 
+address 192.168.40.44:
+
+    can-config -r -H 192.168.40.44 -T can1
     
 
 <h2>See also</h2>
 
-Use \ref page.cp_cmd_send for transmission of CAN data frames and \ref page.cp_cmd_error 
-for transmission of CAN error frames.
+Use \ref page.cp_cmd_send for transmission of CAN frames and \ref page.cp_cmd_dump 
+for reception of CAN frames.
 
 <p>
 <br>

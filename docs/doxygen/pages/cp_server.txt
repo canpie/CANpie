@@ -14,7 +14,7 @@ The \ref page.cp_cmd_tools can be used to monitor and send CAN frames.
 <h2>How to build</h2>
 
 A common project file for the server, the plug-ins and the command line tools is located 
-inside the directory \c source/qcan/applications. The project file \c applications.pro
+inside the directory \c source/applications. The project file \c applications.pro
 can be opened can compiled within the Qt Creator or via the shell:
 
     qmake applications.pro
