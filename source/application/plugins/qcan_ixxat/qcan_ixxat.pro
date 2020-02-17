@@ -44,10 +44,10 @@ TARGET   = $$qtLibraryTarget(QCanIxxat)
 # directory for target file
 #
 macx {
-   DESTDIR = ../../../../../bin/CANpieServer.app/Contents/Plugins
+   DESTDIR = ../../../../bin/CANpieServer.app/Contents/Plugins
 }
 win32 {
-   DESTDIR = ../../../../../bin/plugins
+   DESTDIR = ../../../../bin/plugins
 }
 
 #---------------------------------------------------------------
@@ -89,36 +89,36 @@ RESOURCES = qcan_ixxat.qrc
 #
 INCLUDEPATH  = .
 INCLUDEPATH += ./include
-INCLUDEPATH += ./../../..
+INCLUDEPATH += ./../../../qcan
 
 
 #---------------------------------------------------------------
 # search path for source files
 #
 VPATH  = .
-VPATH += ./../../..
+VPATH += ./../../../qcan
 
 
 #---------------------------------------------------------------
 # header files of project
 #
-HEADERS =   qcan_interface.hpp      \
-            qcan_interface_ixxat.hpp\
-            qcan_ixxat_vci.hpp      \
-            qcan_plugin.hpp         \
+HEADERS =   qcan_interface.hpp         \
+            qcan_interface_ixxat.hpp   \
+            qcan_ixxat_vci.hpp         \
+            qcan_plugin.hpp            \
             qcan_plugin_ixxat.hpp
 
 
 #---------------------------------------------------------------
 # source files of project
 #
-SOURCES =   qcan_data.cpp           \
-            qcan_frame.cpp          \
-            qcan_frame_api.cpp      \
-            qcan_frame_error.cpp    \
-            qcan_timestamp.cpp      \
-            qcan_interface_ixxat.cpp\
-            qcan_ixxat_vci.cpp      \
+SOURCES =   qcan_data.cpp              \
+            qcan_frame.cpp             \
+            qcan_frame_api.cpp         \
+            qcan_frame_error.cpp       \
+            qcan_timestamp.cpp         \
+            qcan_interface_ixxat.cpp   \
+            qcan_ixxat_vci.cpp         \
             qcan_plugin_ixxat.cpp
 
 EXAMPLE_FILES = plugin.json
