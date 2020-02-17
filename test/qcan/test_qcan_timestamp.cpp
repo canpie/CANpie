@@ -432,6 +432,22 @@ void TestQCanTimestamp::checkOperatorMinus()
    
 }
 
+void TestQCanTimestamp::checkSystemTime()
+{
+   pclTimestampA->now();
+   QTest::qWait(500);
+   pclTimestampB->now();
+
+   qDebug() << pclTimestampA->seconds() << "." <<  pclTimestampA->nanoSeconds();
+   qDebug() << pclTimestampB->seconds() << "." <<  pclTimestampB->nanoSeconds();
+
+   pclTimestampA->now();
+   pclTimestampB->now();
+
+   qDebug() << pclTimestampA->seconds() << "." <<  pclTimestampA->nanoSeconds();
+   qDebug() << pclTimestampB->seconds() << "." <<  pclTimestampB->nanoSeconds();
+
+}
 
 //----------------------------------------------------------------------------//
 // cleanupTestCase()                                                          //

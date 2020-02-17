@@ -3,19 +3,20 @@
 
 using namespace std;
 
-#include <QCoreApplication>
-#include <QDebug>
+#include <QtCore/QCoreApplication>
+#include <QtCore/QDebug>
 #include <QTest>
 
 
 #include "test_qcan_timestamp.hpp"
+#include "test_qcan_filter.hpp"
 #include "test_qcan_frame.hpp"
 #include "test_qcan_socket.hpp"
 
 
 int main(int argc, char *argv[])
 {
-   int32_t  slResultT;
+   int32_t  slResultT = 0;
 
    cout << "#===========================================================\n";
    cout << "# Run test cases for QCan classes                           \n";
@@ -29,19 +30,25 @@ int main(int argc, char *argv[])
    // test QCanTimestamp
    //
    TestQCanTimestamp  clTestQCanTimestampT;
-   slResultT = QTest::qExec(&clTestQCanTimestampT, argc, &argv[0]);
+   slResultT += QTest::qExec(&clTestQCanTimestampT, argc, &argv[0]);
 
    //----------------------------------------------------------------
    // test QCanFrame
    //
    TestQCanFrame  clTestQCanFrameT;
-   slResultT = QTest::qExec(&clTestQCanFrameT, argc, &argv[0]);
+   slResultT += QTest::qExec(&clTestQCanFrameT, argc, &argv[0]);
 
    //----------------------------------------------------------------
-   // test QCanStub
+   // test QCanFilter & QCanFilterList
+   //
+   TestQCanFilter  clTestQCanFilterT;
+   slResultT += QTest::qExec(&clTestQCanFilterT, argc, &argv[0]);
+
+   //----------------------------------------------------------------
+   // test QCanSocket
    //
    TestQCanSocket  clTestQCanSockT;
-   slResultT = QTest::qExec(&clTestQCanSockT) + slResultT;
+   slResultT += QTest::qExec(&clTestQCanSockT, argc, &argv[0]);
 
    cout << "\n";
    cout << "#===========================================================\n";

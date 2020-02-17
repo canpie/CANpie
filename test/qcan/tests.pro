@@ -21,7 +21,7 @@ TEMPLATE = app
 #---------------------------------------------------------------
 # Qt modules used
 #
-QT += core network testlib
+QT += core network websockets testlib
 
 #---------------------------------------------------------------
 # target file name
@@ -31,21 +31,34 @@ TARGET = qcantest
 #---------------------------------------------------------------
 # directory for target file
 #
-#DESTDIR = ../../../../bin
+DESTDIR = ./../../bin
+
+#---------------------------------------------------------------
+# Directory for intermediate moc files
+# 
+MOC_DIR = ./../../objs
+RCC_DIR = ./../../objs
 
 #--------------------------------------------------------------------
-# Objects directory
+# Directory for object files
 #
-OBJECTS_DIR = ./objs/
+OBJECTS_DIR = ./../../objs
 
 #---------------------------------------------------------------
 # project configuration and compiler options
 #
-CONFIG += debug
+CONFIG += debug_and_release
 CONFIG += warn_on
 CONFIG += C++11
 CONFIG += silent
 CONFIG += testcase
+CONFIG += console
+
+#---------------------------------------------------------------
+# suppress warnings caused by the Qt file qtestevent.h
+#
+QMAKE_CXXFLAGS_WARN_ON += -Wno-unused-private-field
+
 
 #---------------------------------------------------------------
 # version of the application
@@ -71,14 +84,18 @@ RESOURCES =
 # include directory search path
 #
 INCLUDEPATH += .
-INCLUDEPATH += ./../../qcan
+INCLUDEPATH += ./../../source/canpie-fd
+INCLUDEPATH += ./../../source/device/qcan
+INCLUDEPATH += ./../../source/misc
+INCLUDEPATH += ./../../source/qcan
 
 
 #---------------------------------------------------------------
 # search path for source files
 #
 VPATH  = .
-VPATH += ./../../qcan
+VPATH += ./../../source/canpie-fd
+VPATH += ./../../source/qcan
 
 
 #---------------------------------------------------------------
@@ -87,6 +104,7 @@ VPATH += ./../../qcan
 HEADERS +=  qcan_frame.hpp             \
             qcan_interface.hpp         \
             qcan_socket.hpp            \
+            test_qcan_filter.hpp       \
             test_qcan_frame.hpp        \
             test_qcan_socket.hpp       \
             test_qcan_timestamp.hpp
@@ -94,12 +112,13 @@ HEADERS +=  qcan_frame.hpp             \
 #---------------------------------------------------------------
 # source files of project 
 #
-SOURCES +=  qcan_data.cpp              \
-            qcan_frame.cpp             \
-            qcan_frame_api.cpp         \
-            qcan_frame_error.cpp       \
-            qcan_timestamp.cpp         \
+SOURCES +=  qcan_filter.cpp            \
+			qcan_filter_list.cpp       \
+			qcan_frame.cpp             \
             qcan_socket.cpp            \
+            qcan_timestamp.cpp         \
+            cp_msg.c                   \
+            test_qcan_filter.cpp       \
             test_qcan_frame.cpp        \
             test_qcan_socket.cpp       \
             test_qcan_timestamp.cpp    \
@@ -116,4 +135,9 @@ macx {
    message("Building '$$QMAKE_PROJECT_NAME' for Mac OS X ...")
    QMAKE_MAC_SDK = macosx10.12
    QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
+   
+   #--------------------------------------------------
+   # do not create application bundle
+   #
+   CONFIG -= app_bundle
 }            

@@ -67,6 +67,7 @@ private slots:
    void checkOperatorCompare();
    void checkOperatorPlus();
    void checkOperatorMinus();
+   void checkSystemTime();
    void cleanupTestCase();
 };
 

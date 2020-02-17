@@ -26,53 +26,51 @@
 
 
 
-#ifndef TEST_QCAN_DATA_HPP_
-#define TEST_QCAN_DATA_HPP_
+#ifndef TEST_QCAN_FILTER_HPP_
+#define TEST_QCAN_FILTER_HPP_
 
 
-#include <QTest>
-#include <QCanData>
-#include <QCanFrame>
-#include <QCanFrameApi>
-#include <QCanFrameError>
+#include <QtTest/QTest>
+#include <QCanFilter>
+#include <QCanFilterList>
 
 
 //-----------------------------------------------------------------------------
 /*!
-** \class   TestQCanData
-** \brief   Test CAN data structure
+** \class   TestQCanFrame
+** \brief   Test CAN frame
 ** 
 */
-class TestQCanData : public QObject
+class TestQCanFilter : public QObject
 {
    Q_OBJECT
 
 public:
    
-   TestQCanData();
+   TestQCanFilter();
    
    
-   ~TestQCanData();
+   ~TestQCanFilter();
 
 private:
    
-   QCanData  *       pclCanDataP;
-   QCanFrame *       pclCanFrameP;
-   QCanFrameApi *    pclCanApiP;
-   QCanFrameError *  pclCanErrorP;
-   
+   QCanFrame   clCanStdP;
+   QCanFrame   clCanExtP;
+   QCanFrame   clFdStdP;
+   QCanFrame   clFdExtP;
+
 private slots:
 
    void initTestCase();
    
-   void checkFrameType();
-   void checkConversion();
-   void checkByteArray();
+   void  checkFrameAccept();
+   void  checkFrameReject();
+   
    void cleanupTestCase();
 };
 
 
 
 
-#endif   // TEST_QCAN_FRAME_HPP_
+#endif   // TEST_QCAN_FILTER_HPP_
 

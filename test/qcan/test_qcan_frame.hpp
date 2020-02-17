@@ -30,7 +30,7 @@
 #define TEST_QCAN_FRAME_HPP_
 
 
-#include <QTest>
+#include <QtTest/QTest>
 #include <QCanFrame>
 
 
@@ -58,19 +58,34 @@ private:
    QCanFrame *    pclFdStdP;
    QCanFrame *    pclFdExtP;
    QCanFrame *    pclFrameP;
+   QCanFrame *    pclErrorP;
 
 private slots:
 
    void initTestCase();
    
+   void checkByteArray();
+
+   void checkConversion();
+
+   void checkErrorFrame();
+
    void checkFrameType();
+
+   void checkFrameFormat();
+
    void checkFrameId();
    void checkFrameDlc();
    void checkFrameDataSize();
    
    void checkFrameData();
    void checkFrameRemote();
-   void checkByteArray();
+
+   void checkFrameBitrateSwitch();
+   void checkFrameErrorIndicator();
+
+   void checkOutput();
+
    void cleanupTestCase();
 };
 
