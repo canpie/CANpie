@@ -42,10 +42,10 @@ TARGET          = $$qtLibraryTarget(QCanUsart)
 # directory for target file
 #
 macx {
-   DESTDIR = ../../../../../bin/CANpieServer.app/Contents/PlugIns
+   DESTDIR = ../../../../bin/CANpieServer.app/Contents/PlugIns
 }
 win32 {
-   DESTDIR = ../../../../../bin/plugins
+   DESTDIR = ../../../../bin/plugins
 }
 
 #---------------------------------------------------------------
@@ -107,10 +107,10 @@ RESOURCES = qcan_usart.qrc
 #
 INCLUDEPATH  = .
 INCLUDEPATH += ./forms
-INCLUDEPATH += ./../../../../canpie-fd
-INCLUDEPATH += ./../../../../hal
-INCLUDEPATH += ./../../../../misc
-INCLUDEPATH += ./../../..
+INCLUDEPATH += ./../../../canpie-fd
+INCLUDEPATH += ./../../../hal
+INCLUDEPATH += ./../../../misc
+INCLUDEPATH += ./../../../qcan
 
 
 #---------------------------------------------------------------
@@ -118,8 +118,8 @@ INCLUDEPATH += ./../../..
 #
 VPATH  = .
 VPATH += ./forms
-VPATH += ./../../..
-VPATH += ./../../../../canpie-fd
+VPATH += ./../../../qcan
+VPATH += ./../../../canpie-fd
 
 
 #---------------------------------------------------------------

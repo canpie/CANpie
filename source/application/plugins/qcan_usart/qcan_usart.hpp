@@ -29,20 +29,20 @@
 #ifndef QCAN_USART_H_
 #define QCAN_USART_H_
 
-#include <QObject>
+#include <QtCore/QObject>
 
 
-#include <QLibrary>
-#include <QDebug>
-#include <QTimer>
+#include <QtCore/QLibrary>
+#include <QtCore/QDebug>
+#include <QtCore/QTimer>
 #include <QSerialPort>
 #include <QSerialPortInfo>
 
 #include "cp_core.h"
 #include "cp_fifo.h"
 #include "cp_msg.h"
-#include "mc_usart.h"
 
+#include "mc_usart.h"
 
 
 //----------------------------------------------------------------------------//
