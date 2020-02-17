@@ -1,0 +1,6 @@
+/objs/
+/.DS_Store
+/.qmake.stash
+/Makefile*
+/moc_*.cpp
+/target_wrapper.sh
