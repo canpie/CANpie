@@ -26,8 +26,7 @@ CONFIG  += debug_and_release
 SUBDIRS  = ./can-config    \
            ./can-dump      \
            ./can-error     \
-           ./can-send      \
-           ./server-daemon
+           ./can-send 
 
 macx {
 SUBDIRS += ./plugins       \
