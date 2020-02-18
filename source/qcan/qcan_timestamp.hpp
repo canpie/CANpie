@@ -40,6 +40,7 @@
 **                                                                                                                    **
 \*--------------------------------------------------------------------------------------------------------------------*/
 
+#include <QtCore/QByteArray>
 
 #include <stdint.h>
 
@@ -151,10 +152,17 @@ public:
    ** Returns the nanoseconds part of this time-stamp. A return value of #TIME_STAMP_INVALID_VALUE marks
    ** the time-stamp value as invalid. The validity of a time-stamp can be tested with isValid().
    */
-   inline uint32_t   nanoSeconds(void) const   { return(ulNanoSecondsP);  };
+   inline uint32_t   nanoSeconds(void) const   { return (ulNanoSecondsP);  };
 
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** Set the value of the time-stamp to the current time point based on the High resolution clock.
+   ** The method uses the \c high_resolution_clock::now()  function of the \c std::chrono library.
+   */
    void              now(void);
-   
+
+
    //---------------------------------------------------------------------------------------------------
    /*!
    ** \return  Seconds part of time-stamp value
@@ -163,7 +171,7 @@ public:
    ** Returns the seconds part of this time-stamp. A return value of #TIME_STAMP_INVALID_VALUE marks the
    ** time-stamp value as invalid. The validity of a time-stamp can be tested with isValid().
    */
-   inline uint32_t   seconds(void) const       { return(ulSecondsP);      };
+   inline uint32_t   seconds(void) const       { return (ulSecondsP);      };
 
    
    //---------------------------------------------------------------------------------------------------
@@ -188,6 +196,15 @@ public:
    ** limited to #TIME_STAMP_SECS_LIMIT.
    */
    void              setSeconds(const uint32_t ulSecondsV);
+
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \return     QByteArray
+   **
+   ** The function converts a QCanTimeStamp object to a QByteArray. 
+   */
+   QByteArray  toByteArray(void) const;
 
 
    //---------------------------------------------------------------------------------------------------
