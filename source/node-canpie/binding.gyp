@@ -3,13 +3,13 @@
         "target_name": "canpie",
         "cflags!": [ "-fno-exceptions" ],
         "sources": [
-            'src/qcan_filter.cpp',
-            'src/qcan_filter_list.cpp',
-            'src/qcan_frame.cpp',
-            "<!(moc src/qcan_socket.hpp -o src/qcan_socket_moc.cpp)",
-            'src/qcan_socket.cpp',
-            'src/qcan_socket_moc.cpp',
-            'src/qcan_timestamp.cpp',
+            '../qcan/qcan_filter.cpp',
+            '../qcan/qcan_filter_list.cpp',
+            '../qcan/qcan_frame.cpp',
+            "<!(moc ../qcan/qcan_socket.hpp -o src/qcan_socket_moc.cpp)",
+            '../qcan/qcan_socket.cpp',
+            '../qcan/qcan_socket_moc.cpp',
+            '../qcan/qcan_timestamp.cpp',
             'src/node_canfilter.cpp',
             'src/node_canfilterlist.cpp',
             'src/node_canframe.cpp',
@@ -19,7 +19,7 @@
             'src/node_init.cpp',
         ],
         'include_dirs': [
-            '..',
+            '../qcan',
             '<!@(qmake -query "QT_INSTALL_HEADERS")',
             "<!@(node -p \"require('node-addon-api').include\")"
         ],
@@ -39,16 +39,18 @@
           ['OS=="mac"',    #---- specific settings for macOS -------------------
             {
               'link_settings': {
-		     		 'libraries': [
-				   	'-Wl,-rpath,<!@(qmake -query "QT_INSTALL_PREFIX")/lib',
-					   '-framework QtCore',
-					   '-framework QtNetwork'
+		     		   'libraries': [
+				   	      '-Wl,-rpath,<!@(qmake -query "QT_INSTALL_PREFIX")/lib',
+					        '-framework QtCore',
+					        '-framework QtNetwork',
+                  '-framework QtWebSockets'
 	              ],
                },
               'libraries': [
                   '-F<!@(qmake -query "QT_INSTALL_PREFIX")/lib',
-					   '-framework QtCore',
-					   '-framework QtNetwork'
+					        '-framework QtCore',
+					        '-framework QtNetwork',
+                  '-framework QtWebSockets'
                  ],
              }
           ],
