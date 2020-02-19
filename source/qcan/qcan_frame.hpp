@@ -97,6 +97,7 @@ using namespace QCan;
 */
 #define  QCAN_FRAME_ARRAY_SIZE       96
 
+#define  QCAN_FRAME_TIME_STAMP_POS   70
 
 //----------------------------------------------------------------------------------------------------------------
 // Define a forward reference to the structure CpCanMsg_s, which is defined inside the header canpie.h
