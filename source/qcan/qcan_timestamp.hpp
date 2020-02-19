@@ -157,10 +157,12 @@ public:
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** Set the value of the time-stamp to the current time point based on the High resolution clock.
+   ** \return  QCanTimeStamp object
+   **
+   ** Return a QCanTimeStamp object set to the current time point based on the High resolution clock.
    ** The method uses the \c high_resolution_clock::now()  function of the \c std::chrono library.
    */
-   void              now(void);
+   static QCanTimeStamp now(void);
 
 
    //---------------------------------------------------------------------------------------------------

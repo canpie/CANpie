@@ -134,7 +134,7 @@ bool QCanTimeStamp::isValid(void)
 // QCanTimeStamp::now()                                                                                               //
 // set time-stamp from defined clock source                                                                           //
 //--------------------------------------------------------------------------------------------------------------------//
-void QCanTimeStamp::now(void)
+QCanTimeStamp QCanTimeStamp::now(void)
 {
    using namespace std::chrono;
 
@@ -145,8 +145,10 @@ void QCanTimeStamp::now(void)
    //
    auto integral_duration = now.time_since_epoch().count();
 
-   this->setNanoSeconds(integral_duration % 1000000000);
-   this->setSeconds(uint32_t(integral_duration / 1000000000));
+   static QCanTimeStamp clTimeStampS;
+   clTimeStampS.setNanoSeconds(integral_duration % 1000000000);
+   clTimeStampS.setSeconds(uint32_t(integral_duration / 1000000000));
+   return (clTimeStampS);
 }
 
 
