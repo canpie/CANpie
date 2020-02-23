@@ -231,9 +231,9 @@ void QCanServerSettings::onSocketError(QAbstractSocket::SocketError teSocketErro
    switch(teSocketErrorV)
    {
       case QAbstractSocket::RemoteHostClosedError:
-         teNewStateV = QCanServerSettings::eSTATE_CRASHED;
+         teNewStateV = QCanServerSettings::eSTATE_CLOSED;
          break;
-
+      
       case QAbstractSocket::ConnectionRefusedError:
          teNewStateV = QCanServerSettings::eSTATE_INACTIVE;
          break;
@@ -253,7 +253,6 @@ void QCanServerSettings::onSocketError(QAbstractSocket::SocketError teSocketErro
          emit stateChanged(teServerStateP);
    }
 
-   pclWebSocketP->close(); // this might fail if the server is crashed
 }
 
 
@@ -307,12 +306,12 @@ QString QCanServerSettings::stateString(void)
 
    switch (state())
    {
-      case eSTATE_CRASHED:
-         clResultT = QObject::tr("is crashed");
-         break;
-
       case eSTATE_INACTIVE:
          clResultT = QObject::tr("is not active");
+         break;
+
+      case eSTATE_CLOSED:
+         clResultT = QObject::tr("has been closed");
          break;
 
       case eSTATE_ACTIVE:

@@ -259,9 +259,11 @@ void QCanDump::onServerStateChanged(enum QCanServerSettings::State_e teStateV)
 {  
    bool btQuitProgramT = false;
 
+   qDebug() << " QCanDump::onServerStateChanged()" << teStateV;
+   
    switch (teStateV)
    {
-      case QCanServerSettings::eSTATE_CRASHED:
+      case QCanServerSettings::eSTATE_CLOSED:
          fprintf(stdout, "CANpie FD server %s \n", qPrintable(pclServerSettingsP->stateString()));
          btQuitProgramT = true;
          break;

@@ -98,17 +98,18 @@ public:
    ** This enumeration describes possible states of the server.
    */
    enum State_e {
-      /*! Server is crashed                           */
-      eSTATE_CRASHED = -2,
-
+      
       /*! Server is in unknown state.                 */
-      eSTATE_UNKNOWN = -1,
+      eSTATE_UNKNOWN  = -1,
 
       /*! Server is not running.                      */
       eSTATE_INACTIVE = 0,
 
+      /*! Server has been closed                      */
+      eSTATE_CLOSED   = 1,
+
       /*! Server is active                            */
-      eSTATE_ACTIVE   = 1
+      eSTATE_ACTIVE   = 2
    };
 
    //---------------------------------------------------------------------------------------------------
