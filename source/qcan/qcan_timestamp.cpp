@@ -198,28 +198,28 @@ QByteArray  QCanTimeStamp::toByteArray(void) const
    QByteArray clByteArrayT(QCAN_TIME_STAMP_ARRAY_SIZE, 0x00);
 
    //---------------------------------------------------------------------------------------------------
-   // Byte order is LSB first, the member seconds is inside the first 4 byte, followed by the 
+   // Byte order is MSB first, the member seconds is inside the first 4 byte, followed by the 
    // nano-seconds field
    //
 
    uint32_t ulTimeValT = this->seconds();
 
-   clByteArrayT[0] = (uint8_t) (ulTimeValT);
-   ulTimeValT      = ulTimeValT >> 8;
-   clByteArrayT[1] = (uint8_t) (ulTimeValT);
+   clByteArrayT[3] = (uint8_t) (ulTimeValT);
    ulTimeValT      = ulTimeValT >> 8;
    clByteArrayT[2] = (uint8_t) (ulTimeValT);
    ulTimeValT      = ulTimeValT >> 8;
-   clByteArrayT[3] = (uint8_t) (ulTimeValT);
+   clByteArrayT[1] = (uint8_t) (ulTimeValT);
+   ulTimeValT      = ulTimeValT >> 8;
+   clByteArrayT[0] = (uint8_t) (ulTimeValT);
 
    ulTimeValT = this->nanoSeconds();
-   clByteArrayT[4] = (uint8_t) (ulTimeValT);
-   ulTimeValT      = ulTimeValT >> 8;
-   clByteArrayT[5] = (uint8_t) (ulTimeValT);
+   clByteArrayT[7] = (uint8_t) (ulTimeValT);
    ulTimeValT      = ulTimeValT >> 8;
    clByteArrayT[6] = (uint8_t) (ulTimeValT);
    ulTimeValT      = ulTimeValT >> 8;
-   clByteArrayT[7] = (uint8_t) (ulTimeValT);
+   clByteArrayT[5] = (uint8_t) (ulTimeValT);
+   ulTimeValT      = ulTimeValT >> 8;
+   clByteArrayT[4] = (uint8_t) (ulTimeValT);
 
    return (clByteArrayT);
 }
