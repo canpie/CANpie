@@ -528,7 +528,7 @@ private:
    //
    uint32_t frameSize(const QByteArray & clSockDataR);
 
-   bool     handleCanFrame(enum FrameSource_e teFrameSrcV, const int32_t slSockSrcV, const QByteArray clSockDataV);
+   bool     handleCanFrame(enum FrameSource_e teFrameSrcV, const int32_t slSockSrcV, QByteArray clSockDataV);
 
    void     logSocketState(const QString & clInfoR);
    
@@ -615,6 +615,7 @@ private:
    bool                    btListenOnlyEnabledP;
    bool                    btNetworkEnabledP;
    bool                    btBitrateChangeEnabledP;
+   bool                    btTimeStampEnabledP;
 
 };
 

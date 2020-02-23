@@ -212,6 +212,7 @@ QCanNetwork::QCanNetwork(QObject * pclParentV)
    btListenOnlyEnabledP    = false;
    btFlexibleDataEnabledP  = false;
    btBitrateChangeEnabledP = false;
+   btTimeStampEnabledP     = true;
 
    //---------------------------------------------------------------------------------------------------
    // setup default bit-rate
@@ -578,14 +579,22 @@ uint32_t QCanNetwork::frameSize(const QByteArray & clSockDataR)
 // QCanNetwork::handleCanFrame()                                                                                      //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-bool  QCanNetwork::handleCanFrame(enum FrameSource_e teFrameSrcV, const int32_t slSockSrcV, const QByteArray clSockDataV)
+bool  QCanNetwork::handleCanFrame(enum FrameSource_e teFrameSrcV, const int32_t slSockSrcV, QByteArray clSockDataV)
 {
    int32_t        slSockIdxT;
    bool           btResultT = false;
    QLocalSocket * pclLocalSockT;
    QWebSocket *   pclWebSockT;
 
-   
+   //---------------------------------------------------------------------------------------------------
+   // If a local time-stamp shall be set, do this here
+   //
+   if (btTimeStampEnabledP)
+   {
+      QByteArray clLocalTimeStampT = QCanTimeStamp::now().toByteArray();
+      clSockDataV.replace(QCAN_FRAME_TIME_STAMP_POS, 8, clLocalTimeStampT);
+   }  
+
    //---------------------------------------------------------------------------------------------------
    // If a CAN interface is present and the source of this data is not the CAN interface: convert to a
    // QCanFrame and write it to the interface
