@@ -163,13 +163,30 @@ void TestQCanFrame::checkByteArray()
 
    }
 
-   QBENCHMARK {
-      QCanFrame clFrameT;
-      clFrameT.fromByteArray(clByteArrayT);
-      clFrameT.timeStamp().now();
-      QByteArray clByteArrayDestT = clFrameT.toByteArray();
-   }
 
+   //---------------------------------------------------------------------------------------------------
+   // test conversion of time-stamp and injection into existing byte array
+   //
+   QCanTimeStamp clTimeStampT;
+   clTimeStampT.setSeconds(4);
+   clTimeStampT.setNanoSeconds(120340560);
+   QByteArray clTimeArrayT = clTimeStampT.toByteArray();
+   clByteArrayT.replace(QCAN_FRAME_TIME_STAMP_POS, 8, clTimeArrayT);
+   QCanFrame clFrameT;
+   QVERIFY(clFrameT.fromByteArray(clByteArrayT) == true);
+   QCanTimeStamp clTimeStampResultT = clFrameT.timeStamp();
+   QVERIFY(clTimeStampResultT.seconds()     == 4);
+   QVERIFY(clTimeStampResultT.nanoSeconds() == 120340560);
+
+
+   clTimeStampT.setSeconds(477890321);
+   clTimeStampT.setNanoSeconds(987501234);
+   clTimeArrayT = clTimeStampT.toByteArray();
+   clByteArrayT.replace(QCAN_FRAME_TIME_STAMP_POS, 8, clTimeArrayT);
+   QVERIFY(clFrameT.fromByteArray(clByteArrayT) == true);
+   clTimeStampResultT = clFrameT.timeStamp();
+   QVERIFY(clTimeStampResultT.seconds()     == 477890321);
+   QVERIFY(clTimeStampResultT.nanoSeconds() == 987501234);
 }
 
 
@@ -229,106 +246,155 @@ void TestQCanFrame::checkConversion()
       {
          QVERIFY(pclCanStdP->data(ubDataCntT) == pclFrameP->data(ubDataCntT));
       }
-}
+   }
 }
 
+
 //--------------------------------------------------------------------------------------------------------------------//
-// TestQCanFrame::initTestCase()                                                                                      //
+// TestQCanFrame::checkErrorFrame()                                                                                   //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-void TestQCanFrame::initTestCase()
+void TestQCanFrame::checkErrorFrame()
 {
-   pclCanStdP = new QCanFrame(QCanFrame::eFORMAT_CAN_STD);
-   pclCanStdP->setIdentifier(TEST_VALUE_ID_STD);
 
-   pclCanExtP = new QCanFrame(QCanFrame::eFORMAT_CAN_EXT);
-   pclCanExtP->setIdentifier(TEST_VALUE_ID_EXT);
+}
 
-   pclFdStdP  = new QCanFrame(QCanFrame::eFORMAT_FD_STD);
-   pclFdStdP->setIdentifier(TEST_VALUE_ID_STD);
 
-   pclFdExtP  = new QCanFrame(QCanFrame::eFORMAT_FD_EXT);
-   pclFdExtP->setIdentifier(TEST_VALUE_ID_EXT);
+//--------------------------------------------------------------------------------------------------------------------//
+// TestQCanFrame::checkFrameBitrateSwitch()                                                                           //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void TestQCanFrame::checkFrameBitrateSwitch()
+{
+   //---------------------------------------------------------------------------------------------------
+   // bit-rate switch is disabled by default
+   //
+   QVERIFY(pclCanStdP->bitrateSwitch() == false);
+   QVERIFY(pclCanExtP->bitrateSwitch() == false);
+   QVERIFY(pclFdStdP->bitrateSwitch()  == false);
+   QVERIFY(pclFdExtP->bitrateSwitch()  == false);
 
-   pclErrorP  = new QCanFrame(QCanFrame::eFRAME_TYPE_ERROR);
 
    //---------------------------------------------------------------------------------------------------
-   // testing is done after assignment with the pclFrameP object
+   // enable bit-rate switch and test it
    //
-   pclFrameP  = new QCanFrame();
+   pclCanStdP->setBitrateSwitch(true);
+   pclCanExtP->setBitrateSwitch(true);
+   pclFdStdP->setBitrateSwitch(true);
+   pclFdExtP->setBitrateSwitch(true);
+
+   QVERIFY(pclCanStdP->bitrateSwitch() == false);
+   QVERIFY(pclCanExtP->bitrateSwitch() == false);
+   QVERIFY(pclFdStdP->bitrateSwitch()  == true);
+   QVERIFY(pclFdExtP->bitrateSwitch()  == true);
+
+
+   //---------------------------------------------------------------------------------------------------
+   // copy FD frame contents and convert type to classic CAN
+   //
+   *pclFrameP = *pclFdStdP;
+   QVERIFY(pclFrameP->bitrateSwitch() == true);
+   pclFrameP->setFrameFormat(QCanFrame::eFORMAT_CAN_STD);
+   QVERIFY(pclFrameP->bitrateSwitch() == false);
+
+   //---------------------------------------------------------------------------------------------------
+   // disable bit-rate switch and test it
+   //
+   pclCanStdP->setBitrateSwitch(false);
+   pclCanExtP->setBitrateSwitch(false);
+   pclFdStdP->setBitrateSwitch(false);
+   pclFdExtP->setBitrateSwitch(false);
+
+   QVERIFY(pclCanStdP->bitrateSwitch() == false);
+   QVERIFY(pclCanExtP->bitrateSwitch() == false);
+   QVERIFY(pclFdStdP->bitrateSwitch()  == false);
+   QVERIFY(pclFdExtP->bitrateSwitch()  == false);
+
 }
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// TestQCanFrame::checkFrameType()                                                                                    //
-// test the initial frame type                                                                                        //
+// checkFrameData()                                                                                                   //
+// check frame data                                                                                                   //
 //--------------------------------------------------------------------------------------------------------------------//
-void TestQCanFrame::checkFrameType()
+void TestQCanFrame::checkFrameData()
 {
-   QVERIFY(pclCanStdP->frameType() == QCanFrame::eFRAME_TYPE_DATA);
-   *pclFrameP = *pclCanStdP;
-   QVERIFY(pclFrameP->frameType()  == QCanFrame::eFRAME_TYPE_DATA);
-
-   QVERIFY(pclCanExtP->frameType() == QCanFrame::eFRAME_TYPE_DATA);
-   *pclFrameP = *pclCanExtP;
-   QVERIFY(pclFrameP->frameType()  == QCanFrame::eFRAME_TYPE_DATA);
-
-   QVERIFY(pclErrorP->frameType()  == QCanFrame::eFRAME_TYPE_ERROR);
-   *pclFrameP = *pclErrorP;
-   QVERIFY(pclFrameP->frameType()  == QCanFrame::eFRAME_TYPE_ERROR);
-
-
-   QVERIFY(pclFdStdP->frameType()  == QCanFrame::eFRAME_TYPE_DATA);
-   QVERIFY(pclFdExtP->frameType()  == QCanFrame::eFRAME_TYPE_DATA);
-
-
-}
-
-
-//--------------------------------------------------------------------------------------------------------------------//
-// TestQCanFrame::checkFrameFormat()                                                                                  //
-// test the initial frame format                                                                                      //
-//--------------------------------------------------------------------------------------------------------------------//
-void TestQCanFrame::checkFrameFormat()
-{
-   QVERIFY(pclCanStdP->frameFormat() == QCanFrame::eFORMAT_CAN_STD);
-   QVERIFY(pclCanExtP->frameFormat() == QCanFrame::eFORMAT_CAN_EXT);
-   QVERIFY(pclFdStdP->frameFormat()  == QCanFrame::eFORMAT_FD_STD);
-   QVERIFY(pclFdExtP->frameFormat()  == QCanFrame::eFORMAT_FD_EXT);
-  
+   pclCanStdP->setDlc(4);
+   pclCanStdP->setData(0, 0x12);
+   pclCanStdP->setData(1, 0x34);
+   pclCanStdP->setData(2, 0x56);
+   pclCanStdP->setData(3, 0x78);
    
+   bool btMsbFirstT = true;
+   QVERIFY(pclCanStdP->dataUInt16(0, btMsbFirstT) == 0x1234);
+   QVERIFY(pclCanStdP->dataUInt16(1, btMsbFirstT) == 0x3456);
+   QVERIFY(pclCanStdP->dataUInt16(2, btMsbFirstT) == 0x5678);
+   QVERIFY(pclCanStdP->dataUInt16(3, btMsbFirstT) == 0x0000);
+
+   QVERIFY(pclCanStdP->dataUInt32(0, btMsbFirstT) == 0x12345678);
+
+   btMsbFirstT = false;
+   QVERIFY(pclCanStdP->dataUInt16(0, btMsbFirstT) == 0x3412);
+   QVERIFY(pclCanStdP->dataUInt16(1, btMsbFirstT) == 0x5634);
+   QVERIFY(pclCanStdP->dataUInt16(2, btMsbFirstT) == 0x7856);
+   QVERIFY(pclCanStdP->dataUInt16(3, btMsbFirstT) == 0x0000);
+
+   QVERIFY(pclCanStdP->dataUInt32(0, btMsbFirstT) == 0x78563412);
+
+   pclCanStdP->setDataUInt16(0, 0xAABB);
+   QVERIFY(pclCanStdP->data(0) == 0xBB);
+   QVERIFY(pclCanStdP->data(1) == 0xAA);
+   QVERIFY(pclCanStdP->dataUInt16(0, 0) == 0xAABB);
+
 }
 
 
-//----------------------------------------------------------------------------//
-// checkFrameId()                                                             //
-// check frame identifier                                                     //
-//----------------------------------------------------------------------------//
-void TestQCanFrame::checkFrameId()
+//--------------------------------------------------------------------------------------------------------------------//
+// TestQCanFrame::checkFrameDataSize()                                                                                //
+// test invalid data size combinations                                                                                //
+//--------------------------------------------------------------------------------------------------------------------//
+void TestQCanFrame::checkFrameDataSize()
 {
-   uint32_t ulIdValueT;
-
-   for(ulIdValueT = 0; ulIdValueT <= 0x0000FFFF; ulIdValueT++)
+   uint8_t  ubSizeT;
+   
+   //---------------------------------------------------------------------------------------------------
+   // Test 1: set the data size value for classic CAN and CAN FD and check the result for the
+   // dlc() return value
+   //
+   for (ubSizeT = 0; ubSizeT < 9; ubSizeT++)
    {
-      pclCanStdP->setIdentifier(ulIdValueT);
-      pclCanExtP->setIdentifier(ulIdValueT);
-
-      *pclFrameP = *pclCanStdP;
-      if(ulIdValueT <= 0x07FF)
-      {
-         QVERIFY(pclCanStdP->identifier() == ulIdValueT);
-         QVERIFY(pclFrameP->identifier()  == ulIdValueT);
-      }
-      else
-      {
-         QVERIFY(pclCanStdP->identifier() == (ulIdValueT & 0x07FF));
-         QVERIFY(pclFrameP->identifier()  == (ulIdValueT & 0x07FF));
-      }
-      QVERIFY(pclCanExtP->identifier() == ulIdValueT);
-
-      QVERIFY(pclCanStdP->isExtended() == 0);
-      QVERIFY(pclFrameP->isExtended()  == 0);
+      pclCanStdP->setDataSize(ubSizeT);
+      pclFdStdP->setDataSize(ubSizeT);
+      
+      QVERIFY(pclCanStdP->dlc() == ubSizeT);
+      QVERIFY(pclFdStdP->dlc()  == ubSizeT);
    }
+
+   for (ubSizeT = 9; ubSizeT <= 12; ubSizeT++)
+   {
+      pclCanStdP->setDataSize(ubSizeT);
+      pclFdStdP->setDataSize(ubSizeT);
+      QVERIFY(pclCanStdP->dlc() == 8);
+      QVERIFY(pclFdStdP->dlc()  == 9);
+   }
+
+   for (ubSizeT = 13; ubSizeT <= 16; ubSizeT++)
+   {
+      pclCanStdP->setDataSize(ubSizeT);
+      pclFdStdP->setDataSize(ubSizeT);
+      QVERIFY(pclCanStdP->dlc() ==  8);
+      QVERIFY(pclFdStdP->dlc()  == 10);
+   }
+
+   for (ubSizeT = 17; ubSizeT <= 20; ubSizeT++)
+   {
+      pclCanStdP->setDataSize(ubSizeT);
+      pclFdStdP->setDataSize(ubSizeT);
+      QVERIFY(pclCanStdP->dlc() ==  8);
+      QVERIFY(pclFdStdP->dlc()  == 11);
+   }
+
+
 }
 
 
@@ -438,155 +504,6 @@ void TestQCanFrame::checkFrameDlc()
       QVERIFY(pclFdStdP->dlc()  == TEST_VALUE_DLC);
    }
 
-      
-   
-
-}
-
-
-//--------------------------------------------------------------------------------------------------------------------//
-// TestQCanFrame::checkFrameDataSize()                                                                                //
-// test invalid data size combinations                                                                                //
-//--------------------------------------------------------------------------------------------------------------------//
-void TestQCanFrame::checkFrameDataSize()
-{
-   uint8_t  ubSizeT;
-   
-   //---------------------------------------------------------------------------------------------------
-   // Test 1: set the data size value for classic CAN and CAN FD and check the result for the
-   // dlc() return value
-   //
-   for (ubSizeT = 0; ubSizeT < 9; ubSizeT++)
-   {
-      pclCanStdP->setDataSize(ubSizeT);
-      pclFdStdP->setDataSize(ubSizeT);
-      
-      QVERIFY(pclCanStdP->dlc() == ubSizeT);
-      QVERIFY(pclFdStdP->dlc()  == ubSizeT);
-   }
-
-   for (ubSizeT = 9; ubSizeT <= 12; ubSizeT++)
-   {
-      pclCanStdP->setDataSize(ubSizeT);
-      pclFdStdP->setDataSize(ubSizeT);
-      QVERIFY(pclCanStdP->dlc() == 8);
-      QVERIFY(pclFdStdP->dlc()  == 9);
-   }
-
-   for (ubSizeT = 13; ubSizeT <= 16; ubSizeT++)
-   {
-      pclCanStdP->setDataSize(ubSizeT);
-      pclFdStdP->setDataSize(ubSizeT);
-      QVERIFY(pclCanStdP->dlc() ==  8);
-      QVERIFY(pclFdStdP->dlc()  == 10);
-   }
-
-   for (ubSizeT = 17; ubSizeT <= 20; ubSizeT++)
-   {
-      pclCanStdP->setDataSize(ubSizeT);
-      pclFdStdP->setDataSize(ubSizeT);
-      QVERIFY(pclCanStdP->dlc() ==  8);
-      QVERIFY(pclFdStdP->dlc()  == 11);
-   }
-
-   //      qDebug() << "set size " << ubSizeT << "got DLC" << pclFdStdP->dlc() ;
-
-}
-
-//----------------------------------------------------------------------------//
-// checkFrameData()                                                           //
-// check frame data                                                           //
-//----------------------------------------------------------------------------//
-void TestQCanFrame::checkFrameData()
-{
-   pclCanStdP->setDlc(4);
-   pclCanStdP->setData(0, 0x12);
-   pclCanStdP->setData(1, 0x34);
-   pclCanStdP->setData(2, 0x56);
-   pclCanStdP->setData(3, 0x78);
-   
-   QVERIFY(pclCanStdP->dataUInt16(0, 1) == 0x1234);
-   QVERIFY(pclCanStdP->dataUInt16(1, 1) == 0x3456);
-   QVERIFY(pclCanStdP->dataUInt16(2, 1) == 0x5678);
-   QVERIFY(pclCanStdP->dataUInt16(3, 1) == 0x0000);
-
-   QVERIFY(pclCanStdP->dataUInt32(0, 1) == 0x12345678);
-
-   pclCanStdP->setDataUInt16(0, 0xAABB);
-   QVERIFY(pclCanStdP->data(0) == 0xBB);
-   QVERIFY(pclCanStdP->data(1) == 0xAA);
-   QVERIFY(pclCanStdP->dataUInt16(0, 0) == 0xAABB);
-
-}
-
-
-//----------------------------------------------------------------------------//
-// checkFrameRemote()                                                         //
-// check remote frame                                                         //
-//----------------------------------------------------------------------------//
-void TestQCanFrame::checkFrameRemote()
-{
-   // classic CAN,set remote, change frame type to FD, check remote
-   
-}
-
-
-void TestQCanFrame::checkErrorFrame()
-{
-
-}
-
-
-//--------------------------------------------------------------------------------------------------------------------//
-// TestQCanFrame::checkFrameBitrateSwitch()                                                                           //
-//                                                                                                                    //
-//--------------------------------------------------------------------------------------------------------------------//
-void TestQCanFrame::checkFrameBitrateSwitch()
-{
-   //---------------------------------------------------------------------------------------------------
-   // bit-rate switch is disabled by default
-   //
-   QVERIFY(pclCanStdP->bitrateSwitch() == false);
-   QVERIFY(pclCanExtP->bitrateSwitch() == false);
-   QVERIFY(pclFdStdP->bitrateSwitch()  == false);
-   QVERIFY(pclFdExtP->bitrateSwitch()  == false);
-
-
-   //---------------------------------------------------------------------------------------------------
-   // enable bit-rate switch and test it
-   //
-   pclCanStdP->setBitrateSwitch(true);
-   pclCanExtP->setBitrateSwitch(true);
-   pclFdStdP->setBitrateSwitch(true);
-   pclFdExtP->setBitrateSwitch(true);
-
-   QVERIFY(pclCanStdP->bitrateSwitch() == false);
-   QVERIFY(pclCanExtP->bitrateSwitch() == false);
-   QVERIFY(pclFdStdP->bitrateSwitch()  == true);
-   QVERIFY(pclFdExtP->bitrateSwitch()  == true);
-
-
-   //---------------------------------------------------------------------------------------------------
-   // copy FD frame contents and convert type to classic CAN
-   //
-   *pclFrameP = *pclFdStdP;
-   QVERIFY(pclFrameP->bitrateSwitch() == true);
-   pclFrameP->setFrameFormat(QCanFrame::eFORMAT_CAN_STD);
-   QVERIFY(pclFrameP->bitrateSwitch() == false);
-
-   //---------------------------------------------------------------------------------------------------
-   // disable bit-rate switch and test it
-   //
-   pclCanStdP->setBitrateSwitch(false);
-   pclCanExtP->setBitrateSwitch(false);
-   pclFdStdP->setBitrateSwitch(false);
-   pclFdExtP->setBitrateSwitch(false);
-
-   QVERIFY(pclCanStdP->bitrateSwitch() == false);
-   QVERIFY(pclCanExtP->bitrateSwitch() == false);
-   QVERIFY(pclFdStdP->bitrateSwitch()  == false);
-   QVERIFY(pclFdExtP->bitrateSwitch()  == false);
-
 }
 
 
@@ -599,6 +516,90 @@ void TestQCanFrame::checkFrameErrorIndicator()
 
 }
 
+
+//--------------------------------------------------------------------------------------------------------------------//
+// TestQCanFrame::checkFrameFormat()                                                                                  //
+// test the initial frame format                                                                                      //
+//--------------------------------------------------------------------------------------------------------------------//
+void TestQCanFrame::checkFrameFormat()
+{
+   QVERIFY(pclCanStdP->frameFormat() == QCanFrame::eFORMAT_CAN_STD);
+   QVERIFY(pclCanExtP->frameFormat() == QCanFrame::eFORMAT_CAN_EXT);
+   QVERIFY(pclFdStdP->frameFormat()  == QCanFrame::eFORMAT_FD_STD);
+   QVERIFY(pclFdExtP->frameFormat()  == QCanFrame::eFORMAT_FD_EXT);
+  
+   
+}
+
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// checkFrameId()                                                                                                     //
+// check frame identifier                                                                                             //
+//--------------------------------------------------------------------------------------------------------------------//
+void TestQCanFrame::checkFrameId()
+{
+   uint32_t ulIdValueT;
+
+   for (ulIdValueT = 0; ulIdValueT <= 0x0000FFFF; ulIdValueT++)
+   {
+      pclCanStdP->setIdentifier(ulIdValueT);
+      pclCanExtP->setIdentifier(ulIdValueT);
+
+      *pclFrameP = *pclCanStdP;
+      if (ulIdValueT <= 0x07FF)
+      {
+         QVERIFY(pclCanStdP->identifier() == ulIdValueT);
+         QVERIFY(pclFrameP->identifier()  == ulIdValueT);
+      }
+      else
+      {
+         QVERIFY(pclCanStdP->identifier() == (ulIdValueT & 0x07FF));
+         QVERIFY(pclFrameP->identifier()  == (ulIdValueT & 0x07FF));
+      }
+      QVERIFY(pclCanExtP->identifier() == ulIdValueT);
+
+      QVERIFY(pclCanStdP->isExtended() == 0);
+      QVERIFY(pclFrameP->isExtended()  == 0);
+   }
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// checkFrameRemote()                                                                                                 //
+// check remote frame                                                                                                 //
+//--------------------------------------------------------------------------------------------------------------------//
+void TestQCanFrame::checkFrameRemote()
+{
+   // classic CAN,set remote, change frame type to FD, check remote
+   
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// TestQCanFrame::checkFrameType()                                                                                    //
+// test the initial frame type                                                                                        //
+//--------------------------------------------------------------------------------------------------------------------//
+void TestQCanFrame::checkFrameType()
+{
+   QVERIFY(pclCanStdP->frameType() == QCanFrame::eFRAME_TYPE_DATA);
+   *pclFrameP = *pclCanStdP;
+   QVERIFY(pclFrameP->frameType()  == QCanFrame::eFRAME_TYPE_DATA);
+
+   QVERIFY(pclCanExtP->frameType() == QCanFrame::eFRAME_TYPE_DATA);
+   *pclFrameP = *pclCanExtP;
+   QVERIFY(pclFrameP->frameType()  == QCanFrame::eFRAME_TYPE_DATA);
+
+   QVERIFY(pclErrorP->frameType()  == QCanFrame::eFRAME_TYPE_ERROR);
+   *pclFrameP = *pclErrorP;
+   QVERIFY(pclFrameP->frameType()  == QCanFrame::eFRAME_TYPE_ERROR);
+
+
+   QVERIFY(pclFdStdP->frameType()  == QCanFrame::eFRAME_TYPE_DATA);
+   QVERIFY(pclFdExtP->frameType()  == QCanFrame::eFRAME_TYPE_DATA);
+
+
+}
 
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -686,4 +687,30 @@ void TestQCanFrame::cleanupTestCase()
 
 }
 
+
+//--------------------------------------------------------------------------------------------------------------------//
+// TestQCanFrame::initTestCase()                                                                                      //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void TestQCanFrame::initTestCase()
+{
+   pclCanStdP = new QCanFrame(QCanFrame::eFORMAT_CAN_STD);
+   pclCanStdP->setIdentifier(TEST_VALUE_ID_STD);
+
+   pclCanExtP = new QCanFrame(QCanFrame::eFORMAT_CAN_EXT);
+   pclCanExtP->setIdentifier(TEST_VALUE_ID_EXT);
+
+   pclFdStdP  = new QCanFrame(QCanFrame::eFORMAT_FD_STD);
+   pclFdStdP->setIdentifier(TEST_VALUE_ID_STD);
+
+   pclFdExtP  = new QCanFrame(QCanFrame::eFORMAT_FD_EXT);
+   pclFdExtP->setIdentifier(TEST_VALUE_ID_EXT);
+
+   pclErrorP  = new QCanFrame(QCanFrame::eFRAME_TYPE_ERROR);
+
+   //---------------------------------------------------------------------------------------------------
+   // testing is done after assignment with the pclFrameP object
+   //
+   pclFrameP  = new QCanFrame();
+}
 
