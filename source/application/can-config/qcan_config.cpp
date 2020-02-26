@@ -288,7 +288,7 @@ void QCanConfig::onServerStateChanged(enum QCanServerSettings::State_e teStateV)
 
    switch (teStateV)
    {
-      case QCanServerSettings::eSTATE_CRASHED:
+      case QCanServerSettings::eSTATE_CLOSED:
          fprintf(stdout, "CANpie FD server %s \n", qPrintable(clServerSettingsP.stateString()));
          btQuitProgramT = true;
          break;
