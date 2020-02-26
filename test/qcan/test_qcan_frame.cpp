@@ -57,44 +57,6 @@ using namespace std;
 
 
 
-static void ShowCpMsgMemory(CpCanMsg_ts * ptsCanMsgT)
-{
-   int32_t slSizeT = sizeof(CpCanMsg_ts);
-   uint8_t * pubDataT = (uint8_t *) ptsCanMsgT;
-
-   fprintf(stdout, "CpCanMsg_ts - size = %d bytes - ", slSizeT);
-
-   if (CP_CAN_FD > 0)
-   {
-      fprintf(stdout, "CP_CAN_FD: Yes - ");
-   }
-   else
-   {
-      fprintf(stdout, "CP_CAN_FD: No - ");
-   }
-
-   if (CP_CAN_MSG_TIME > 0)
-   {
-      fprintf(stdout, "CP_CAN_MSG_TIME: Yes");
-   }
-   else
-   {
-      fprintf(stdout, "CP_CAN_MSG_TIME: No");
-   }
-   fprintf(stdout, "\n");
-
-   for(int32_t slPosT = 1; slPosT < 80; slPosT++)
-   {
-      fprintf(stdout, "%02X ", *pubDataT);
-      pubDataT++;
-      if ((slPosT % 32) == 0)
-      {
-         fprintf(stdout, "\n");
-      }
-   }
-   fprintf(stdout, "\n");
-}
-
 //--------------------------------------------------------------------------------------------------------------------//
 // TestQCanFrame::TestQCanFrame()                                                                                     //
 // frame type and frame format stay the same through all test cases                                                   //
