@@ -38,6 +38,7 @@
 #include <QtCore/QCoreApplication>
 #include <QtCore/QCommandLineParser>
 #include <QtCore/QFile>
+#include <QtCore/QPointer>
 #include <QtCore/QTimer>
 
 #include "qcan_namespace.hpp"
@@ -46,16 +47,15 @@
 #include <QCanServerSettings>
 #include <QCanSocket>
 
+
 //------------------------------------------------------------------------------------------------------
 /*!
 ** \anchor can-dump
 ** \class QCanDump
 ** \brief Command line tool - dump CAN messages
 **
-** Info about can-dump command ..
 **
 */
-
 class QCanDump : public QObject
 {
    Q_OBJECT
@@ -63,13 +63,10 @@ class QCanDump : public QObject
 public:
    QCanDump(QObject *parent = 0);
 
-
-signals:
-   void finished();
-
-private slots:
+public slots:
    void  aboutToQuitApp(void);
 
+private slots:
    void  onNetworkObjectReceived(const CAN_Channel_e teChannelV, QJsonObject clNetworkConfigV);
    void  onServerObjectReceived(QJsonObject clServerConfigV);
    void  onServerStateChanged(enum QCanServerSettings::State_e teStateV);
@@ -79,32 +76,59 @@ private slots:
    void  onSocketError(QAbstractSocket::SocketError teSocketErrorV);
    void  onSocketReceive(void);
 
+   //----------------------------------------------------------------------------------------------
    /*!
-   ** The function evaluates the command parameters of the ..
+   ** The function evaluates the command parameters
    */
-   void  runCmdParser(void);
+   void  runCommandParser(void);
 
    void  quit();
+
+signals:
+   void finished();
    
 private:
 
-   QCoreApplication *      pclAppP;
+   QPointer<QCoreApplication>    pclApplicationP;
 
-   QCommandLineParser      clCmdParserP;
-   QCanNetworkSettings *   pclNetworkSettingsP;
-   QCanServerSettings *    pclServerSettingsP;
+   //----------------------------------------------------------------------------------------------
+   // Command line parser
+   //
+   QCommandLineParser            clCommandParserP;
 
-   QCanSocket              clCanSocketP;
-   CAN_Channel_e           teChannelP;
+   //----------------------------------------------------------------------------------------------
+   // Retrieve information from CANpie FD server and selected network
+   //
+   QPointer<QCanNetworkSettings> pclNetworkSettingsP;
+   QPointer<QCanServerSettings>  pclServerSettingsP;
+
+   //----------------------------------------------------------------------------------------------
+   // Host address of CANpie FD server, set with -H option
+   //
+   QHostAddress                  clHostAddressP;
+
+   //----------------------------------------------------------------------------------------------
+   // Socket to CANpie FD server
+   //
+   QCanSocket                    clCanSocketP;
    
-   QTimer                  clActivityTimerP;
-   bool                    btIsWebConnectionP;
-   bool                    btTimeStampP;
-   bool                    btErrorFramesP;
-   bool                    btQuitNeverP;
+   //----------------------------------------------------------------------------------------------
+   // Number of selected CAN channel
+   //
+   CAN_Channel_e                 teChannelP;
+   
+   //----------------------------------------------------------------------------------------------
+   // CAN frame filter list
+   //
+   QCanFilterList                clFilterListP;
 
-   uint32_t                ulQuitTimeP;
-   uint32_t                ulQuitCountP;
+   QTimer                        clActivityTimerP;
+   bool                          btTimeStampP;
+   bool                          btErrorFramesP;
+   bool                          btQuitNeverP;
+
+   uint32_t                      ulQuitTimeP;
+   uint32_t                      ulQuitCountP;
 };
 
 

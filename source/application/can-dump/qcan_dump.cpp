@@ -90,20 +90,18 @@ int main(int argc, char *argv[])
 
    
    //---------------------------------------------------------------------------------------------------
-   // connect the signals
+   // connect the signals between QCoreApplication and the main class 
    //
-   QObject::connect(&clMainT, SIGNAL(finished()),
-                    &clAppT,  SLOT(quit()));
+   QObject::connect(&clMainT, &QCanDump::finished, &clAppT,  &QCoreApplication::quit);
    
-   QObject::connect(&clAppT, SIGNAL(aboutToQuit()),
-                    &clMainT, SLOT(aboutToQuitApp()));
+   QObject::connect(&clAppT,  &QCoreApplication::aboutToQuit, &clMainT, &QCanDump::aboutToQuitApp);
 
    
    //---------------------------------------------------------------------------------------------------
    // This code will start the messaging engine in QT and in 10 ms it will start the execution of the
-   // clMainT.runCmdParser() routine.
+   // clMainT.runCommandParser() routine.
    //
-   QTimer::singleShot(10, &clMainT, SLOT(runCmdParser()));
+   QTimer::singleShot(10, &clMainT, SLOT(runCommandParser()));
 
    clAppT.exec();
 }
@@ -119,7 +117,7 @@ QCanDump::QCanDump(QObject *parent) :
    //---------------------------------------------------------------------------------------------------
    // get the instance of the main application
    //
-   pclAppP = QCoreApplication::instance();
+   pclApplicationP = QCoreApplication::instance();
 
    
    //---------------------------------------------------------------------------------------------------
@@ -157,9 +155,8 @@ QCanDump::QCanDump(QObject *parent) :
    btQuitNeverP         = false;
    ulQuitTimeP          = 0;
    ulQuitCountP         = 0;
-   btIsWebConnectionP   = false;
 
-   pclNetworkSettingsP  = Q_NULLPTR;
+   pclNetworkSettingsP.clear();
 }
 
 
@@ -169,18 +166,26 @@ QCanDump::QCanDump(QObject *parent) :
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanDump::aboutToQuitApp()
 {
+   if (pclServerSettingsP.isNull() == false)
+   {
+      delete(pclServerSettingsP);
+   }
 
+   if (pclNetworkSettingsP.isNull() == false)
+   {
+      delete(pclNetworkSettingsP);
+   }
 }
 
 
 //--------------------------------------------------------------------------------------------------------------------//
 // QCanDump::onNetworkObjectReceived()                                                                                //
-// print details about CAN interface                                                                                  //
+// print details about CAN interface and connect to interface                                                         //
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanDump::onNetworkObjectReceived(const CAN_Channel_e teChannelV, QJsonObject clNetworkConfigV)
 {
-   // Q_UNUSED(clNetworkConfigV);
-   
+   Q_UNUSED (clNetworkConfigV);
+
    //---------------------------------------------------------------------------------------------------
    // remove all signals from this class
    //
@@ -219,10 +224,15 @@ void QCanDump::onNetworkObjectReceived(const CAN_Channel_e teChannelV, QJsonObje
                  qPrintable(pclNetworkSettingsP->dataBitrateString())        );
       }
       fprintf(stdout, "--------------------------------------------------------------------------------\n");
+
+
+      //-------------------------------------------------------------------------------------------
+      // since this slot has been called, we can connect to the network
+      //
+      clCanSocketP.connectNetwork(teChannelP);
    }
 
 
-   clCanSocketP.connectNetwork(teChannelP);
 
 }
 
@@ -260,7 +270,7 @@ void QCanDump::onServerStateChanged(enum QCanServerSettings::State_e teStateV)
    bool btQuitProgramT = false;
 
    qDebug() << " QCanDump::onServerStateChanged()" << teStateV;
-   
+
    switch (teStateV)
    {
       case QCanServerSettings::eSTATE_CLOSED:
@@ -299,19 +309,6 @@ void QCanDump::onServerStateChanged(enum QCanServerSettings::State_e teStateV)
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanDump::onSocketConnected()
 {
-   qDebug() << "Connected to CAN " << teChannelP;
-   qDebug() << "Quit time" << ulQuitTimeP;
-
-   if (btIsWebConnectionP == false)
-   {
-
-   }
-   else
-   {
-      fprintf(stdout, "--------------------------------------------------------------------------------\n");
-      fprintf(stdout, "Connected to remote server\n");
-      fprintf(stdout, "--------------------------------------------------------------------------------\n");
-   }
 
    if ((btQuitNeverP == false) && (ulQuitTimeP > 0))
    {
@@ -329,8 +326,7 @@ void QCanDump::onSocketConnected()
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanDump::onSocketDisconnected()
 {
-   qDebug() << "Disconnected from CAN " << teChannelP;
-   
+      
 }
 
 
@@ -372,15 +368,18 @@ void QCanDump::onSocketReceive(void)
    {
       if (clCanSocketP.read(clCanFrameT) == true)
       {
-         clCanStringT = clCanFrameT.toString(btTimeStampP);
-         fprintf(stdout, "%s\n", qPrintable(clCanStringT));
+         if (clFilterListP.filter(clCanFrameT) == false)
+         {
+            clCanStringT = clCanFrameT.toString(btTimeStampP);
+            fprintf(stdout, "%s\n", qPrintable(clCanStringT));
+            ulQuitCountP--;
+            if (ulQuitCountP == 0)
+            {
+               quit();
+            }
+         }
       }
       slFrameCountT--;
-      ulQuitCountP--;
-      if(ulQuitCountP == 0)
-      {
-         quit();
-      }
    }
 }
 
@@ -405,27 +404,27 @@ void QCanDump::quit()
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// QCanDump::runCmdParser()                                                                                           //
+// QCanDump::runCommandParser()                                                                                       //
 // 10ms after the application starts this method will parse all commands                                              //
 //--------------------------------------------------------------------------------------------------------------------//
-void QCanDump::runCmdParser()
+void QCanDump::runCommandParser()
 {
    //---------------------------------------------------------------------------------------------------
    // setup command line parser, options are added in alphabetical order
    //
-   clCmdParserP.setApplicationDescription(tr("Show messages of CAN interface"));
+   clCommandParserP.setApplicationDescription(tr("Show messages of CAN interface"));
 
 
    //---------------------------------------------------------------------------------------------------
    // command line option: -h, --help
    //
-   clCmdParserP.addHelpOption();
+   clCommandParserP.addHelpOption();
 
    
    //---------------------------------------------------------------------------------------------------
    // argument <interface> is required
    //
-   clCmdParserP.addPositionalArgument("interface", 
+   clCommandParserP.addPositionalArgument("interface", 
                                       tr("CAN interface, e.g. can1"));
 
    //---------------------------------------------------------------------------------------------------
@@ -434,7 +433,7 @@ void QCanDump::runCmdParser()
    QCommandLineOption clOptHostT(QStringList() << "H" << "host",
          tr("Connect to <host>"),
          tr("host"));
-   clCmdParserP.addOption(clOptHostT);
+   clCommandParserP.addOption(clOptHostT);
 
    //---------------------------------------------------------------------------------------------------
    // command line option: --id-accept <Identifier list>
@@ -442,7 +441,7 @@ void QCanDump::runCmdParser()
    QCommandLineOption clOptIdAcceptT("id-accept",
          tr("Accept CAN frames with identifier <id>"),
          tr("id"));
-   clCmdParserP.addOption(clOptIdAcceptT);
+   clCommandParserP.addOption(clOptIdAcceptT);
 
    //---------------------------------------------------------------------------------------------------
    // command line option: --id-reject <Identifier list>
@@ -450,7 +449,7 @@ void QCanDump::runCmdParser()
    QCommandLineOption clOptIdRejectT("id-reject",
          tr("Reject CAN frames with identifier <id>"),
          tr("id"));
-   clCmdParserP.addOption(clOptIdRejectT);
+   clCommandParserP.addOption(clOptIdRejectT);
 
    //---------------------------------------------------------------------------------------------------
    // command line option: -n <count>
@@ -458,14 +457,14 @@ void QCanDump::runCmdParser()
    QCommandLineOption clOptCountT("n", 
          tr("Terminate after reception of <count> CAN frames"),
          tr("count"));
-   clCmdParserP.addOption(clOptCountT);
+   clCommandParserP.addOption(clOptCountT);
    
    //---------------------------------------------------------------------------------------------------
    // command line option: -t 
    //
    QCommandLineOption clOptTimeStampT(QStringList() << "t" << "timestamp",
          tr("Show time-stamp"));
-   clCmdParserP.addOption(clOptTimeStampT);
+   clCommandParserP.addOption(clOptTimeStampT);
 
    //---------------------------------------------------------------------------------------------------
    // command line option: -T 
@@ -474,24 +473,24 @@ void QCanDump::runCmdParser()
          tr("Terminate after <msec> without reception"),
          tr("msec"),
          "0");
-   clCmdParserP.addOption(clOptTimeOutT);
+   clCommandParserP.addOption(clOptTimeOutT);
 
    //---------------------------------------------------------------------------------------------------
    // command line option: -v, --version
    //
-   clCmdParserP.addVersionOption();
+   clCommandParserP.addVersionOption();
 
 
    //---------------------------------------------------------------------------------------------------
    // Process the actual command line arguments given by the user
    //
-   clCmdParserP.process(*pclAppP);
-   const QStringList clArgsT = clCmdParserP.positionalArguments();
+   clCommandParserP.process(*pclApplicationP);
+   const QStringList clArgsT = clCommandParserP.positionalArguments();
    if (clArgsT.size() != 1) 
    {
       fprintf(stderr, "%s\n", 
               qPrintable(tr("Error: Must specify CAN interface.\n")));
-      clCmdParserP.showHelp(0);
+      clCommandParserP.showHelp(0);
    }
 
    
@@ -499,12 +498,12 @@ void QCanDump::runCmdParser()
    // test format of argument <interface>
    //
    QString clInterfaceT = clArgsT.at(0);
-   if(!clInterfaceT.startsWith("can"))
+   if (!clInterfaceT.startsWith("can"))
    {
       fprintf(stderr, "%s %s\n", 
               qPrintable(tr("Error: Unknown CAN interface ")),
               qPrintable(clInterfaceT));
-      clCmdParserP.showHelp(0);
+      clCommandParserP.showHelp(0);
    }
    
    //---------------------------------------------------------------------------------------------------
@@ -513,12 +512,12 @@ void QCanDump::runCmdParser()
    QString clIfNumT = clInterfaceT.right(clInterfaceT.size() - 3);
    bool btConversionSuccessT;
    int32_t slChannelT = clIfNumT.toInt(&btConversionSuccessT, 10);
-   if((btConversionSuccessT == false) ||
-      (slChannelT == 0) )
+   if ((btConversionSuccessT == false) ||
+       (slChannelT == 0) )
    {
       fprintf(stderr, "%s \n\n", 
               qPrintable(tr("Error: CAN interface out of range")));
-      clCmdParserP.showHelp(0);
+      clCommandParserP.showHelp(0);
    }
    
    //---------------------------------------------------------------------------------------------------
@@ -526,42 +525,52 @@ void QCanDump::runCmdParser()
    //
    teChannelP = (CAN_Channel_e) (slChannelT);
 
+   //---------------------------------------------------------------------------------------------------
+   // set host address for socket
+   //
+   if (clCommandParserP.isSet(clOptHostT))
+   {
+      clHostAddressP = QHostAddress(clCommandParserP.value(clOptHostT));
+   }
+   else
+   {
+      clHostAddressP.setAddress(QHostAddress::LocalHost);
+   }
+   
+
+   //---------------------------------------------------------------------------------------------------
+   // check for valid server host address
+   //
+   if (clHostAddressP.isNull())
+   {
+      fprintf(stdout, "No valid address for CANpie FD Server\n");
+      quit();
+   }
    
    //---------------------------------------------------------------------------------------------------
    // check for time-stamp
    //
-   btTimeStampP = clCmdParserP.isSet(clOptTimeStampT);
+   btTimeStampP = clCommandParserP.isSet(clOptTimeStampT);
 
    //---------------------------------------------------------------------------------------------------
    // check for termination options
    //
    btQuitNeverP = true;
-   ulQuitCountP = clCmdParserP.value(clOptCountT).toInt(Q_NULLPTR, 10);    
-   ulQuitTimeP  = clCmdParserP.value(clOptTimeOutT).toInt(Q_NULLPTR, 10);      
+   ulQuitCountP = clCommandParserP.value(clOptCountT).toInt(Q_NULLPTR, 10);    
+   ulQuitTimeP  = clCommandParserP.value(clOptTimeOutT).toInt(Q_NULLPTR, 10);      
    if ((ulQuitCountP > 0) || (ulQuitTimeP > 0))
    {
       btQuitNeverP = false; 
    }
    
    
-   //---------------------------------------------------------------------------------------------------
-   // set host address for socket
-   //
-   if (clCmdParserP.isSet(clOptHostT))
-   {
-      QHostAddress clAddressT = QHostAddress(clCmdParserP.value(clOptHostT));
-      clCanSocketP.setHostAddress(clAddressT);
-      btIsWebConnectionP = true;
-   }
 
    //---------------------------------------------------------------------------------------------------
    // check for filter (reject)
    //
-   QCanFilterList clFilterListT;
-
-   if (clCmdParserP.isSet(clOptIdRejectT))
+   if (clCommandParserP.isSet(clOptIdRejectT))
    {
-      QStringList clRejectIdsT = clCmdParserP.values(clOptIdRejectT);
+      QStringList clRejectIdsT = clCommandParserP.values(clOptIdRejectT);
 
       QCanFilter clFilterRejectT;
       for (int32_t slRejectNumT = 0; slRejectNumT < clRejectIdsT.size(); slRejectNumT++)
@@ -570,7 +579,7 @@ void QCanDump::runCmdParser()
                                      clRejectIdsT.at(slRejectNumT).toInt(Q_NULLPTR, 16),
                                      clRejectIdsT.at(slRejectNumT).toInt(Q_NULLPTR, 16));
 
-         clFilterListT.appendFilter(clFilterRejectT);
+         clFilterListP.appendFilter(clFilterRejectT);
       }
 
    }
@@ -579,10 +588,9 @@ void QCanDump::runCmdParser()
    //---------------------------------------------------------------------------------------------------
    // check for filter (accept)
    //
-
-   if (clCmdParserP.isSet(clOptIdAcceptT))
+   if (clCommandParserP.isSet(clOptIdAcceptT))
    {
-      QStringList clAcceptIdsT = clCmdParserP.values(clOptIdAcceptT);
+      QStringList clAcceptIdsT = clCommandParserP.values(clOptIdAcceptT);
 
       QCanFilter clFilterAcceptT;
       for (int32_t slAcceptNumT = 0; slAcceptNumT < clAcceptIdsT.size(); slAcceptNumT++)
@@ -591,20 +599,11 @@ void QCanDump::runCmdParser()
                clAcceptIdsT.at(slAcceptNumT).toInt(Q_NULLPTR, 16),
                clAcceptIdsT.at(slAcceptNumT).toInt(Q_NULLPTR, 16));
 
-         clFilterListT.appendFilter(clFilterAcceptT);
+         clFilterListP.appendFilter(clFilterAcceptT);
       }
 
    }
    
-
-   //---------------------------------------------------------------------------------------------------
-   // add filter list
-   //
-   if (!clFilterListT.isEmpty())
-   {
-      // clCanSocketP.setFilterList(clFilterListT);
-   }
-
    //---------------------------------------------------------------------------------------------------
    // connect to QCanServer class (i.e. CANpie FD Server)
    //
