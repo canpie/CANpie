@@ -108,8 +108,7 @@
 ** \ingroup QCAN_IF
 ** \brief   Support error frames
 **
-** The bit-mask value defines if error frames are supported by
-** a CAN interface.
+** The bit-mask value defines if error frames are supported by a CAN interface.
 */
 #define  QCAN_IF_SUPPORT_ERROR_FRAMES     ((uint32_t) (0x00000001))
 
@@ -120,8 +119,7 @@
 ** \ingroup QCAN_IF
 ** \brief   Support listen-only mode
 **
-** The bit-mask value defines if the listen-only mode is supported by
-** a CAN interface.
+** The bit-mask value defines if the listen-only mode is supported by a CAN interface.
 */
 #define  QCAN_IF_SUPPORT_LISTEN_ONLY      ((uint32_t) (0x00000002))
 
@@ -132,8 +130,7 @@
 ** \ingroup QCAN_IF
 ** \brief   Support CAN FD
 **
-** The bit-mask value defines if CAN FD is supported by
-** a CAN interface.
+** The bit-mask value defines if CAN FD is supported by a CAN interface.
 */
 #define  QCAN_IF_SUPPORT_CAN_FD           ((uint32_t) (0x00000004))
 
@@ -143,10 +140,39 @@
 ** \ingroup QCAN_IF
 ** \brief   Support device specific configuration
 **
-** The bit-mask value defines if CAN interface supports
-** device specific configuration.
+** The bit-mask value defines if CAN interface supports device specific configuration.
 */
 #define  QCAN_IF_SUPPORT_SPECIFIC_CONFIG  ((uint32_t) (0x00000008))
 
 #define  QCAN_IF_SUPPORT_MASK             ((uint32_t) (0x0000000F))
+
+
+//------------------------------------------------------------------------------------------------------
+/*!
+** \def     QCAN_VERSION_MAJOR
+** \ingroup QCAN_VERSION
+**
+** This symbol defines the major version number.
+*/
+#define  QCAN_VERSION_MAJOR                 0
+
+//------------------------------------------------------------------------------------------------------
+/*!
+** \def     QCAN_VERSION_MINOR
+** \ingroup QCAN_VERSION
+**
+** This symbol defines the minor version number.
+*/
+#define  QCAN_VERSION_MINOR                 99
+
+//------------------------------------------------------------------------------------------------------
+/*!
+** \def     QCAN_VERSION_BUILD
+** \ingroup QCAN_VERSION
+**
+** This symbol defines the build version number.
+*/
+#define  QCAN_VERSION_BUILD                 8
+
+
 #endif // QCAN_DEFS_HPP_
