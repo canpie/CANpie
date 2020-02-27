@@ -55,6 +55,22 @@
 #define  COMMAND_FLAG_SHOW_ALL      ((uint32_t) 0x00000100)
 #define  COMMAND_FLAG_SHOW_VERBOSE  ((uint32_t) 0x00000200)
 
+//------------------------------------------------------------------------------------------------------
+// Version information is controller via qmake project file, the following defintions are only
+// placeholders
+//
+#ifndef  VERSION_MAJOR
+#define  VERSION_MAJOR                       1
+#endif
+
+#ifndef  VERSION_MINOR
+#define  VERSION_MINOR                       0
+#endif
+
+#ifndef  VERSION_BUILD
+#define  VERSION_BUILD                       0
+#endif
+
 
 //--------------------------------------------------------------------------------------------------------------------//
 // main()                                                                                                             //
@@ -84,20 +100,18 @@ int main(int argc, char *argv[])
 
    
    //---------------------------------------------------------------------------------------------------
-   // connect the signals
+   // connect the signals between QCoreApplication and the main class 
    //
-   QObject::connect(&clMainT, SIGNAL(finished()),
-                    &clAppT, SLOT(quit()));
+   QObject::connect(&clMainT, &QCanConfig::finished, &clAppT,  &QCoreApplication::quit);
    
-   QObject::connect(&clAppT, SIGNAL(aboutToQuit()),
-                    &clMainT, SLOT(aboutToQuitApp()));
+   QObject::connect(&clAppT,  &QCoreApplication::aboutToQuit, &clMainT, &QCanConfig::aboutToQuitApp);
 
    
    //---------------------------------------------------------------------------------------------------
-   // This code will start the messaging engine in QT and in 10 ms  it will start the execution in the
-   // clMainT.runCmdParser() routine.
+   // This code will start the messaging engine in QT and in 10 ms it will start the execution of the
+   // clMainT.runCommandParser() routine.
    //
-   QTimer::singleShot(10, &clMainT, SLOT(runCmdParser()));
+   QTimer::singleShot(10, &clMainT, SLOT(runCommandParser()));
 
    clAppT.exec();
 }
@@ -113,7 +127,7 @@ QCanConfig::QCanConfig(QObject *parent) :
    //---------------------------------------------------------------------------------------------------
    // get the instance of the main application
    //
-   pclAppP = QCoreApplication::instance();
+   pclApplicationP = QCoreApplication::instance();
 
    //---------------------------------------------------------------------------------------------------
    // set default values
@@ -126,7 +140,7 @@ QCanConfig::QCanConfig(QObject *parent) :
    ulCommandFlagsP    = COMMAND_FLAG_NONE;
 
    //---------------------------------------------------------------------------------------------------
-   // connect QServerSettings object
+   // create QServerSettings object
    //
    connect(&clServerSettingsP, &QCanServerSettings::stateChanged, 
            this,               &QCanConfig::onServerStateChanged);
@@ -344,24 +358,24 @@ void QCanConfig::quit()
 // QCanConfig::runCmdParser()                                                                                         //
 // 10ms after the application starts this method will parse all commands                                              //
 //--------------------------------------------------------------------------------------------------------------------//
-void QCanConfig::runCmdParser(void)
+void QCanConfig::runCommandParser(void)
 {
    //---------------------------------------------------------------------------------------------------
    // setup command line parser, options are added in alphabetical order
    //
-   clCmdParserP.setApplicationDescription(tr("Configure CAN interface"));
+   clCommandParserP.setApplicationDescription(tr("Configure CAN interface"));
 
 
    //---------------------------------------------------------------------------------------------------
    // command line option: -h, --help
    //
-   clCmdParserP.addHelpOption();
+   clCommandParserP.addHelpOption();
    
   
    //---------------------------------------------------------------------------------------------------
    // argument <interface> is required
    //
-   clCmdParserP.addPositionalArgument("interface", 
+   clCommandParserP.addPositionalArgument("interface", 
                                       tr("CAN interface, e.g. can1"));
 
 
@@ -371,7 +385,7 @@ void QCanConfig::runCmdParser(void)
    QCommandLineOption clOptHostT(QStringList() << "H" << "host",
          tr("Connect to <host>"),
          tr("host"));
-   clCmdParserP.addOption(clOptHostT);
+   clCommandParserP.addOption(clOptHostT);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -379,7 +393,7 @@ void QCanConfig::runCmdParser(void)
    //
    QCommandLineOption clOptAllT(QStringList() << "a" << "all", 
          tr("Show all CAN interfaces"));
-   clCmdParserP.addOption(clOptAllT);
+   clCommandParserP.addOption(clOptAllT);
    
    
    //---------------------------------------------------------------------------------------------------
@@ -388,7 +402,7 @@ void QCanConfig::runCmdParser(void)
    QCommandLineOption clOptDatBtrT("btr-data",
          tr("Set data bit-rate"),
          tr("value"));
-   clCmdParserP.addOption(clOptDatBtrT);
+   clCommandParserP.addOption(clOptDatBtrT);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -397,7 +411,7 @@ void QCanConfig::runCmdParser(void)
    QCommandLineOption clOptNomBtrT("btr-nominal",
          tr("Set nominal bit-rate"),
          tr("value"));
-   clCmdParserP.addOption(clOptNomBtrT);
+   clCommandParserP.addOption(clOptNomBtrT);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -406,7 +420,7 @@ void QCanConfig::runCmdParser(void)
    QCommandLineOption clOptModeT(QStringList() << "m" << "mode", 
          tr("Set mode of CAN interface"),
          tr("start|stop|listen-only"));
-   clCmdParserP.addOption(clOptModeT);
+   clCommandParserP.addOption(clOptModeT);
    
    
    //---------------------------------------------------------------------------------------------------
@@ -414,33 +428,33 @@ void QCanConfig::runCmdParser(void)
    //
    QCommandLineOption clOptResetT(QStringList() << "r" << "reset",
          tr("Reset CAN interface"));
-   clCmdParserP.addOption(clOptResetT);
+   clCommandParserP.addOption(clOptResetT);
 
    //---------------------------------------------------------------------------------------------------
    // command line option: --verbose
    //
    QCommandLineOption clOptVerboseT("verbose",
          tr("Show more details"));
-   clCmdParserP.addOption(clOptVerboseT);
+   clCommandParserP.addOption(clOptVerboseT);
 
    
    //---------------------------------------------------------------------------------------------------
    // command line option: -v, --version
    //
-   clCmdParserP.addVersionOption();
+   clCommandParserP.addVersionOption();
 
 
    //---------------------------------------------------------------------------------------------------
    // Process the actual command line arguments given by the user
    //
-   clCmdParserP.process(*pclAppP);
+   clCommandParserP.process(*pclApplicationP);
    
    //---------------------------------------------------------------------------------------------------
    // set host address for socket
    //
-   if (clCmdParserP.isSet(clOptHostT))
+   if (clCommandParserP.isSet(clOptHostT))
    {
-      clHostAddressP = QHostAddress(clCmdParserP.value(clOptHostT));
+      clHostAddressP = QHostAddress(clCommandParserP.value(clOptHostT));
    }
    else
    {
@@ -457,10 +471,10 @@ void QCanConfig::runCmdParser(void)
       quit();
    }
 
-   //---------------------------------------------------------------------------------------------------
+   //----------------------------------------------ping wol-----------------------------------------------------
    // test for verbose option set
    //
-   if (clCmdParserP.isSet(clOptVerboseT))
+   if (clCommandParserP.isSet(clOptVerboseT))
    {
       ulCommandFlagsP |= COMMAND_FLAG_SHOW_VERBOSE;
    }
@@ -468,7 +482,7 @@ void QCanConfig::runCmdParser(void)
    //---------------------------------------------------------------------------------------------------
    // Test for --all option
    //
-   if (clCmdParserP.isSet(clOptAllT))
+   if (clCommandParserP.isSet(clOptAllT))
    {
       //-------------------------------------------------------------------------------------------
       // start with first channel
@@ -480,12 +494,12 @@ void QCanConfig::runCmdParser(void)
       return;
    }
    
-   const QStringList clArgsT = clCmdParserP.positionalArguments();
+   const QStringList clArgsT = clCommandParserP.positionalArguments();
    if (clArgsT.size() != 1) 
    {
       fprintf(stdout, "%s\n",
               qPrintable(tr("Error: Must specify CAN interface.\n")));
-      clCmdParserP.showHelp(0);
+      clCommandParserP.showHelp(0);
    }
 
    
@@ -498,7 +512,7 @@ void QCanConfig::runCmdParser(void)
       fprintf(stderr, "%s %s\n", 
               qPrintable(tr("Error: Unknown CAN interface ")),
               qPrintable(clInterfaceT));
-      clCmdParserP.showHelp(0);
+      clCommandParserP.showHelp(0);
    }
    
    //---------------------------------------------------------------------------------------------------
@@ -512,7 +526,7 @@ void QCanConfig::runCmdParser(void)
    {
       fprintf(stderr, "%s \n\n", 
               qPrintable(tr("Error: CAN interface out of range")));
-      clCmdParserP.showHelp(0);
+      clCommandParserP.showHelp(0);
    }
    
    //---------------------------------------------------------------------------------------------------
@@ -527,42 +541,42 @@ void QCanConfig::runCmdParser(void)
    slNomBitRateP = eCAN_BITRATE_NONE;
    slDatBitRateP = eCAN_BITRATE_NONE;
    
-   if (clCmdParserP.isSet(clOptNomBtrT))
+   if (clCommandParserP.isSet(clOptNomBtrT))
    {
-      slNomBitRateP  = clCmdParserP.value(clOptNomBtrT).toInt(Q_NULLPTR, 10);    
+      slNomBitRateP  = clCommandParserP.value(clOptNomBtrT).toInt(Q_NULLPTR, 10);    
       ulCommandFlagsP |= COMMAND_FLAG_SET_BITRATE;
    }
    
-   if (clCmdParserP.isSet(clOptDatBtrT))
+   if (clCommandParserP.isSet(clOptDatBtrT))
    {
       if (slNomBitRateP == eCAN_BITRATE_NONE)
       {
          fprintf(stderr, "%s \n\n", 
                  qPrintable(tr("Error: Must set nominal bit-rate also")));
-         clCmdParserP.showHelp(0);         
+         clCommandParserP.showHelp(0);         
       }
       else
       {
-         slDatBitRateP  = clCmdParserP.value(clOptDatBtrT).toInt(Q_NULLPTR, 10);
+         slDatBitRateP  = clCommandParserP.value(clOptDatBtrT).toInt(Q_NULLPTR, 10);
       }
    }
    
    //---------------------------------------------------------------------------------------------------
    // Check the "mode" option
    //
-   if (clCmdParserP.value(clOptModeT).contains("start", Qt::CaseInsensitive))
+   if (clCommandParserP.value(clOptModeT).contains("start", Qt::CaseInsensitive))
    {
       teCanModeP = eCAN_MODE_OPERATION;
       ulCommandFlagsP |= COMMAND_FLAG_SET_MODE;
    }
 
-   if (clCmdParserP.value(clOptModeT).contains("stop", Qt::CaseInsensitive))
+   if (clCommandParserP.value(clOptModeT).contains("stop", Qt::CaseInsensitive))
    {
       teCanModeP = eCAN_MODE_INIT;
       ulCommandFlagsP |= COMMAND_FLAG_SET_MODE;
    }
 
-   if (clCmdParserP.value(clOptModeT).contains("listen-only", Qt::CaseInsensitive))
+   if (clCommandParserP.value(clOptModeT).contains("listen-only", Qt::CaseInsensitive))
    {
       teCanModeP = eCAN_MODE_LISTEN_ONLY;
       ulCommandFlagsP |= COMMAND_FLAG_SET_MODE;
@@ -571,7 +585,7 @@ void QCanConfig::runCmdParser(void)
    //---------------------------------------------------------------------------------------------------
    // test for reset CAN interface option set
    //
-   if (clCmdParserP.isSet(clOptResetT))
+   if (clCommandParserP.isSet(clOptResetT))
    {
       ulCommandFlagsP |= COMMAND_FLAG_RESET;
    }

@@ -136,27 +136,24 @@ QCanDump::QCanDump(QObject *parent) :
                      this, &QCanDump::onSocketReceive);
 
    //---------------------------------------------------------------------------------------------------
-   // create QServerSettings object
+   // connect QServerSettings object
    //
-   pclServerSettingsP = new QCanServerSettings();
-
-   connect(pclServerSettingsP, &QCanServerSettings::stateChanged, 
+   connect(&clServerSettingsP, &QCanServerSettings::stateChanged, 
            this,               &QCanDump::onServerStateChanged);
 
-   connect(pclServerSettingsP, &QCanServerSettings::objectReceived, 
+   connect(&clServerSettingsP, &QCanServerSettings::objectReceived, 
            this,               &QCanDump::onServerObjectReceived);
 
    //---------------------------------------------------------------------------------------------------
    // set default values
    //
-   teChannelP           = eCAN_CHANNEL_NONE;
+   teCanChannelP        = eCAN_CHANNEL_NONE;
    btTimeStampP         = false;
    btErrorFramesP       = false;
    btQuitNeverP         = false;
    ulQuitTimeP          = 0;
    ulQuitCountP         = 0;
 
-   pclNetworkSettingsP.clear();
 }
 
 
@@ -166,15 +163,7 @@ QCanDump::QCanDump(QObject *parent) :
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanDump::aboutToQuitApp()
 {
-   if (pclServerSettingsP.isNull() == false)
-   {
-      delete(pclServerSettingsP);
-   }
 
-   if (pclNetworkSettingsP.isNull() == false)
-   {
-      delete(pclNetworkSettingsP);
-   }
 }
 
 
@@ -189,10 +178,10 @@ void QCanDump::onNetworkObjectReceived(const CAN_Channel_e teChannelV, QJsonObje
    //---------------------------------------------------------------------------------------------------
    // remove all signals from this class
    //
-   disconnect(pclNetworkSettingsP);
+   disconnect(&clNetworkSettingsP);
 
 
-   if (teChannelV == teChannelP)
+   if (teChannelV == teCanChannelP)
    {
       fprintf(stdout, "--------------------------------------------------------------------------------\n");
 
@@ -200,28 +189,28 @@ void QCanDump::onNetworkObjectReceived(const CAN_Channel_e teChannelV, QJsonObje
       // network name
       //
       fprintf(stdout, "CAN %d         : %s \n", teChannelV,
-              qPrintable(pclNetworkSettingsP->name()) );
+              qPrintable(clNetworkSettingsP.name()) );
 
 
       //-------------------------------------------------------------------------------------------
       // network state
       //
       fprintf(stdout, "CAN state     : %s \n",
-              qPrintable(pclNetworkSettingsP->stateString()) );
+              qPrintable(clNetworkSettingsP.stateString()) );
 
       //-------------------------------------------------------------------------------------------
       // bit-rate settings
       //
-      if (pclNetworkSettingsP->dataBitrate() == eCAN_BITRATE_NONE)
+      if (clNetworkSettingsP.dataBitrate() == eCAN_BITRATE_NONE)
       {
          fprintf(stdout, "Bit-rate      : %s \n",
-                 qPrintable(pclNetworkSettingsP->nominalBitrateString()) );
+                 qPrintable(clNetworkSettingsP.nominalBitrateString()) );
       }
       else
       {
          fprintf(stdout, "Bit-rate      : %s (nominal), %s (data) \n",
-                 qPrintable(pclNetworkSettingsP->nominalBitrateString()),
-                 qPrintable(pclNetworkSettingsP->dataBitrateString())        );
+                 qPrintable(clNetworkSettingsP.nominalBitrateString()),
+                 qPrintable(clNetworkSettingsP.dataBitrateString())        );
       }
       fprintf(stdout, "--------------------------------------------------------------------------------\n");
 
@@ -229,10 +218,8 @@ void QCanDump::onNetworkObjectReceived(const CAN_Channel_e teChannelV, QJsonObje
       //-------------------------------------------------------------------------------------------
       // since this slot has been called, we can connect to the network
       //
-      clCanSocketP.connectNetwork(teChannelP);
+      clCanSocketP.connectNetwork(teCanChannelP);
    }
-
-
 
 }
 
@@ -247,15 +234,15 @@ void QCanDump::onServerObjectReceived(QJsonObject clServerConfigV)
 
    fprintf( stdout, "%s %d.%02d.%02d \n",
             qPrintable(tr("Connected to CANpie FD server, version:")),
-            pclServerSettingsP->versionMajor(),
-            pclServerSettingsP->versionMinor(),
-            pclServerSettingsP->versionBuild() );
+            clServerSettingsP.versionMajor(),
+            clServerSettingsP.versionMinor(),
+            clServerSettingsP.versionBuild() );
 
-   pclNetworkSettingsP = new QCanNetworkSettings(teChannelP);
-   pclNetworkSettingsP->connectToServer();
+   clNetworkSettingsP.setChannel(teCanChannelP);
+   clNetworkSettingsP.connectToServer();
 
-   connect(pclNetworkSettingsP, &QCanNetworkSettings::objectReceived, 
-           this,               &QCanDump::onNetworkObjectReceived);
+   connect(&clNetworkSettingsP, &QCanNetworkSettings::objectReceived, 
+           this,                &QCanDump::onNetworkObjectReceived);
 
 
 }
@@ -274,17 +261,17 @@ void QCanDump::onServerStateChanged(enum QCanServerSettings::State_e teStateV)
    switch (teStateV)
    {
       case QCanServerSettings::eSTATE_CLOSED:
-         fprintf(stdout, "CANpie FD server %s \n", qPrintable(pclServerSettingsP->stateString()));
+         fprintf(stdout, "CANpie FD server %s \n", qPrintable(clServerSettingsP.stateString()));
          btQuitProgramT = true;
          break;
 
       case QCanServerSettings::eSTATE_UNKNOWN:
-         fprintf(stdout, "CANpie FD server %s \n", qPrintable(pclServerSettingsP->stateString()));
+         fprintf(stdout, "CANpie FD server %s \n", qPrintable(clServerSettingsP.stateString()));
          btQuitProgramT = true;
          break;
 
       case QCanServerSettings::eSTATE_INACTIVE:
-         fprintf(stdout, "CANpie FD server %s \n", qPrintable(pclServerSettingsP->stateString()));
+         fprintf(stdout, "CANpie FD server %s \n", qPrintable(clServerSettingsP.stateString()));
          btQuitProgramT = true;
          break;
 
@@ -358,6 +345,8 @@ void QCanDump::onSocketReceive(void)
    QString        clCanStringT;
    int32_t        slFrameCountT = 0;
 
+   qDebug() << "QCanDump::onSocketReceive()";
+   
    if ((btQuitNeverP == false) && (ulQuitTimeP > 0))
    {
       clActivityTimerP.start(ulQuitTimeP);
@@ -523,7 +512,7 @@ void QCanDump::runCommandParser()
    //---------------------------------------------------------------------------------------------------
    // store CAN interface channel (CAN_Channel_e)
    //
-   teChannelP = (CAN_Channel_e) (slChannelT);
+   teCanChannelP = (CAN_Channel_e) (slChannelT);
 
    //---------------------------------------------------------------------------------------------------
    // set host address for socket
@@ -607,6 +596,6 @@ void QCanDump::runCommandParser()
    //---------------------------------------------------------------------------------------------------
    // connect to QCanServer class (i.e. CANpie FD Server)
    //
-   pclServerSettingsP->connectToServer();
+   clServerSettingsP.connectToServer();
 
 }

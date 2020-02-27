@@ -58,19 +58,20 @@ class QCanConfig : public QObject
 public:
    QCanConfig(QObject *parent = 0);
 
+public slots:
+   void  aboutToQuitApp(void);
+
 signals:
    void finished();
 
 private slots:
-   void  aboutToQuitApp(void);
-
    void  execCommand(void);
 
    void  onNetworkObjectReceived(const CAN_Channel_e teChannelV, QJsonObject clNetworkConfigV);
    void  onServerObjectReceived(QJsonObject clServerConfigV);
    void  onServerStateChanged(enum QCanServerSettings::State_e teStateV);
    
-   void  runCmdParser(void);
+   void  runCommandParser(void);
 
    void  quit(void);
 
@@ -80,20 +81,35 @@ private:
    void  showNetworkStatistics(void);
    void  showServerSettings(void);
 
-   QCoreApplication *   pclAppP;
+   QPointer<QCoreApplication>    pclApplicationP;
 
-   QCommandLineParser   clCmdParserP;
-   QCanNetworkSettings  clNetworkSettingsP;
-   QCanServerSettings   clServerSettingsP;
-   QHostAddress         clHostAddressP;
+   //----------------------------------------------------------------------------------------------
+   // Command line parser
+   //
+   QCommandLineParser            clCommandParserP;
 
-   CAN_Channel_e        teCanChannelP;
+   //----------------------------------------------------------------------------------------------
+   // Retrieve information from CANpie FD server and selected network
+   //
+   QCanNetworkSettings           clNetworkSettingsP;
+   QCanServerSettings            clServerSettingsP;
+
+   //----------------------------------------------------------------------------------------------
+   // Host address of CANpie FD server, set with -H option
+   //
+   QHostAddress                  clHostAddressP;
+
+
+   //----------------------------------------------------------------------------------------------
+   // Number of selected CAN channel
+   //
+   CAN_Channel_e                 teCanChannelP;
    
-   int32_t              slNomBitRateP;
-   int32_t              slDatBitRateP;
-   CAN_Mode_e           teCanModeP;
+   int32_t                       slNomBitRateP;
+   int32_t                       slDatBitRateP;
+   CAN_Mode_e                    teCanModeP;
 
-   uint32_t             ulCommandFlagsP;
+   uint32_t                      ulCommandFlagsP;
 
 };
 

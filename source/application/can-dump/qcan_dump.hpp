@@ -99,8 +99,8 @@ private:
    //----------------------------------------------------------------------------------------------
    // Retrieve information from CANpie FD server and selected network
    //
-   QPointer<QCanNetworkSettings> pclNetworkSettingsP;
-   QPointer<QCanServerSettings>  pclServerSettingsP;
+   QCanNetworkSettings           clNetworkSettingsP;
+   QCanServerSettings            clServerSettingsP;
 
    //----------------------------------------------------------------------------------------------
    // Host address of CANpie FD server, set with -H option
@@ -115,7 +115,7 @@ private:
    //----------------------------------------------------------------------------------------------
    // Number of selected CAN channel
    //
-   CAN_Channel_e                 teChannelP;
+   CAN_Channel_e                 teCanChannelP;
    
    //----------------------------------------------------------------------------------------------
    // CAN frame filter list
