@@ -78,7 +78,7 @@ CONFIG += silent
 #
 VERSION_MAJOR = 0
 VERSION_MINOR = 99
-VERSION_BUILD = 1
+VERSION_BUILD = 2
 
 
 #---------------------------------------------------------------
