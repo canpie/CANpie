@@ -1,7 +1,7 @@
 /objs/
 /.DS_Store
 /.qmake.stash
-/include
+/include/PCANBasic.h
 /debug
 /objs
 /release
