@@ -467,7 +467,7 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::read(QCanFrame &clFrameR)
 
 //--------------------------------------------------------------------------------------------------------------------//
 // QCanInterfacePeak::readFrame()                                                                                     //
-// Read classical CAN frame form Peak interface                                                                       //
+// Read classical CAN frame from Peak interface                                                                       //
 //--------------------------------------------------------------------------------------------------------------------//
 QCanInterface::InterfaceError_e  QCanInterfacePeak::readFrame(QCanFrame &clFrameR)
 {
@@ -482,8 +482,7 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFrame(QCanFrame &clFrame
    //---------------------------------------------------------------------------------------------------
    // get next message from FIFO
    //
-   ulStatusT = pclPcanBasicP.pfnCAN_ReadP(uwPCanChannelP, &tsCanMsgT,
-                                          &tsCanTimeStampT);
+   ulStatusT = pclPcanBasicP.pfnCAN_ReadP(uwPCanChannelP, &tsCanMsgT, &tsCanTimeStampT);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -491,13 +490,13 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFrame(QCanFrame &clFrame
    //
    if (ulStatusT == PCAN_ERROR_OK)
    {
-      //--------------------------------------------------------------------------------------
+      //-------------------------------------------------------------------------------------------
       // handle data depending on type
       //
-      if((tsCanMsgT.MSGTYPE & PCAN_MESSAGE_STATUS) > 0)
+      if ((tsCanMsgT.MSGTYPE & PCAN_MESSAGE_STATUS) > 0)
       {
 
-         //------------------------------------------------------------------------------
+         //-----------------------------------------------------------------------------------
          // this is a status message, which is in fact a status of CAN error state
          //
          switch (tsCanMsgT.DATA[3])
@@ -524,92 +523,100 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFrame(QCanFrame &clFrame
 
 
          }
+         emit addLogMessage("PCAN message - PCAN_MESSAGE_STATUS   : status byte = " +
+                            QString("0x%1").arg(tsCanMsgT.DATA[3], 2, 16, QLatin1Char('0')), eLOG_LEVEL_TRACE);
          clRetValueT = eERROR_FIFO_RCV_EMPTY;
+         return (clRetValueT);
       }
-      else if ((tsCanMsgT.MSGTYPE & PCAN_MESSAGE_ERRFRAME) > 0)
+
+      //--------------------------------------------------------------------------------------
+      // this is a (undocumented) error frame message
+      //
+      if ((tsCanMsgT.MSGTYPE & PCAN_MESSAGE_ERRFRAME) > 0)
       {
-         emit addLogMessage("Error frame", eLOG_LEVEL_INFO);
+         emit addLogMessage("PCAN message - PCAN_MESSAGE_ERRFRAME ", eLOG_LEVEL_TRACE);
+         clRetValueT = eERROR_FIFO_RCV_EMPTY;
+         return (clRetValueT);
+      }
+
+      //--------------------------------------------------------------------------------------
+      // now handle all data frames
+      //--------------------------------------------------------------------------------------
+
+      //--------------------------------------------------------------------------------------
+      // Make sure that hte frame type is Test
+      //
+      if (clFrameR.frameType() == QCanFrame::eFRAME_TYPE_ERROR)
+      {
+         clFrameR.setFrameType(QCanFrame::eFRAME_TYPE_DATA);
+      }
+
+      //--------------------------------------------------------------------------------------
+      // Classical CAN frame with standard or extended identifier
+      //
+      if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_EXTENDED)
+      {
+         clFrameR.setFrameFormat(QCanFrame::eFORMAT_CAN_EXT);
       }
       else
       {
-         //------------------------------------------------------------------------------
-         // Make sure that hte frame type is Test
-         //
-         if (clFrameR.frameType() == QCanFrame::eFRAME_TYPE_ERROR)
-         {
-            clFrameR.setFrameType(QCanFrame::eFRAME_TYPE_DATA);
-         }
-
-         //------------------------------------------------------------------------------
-         // Classical CAN frame with standard or extended identifier
-         //
-         if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_EXTENDED)
-         {
-            clFrameR.setFrameFormat(QCanFrame::eFORMAT_CAN_EXT);
-         }
-         else
-         {
-            clFrameR.setFrameFormat(QCanFrame::eFORMAT_CAN_STD);
-         }
-            
-         //------------------------------------------------------------------------------
-         // Classical CAN remote frame
-         //
-         if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_RTR)
-         {
-            clFrameR.setRemote(true);
-         }
-         
-         //------------------------------------------------------------------------------
-         // copy the identifier
-         //
-         clFrameR.setIdentifier(tsCanMsgT.ID);
-
-         //------------------------------------------------------------------------------
-         // copy the DLC
-         //
-         clFrameR.setDlc(tsCanMsgT.LEN);
-
-         //------------------------------------------------------------------------------
-         // copy the data
-         //
-         for (ubCntT = 0; ubCntT < clFrameR.dataSize(); ubCntT++)
-         {
-            clFrameR.setData(ubCntT, tsCanMsgT.DATA[ubCntT]);
-         }
-
-         //------------------------------------------------------------------------------
-         // copy the time-stamp
-         // The value is a multiple of 1 us and has a total time span of 4294,9 secs
-         //
-         ulMicroSecsT = tsCanTimeStampT.millis * 1000;
-         ulMicroSecsT = ulMicroSecsT + tsCanTimeStampT.micros;
-         clTimeStampT.fromMicroSeconds(ulMicroSecsT);
-         
-         clFrameR.setTimeStamp(clTimeStampT);
-         
-         //------------------------------------------------------------------------------
-         // increase statistic counter
-         //
-         clStatisticP.ulRcvCount++;
-         
+         clFrameR.setFrameFormat(QCanFrame::eFORMAT_CAN_STD);
       }
+            
+      //--------------------------------------------------------------------------------------
+      // Classical CAN remote frame
+      //
+      if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_RTR)
+      {
+         clFrameR.setRemote(true);
+      }
+         
+      //--------------------------------------------------------------------------------------
+      // copy the identifier
+      //
+      clFrameR.setIdentifier(tsCanMsgT.ID);
+
+      //--------------------------------------------------------------------------------------
+      // copy the DLC
+      //
+      clFrameR.setDlc(tsCanMsgT.LEN);
+
+      //--------------------------------------------------------------------------------------
+      // copy the data
+      //
+      for (ubCntT = 0; ubCntT < clFrameR.dataSize(); ubCntT++)
+      {
+         clFrameR.setData(ubCntT, tsCanMsgT.DATA[ubCntT]);
+      }
+
+      //--------------------------------------------------------------------------------------
+      // copy the time-stamp
+      // The value is a multiple of 1 us and has a total time span of 4294,9 secs
+      //
+      ulMicroSecsT = tsCanTimeStampT.millis * 1000;
+      ulMicroSecsT = ulMicroSecsT + tsCanTimeStampT.micros;
+      clTimeStampT.fromMicroSeconds(ulMicroSecsT);
+         
+      clFrameR.setTimeStamp(clTimeStampT);
+         
+      //--------------------------------------------------------------------------------------
+      // increase statistic counter
+      //
+      clStatisticP.ulRcvCount++;
+         
    }
 
-   //---------------------------------------------------------------------------------------------------
+   //----------------------------------------------------------------------------------------------
    // test for bus error
    //
    else if ((ulStatusT & (TPCANStatus)PCAN_ERROR_ANYBUSERR) > 0)
    {
-
       setupErrorFrame(ulStatusT);
-      //--------------------------------------------------------
-      // copy the error frame to a byte array
-      //
-      //clDataR = clErrFrameT.toByteArray();
+      emit addLogMessage("PCAN status  - PCAN_ERROR_ANYBUSERR  ", eLOG_LEVEL_TRACE);
+      clRetValueT = eERROR_FIFO_RCV_EMPTY;
    }
 
-   //----------------------------------------------------------------
+   //----------------------------------------------------------------------------------------------
    // the receive queue is empty
    //
    else if (ulStatusT == PCAN_ERROR_QRCVEMPTY)
@@ -617,7 +624,7 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFrame(QCanFrame &clFrame
       clRetValueT = eERROR_FIFO_RCV_EMPTY;
    }
 
-   //----------------------------------------------------------------
+   //----------------------------------------------------------------------------------------------
    // some other error, e.g. hardware failed
    //
    else
@@ -1175,10 +1182,10 @@ void QCanInterfacePeak::setupErrorFrame(TPCANStatus ulStatusV)
 }
 
 
-//----------------------------------------------------------------------------//
-// statistic()                                                                //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// statistic()                                                                                                        //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 QCanInterface::InterfaceError_e	QCanInterfacePeak::statistic(QCanStatistic_ts &clStatisticR)
 {
    //! \todo
