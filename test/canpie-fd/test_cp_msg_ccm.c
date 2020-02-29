@@ -119,7 +119,7 @@ TEST(CP_MSG_CCM, 001)
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CBFF);
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetDlc(&tsCanMsgS));
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetIdentifier(&tsCanMsgS));
-   TEST_ASSERT_FALSE(CpMsgIsFastData(&tsCanMsgS));
+   TEST_ASSERT_FALSE(CpMsgIsFdFrame(&tsCanMsgS));
    TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
 
    //----------------------------------------------------------------
@@ -130,7 +130,7 @@ TEST(CP_MSG_CCM, 001)
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CBFF);
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetDlc(&tsCanMsgS));
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetIdentifier(&tsCanMsgS));
-   TEST_ASSERT_FALSE(CpMsgIsFastData(&tsCanMsgS));
+   TEST_ASSERT_FALSE(CpMsgIsFdFrame(&tsCanMsgS));
    TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
 
    //----------------------------------------------------------------
@@ -139,7 +139,7 @@ TEST(CP_MSG_CCM, 001)
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CEFF);
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetDlc(&tsCanMsgS));
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetIdentifier(&tsCanMsgS));
-   TEST_ASSERT_FALSE(CpMsgIsFastData(&tsCanMsgS));
+   TEST_ASSERT_FALSE(CpMsgIsFdFrame(&tsCanMsgS));
    TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
 
    //----------------------------------------------------------------
@@ -150,7 +150,7 @@ TEST(CP_MSG_CCM, 001)
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_CEFF);
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetDlc(&tsCanMsgS));
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetIdentifier(&tsCanMsgS));
-   TEST_ASSERT_FALSE(CpMsgIsFastData(&tsCanMsgS));
+   TEST_ASSERT_FALSE(CpMsgIsFdFrame(&tsCanMsgS));
    TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
    UnityPrint(" CP_MSG_CCM_001: PASSED");
    printf("\n");

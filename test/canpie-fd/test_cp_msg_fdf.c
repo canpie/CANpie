@@ -119,7 +119,7 @@ TEST(CP_MSG_FDF, 001)
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FBFF);
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetDlc(&tsCanMsgS));
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetIdentifier(&tsCanMsgS));
-   TEST_ASSERT_TRUE(CpMsgIsFastData(&tsCanMsgS));
+   TEST_ASSERT_TRUE(CpMsgIsFdFrame(&tsCanMsgS));
    TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
 
    //----------------------------------------------------------------
@@ -130,7 +130,7 @@ TEST(CP_MSG_FDF, 001)
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FBFF);
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetDlc(&tsCanMsgS));
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetIdentifier(&tsCanMsgS));
-   TEST_ASSERT_TRUE(CpMsgIsFastData(&tsCanMsgS));
+   TEST_ASSERT_TRUE(CpMsgIsFdFrame(&tsCanMsgS));
    TEST_ASSERT_FALSE(CpMsgIsExtended(&tsCanMsgS));
 
    //----------------------------------------------------------------
@@ -139,7 +139,7 @@ TEST(CP_MSG_FDF, 001)
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FEFF);
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetDlc(&tsCanMsgS));
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetIdentifier(&tsCanMsgS));
-   TEST_ASSERT_TRUE(CpMsgIsFastData(&tsCanMsgS));
+   TEST_ASSERT_TRUE(CpMsgIsFdFrame(&tsCanMsgS));
    TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
 
    //----------------------------------------------------------------
@@ -150,7 +150,7 @@ TEST(CP_MSG_FDF, 001)
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FEFF);
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetDlc(&tsCanMsgS));
    TEST_ASSERT_EQUAL_UINT8(0, CpMsgGetIdentifier(&tsCanMsgS));
-   TEST_ASSERT_TRUE(CpMsgIsFastData(&tsCanMsgS));
+   TEST_ASSERT_TRUE(CpMsgIsFdFrame(&tsCanMsgS));
    TEST_ASSERT_TRUE(CpMsgIsExtended(&tsCanMsgS));
    UnityPrint(" CP_MSG_FDF_001: PASSED");
    printf("\n");
@@ -379,26 +379,26 @@ TEST(CP_MSG_FDF, 006)
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FBFF);
    CpMsgSetBitrateSwitch(&tsCanMsgS);
-   TEST_ASSERT_TRUE(CpMsgIsBitrateSwitch(&tsCanMsgS));
+   TEST_ASSERT_TRUE(CpMsgIsBitrateSwitchSet(&tsCanMsgS));
 
    //----------------------------------------------------------------
    // @SubTest02
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FBFF);
-   TEST_ASSERT_FALSE(CpMsgIsBitrateSwitch(&tsCanMsgS));
+   TEST_ASSERT_FALSE(CpMsgIsBitrateSwitchSet(&tsCanMsgS));
 
    //----------------------------------------------------------------
    // @SubTest03
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FEFF);
    CpMsgSetBitrateSwitch(&tsCanMsgS);
-   TEST_ASSERT_TRUE(CpMsgIsBitrateSwitch(&tsCanMsgS));
+   TEST_ASSERT_TRUE(CpMsgIsBitrateSwitchSet(&tsCanMsgS));
 
    //----------------------------------------------------------------
    // @SubTest04
    //
    CpMsgInit(&tsCanMsgS, CP_MSG_FORMAT_FEFF);
-   TEST_ASSERT_FALSE(CpMsgIsBitrateSwitch(&tsCanMsgS));
+   TEST_ASSERT_FALSE(CpMsgIsBitrateSwitchSet(&tsCanMsgS));
    UnityPrint(" CP_MSG_FDF_006: PASSED");
    printf("\n");
 }
