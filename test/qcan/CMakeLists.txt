@@ -13,6 +13,7 @@ project(qcantest VERSION 0.99.02)
 # set general paths of the project
 #
 set(TEST_PATH   ${CMAKE_CURRENT_SOURCE_DIR})
+set(PROG_PATH   ${CMAKE_CURRENT_SOURCE_DIR}/../../bin)
 set(SOURCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../../source)
 set(CANPIE_PATH ${SOURCE_PATH}/canpie-fd)
 set(DEVICE_PATH ${SOURCE_PATH}/device/qcan)
@@ -69,7 +70,13 @@ add_executable(${PROJECT_NAME}
 )
 
 #-----------------------------------------------------------------------------------------------------------------------
-# link additional libs 
+# link Qt libs 
 #
 target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Network Qt5::WebSockets Qt5::Test)
 
+#-----------------------------------------------------------------------------------------------------------------------
+# copy program to bin directory 
+#
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E echo "Copy ${PROJECT_NAME} to ${PROG_PATH}"
+                   COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_NAME} ${PROG_PATH})
