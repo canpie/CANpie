@@ -69,8 +69,8 @@ int main(int argc, const char *argv[])
    //----------------------------------------------------------------
    // start unit tests
    //
-   UnityMain(argc, argv, RunAllTests);
+   int32_t slFailCountT = UnityMain(argc, argv, RunAllTests);
 
-   return 0;
+   return slFailCountT;
 
 }
