@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 3.16.4)
 
 message("Test cases for CANpie FD header files and sources")
 
+#-----------------------------------------------------------------------------------------------------------------------
+# prepare for testing
+#
+enable_testing()
+
 
 #-----------------------------------------------------------------------------------------------------------------------
 # define the project name and target file
@@ -75,10 +80,7 @@ add_executable(canpie_test_macro
     ${macro_sources}
 )
 
-#-----------------------------------------------------------------------------------------------------------------------
-# link Qt libs 
-#
-#target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Network Qt5::WebSockets Qt5::Test)
+add_test( cp_func canpie_test_function )
 
 #-----------------------------------------------------------------------------------------------------------------------
 # copy program to bin directory 
