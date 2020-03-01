@@ -9,8 +9,15 @@ MARK_AS_ADVANCED(SPLINT_EXECUTABLE)
 
 FUNCTION(add_splint TARGET)
     if(${SPLINT_FOUND})
-
-        set(SPLINT_FLAGS -f ${CMAKE_MODULE_PATH}/splint.rc)
+        if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+            set(SPLINT_FLAGS -D__GNUC__ -D__APPLE__ -f ${CMAKE_MODULE_PATH}/splint.rc)
+        elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+            set(SPLINT_FLAGS -D__GNUC__ -D__linux__ -f ${CMAKE_MODULE_PATH}/splint.rc)
+        elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+            set(SPLINT_FLAGS -D_MSC_VER -f ${CMAKE_MODULE_PATH}/splint.rc)
+        else()
+	        message(WARNING "I don't know how to configure splint for this platform.")
+        endif()
 
         get_directory_property(include_dirs INCLUDE_DIRECTORIES)
 
