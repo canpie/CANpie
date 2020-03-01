@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.16.4)
 
 message("Test cases for CANpie FD header files and sources")
 
+SET( CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake" ${CMAKE_MODULE_PATH})
+INCLUDE(AddSplint )
+
 #-----------------------------------------------------------------------------------------------------------------------
 # prepare for testing
 #
@@ -64,6 +67,8 @@ list(
 	${TEST_PATH}/unity_fixture.c
 	${TEST_PATH}/unity.c
 )
+
+add_splint(cp_test_function ${canpie_sources} ${device_sources})
 
 #----------------------------------------------------------------------------------------------------------------------- 
 # create binary from selected source files
