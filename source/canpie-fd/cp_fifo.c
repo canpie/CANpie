@@ -1,64 +1,56 @@
-//============================================================================//
-// File:          cp_fifo.c                                                   //
-// Description:   CANpie FIFO functions                                       //
-//                                                                            //
-// Copyright 2017 MicroControl GmbH & Co. KG                                  //
-// 53844 Troisdorf - Germany                                                  //
-// www.microcontrol.net                                                       //
-//                                                                            //
-//----------------------------------------------------------------------------//
-// Redistribution and use in source and binary forms, with or without         //
-// modification, are permitted provided that the following conditions         //
-// are met:                                                                   //
-// 1. Redistributions of source code must retain the above copyright          //
-//    notice, this list of conditions, the following disclaimer and           //
-//    the referenced file 'LICENSE'.                                          //
-// 2. Redistributions in binary form must reproduce the above copyright       //
-//    notice, this list of conditions and the following disclaimer in the     //
-//    documentation and/or other materials provided with the distribution.    //
-// 3. Neither the name of MicroControl nor the names of its contributors      //
-//    may be used to endorse or promote products derived from this software   //
-//    without specific prior written permission.                              //
-//                                                                            //
-// Licensed under the Apache License, Version 2.0 (the "License");            //
-// you may not use this file except in compliance with the License.           //
-// You may obtain a copy of the License at                                    //
-//                                                                            //
-//    http://www.apache.org/licenses/LICENSE-2.0                              //
-//                                                                            //
-// Unless required by applicable law or agreed to in writing, software        //
-// distributed under the License is distributed on an "AS IS" BASIS,          //
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   //
-// See the License for the specific language governing permissions and        //
-// limitations under the License.                                             //
-//============================================================================//
+//====================================================================================================================//
+// File:          cp_fifo.c                                                                                           //
+// Description:   CANpie FIFO functions                                                                               //
+//                                                                                                                    //
+// Copyright (C) MicroControl GmbH & Co. KG                                                                           //
+// 53844 Troisdorf - Germany                                                                                          //
+// www.microcontrol.net                                                                                               //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the   //
+// following conditions are met:                                                                                      //
+// 1. Redistributions of source code must retain the above copyright notice, this list of conditions, the following   //
+//    disclaimer and the referenced file 'LICENSE'.                                                                   //
+// 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the       //
+//    following disclaimer in the documentation and/or other materials provided with the distribution.                //
+// 3. Neither the name of MicroControl nor the names of its contributors may be used to endorse or promote products   //
+//    derived from this software without specific prior written permission.                                           //
+//                                                                                                                    //
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance     //
+// with the License. You may obtain a copy of the License at                                                          //
+//                                                                                                                    //
+//    http://www.apache.org/licenses/LICENSE-2.0                                                                      //
+//                                                                                                                    //
+// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed   //
+// on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for  //
+// the specific language governing permissions and limitations under the License.                                     //
+//                                                                                                                    //
+//====================================================================================================================//
 
 
 
-
-
-/*----------------------------------------------------------------------------*\
-** Includes                                                                   **
-**                                                                            **
-\*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Include files                                                                                                      **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
 
 #include "cp_fifo.h"
 
-/*----------------------------------------------------------------------------*\
-** Definitions                                                                **
-**                                                                            **
-\*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Definitions                                                                                                        **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
+
 #if   CP_FIFO_MACRO == 0
 
-//----------------------------------------------------------------------------//
-// CpFifoDataInPtr()                                                          //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// CpFifoDataInPtr()                                                                                                  //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 CPP_INLINE CpCanMsg_ts *CpFifoDataInPtr(CpFifo_ts *ptsFifoV)
 {
-   //----------------------------------------------------------------
-   // allow pointer arithmetic here, because index is limited
-   // by element ulIndexMax
+   //---------------------------------------------------------------------------------------------------
+   // allow pointer arithmetic here, because index is limited by element ulIndexMax
    //
    /*@ -ptrarith  -dependenttrans -usereleased -compdef           @*/
    return ((ptsFifoV->ptsCanMsg) + (ptsFifoV->ulIndexIn));
@@ -67,15 +59,14 @@ CPP_INLINE CpCanMsg_ts *CpFifoDataInPtr(CpFifo_ts *ptsFifoV)
 }
 
 
-//----------------------------------------------------------------------------//
-// CpFifoDataOutPtr()                                                         //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// CpFifoDataOutPtr()                                                                                                 //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 CPP_INLINE CpCanMsg_ts *CpFifoDataOutPtr(CpFifo_ts *ptsFifoV)
 {
-   //----------------------------------------------------------------
-   // allow pointer arithmetic here, because index is limited
-   // by element ulIndexMax
+   //---------------------------------------------------------------------------------------------------
+   // allow pointer arithmetic here, because index is limited by element ulIndexMax
    //
    /*@ -ptrarith  -dependenttrans -usereleased -compdef           @*/
    return ((ptsFifoV->ptsCanMsg) + (ptsFifoV->ulIndexOut));
@@ -84,19 +75,19 @@ CPP_INLINE CpCanMsg_ts *CpFifoDataOutPtr(CpFifo_ts *ptsFifoV)
 }
 
 
-//----------------------------------------------------------------------------//
-// CpFifoFree()                                                               //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// CpFifoFree()                                                                                                       //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 CPP_INLINE uint32_t CpFifoFree(CpFifo_ts *ptsFifoV)
 {
    uint32_t ulFreeT;
 
-   if (ptsFifoV->ulState == 0x0001)
+   if (ptsFifoV->ulState == CP_FIFO_STATE_EMPTY)
    {
       ulFreeT = ptsFifoV->ulIndexMax;
    }
-   else if (ptsFifoV->ulState == 0x0002)
+   else if (ptsFifoV->ulState == CP_FIFO_STATE_FULL)
    {
       ulFreeT = 0;
    }
@@ -115,10 +106,10 @@ CPP_INLINE uint32_t CpFifoFree(CpFifo_ts *ptsFifoV)
 }
 
 
-//----------------------------------------------------------------------------//
-// CpFifoIncIn()                                                              //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// CpFifoIncIn()                                                                                                      //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 CPP_INLINE void CpFifoIncIn(CpFifo_ts *ptsFifoV)
 {
    ptsFifoV->ulIndexIn++;
@@ -128,19 +119,23 @@ CPP_INLINE void CpFifoIncIn(CpFifo_ts *ptsFifoV)
    }
    if (ptsFifoV->ulIndexIn == ptsFifoV->ulIndexOut)
    {
+      //-------------------------------------------------------------------------------------------
       // set state to full
-      ptsFifoV->ulState = 0x02;
+      //
+      ptsFifoV->ulState = CP_FIFO_STATE_FULL;
    }
 
+   //---------------------------------------------------------------------------------------------------
    // clear empty state
-   ptsFifoV->ulState &= ~0x01;
+   //
+   ptsFifoV->ulState &= CP_FIFO_STATE_MASK_EMPTY;
 }
 
 
-//----------------------------------------------------------------------------//
-// CpFifoIncOut()                                                             //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// CpFifoIncOut()                                                                                                     //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 CPP_INLINE void CpFifoIncOut(CpFifo_ts *ptsFifoV)
 {
    ptsFifoV->ulIndexOut++;
@@ -151,40 +146,44 @@ CPP_INLINE void CpFifoIncOut(CpFifo_ts *ptsFifoV)
 
    if (ptsFifoV->ulIndexIn == ptsFifoV->ulIndexOut)
    {
+      //-------------------------------------------------------------------------------------------
       // set empty state
-      ptsFifoV->ulState = 0x01;
+      //
+      ptsFifoV->ulState = CP_FIFO_STATE_EMPTY;
    }
+
+   //---------------------------------------------------------------------------------------------------
    // clear full state
-   ptsFifoV->ulState &= ~0x02;
+   //
+   ptsFifoV->ulState &= CP_FIFO_STATE_MASK_FULL;
 }
 
 
-//----------------------------------------------------------------------------//
-// CpFifoInit()                                                               //
-//                                                                            //
-//----------------------------------------------------------------------------//
-CPP_INLINE void CpFifoInit(CpFifo_ts *ptsFifoV, CpCanMsg_ts *ptsCanMsgV,
-                       uint32_t ulSizeV)
+//--------------------------------------------------------------------------------------------------------------------//
+// CpFifoInit()                                                                                                       //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+CPP_INLINE void CpFifoInit(CpFifo_ts *ptsFifoV, CpCanMsg_ts *ptsCanMsgV, uint32_t ulSizeV)
 {
    ptsFifoV->ulIndexIn  = 0;
    ptsFifoV->ulIndexOut = 0;
    ptsFifoV->ulIndexMax = ulSizeV;
-   ptsFifoV->ulState    = 0x01;     // set initial state to empty
+   ptsFifoV->ulState    = CP_FIFO_STATE_EMPTY;     // set initial state to empty
    /*@ -mustfreeonly -temptrans @*/
    ptsFifoV->ptsCanMsg  = ptsCanMsgV;
    /*@ +mustfreeonly +temptrans @*/
 }
 
 
-//----------------------------------------------------------------------------//
-// CpFifoIsEmpty()                                                            //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// CpFifoIsEmpty()                                                                                                    //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 CPP_INLINE bool_t CpFifoIsEmpty(CpFifo_ts *ptsFifoV)
 {
    bool_t btResultT = false;
 
-   if (ptsFifoV->ulState == 0x0001)
+   if (ptsFifoV->ulState == CP_FIFO_STATE_EMPTY)
    {
       btResultT = true;
    }
@@ -193,15 +192,15 @@ CPP_INLINE bool_t CpFifoIsEmpty(CpFifo_ts *ptsFifoV)
 }
 
 
-//----------------------------------------------------------------------------//
-// CpFifoIsFull()                                                             //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// CpFifoIsFull()                                                                                                     //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 CPP_INLINE bool_t CpFifoIsFull(CpFifo_ts *ptsFifoV)
 {
    bool_t btResultT = false;
 
-   if (ptsFifoV->ulState == 0x0002)
+   if (ptsFifoV->ulState == CP_FIFO_STATE_FULL)
    {
       btResultT = true;
    }
@@ -210,19 +209,20 @@ CPP_INLINE bool_t CpFifoIsFull(CpFifo_ts *ptsFifoV)
 
 }
 
-//----------------------------------------------------------------------------//
-// CpFifoPending()                                                            //
-//                                                                            //
-//----------------------------------------------------------------------------//
+
+//--------------------------------------------------------------------------------------------------------------------//
+// CpFifoPending()                                                                                                    //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 CPP_INLINE uint32_t CpFifoPending(CpFifo_ts *ptsFifoV)
 {
    uint32_t ulPendingT;
 
-   if (ptsFifoV->ulState == 0x0001)
+   if (ptsFifoV->ulState == CP_FIFO_STATE_EMPTY)
    {
       ulPendingT = 0;
    }
-   else if (ptsFifoV->ulState == 0x0002)
+   else if (ptsFifoV->ulState == CP_FIFO_STATE_FULL)
    {
       ulPendingT = ptsFifoV->ulIndexMax;
    }
@@ -231,7 +231,8 @@ CPP_INLINE uint32_t CpFifoPending(CpFifo_ts *ptsFifoV)
       if (ptsFifoV->ulIndexOut > ptsFifoV->ulIndexIn)
       {
          ulPendingT = (ptsFifoV->ulIndexMax - (ptsFifoV->ulIndexOut - ptsFifoV->ulIndexIn));
-      } else
+      } 
+      else
       {
          ulPendingT = (ptsFifoV->ulIndexIn - ptsFifoV->ulIndexOut);
       }
