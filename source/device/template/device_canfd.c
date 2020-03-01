@@ -1,52 +1,51 @@
-//============================================================================//
-// File:          device_can_fd.c                                             //
-// Description:   CANpie core functions                                       //
-//                                                                            //
-// Copyright (C) MicroControl GmbH & Co. KG                                   //
-// 53844 Troisdorf - Germany                                                  //
-// www.microcontrol.net                                                       //
-//                                                                            //
-//----------------------------------------------------------------------------//
-// Redistribution and use in source and binary forms, with or without         //
-// modification, are permitted provided that the following conditions         //
-// are met:                                                                   //
-// 1. Redistributions of source code must retain the above copyright          //
-//    notice, this list of conditions, the following disclaimer and           //
-//    the referenced file 'LICENSE'.                                          //
-// 2. Redistributions in binary form must reproduce the above copyright       //
-//    notice, this list of conditions and the following disclaimer in the     //
-//    documentation and/or other materials provided with the distribution.    //
-// 3. Neither the name of MicroControl nor the names of its contributors      //
-//    may be used to endorse or promote products derived from this software   //
-//    without specific prior written permission.                              //
-//                                                                            //
-// Provided that this notice is retained in full, this software may be        //
-// distributed under the terms of the GNU Lesser General Public License       //
-// ("LGPL") version 3 as distributed in the 'LICENSE' file.                   //
-//                                                                            //
-//============================================================================//
+//====================================================================================================================//
+// File:          device_can_fd.c                                                                                     //
+// Description:   Template for CANpie core functions                                                                  //
+//                                                                                                                    //
+// Copyright (C) MicroControl GmbH & Co. KG                                                                           //
+// 53844 Troisdorf - Germany                                                                                          //
+// www.microcontrol.net                                                                                               //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the   //
+// following conditions are met:                                                                                      //
+// 1. Redistributions of source code must retain the above copyright notice, this list of conditions, the following   //
+//    disclaimer and the referenced file 'LICENSE'.                                                                   //
+// 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the       //
+//    following disclaimer in the documentation and/or other materials provided with the distribution.                //
+// 3. Neither the name of MicroControl nor the names of its contributors may be used to endorse or promote products   //
+//    derived from this software without specific prior written permission.                                           //
+//                                                                                                                    //
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance     //
+// with the License. You may obtain a copy of the License at                                                          //
+//                                                                                                                    //
+//    http://www.apache.org/licenses/LICENSE-2.0                                                                      //
+//                                                                                                                    //
+// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed   //
+// on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for  //
+// the specific language governing permissions and limitations under the License.                                     //
+//                                                                                                                    //
+//====================================================================================================================//
 
 
 
 
-/*----------------------------------------------------------------------------*\
-** Include files                                                              **
-**                                                                            **
-\*----------------------------------------------------------------------------*/
-
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Include files                                                                                                      **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
 
 
 #include "cp_core.h"
 #include "cp_msg.h"
 
 
-/*----------------------------------------------------------------------------*\
-** Definitions                                                                **
-**                                                                            **
-\*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Definitions                                                                                                        **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
 
-
-//-------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------
 /*!
 ** \def     CP_DRIVER_MAJOR
 ** \ingroup CP_VERSION
@@ -55,14 +54,14 @@
 */
 #define  CP_DRIVER_MAJOR          1
 
-//-------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------
 /*!
 ** \def     CP_DRIVER_MINOR
 ** \ingroup CP_VERSION
 **
 ** Minor version number of CANpie driver implementation.
 */
-#define  CP_DRIVER_MINOR          0
+#define  CP_DRIVER_MINOR          2
 
 
 
@@ -72,21 +71,15 @@ enum DrvInfo_e {
    eDRV_INFO_ACTIVE
 };
 
-/*----------------------------------------------------------------------------*\
-** external functions                                                         **
-**                                                                            **
-\*----------------------------------------------------------------------------*/
+
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Variables of module                                                                                                **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
 
 
 
-/*----------------------------------------------------------------------------*\
-** Variables of module                                                        **
-**                                                                            **
-\*----------------------------------------------------------------------------*/
-
-
-
-//-------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------
 // simulation of CAN message buffer
 //
 static CpCanMsg_ts atsCanMsgS[CP_BUFFER_MAX];
@@ -95,7 +88,7 @@ static uint32_t    aulAccMaskS[CP_BUFFER_MAX];
 
 static uint8_t     ubCanModeS;
 
-//-------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------
 // these pointers store the callback handlers
 //
 static CpRcvHandler_Fn  /*@null@*/  pfnRcvHandlerS = CPP_NULL;
@@ -103,33 +96,35 @@ static CpTrmHandler_Fn  /*@null@*/  pfnTrmHandlerS = CPP_NULL;
 static CpErrHandler_Fn  /*@null@*/  pfnErrHandlerS = CPP_NULL;
 
 
-/*----------------------------------------------------------------------------*\
-** Function implementation                                                    **
-**                                                                            **
-\*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Function implementation                                                                                            **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
 
 
-static CpStatus_tv CheckParam(const CpPort_ts * ptsPortV, 
-                              const uint8_t ubBufferIdxV,
-                              const uint8_t unReqStateV )
+//--------------------------------------------------------------------------------------------------------------------//
+// CheckParam()                                                                                                       //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+static CpStatus_tv CheckParam(const CpPort_ts * ptsPortV, const uint8_t ubBufferIdxV, const uint8_t unReqStateV )
 {
    CpStatus_tv tvStatusT = eCP_ERR_CHANNEL;
    
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // test CAN port
    //
    if (ptsPortV != (CpPort_ts *) 0L)
    {
       tvStatusT = eCP_ERR_INIT_MISSING;
       
-      //--------------------------------------------------------
+      //-------------------------------------------------------------------------------------------
       // check for initialisation
       //
       if (ptsPortV->ubDrvInfo >= unReqStateV)
       {
          tvStatusT = eCP_ERR_BUFFER;
          
-         //------------------------------------------------
+         //-----------------------------------------------------------------------------------
          // check for valid buffer number
          //
          if (ubBufferIdxV < CP_BUFFER_MAX)
@@ -143,12 +138,11 @@ static CpStatus_tv CheckParam(const CpPort_ts * ptsPortV,
 }
 
 
-//----------------------------------------------------------------------------//
-// CpCoreBitrate()                                                            //
-//                                                                            //
-//----------------------------------------------------------------------------//
-CpStatus_tv CpCoreBitrate( CpPort_ts * ptsPortV, int32_t slNomBitRateV,
-                           int32_t slDatBitRateV)
+//--------------------------------------------------------------------------------------------------------------------//
+// CpCoreBitrate()                                                                                                    //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+CpStatus_tv CpCoreBitrate( CpPort_ts * ptsPortV, int32_t slNomBitRateV, int32_t slDatBitRateV)
 {
    CpStatus_tv tvStatusT = eCP_ERR_CHANNEL;
 
@@ -193,26 +187,22 @@ CpStatus_tv CpCoreBitrate( CpPort_ts * ptsPortV, int32_t slNomBitRateV,
 }
 
 
-//----------------------------------------------------------------------------//
-// CpCoreBufferConfig()                                                       //
-//                                                                            //
-//----------------------------------------------------------------------------//
-CpStatus_tv CpCoreBufferConfig( CpPort_ts * ptsPortV,
-                                uint8_t   ubBufferIdxV,
-                                uint32_t  ulIdentifierV,
-                                uint32_t  ulAcceptMaskV,
-                                uint8_t   ubFormatV,
-                                uint8_t   ubDirectionV)
+//--------------------------------------------------------------------------------------------------------------------//
+// CpCoreBufferConfig()                                                                                               //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+CpStatus_tv CpCoreBufferConfig( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV, uint32_t ulIdentifierV, 
+                                uint32_t  ulAcceptMaskV, uint8_t ubFormatV, uint8_t ubDirectionV)
 {
    CpStatus_tv tvStatusT;
    
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // test parameter ptsPortV and ubBufferIdxV
    //
    tvStatusT = CheckParam(ptsPortV, ubBufferIdxV, eDRV_INFO_INIT);
    if (tvStatusT == eCP_ERR_NONE)
    {
-      //--------------------------------------------------------
+      //-------------------------------------------------------------------------------------------
       // test message format and mask identifier
       //
       switch (ubFormatV & CP_MASK_MSG_FORMAT)
@@ -250,26 +240,23 @@ CpStatus_tv CpCoreBufferConfig( CpPort_ts * ptsPortV,
 }
 
 
-//----------------------------------------------------------------------------//
-// CpCoreBufferGetData()                                                      //
-//                                                                            //
-//----------------------------------------------------------------------------//
-CpStatus_tv CpCoreBufferGetData( CpPort_ts * ptsPortV, 
-                                 uint8_t   ubBufferIdxV,
-                                 uint8_t * pubDestDataV,
-                                 uint8_t   ubStartPosV,
-                                 uint8_t   ubSizeV)
+//--------------------------------------------------------------------------------------------------------------------//
+// CpCoreBufferGetData()                                                                                              //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+CpStatus_tv CpCoreBufferGetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV, uint8_t * pubDestDataV,
+                                 uint8_t ubStartPosV, uint8_t ubSizeV)
 {
    CpStatus_tv tvStatusT;
    uint8_t     ubCntT;
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // test parameter ptsPortV and ubBufferIdxV
    //
    tvStatusT = CheckParam(ptsPortV, ubBufferIdxV, eDRV_INFO_INIT);
    if (tvStatusT == eCP_ERR_NONE)
    {
-      //--------------------------------------------------------
+      //-------------------------------------------------------------------------------------------
       // test start position and size
       //
       if ( (ubStartPosV + ubSizeV) > CP_DATA_SIZE )
@@ -294,10 +281,10 @@ CpStatus_tv CpCoreBufferGetData( CpPort_ts * ptsPortV,
 }
 
 
-//----------------------------------------------------------------------------//
-// CpCoreBufferGetDlc()                                                       //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// CpCoreBufferGetDlc()                                                                                               //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 CpStatus_tv CpCoreBufferGetDlc(  CpPort_ts * ptsPortV, 
                                  uint8_t ubBufferIdxV,
                                  uint8_t * pubDlcV)
@@ -321,10 +308,10 @@ CpStatus_tv CpCoreBufferGetDlc(  CpPort_ts * ptsPortV,
 
 
 
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
 // CpCoreBufferRelease()                                                      //
 //                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
 CpStatus_tv CpCoreBufferRelease( CpPort_ts * ptsPortV, 
                                  uint8_t ubBufferIdxV)
 {
@@ -344,10 +331,10 @@ CpStatus_tv CpCoreBufferRelease( CpPort_ts * ptsPortV,
 }
 
 
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
 // CpCoreBufferSend()                                                         //
 // send message out of the CAN controller                                     //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
 CpStatus_tv CpCoreBufferSend( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 {
    CpStatus_tv tvStatusT;
@@ -366,10 +353,10 @@ CpStatus_tv CpCoreBufferSend( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 }
 
 
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
 // CpCoreBufferSetData()                                                      //
 //                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
 CpStatus_tv CpCoreBufferSetData( CpPort_ts * ptsPortV, 
                                  uint8_t ubBufferIdxV,
                                  uint8_t * pubSrcDataV,
@@ -410,10 +397,10 @@ CpStatus_tv CpCoreBufferSetData( CpPort_ts * ptsPortV,
 }
 
 
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
 // CpCoreBufferSetDlc()                                                       //
 //                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
 CpStatus_tv CpCoreBufferSetDlc(  CpPort_ts * ptsPortV, 
                                  uint8_t ubBufferIdxV,
                                  uint8_t ubDlcV)
@@ -437,10 +424,10 @@ CpStatus_tv CpCoreBufferSetDlc(  CpPort_ts * ptsPortV,
 
 
 
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
 // CpCoreCanMode()                                                            //
 //                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
 CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV)
 {
    CpStatus_tv tvStatusT = eCP_ERR_CHANNEL;
@@ -501,11 +488,10 @@ CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV)
 }
 
 
-
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
 // CpCoreCanState()                                                           //
 //                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
 CpStatus_tv CpCoreCanState(CpPort_ts * ptsPortV, CpState_ts * ptsStateV)
 {
    CpStatus_tv tvStatusT = eCP_ERR_CHANNEL;
@@ -532,12 +518,11 @@ CpStatus_tv CpCoreCanState(CpPort_ts * ptsPortV, CpState_ts * ptsStateV)
 }
 
 
-//----------------------------------------------------------------------------//
-// CpCoreDriverInit()                                                         //
-// init CAN controller                                                        //
-//----------------------------------------------------------------------------//
-CpStatus_tv CpCoreDriverInit( uint8_t ubPhyIfV, CpPort_ts * ptsPortV,
-                              uint8_t CPP_PARM_UNUSED(ubConfigV) )
+//--------------------------------------------------------------------------------------------------------------------//
+// CpCoreDriverInit()                                                                                                 //
+// init CAN controller                                                                                                //
+//--------------------------------------------------------------------------------------------------------------------//
+CpStatus_tv CpCoreDriverInit( uint8_t ubPhyIfV, CpPort_ts * ptsPortV, uint8_t ubConfigV)
 {
    CpStatus_tv tvStatusT = eCP_ERR_CHANNEL;
    
@@ -560,7 +545,10 @@ CpStatus_tv CpCoreDriverInit( uint8_t ubPhyIfV, CpPort_ts * ptsPortV,
             //----------------------------------------------
             // todo: hardware initialisation
             //
-            
+            if (ubConfigV > 0)
+            {
+               
+            }
             tvStatusT = eCP_ERR_NONE;
          }
          else
@@ -585,15 +573,15 @@ CpStatus_tv CpCoreDriverInit( uint8_t ubPhyIfV, CpPort_ts * ptsPortV,
 }
 
 
-//----------------------------------------------------------------------------//
-// CpCoreDriverRelease()                                                      //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// CpCoreDriverRelease()                                                                                              //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 CpStatus_tv CpCoreDriverRelease(CpPort_ts * ptsPortV)
 {
    CpStatus_tv tvStatusT = eCP_ERR_CHANNEL;
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // test CAN port
    //
    if (ptsPortV != (CpPort_ts *) 0L)
@@ -613,16 +601,15 @@ CpStatus_tv CpCoreDriverRelease(CpPort_ts * ptsPortV)
 }
 
 
-//----------------------------------------------------------------------------//
-// CpCoreFifoConfig()                                                         //
-//                                                                            //
-//----------------------------------------------------------------------------//
-CpStatus_tv CpCoreFifoConfig(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
-                             CpFifo_ts * ptsFifoV)
+//--------------------------------------------------------------------------------------------------------------------//
+// CpCoreFifoConfig()                                                                                                 //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+CpStatus_tv CpCoreFifoConfig(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV, CpFifo_ts * ptsFifoV)
 {
    CpStatus_tv tvStatusT;
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // test parameter ptsPortV and ubBufferIdxV
    //
    tvStatusT = CheckParam(ptsPortV, ubBufferIdxV, eDRV_INFO_INIT);
@@ -642,24 +629,22 @@ CpStatus_tv CpCoreFifoConfig(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 }
 
 
-//----------------------------------------------------------------------------//
-// CpCoreFifoRead()                                                           //
-//                                                                            //
-//----------------------------------------------------------------------------//
-CpStatus_tv CpCoreFifoRead(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
-                           CpCanMsg_ts * ptsCanMsgV,
-                           uint32_t * pulBufferSizeV)
+//--------------------------------------------------------------------------------------------------------------------//
+// CpCoreFifoRead()                                                                                                   //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+CpStatus_tv CpCoreFifoRead(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV, CpCanMsg_ts * ptsCanMsgV, uint32_t * pulMsgCntV)
 {
    CpFifo_ts * ptsFifoT;
    CpStatus_tv tvStatusT;
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // test parameter ptsPortV and ubBufferIdxV
    //
    tvStatusT = CheckParam(ptsPortV, ubBufferIdxV, eDRV_INFO_INIT);
    if (tvStatusT == eCP_ERR_NONE)
    {
-      if(pulBufferSizeV != (uint32_t *) 0L)
+      if(pulMsgCntV != (uint32_t *) 0L)
       {
          if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
          {
@@ -676,10 +661,10 @@ CpStatus_tv CpCoreFifoRead(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 }
 
 
-//----------------------------------------------------------------------------//
-// CpCoreFifoRelease()                                                        //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// CpCoreFifoRelease()                                                                                                //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 CpStatus_tv CpCoreFifoRelease(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 {
    CpStatus_tv tvStatusT;
@@ -697,13 +682,12 @@ CpStatus_tv CpCoreFifoRelease(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 }
 
 
-//----------------------------------------------------------------------------//
-// CpCoreFifoWrite()                                                          //
-//                                                                            //
-//----------------------------------------------------------------------------//
-CpStatus_tv CpCoreFifoWrite( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
-                             CpCanMsg_ts * ptsCanMsgV,
-                             uint32_t * pulBufferSizeV)
+//--------------------------------------------------------------------------------------------------------------------//
+// CpCoreFifoWrite()                                                                                                  //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+CpStatus_tv CpCoreFifoWrite( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV, CpCanMsg_ts * ptsCanMsgV, 
+                             uint32_t * pulMsgCntV)
 {
    CpFifo_ts * ptsFifoT;
    CpStatus_tv tvStatusT;
@@ -714,7 +698,7 @@ CpStatus_tv CpCoreFifoWrite( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
    tvStatusT = CheckParam(ptsPortV, ubBufferIdxV, eDRV_INFO_INIT);
    if (tvStatusT == eCP_ERR_NONE)
    {
-      if(pulBufferSizeV != (uint32_t *) 0L)
+      if(pulMsgCntV != (uint32_t *) 0L)
        {
           if(ptsCanMsgV != (CpCanMsg_ts *) 0L)
           {
@@ -731,10 +715,10 @@ CpStatus_tv CpCoreFifoWrite( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 }
 
 
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
 // CpCoreHDI()                                                                //
 //                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
 CpStatus_tv CpCoreHDI(CpPort_ts * ptsPortV, CpHdi_ts * ptsHdiV)
 {
    CpStatus_tv tvStatusT = eCP_ERR_CHANNEL;
@@ -777,18 +761,16 @@ CpStatus_tv CpCoreHDI(CpPort_ts * ptsPortV, CpHdi_ts * ptsHdiV)
 }
 
 
-//----------------------------------------------------------------------------//
-// CpCoreIntFunctions()                                                       //
-//                                                                            //
-//----------------------------------------------------------------------------//
-CpStatus_tv CpCoreIntFunctions(CpPort_ts * ptsPortV,
-                               CpRcvHandler_Fn pfnRcvHandlerV,
-                               CpTrmHandler_Fn pfnTrmHandlerV,
-                               CpErrHandler_Fn pfnErrHandlerV )
+//--------------------------------------------------------------------------------------------------------------------//
+// CpCoreIntFunctions()                                                                                               //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+CpStatus_tv CpCoreIntFunctions(CpPort_ts * ptsPortV, CpRcvHandler_Fn pfnRcvHandlerV,
+                               CpTrmHandler_Fn pfnTrmHandlerV, CpErrHandler_Fn pfnErrHandlerV )
 {
    CpStatus_tv tvStatusT = eCP_ERR_CHANNEL;
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // test CAN port
    //
    if (ptsPortV != (CpPort_ts *) 0L)
@@ -797,7 +779,7 @@ CpStatus_tv CpCoreIntFunctions(CpPort_ts * ptsPortV,
       {
          tvStatusT = eCP_ERR_NONE;
          
-         //-----------------------------------------------------
+         //-----------------------------------------------------------------------------------
          // store the new callbacks
          //
          pfnRcvHandlerS = pfnRcvHandlerV;
@@ -812,10 +794,10 @@ CpStatus_tv CpCoreIntFunctions(CpPort_ts * ptsPortV,
 }
 
 
-//----------------------------------------------------------------------------//
-// CpCoreStatistic()                                                          //
-// return statistical information                                             //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// CpCoreStatistic()                                                                                                  //
+// return statistical information                                                                                     //
+//--------------------------------------------------------------------------------------------------------------------//
 CpStatus_tv CpCoreStatistic(CpPort_ts * ptsPortV, 
                             CpStatistic_ts * ptsStatsV)
 {
@@ -839,6 +821,6 @@ CpStatus_tv CpCoreStatistic(CpPort_ts * ptsPortV,
    }
 
 
-   return(tvStatusT);
+   return (tvStatusT);
 }
 
