@@ -167,7 +167,7 @@
 ** supported by the driver. For a LPC2294 microcontroller the value
 ** would be 4 (4 CAN channels).
 */
-#define  CP_CHANNEL_MAX             2
+#define  CP_CHANNEL_MAX             1
 
 /*-------------------------------------------------------------------*/
 /*!
