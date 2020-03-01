@@ -33,12 +33,14 @@ PRJ_DIR		= .
 #---------------------------------------------------------------
 # DEV_DIR: path to device directory
 #
-DEV_DIR 	= $(PRJ_DIR)/../../device/template
+DEV_DIR 	= $(PRJ_DIR)/../../source/device/template
 
 #---------------------------------------------------------------
 # CAN_DIR: path to canpie-fd directory
 #
-CAN_DIR  	= $(PRJ_DIR)/../../canpie-fd
+CAN_DIR  	= $(PRJ_DIR)/../../source/canpie-fd
+
+MISC_DIR    = $(PRJ_DIR)/../../source/misc
 
 #---------------------------------------------------------------
 # TEST_DIR: path to test directory
@@ -70,6 +72,7 @@ endif
 INC_DIR   = -I $(DEV_DIR)
 INC_DIR  += -I $(CAN_DIR)
 INC_DIR  += -I $(TEST_DIR)
+INC_DIR  += -I $(MISC_DIR)
 
 #---------------------------------------------------------------
 # Set VPATH to the same value like include paths
