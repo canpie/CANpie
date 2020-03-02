@@ -146,6 +146,14 @@ TEST(CP_CORE, 002)
    tvResultT = CpCoreBitrate(&tsPortS, eCP_BITRATE_500K, eCP_BITRATE_NONE);
    TEST_ASSERT_EQUAL(eCP_ERR_INIT_MISSING, tvResultT);
 
+   memset(&tsPortS, 0, sizeof(CpPort_ts));
+   
+   //----------------------------------------------------------------
+   // perform valid initialisation again, otherwise TEST_TEAR_DOWN() fails
+   //
+   tvResultT = CpCoreDriverInit(eCP_CHANNEL_1, &tsPortS, 0);
+   TEST_ASSERT_EQUAL(tvResultT, eCP_ERR_NONE);
+
    UnityPrint("CP_CORE_002: PASSED");
    printf("\n");
 
