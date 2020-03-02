@@ -39,7 +39,6 @@
 #include "../../canpie-fd/cp_core.h"
 #include "../../canpie-fd/cp_msg.h"
 #include "qcan_socket.hpp"
-#include "qcan_server_settings.hpp"
 
 
 #ifndef QCAN_SOCKET_CANPIE_HPP_
@@ -58,7 +57,7 @@ class QCanSocketCpFD : public QCanSocket
    Q_OBJECT
 
 public:
-   QCanSocketCpFD();
+   QCanSocketCpFD(uint8_t ubPhyIfV);
 
    ~QCanSocketCpFD();
 
@@ -126,8 +125,8 @@ public:
    friend  CpStatus_tv CpCoreStatistic(CpPort_ts * ptsPortV, CpStatistic_ts * ptsStatsV);
    
   
-public slots:
-   void  onSocketReceive(void);
+private slots:
+   void           onSocketReceive(void);
 
    
 private:
@@ -172,6 +171,7 @@ private:
    //
    CpState_ts     tsCanStateP;
 
+   uint8_t        ubPhyIfP;
 };
 
 
@@ -180,6 +180,24 @@ CpStatus_tv CpSocketConnectSlots( uint8_t ubPhyIfV, QObject * pclDestObjectV,
                                   const char * pubSockDisconnectV,
                                   const char * pubSockErrorV);
 
-CpStatus_tv CpSocketSetHostAddress(uint8_t ubPhyIfV, QHostAddress clHostAddressV);
+CpStatus_tv CpSocketSetHostAddress(uint8_t ubPhyIfV, 
+                                   QHostAddress clHostAddressV);
+
+
+//-------------------------------------------------------------------//
+// The following function has C binding                              //
+#ifdef __cplusplus                                                   //
+extern "C" {                                                         //
+#endif                                                               //
+//-------------------------------------------------------------------//
+
+void CpSocketProcessEvents(uint8_t ubChannelV);
+
+//-------------------------------------------------------------------//
+#ifdef __cplusplus                                                   //
+}                                                                    //
+#endif                                                               //
+// end of C++ compiler wrapper                                       //
+//-------------------------------------------------------------------//
 
 #endif   // QCAN_SOCKET_CANPIE_HPP_

@@ -38,7 +38,6 @@
 #include "qcan_socket_canpie_fd.hpp"
 
 #include <QtCore/QCoreApplication>
-#include <thread>
 
 
 /*--------------------------------------------------------------------------------------------------------------------*\
@@ -47,13 +46,28 @@
 \*--------------------------------------------------------------------------------------------------------------------*/
 
 
+//---------------------------------------------------------------------------------------------------
+/*!
+** \def     CP_DRIVER_MAJOR
+** \ingroup CP_VERSION
+**
+** Major version number of CANpie driver implementation.
+*/
+#define  CP_DRIVER_MAJOR          1
+
+//---------------------------------------------------------------------------------------------------
+/*!
+** \def     CP_DRIVER_MINOR
+** \ingroup CP_VERSION
+**
+** Minor version number of CANpie driver implementation.
+*/
+#define  CP_DRIVER_MINOR          2
+
+
 #define  CP_USER_FLAG_RCV        ((uint32_t)(0x00000001))
 #define  CP_USER_FLAG_TRM        ((uint32_t)(0x00000002))
 
-//------------------------------------------------------------------------------------------------------
-// time to wait (in ms) for socket connection
-//
-#define  SOCKET_CONNECT_WAIT     ((int32_t)(50))
 
 enum DrvInfo_e {
    eDRV_INFO_OFF = 0,
@@ -67,62 +81,22 @@ enum DrvInfo_e {
 \*--------------------------------------------------------------------------------------------------------------------*/
 
 //------------------------------------------------------------------------------------------------------
-// flags that denotes if a std::thread is required to read messages from CANpie server
 //
-static uint8_t          ubUseThreadS = 0;
-static std::thread *    pclThreadS = 0L;
-static uint8_t          aubModeS[CP_CHANNEL_MAX];
+static QCoreApplication *  pclApplicationS = 0L;
 
-static QCanSocketCpFD * apclCanSockListS[CP_CHANNEL_MAX] = {0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L};
+//------------------------------------------------------------------------------------------------------
+//
+static uint8_t             aubModeS[CP_CHANNEL_MAX] = {0, 0, 0, 0, 0, 0, 0, 0,};
+
+//------------------------------------------------------------------------------------------------------
+//
+static QCanSocketCpFD *    apclCanSockListS[CP_CHANNEL_MAX] = {0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L};
 
 
 /*--------------------------------------------------------------------------------------------------------------------*\
 ** Function implementation                                                                                            **
 **                                                                                                                    **
 \*--------------------------------------------------------------------------------------------------------------------*/
-
-
-//--------------------------------------------------------------------------------------------------------------------//
-// CanMessageReadThread()                                                                                             //
-// poll messages from open CAN ports                                                                                  //
-//--------------------------------------------------------------------------------------------------------------------//
-static void CanMessageReadThread(void)
-{
-   qDebug() << "CanMessageReadThread() ...... : start";
-
-   qRegisterMetaType<QAbstractSocket::SocketError>("QAbstractSocket::SocketError");
-
-   while (ubUseThreadS > 0)
-   {
-      for (uint8_t ubChannelV = 0; ubChannelV < CP_CHANNEL_MAX; ubChannelV++)
-      {
-         //-----------------------------------------------------------------------------------
-         // Test only CAN channels which are in active state (i.e. eCP_MODE_START). The
-         // static variable for each channel is modified inside the CpCoreCanMode() function.
-         //
-         if (aubModeS[ubChannelV] == eCP_MODE_START)
-         {
-            //---------------------------------------------------------------------------
-            // Since we want to read data from a socket without the event loop of
-            // QCoreApplication we need to poll data from the socket. This is done by
-            // calling waitForReadyRead(). The parameter denotes the time in milliseconds
-            // the method is blocking before it returns.
-            //
-            if (apclCanSockListS[ubChannelV] != (QCanSocketCpFD *) 0L)
-            {
-               apclCanSockListS[ubChannelV]->onSocketReceive();
-            }
-         }
-      }
-
-      //-------------------------------------------------------------------------------------------
-      // Let this thread sleep for 10 milliseconds
-      //
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
-   }
-
-   qDebug() << "CanMessageReadThread() ...... : exit";
-}
 
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -182,21 +156,8 @@ CpStatus_tv CpCoreBitrate( CpPort_ts * ptsPortV, int32_t slNomBitRateV, int32_t 
    {
       if (ptsPortV->ubPhyIf < QCAN_NETWORK_MAX)
       {
-         // pclSockT = &(aclCanSockListS[(ptsPortV->ubPhyIf) - 1]);
-
-         //------------------------------------------------
-         // The parameter slNomBitRateV uses the same 
-         // enumeration values as defined in 
-         // QCan::CAN_Bitrate_e, so it can be copied.
-         //
-         //clFrameT.setBitrate(slNomBitRateV, slDatBitRateV);
          tvStatusT = eCP_ERR_NONE;
 
-         //if (pclSockT->writeFrame(clFrameT) == false)
-         //{
-         //   qDebug() << "CpCoreBitrate() ............. : Failed";
-         //   tvStatusT =  eCP_ERR_BITRATE;
-         //}
       }
    }
 
@@ -575,7 +536,7 @@ CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV)
                //-------------------------------------------------------------------
                // Stop the CAN controller (passive on the bus)
                //
-               case eCP_MODE_STOP:
+               case eCP_MODE_INIT:
                   pclSockT->tsCanStateP.ubCanErrState  = eCP_STATE_INIT;
                   tvStatusT = eCP_ERR_NONE;
                   break;
@@ -686,45 +647,50 @@ CpStatus_tv CpCoreDriverInit(uint8_t ubPhyIfV, CpPort_ts * ptsPortV, uint8_t ubC
          //-----------------------------------------------------------------------------------
          // create new CANpie socket class
          //
-         apclCanSockListS[ubPhyIfV - 1] = new QCanSocketCpFD();
+         apclCanSockListS[ubPhyIfV - 1] = new QCanSocketCpFD(ubPhyIfV);
 
          //-----------------------------------------------------------------------------------
          // get access to socket
          //
          pclSockT = apclCanSockListS[ubPhyIfV - 1];
-         pclSockT->connectNetwork((CAN_Channel_e) ubPhyIfV);
-
-         //-----------------------------------------------------------------------------------
-         // no FIFOs attached to message buffers
-         //
-         for (uint8_t ubBufferCntT = 0; ubBufferCntT < CP_BUFFER_MAX; ubBufferCntT++)
+         if (pclSockT->connectNetwork((CAN_Channel_e) ubPhyIfV))
          {
-            pclSockT->aptsCanFifoP[ubBufferCntT] = Q_NULLPTR;
+            //---------------------------------------------------------------------------
+            // no FIFOs attached to message buffers
+            //
+            for (uint8_t ubBufferCntT = 0; ubBufferCntT < CP_BUFFER_MAX; ubBufferCntT++)
+            {
+               pclSockT->aptsCanFifoP[ubBufferCntT] = Q_NULLPTR;
+            }
+
+            //---------------------------------------------------------------------------
+            // store physical channel information
+            //
+            ptsPortV->ubPhyIf   = ubPhyIfV;
+            ptsPortV->ubDrvInfo = eDRV_INFO_INIT;
+
+            //---------------------------------------------------------------------------
+            // clear CAN state
+            //
+            pclSockT->tsCanStateP.ubCanErrState  = eCP_STATE_INIT;
+            pclSockT->tsCanStateP.ubCanErrType   = eCP_ERR_TYPE_NONE;
+            pclSockT->tsCanStateP.ubCanRcvErrCnt = 0;
+            pclSockT->tsCanStateP.ubCanTrmErrCnt = 0;
+
+            //---------------------------------------------------------------------------
+            // clear statistic information
+            //
+            pclSockT->tsStatisticP.ulErrMsgCount = 0;
+            pclSockT->tsStatisticP.ulRcvMsgCount = 0;
+            pclSockT->tsStatisticP.ulTrmMsgCount = 0;
+
+            tvStatusT = eCP_ERR_NONE;
+
          }
-
-         //-----------------------------------------------------------------------------------
-         // store physical channel information
-         //
-         ptsPortV->ubPhyIf   = ubPhyIfV;
-         ptsPortV->ubDrvInfo = eDRV_INFO_INIT;
-
-         //-----------------------------------------------------------------------------------
-         // clear CAN state
-         //
-         pclSockT->tsCanStateP.ubCanErrState  = eCP_STATE_INIT;
-         pclSockT->tsCanStateP.ubCanErrType   = eCP_ERR_TYPE_NONE;
-         pclSockT->tsCanStateP.ubCanRcvErrCnt = 0;
-         pclSockT->tsCanStateP.ubCanTrmErrCnt = 0;
-
-         //-----------------------------------------------------------------------------------
-         // clear statistic information
-         //
-         pclSockT->tsStatisticP.ulErrMsgCount = 0;
-         pclSockT->tsStatisticP.ulRcvMsgCount = 0;
-         pclSockT->tsStatisticP.ulTrmMsgCount = 0;
-
-
-         qDebug() << "CpCoreDriverInit() .......... : connected";
+         else
+         {
+            tvStatusT = eCP_ERR_INIT_FAIL;
+         }
 
       }
       else
@@ -735,7 +701,7 @@ CpStatus_tv CpCoreDriverInit(uint8_t ubPhyIfV, CpPort_ts * ptsPortV, uint8_t ubC
 
    }
 
-   return (eCP_ERR_NONE);
+   return (tvStatusT);
 }
 
 
@@ -763,6 +729,7 @@ CpStatus_tv CpCoreDriverRelease(CpPort_ts * ptsPortV)
          pclSockT->disconnectNetwork();
          delete (pclSockT);
       }
+      apclCanSockListS[ptsPortV->ubPhyIf - 1] = (QCanSocketCpFD *) 0L;
    }
 
    return (tvStatusT);
@@ -910,9 +877,6 @@ CpStatus_tv CpCoreFifoWrite(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
    CpTrmHandler_Fn   pfnTrmHandlerT;
    
    
-   qDebug() << "CpCoreFifoWrite() ........... :" << ubBufferIdxV;
-
-
    //---------------------------------------------------------------------------------------------------
    // test parameter ptsPortV and ubBufferIdxV
    //
@@ -928,7 +892,6 @@ CpStatus_tv CpCoreFifoWrite(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
    //
    if ( (tvStatusT == eCP_ERR_NONE) && (pclSockT != (QCanSocketCpFD *) 0L) )
    {
-      qDebug() << "CpCoreFifoWrite() ........... :" << ubBufferIdxV;
 
       //-------------------------------------------------------------------------------------------
       // write CAN frame
@@ -939,7 +902,6 @@ CpStatus_tv CpCoreFifoWrite(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
          if(pclSockT->write(clFrameT) == false)
          {
             tvStatusT = eCP_ERR_TRM_FULL;
-            qDebug() << "CpCoreFifoWrite() ........... : failed";
             break;
          }
 
@@ -989,6 +951,8 @@ CpStatus_tv CpCoreHDI(CpPort_ts *ptsPortV, CpHdi_ts *ptsHdiV)
             ptsHdiV->ubVersionMinor   = CP_VERSION_MINOR;
             ptsHdiV->ubCanFeatures    = 0;
             ptsHdiV->ubDriverFeatures = 0;
+            ptsHdiV->ubDriverMajor    = CP_DRIVER_MAJOR;
+            ptsHdiV->ubDriverMinor    = CP_DRIVER_MINOR;
             ptsHdiV->ubBufferMax      = CP_BUFFER_MAX;
             ptsHdiV->slNomBitRate     = pclSockT->slNomBitRateP;
             ptsHdiV->slDatBitRate     = pclSockT->slDatBitRateP;
@@ -1122,6 +1086,30 @@ CpStatus_tv CpSocketConnectSlots(uint8_t ubPhyIfV, QObject * pclDestObjectV,
 
 
 //--------------------------------------------------------------------------------------------------------------------//
+// CpSocketProcessEvents()                                                                                            //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void CpSocketProcessEvents(uint8_t ubChannelV)
+{
+   if (pclApplicationS != 0L)
+   {
+      pclApplicationS->processEvents();
+
+      //---------------------------------------------------------------------------
+      // Since we want to read data from a socket without the event loop of
+      // QCoreApplication we need to poll data from the socket. This is done by
+      // calling waitForReadyRead(). The parameter denotes the time in milliseconds
+      // the method is blocking before it returns.
+      //
+      if (apclCanSockListS[ubChannelV] != (QCanSocketCpFD *) 0L)
+      {
+         // apclCanSockListS[ubChannelV]->onSocketReceive();
+      }
+   }
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
 // CpSocketSetHostAddress()                                                                                           //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
@@ -1155,43 +1143,52 @@ CpStatus_tv CpSocketSetHostAddress(uint8_t ubPhyIfV, QHostAddress clHostAddressV
 // QCanSocketCpFD::QCanSocketCpFD()                                                                                   //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-QCanSocketCpFD::QCanSocketCpFD()
+QCanSocketCpFD::QCanSocketCpFD(uint8_t ubPhyIfV)
 {
    //---------------------------------------------------------------------------------------------------
    // debug information
    //
-   qDebug() << "QCanSocketCpFD() ............ : constructor";
+   qDebug() << "QCanSocketCpFD() ............ : init CAN " << ubPhyIfV;
 
 
    //---------------------------------------------------------------------------------------------------
    // clear members
    //
-   pfnErrIntHandlerP = 0;
-   pfnRcvIntHandlerP = 0;
-   pfnTrmIntHandlerP = 0;
+   pfnErrIntHandlerP  = 0;
+   pfnRcvIntHandlerP  = 0;
+   pfnTrmIntHandlerP  = 0;
 
-   slNomBitRateP     = eCAN_BITRATE_NONE;
-   slDatBitRateP     = eCAN_BITRATE_NONE;
+   slNomBitRateP      = eCAN_BITRATE_NONE;
+   slDatBitRateP      = eCAN_BITRATE_NONE;
+
+   ubPhyIfP           = ubPhyIfV;
+
+   aubModeS[ubPhyIfP - 1] = eCP_MODE_INIT;
+
+
+   //---------------------------------------------------------------------------------------------------
+   // connect the readyRead() signal with the slot for message reception
+   //
+   connect(this, &QCanSocketCpFD::readyRead, this, &QCanSocketCpFD::onSocketReceive);
+
 
    //---------------------------------------------------------------------------------------------------
    // Check if an instance of QCoreApplication is active. In case there is no QCoreApplication there
    // is no QEventLoop and we need a thread that polls data from the CANpie server.
    //
-   if (QCoreApplication::instance() == 0L)
+   if (pclApplicationS == 0L)
    {
-      qDebug() << "QCanSocketCpFD() - No QCoreApplication() ..";
-      if (ubUseThreadS == 0)
+      if (QCoreApplication::instance() == 0L)
       {
-         qDebug() << "QCanSocketCpFD() ............ : start thread";
-         ubUseThreadS = 1;
+         printf("Create new QCoreApplication \n");
 
-         for (uint8_t ubChannelV = 0; ubChannelV < CP_CHANNEL_MAX; ubChannelV++)
-         {
-            aubModeS[ubChannelV] = eCP_MODE_STOP;
-         }
-         pclThreadS = new std::thread(CanMessageReadThread);
+         int32_t slAppArgcT = 0;
+         char ** szAppArgvT = NULL;
+         pclApplicationS = new QCoreApplication(slAppArgcT, szAppArgvT);
       }
    }
+
+
 }
 
 
@@ -1206,14 +1203,7 @@ QCanSocketCpFD::~QCanSocketCpFD()
    //
    qDebug() << "~QCanSocketCpFD() ........... : delete object";
 
-   //---------------------------------------------------------------------------------------------------
-   // test for active thread
-   //
-   if (ubUseThreadS > 0)
-   {
-      ubUseThreadS = 0;
-      pclThreadS->join();
-   }
+   aubModeS[ubPhyIfP - 1] = eCP_MODE_INIT;
 }
 
 
@@ -1248,7 +1238,7 @@ CpCanMsg_ts QCanSocketCpFD::fromCanFrame(QCanFrame & clCanFrameR)
    CpMsgSetIdentifier(&tsCanMsgT, clCanFrameR.identifier());
    CpMsgSetDlc(&tsCanMsgT, clCanFrameR.dlc());
 
-   for(ubDataCntT = 0; ubDataCntT < CP_DATA_SIZE; ubDataCntT++)
+   for (ubDataCntT = 0; ubDataCntT < CP_DATA_SIZE; ubDataCntT++)
    {
       CpMsgSetData(&tsCanMsgT, ubDataCntT, clCanFrameR.data(ubDataCntT));
    }
@@ -1265,9 +1255,9 @@ QCanFrame QCanSocketCpFD::fromCpMsg(CpCanMsg_ts * ptsCanMsgV)
    QCanFrame      clCanFrameT;
    uint8_t        ubDataCntT;
 
-   if(CpMsgIsFdFrame(ptsCanMsgV))
+   if (CpMsgIsFdFrame(ptsCanMsgV))
    {
-      if(CpMsgIsExtended(ptsCanMsgV))
+      if (CpMsgIsExtended(ptsCanMsgV))
       {
          clCanFrameT.setFrameFormat(QCanFrame::eFORMAT_FD_EXT);
       }
@@ -1278,7 +1268,7 @@ QCanFrame QCanSocketCpFD::fromCpMsg(CpCanMsg_ts * ptsCanMsgV)
    }
    else
    {
-      if(CpMsgIsExtended(ptsCanMsgV))
+      if (CpMsgIsExtended(ptsCanMsgV))
       {
          clCanFrameT.setFrameFormat(QCanFrame::eFORMAT_CAN_EXT);
       }
@@ -1290,12 +1280,12 @@ QCanFrame QCanSocketCpFD::fromCpMsg(CpCanMsg_ts * ptsCanMsgV)
    clCanFrameT.setIdentifier(CpMsgGetIdentifier(ptsCanMsgV));
    clCanFrameT.setDlc(CpMsgGetDlc(ptsCanMsgV));
 
-   for(ubDataCntT = 0; ubDataCntT < clCanFrameT.dataSize(); ubDataCntT++)
+   for (ubDataCntT = 0; ubDataCntT < clCanFrameT.dataSize(); ubDataCntT++)
    {
       clCanFrameT.setData(ubDataCntT, CpMsgGetData(ptsCanMsgV, ubDataCntT));
    }
 
-   return(clCanFrameT);
+   return (clCanFrameT);
 }
 
 
@@ -1396,6 +1386,7 @@ void QCanSocketCpFD::handleCanFrame(QCanFrame & clCanFrameR)
             //
             ptsCanBufT->ulIdentifier   = tsCanMsgT.ulIdentifier;
             ptsCanBufT->ubMsgDLC       = tsCanMsgT.ubMsgDLC;
+            ptsCanBufT->ubMsgCtrl      = tsCanMsgT.ubMsgCtrl;
             memcpy(&(ptsCanBufT->tuMsgData.aubByte[0]), &(tsCanMsgT.tuMsgData.aubByte[0]), CP_DATA_SIZE );
 
             //---------------------------------------------------------------------------
@@ -1451,7 +1442,7 @@ void QCanSocketCpFD::onSocketReceive()
    //---------------------------------------------------------------------------------------------------
    // Read CAN frames and handle them
    //
-   for(ulFrameCntT = 0; ulFrameCntT < ulFrameMaxT; ulFrameCntT++)
+   for (ulFrameCntT = 0; ulFrameCntT < ulFrameMaxT; ulFrameCntT++)
    {
       if (this->read(clCanFrameT) == true)
       {
