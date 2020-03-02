@@ -42,6 +42,8 @@
 #include "qcan_server_settings.hpp"
 
 
+#ifndef QCAN_SOCKET_CANPIE_HPP_
+#define QCAN_SOCKET_CANPIE_HPP_
 
 
 //----------------------------------------------------------------------------------------------------------------
@@ -178,7 +180,6 @@ CpStatus_tv CpSocketConnectSlots( uint8_t ubPhyIfV, QObject * pclDestObjectV,
                                   const char * pubSockDisconnectV,
                                   const char * pubSockErrorV);
 
-CpStatus_tv CpSocketSetHostAddress(uint8_t ubPhyIfV, 
-                                   QHostAddress clHostAddressV);
+CpStatus_tv CpSocketSetHostAddress(uint8_t ubPhyIfV, QHostAddress clHostAddressV);
 
-
+#endif   // QCAN_SOCKET_CANPIE_HPP_
