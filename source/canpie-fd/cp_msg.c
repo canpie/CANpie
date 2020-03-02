@@ -140,6 +140,54 @@ void CpMsgClrRemote(CpCanMsg_ts *ptsCanMsgV)
    }
 }
 
+uint8_t CpMsgDlcToSize(const uint8_t ubDlcV)
+{
+   uint8_t  ubSizeT;
+
+   switch(ubDlcV)
+   {
+      case 0:
+      case 1: case 2: case 3: case 4:
+      case 5: case 6: case 7: case 8:
+         ubSizeT = ubDlcV;
+         break;
+
+      case 9:
+         ubSizeT = 12;
+         break;
+
+      case 10:
+         ubSizeT = 16;
+         break;
+
+      case 11:
+         ubSizeT = 20;
+         break;
+
+      case 12:
+         ubSizeT = 24;
+         break;
+
+      case 13:
+         ubSizeT = 32;
+         break;
+
+      case 14:
+         ubSizeT = 48;
+         break;
+
+      case 15:
+         ubSizeT = 64;
+         break;
+
+      default:
+         ubSizeT = 0;
+         break;
+
+   }
+
+   return(ubSizeT);
+}
 
 //----------------------------------------------------------------------------//
 // CpMsgGetData()                                                             //
@@ -654,6 +702,49 @@ void  CpMsgSetTime(CpCanMsg_ts *ptsCanMsgV, const CpTime_ts *ptsTimeV)
       ptsCanMsgV->tsMsgTime.ulNanoSec = (ptsTimeV->ulNanoSec);
       #endif
    }
+}
+
+
+uint8_t CpMsgSizeToDlc(uint8_t ubSizeV)
+{
+   uint8_t  ubDlcT;
+   //--------------------------------------------------------
+   // set DLC value to maximum requested size value
+   //
+   if(ubSizeV <= 8)
+   {
+      ubDlcT = ubSizeV;
+   }
+   else if((ubSizeV > 8) && (ubSizeV <= 12))
+   {
+      ubDlcT = 9;
+   }
+   else if((ubSizeV > 12) && (ubSizeV <= 16))
+   {
+      ubDlcT = 10;
+   }
+   else if((ubSizeV > 16) && (ubSizeV <= 20))
+   {
+      ubDlcT = 11;
+   }
+   else if((ubSizeV > 20) && (ubSizeV <= 24))
+   {
+      ubDlcT = 12;
+   }
+   else if((ubSizeV > 24) && (ubSizeV <= 32))
+   {
+      ubDlcT = 13;
+   }
+   else if((ubSizeV > 32) && (ubSizeV <= 48))
+   {
+      ubDlcT = 14;
+   }
+   else
+   {
+      ubDlcT = 15;
+   }
+
+   return (ubDlcT);
 }
 
 #endif   // #if CP_CAN_MSG_MACRO == 0
