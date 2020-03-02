@@ -251,6 +251,11 @@ CpStatus_tv CpCoreBufferGetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV, uin
    uint8_t     ubCntT;
 
    //---------------------------------------------------------------------------------------------------
+   // Function specific splint configuration: Do not report that an out parameter or global is not 
+   // defined before control is transferred 
+   /*@-mustdefine                                                                                    @*/
+
+   //---------------------------------------------------------------------------------------------------
    // test parameter ptsPortV and ubBufferIdxV
    //
    tvStatusT = CheckParam(ptsPortV, ubBufferIdxV, eDRV_INFO_INIT);
@@ -278,6 +283,8 @@ CpStatus_tv CpCoreBufferGetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV, uin
 
 
    return (tvStatusT);
+   /*@+mustdefine                                                                                    @*/
+
 }
 
 
@@ -285,25 +292,30 @@ CpStatus_tv CpCoreBufferGetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV, uin
 // CpCoreBufferGetDlc()                                                                                               //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-CpStatus_tv CpCoreBufferGetDlc(  CpPort_ts * ptsPortV, 
-                                 uint8_t ubBufferIdxV,
-                                 uint8_t * pubDlcV)
+CpStatus_tv CpCoreBufferGetDlc(  CpPort_ts * ptsPortV, uint8_t ubBufferIdxV, uint8_t * pubDlcV)
 {
    CpStatus_tv tvStatusT;
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
+   // Function specific splint configuration: Do not report that an out parameter or global is not 
+   // defined before control is transferred 
+   /*@-mustdefine                                                                                    @*/
+
+   //---------------------------------------------------------------------------------------------------
    // test parameter ptsPortV and ubBufferIdxV
    //
    tvStatusT = CheckParam(ptsPortV, ubBufferIdxV, eDRV_INFO_INIT);
    if (tvStatusT == eCP_ERR_NONE)
    {
-      //----------------------------------------------------------------
+      //-------------------------------------------------------------------------------------------
       // read DLC from simulated CAN buffer
       //
       *pubDlcV = atsCanMsgS[ubBufferIdxV].ubMsgDLC;      
    }
 
+
    return (tvStatusT);
+   /*@+mustdefine                                                                                    @*/
 }
 
 
@@ -312,8 +324,7 @@ CpStatus_tv CpCoreBufferGetDlc(  CpPort_ts * ptsPortV,
 // CpCoreBufferRelease()                                                      //
 //                                                                            //
 //--------------------------------------------------------------------------------------------------------------------//
-CpStatus_tv CpCoreBufferRelease( CpPort_ts * ptsPortV, 
-                                 uint8_t ubBufferIdxV)
+CpStatus_tv CpCoreBufferRelease( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 {
    CpStatus_tv tvStatusT;
 
@@ -332,14 +343,14 @@ CpStatus_tv CpCoreBufferRelease( CpPort_ts * ptsPortV,
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// CpCoreBufferSend()                                                         //
-// send message out of the CAN controller                                     //
+// CpCoreBufferSend()                                                                                                 //
+// send message out of the CAN controller                                                                             //
 //--------------------------------------------------------------------------------------------------------------------//
 CpStatus_tv CpCoreBufferSend( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 {
    CpStatus_tv tvStatusT;
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // test parameter ptsPortV and ubBufferIdxV
    //
    tvStatusT = CheckParam(ptsPortV, ubBufferIdxV, eDRV_INFO_INIT);
