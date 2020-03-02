@@ -37,6 +37,7 @@ list(
     ${TEST_PATH}/test_qcan_filter.cpp
     ${TEST_PATH}/test_qcan_frame.cpp
     ${TEST_PATH}/test_qcan_socket.cpp
+    ${TEST_PATH}/test_qcan_socket_canpie.cpp
     ${TEST_PATH}/test_qcan_timestamp.cpp
 )
 
@@ -51,6 +52,7 @@ list(
 
 list(
     APPEND canpie_sources
+    ${CANPIE_PATH}/cp_fifo.c
     ${CANPIE_PATH}/cp_msg.c
 )
 

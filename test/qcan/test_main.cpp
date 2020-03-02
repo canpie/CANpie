@@ -12,6 +12,7 @@ using namespace std;
 #include "test_qcan_filter.hpp"
 #include "test_qcan_frame.hpp"
 #include "test_qcan_socket.hpp"
+#include "test_qcan_socket_canpie.hpp"
 
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -59,8 +60,17 @@ int main(int argc, char *argv[])
    //---------------------------------------------------------------------------------------------------
    // test QCanSocket
    //
-   TestQCanSocket  clTestQCanSockT;
-   slResultT += QTest::qExec(&clTestQCanSockT, argc, &argv[0]);
+   //TestQCanSocket  clTestQCanSockT;
+   //slResultT += QTest::qExec(&clTestQCanSockT, argc, &argv[0]);
+   cout << "\n";
+   cout << "#===============================================================================\n";
+   cout << "\n";
+
+   //---------------------------------------------------------------------------------------------------
+   // test QCanSocketCpFD
+   //
+   TestQCanSocketCpFD  clTestQCanSocketCANpieT;
+   slResultT += QTest::qExec(&clTestQCanSocketCANpieT, argc, &argv[0]);
    cout << "\n";
    cout << "#===============================================================================\n";
    cout << "\n";

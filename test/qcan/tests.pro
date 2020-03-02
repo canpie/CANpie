@@ -95,33 +95,39 @@ INCLUDEPATH += ./../../source/qcan
 #
 VPATH  = .
 VPATH += ./../../source/canpie-fd
+VPATH += ./../../source/device/qcan
 VPATH += ./../../source/qcan
 
 
 #---------------------------------------------------------------
 # header files of project 
 #
-HEADERS +=  qcan_frame.hpp             \
-            qcan_interface.hpp         \
-            qcan_socket.hpp            \
-            test_qcan_filter.hpp       \
-            test_qcan_frame.hpp        \
-            test_qcan_socket.hpp       \
+HEADERS +=  qcan_frame.hpp                \
+            qcan_interface.hpp            \
+            qcan_socket.hpp               \
+            qcan_socket_canpie_fd.hpp     \
+            test_qcan_filter.hpp          \
+            test_qcan_frame.hpp           \
+            test_qcan_socket.hpp          \
+            test_qcan_socket_canpie.hpp   \
             test_qcan_timestamp.hpp
 
 #---------------------------------------------------------------
 # source files of project 
 #
-SOURCES +=  qcan_filter.cpp            \
-			qcan_filter_list.cpp       \
-			qcan_frame.cpp             \
-            qcan_socket.cpp            \
-            qcan_timestamp.cpp         \
-            cp_msg.c                   \
-            test_qcan_filter.cpp       \
-            test_qcan_frame.cpp        \
-            test_qcan_socket.cpp       \
-            test_qcan_timestamp.cpp    \
+SOURCES +=  qcan_filter.cpp               \
+            qcan_filter_list.cpp          \
+            qcan_frame.cpp                \
+            qcan_socket.cpp               \
+            qcan_socket_canpie_fd.cpp     \
+            qcan_timestamp.cpp            \
+            cp_fifo.c                     \
+            cp_msg.c                      \
+            test_qcan_filter.cpp          \
+            test_qcan_frame.cpp           \
+            test_qcan_socket.cpp          \
+            test_qcan_socket_canpie.cpp   \
+            test_qcan_timestamp.cpp       \
             test_main.cpp
 
 
