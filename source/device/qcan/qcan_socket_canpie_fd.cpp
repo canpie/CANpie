@@ -110,10 +110,7 @@ static void CanMessageReadThread(void)
             //
             if (apclCanSockListS[ubChannelV] != (QCanSocketCpFD *) 0L)
             {
-               if (apclCanSockListS[ubChannelV]->waitForReadyRead(1) == true)
-               {
-                  apclCanSockListS[ubChannelV]->onSocketReceive();
-               }
+               apclCanSockListS[ubChannelV]->onSocketReceive();
             }
          }
       }
@@ -695,7 +692,7 @@ CpStatus_tv CpCoreDriverInit(uint8_t ubPhyIfV, CpPort_ts * ptsPortV, uint8_t ubC
          // get access to socket
          //
          pclSockT = apclCanSockListS[ubPhyIfV - 1];
-         pclSockT->connectNetwork((CAN_Channel_e) ubPhyIfV, 1000);
+         pclSockT->connectNetwork((CAN_Channel_e) ubPhyIfV);
 
          //-----------------------------------------------------------------------------------
          // no FIFOs attached to message buffers
