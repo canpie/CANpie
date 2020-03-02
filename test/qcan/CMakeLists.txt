@@ -54,6 +54,11 @@ list(
     ${CANPIE_PATH}/cp_msg.c
 )
 
+list(
+    APPEND device_sources
+    ${DEVICE_PATH}/qcan_socket_canpie_fd.cpp
+)
+
 set(CMAKE_AUTOMOC ON)
 
 find_package(Qt5 COMPONENTS Core Network Websockets Test REQUIRED)
@@ -66,7 +71,7 @@ add_executable(${PROJECT_NAME}
     ${test_sources}
     ${qcan_sources}
     ${canpie_sources}
-  
+    ${device_sources}
 )
 
 #-----------------------------------------------------------------------------------------------------------------------
