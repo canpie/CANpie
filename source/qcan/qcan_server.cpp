@@ -593,7 +593,7 @@ void QCanServer::sendServerSettings(QWebSocket * pclSocketV, uint32_t flags)
 
    clJsonServerP["networkCount"]        = (int) ubNetworkMaxP;
    clJsonServerP["serverLocalTime"]     = QDateTime::currentDateTime().toString(Qt::ISODate);
-   clJsonServerP["serverUptime"]        = sqUptimeMillisecondsP;
+   clJsonServerP["serverUptime"]        = (qint64)sqUptimeMillisecondsP;
 
    clJsonServerP["versionMajor"]        = (int) VERSION_MAJOR;
    clJsonServerP["versionMinor"]        = (int) VERSION_MINOR;
