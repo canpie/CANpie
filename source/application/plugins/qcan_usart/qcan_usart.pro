@@ -108,7 +108,6 @@ RESOURCES = qcan_usart.qrc
 INCLUDEPATH  = .
 INCLUDEPATH += ./forms
 INCLUDEPATH += ./../../../canpie-fd
-INCLUDEPATH += ./../../../hal
 INCLUDEPATH += ./../../../misc
 INCLUDEPATH += ./../../../qcan
 
