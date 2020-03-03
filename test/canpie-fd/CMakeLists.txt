@@ -24,7 +24,7 @@ set(TEST_PATH   ${CMAKE_CURRENT_SOURCE_DIR})
 set(PROG_PATH   ${CMAKE_CURRENT_SOURCE_DIR}/../../bin)
 set(SOURCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../../source)
 set(CANPIE_PATH ${SOURCE_PATH}/canpie-fd)
-set(DEVICE_PATH ${SOURCE_PATH}/device/template)
+set(DEVICE_PATH ${SOURCE_PATH}/application/template-canpie-fd)
 
 
 #-----------------------------------------------------------------------------------------------------------------------
