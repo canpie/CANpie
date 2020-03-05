@@ -129,7 +129,7 @@ QCanDump::QCanDump(QObject *parent) :
    QObject::connect( &clCanSocketP, &QCanSocket::disconnected,  
                      this, &QCanDump::onSocketDisconnected);
    
-   QObject::connect( &clCanSocketP, QOverload<QAbstractSocket::SocketError>::of(&QCanSocket::error),         
+   QObject::connect( &clCanSocketP, QOverload<QAbstractSocket::SocketError>::of(&QCanSocket::error), 
                      this, &QCanDump::onSocketError);
 
    QObject::connect( &clCanSocketP, &QCanSocket::readyRead,     
@@ -596,6 +596,6 @@ void QCanDump::runCommandParser()
    //---------------------------------------------------------------------------------------------------
    // connect to QCanServer class (i.e. CANpie FD Server)
    //
-   clServerSettingsP.connectToServer();
+   clServerSettingsP.connectToServer(clHostAddressP);
 
 }
