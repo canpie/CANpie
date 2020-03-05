@@ -63,7 +63,7 @@ list(
 
 set(CMAKE_AUTOMOC ON)
 
-find_package(Qt5 COMPONENTS Core Network Websockets Test REQUIRED)
+find_package(Qt5 COMPONENTS Core Network WebSockets Test REQUIRED)
 
 
 #----------------------------------------------------------------------------------------------------------------------- 
