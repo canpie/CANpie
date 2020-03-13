@@ -1,87 +1,78 @@
-cmake_minimum_required(VERSION 3.16.4)
+#----------------------------------------------------------------------------------------------------------------------#
+# CMake file for testing QCan classes                                                                                  #
+#                                                                                                                      #
+#----------------------------------------------------------------------------------------------------------------------#
+
+cmake_minimum_required(VERSION 3.16.4 FATAL_ERROR)
+cmake_policy(SET CMP0048 NEW)
+
+#-------------------------------------------------------------------------------------------------------
+# add project CMake module include path
+#
+SET( CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake" ${CMAKE_MODULE_PATH})
+INCLUDE(AddSourceDirectories )
+INCLUDE(AddSplint )
 
 message("Test cases for CANpie FD header files and sources")
 
-SET( CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake" ${CMAKE_MODULE_PATH})
-INCLUDE(AddSplint )
 
-#-----------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------------
 # prepare for testing
 #
 enable_testing()
 
 
-#-----------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------------
 # define the project name and target file
 #
 project(canpie-fd VERSION 0.99.02)
 
 
-#-----------------------------------------------------------------------------------------------------------------------
-# set general paths of the project
-#
-set(TEST_PATH   ${CMAKE_CURRENT_SOURCE_DIR})
-set(PROG_PATH   ${CMAKE_CURRENT_SOURCE_DIR}/../../bin)
-set(SOURCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../../source)
-set(CANPIE_PATH ${SOURCE_PATH}/canpie-fd)
-set(DEVICE_PATH ${SOURCE_PATH}/application/template-canpie-fd)
-
-
-#-----------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------------
 # specify include paths 
 #
-include_directories(${TEST_PATH})
-include_directories(${CANPIE_PATH})
-include_directories(${DEVICE_PATH})
-include_directories(${SOURCE_PATH}/misc)
+include_directories(${CP_PATH_CANPIE})
+include_directories(${CP_PATH_DEVICE_TEMPLATE})
+include_directories(${CP_PATH_MISC})
+include_directories(${CP_PATH_QCAN})
 
 #----------------------------------------------------------------------------------------------------------------------- 
 # define source files for compilation
 #
+
 list(
-    APPEND canpie_sources
-    ${CANPIE_PATH}/cp_msg.c
-    ${CANPIE_PATH}/cp_fifo.c
+   APPEND function_sources
+   test_cp_core.c
+   test_cp_main_f.c
+   test_cp_msg_ccf.c
+   test_cp_msg_fdf.c
+   unity_fixture.c
+   unity.c
 )
 
 list(
-    APPEND device_sources
-    ${DEVICE_PATH}/device_canfd.c
+   APPEND macro_sources
+   test_cp_main_m.c
+   test_cp_msg_ccm.c
+   test_cp_msg_fdm.c
+   unity_fixture.c
+   unity.c
 )
 
-list(
-    APPEND function_sources
-    ${TEST_PATH}/test_cp_core.c
-    ${TEST_PATH}/test_cp_main_f.c
-	${TEST_PATH}/test_cp_msg_ccf.c
-	${TEST_PATH}/test_cp_msg_fdf.c
-	${TEST_PATH}/unity_fixture.c
-	${TEST_PATH}/unity.c
-)
-
-list(
-    APPEND macro_sources
-    ${TEST_PATH}/test_cp_main_m.c
-	${TEST_PATH}/test_cp_msg_ccm.c
-	${TEST_PATH}/test_cp_msg_fdm.c
-	${TEST_PATH}/unity_fixture.c
-	${TEST_PATH}/unity.c
-)
-
-add_splint(cp_test_function ${canpie_sources} ${device_sources})
+add_splint(canpie_test ${CP_FILE_CANPIE} ${CP_FILE_DEVICE_TEMPLATE})
 
 #----------------------------------------------------------------------------------------------------------------------- 
 # create binary from selected source files
 #
 add_executable(canpie_test_function 
-    ${canpie_sources}
-    ${device_sources}
+    ${CP_FILE_CANPIE}
+    ${CP_FILE_DEVICE_TEMPLATE}
     ${function_sources}
 )
 
 add_executable(canpie_test_macro
-    ${canpie_sources}
-    ${device_sources}
+    ${CP_FILE_CANPIE}
+    ${CP_FILE_DEVICE_TEMPLATE}
     ${macro_sources}
 )
 
