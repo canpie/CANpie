@@ -18,8 +18,6 @@ set(CP_PATH_CMAKE             ${CMAKE_CURRENT_LIST_DIR})
 #
 set(CP_PATH_BIN               ${CP_PATH_CMAKE}/../bin)
 
-message("binary path:  " ${CP_PATH_BIN})
-
 #-------------------------------------------------------------------------------------------------------
 # general source path
 #
