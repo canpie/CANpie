@@ -1,5 +1,5 @@
 #----------------------------------------------------------------------------------------------------------------------#
-# Top level CMake file for building the CANpie FD project                                                              #
+# CMake file for testing QCan classes                                                                                  #
 #                                                                                                                      #
 #----------------------------------------------------------------------------------------------------------------------#
 
@@ -9,19 +9,17 @@
 cmake_minimum_required(VERSION 3.16.4 FATAL_ERROR)
 cmake_policy(SET CMP0048 NEW)
 
-#-------------------------------------------------------------------------------------------------------
-# This project can be translated with the following commands:
+#------------------------------------------------------------------------------
+# This project consists of a CMakeLists.txt and can be translated with the 
+# following commands:
+# > mkdir build
 # > cd build
 # > cmake ..
 # > cmake --build .
 # 
 
+message("-- Enter test directory ..")
 
-#-------------------------------------------------------------------------------------------------------
-# specify project
-#
-project("CANpie FD")
-
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/source/application)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/canpie-fd)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/qcan)
 

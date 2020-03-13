@@ -13,7 +13,7 @@ SET( CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake" ${CMAKE_MODULE_
 INCLUDE(AddSourceDirectories )
 INCLUDE(AddSplint )
 
-message("Test cases for CANpie FD header files and sources")
+message("-- Configure test cases for CANpie FD header files and sources")
 
 
 #-------------------------------------------------------------------------------------------------------
