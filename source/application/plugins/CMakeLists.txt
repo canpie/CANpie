@@ -12,8 +12,8 @@ cmake_policy(SET CMP0048 NEW)
 
 message("-- Configure plugins ..")
 
-#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/can-config)
-#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/can-dump)
-#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/can-error)
-#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/can-send)
+#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/qcan-ixxat)
+#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/qcan-peak)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/qcan-template)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/qcan-usart)
 

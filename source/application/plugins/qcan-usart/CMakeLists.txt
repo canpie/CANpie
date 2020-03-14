@@ -1,17 +1,17 @@
 #----------------------------------------------------------------------------------------------------------------------#
-# CMake file plugin QCanTemplate                                                                                       #
+# CMake file plugin QCanUsart                                                                                          #
 #                                                                                                                      #
 #----------------------------------------------------------------------------------------------------------------------#
 
 cmake_minimum_required(VERSION 3.16.4 FATAL_ERROR)
 cmake_policy(SET CMP0048 NEW)
 
-message("-- Configure plugin QCanTemplate")
+message("-- Configure plugin QCanUsart")
 
 #-------------------------------------------------------------------------------------------------------
 # define the project name and version
 #
-project(QCanTemplate VERSION 1.00.4)
+project(QCanUsart VERSION 1.02.2)
 
 
 #-------------------------------------------------------------------------------------------------------
@@ -25,9 +25,11 @@ INCLUDE(AddSourceDirectories )
 #-------------------------------------------------------------------------------------------------------
 # specify include paths 
 #
+include_directories(${CP_PATH_CANPIE})
 include_directories(${CP_PATH_MISC})
 include_directories(${CP_PATH_QCAN})
-
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/forms)
 
 #-------------------------------------------------------------------------------------------------------
 # pass version information to application
@@ -42,8 +44,11 @@ add_definitions(-DVERSION_BUILD=${PROJECT_VERSION_PATCH})
 #
 list(
    APPEND PLUGIN_SOURCES
-   qcan_interface_template.cpp
-   qcan_plugin_template.cpp
+   ./forms/qcan_config.cpp
+   cp_usart.c
+   qcan_interface_usart.cpp
+   qcan_plugin_usart.cpp
+   qcan_usart.cpp
 )
 
 list(
@@ -52,28 +57,35 @@ list(
    ${CP_PATH_QCAN}/qcan_timestamp.cpp
 )
 
-list (APPEND RESOURCES qcan_template.qrc)
+list (APPEND RESOURCES qcan_usart.qrc)
 
 
 #-------------------------------------------------------------------------------------------------------
-# Qt specific setup: use moc and rcc, check for required Qt libraries
+# Qt specific setup: use moc, rcc and uic, check for required Qt libraries
 #
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOUIC_SEARCH_PATHS ./forms)
 
-find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
+find_package(Qt5 COMPONENTS Core SerialPort Widgets REQUIRED)
+
+#-------------------------------------------------------------------------------------------------------
+# definition for number of channels
+#
+add_definitions(-DMC_USART_PORT_MAX=CP_CHANNEL_MAX)
 
 
 #-------------------------------------------------------------------------------------------------------
 # create plugin from selected source files
 #
-add_library(${PROJECT_NAME} SHARED ${PLUGIN_SOURCES} ${QCAN_SOURCES} ${RESOURCES})
+add_library(${PROJECT_NAME} SHARED ${PLUGIN_SOURCES} ${QCAN_SOURCES} ${CP_FILE_CANPIE} ${RESOURCES})
 
 
 #-------------------------------------------------------------------------------------------------------
 # link Qt libs 
 #
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Core Qt5::Widgets)
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Core Qt5::SerialPort Qt5::Widgets)
 
 
 #-------------------------------------------------------------------------------------------------------
