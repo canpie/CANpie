@@ -40,14 +40,14 @@ DESTDIR = ../../../bin
 # are mixed. This occurs especially when one application is
 # compiled as a release and others as a debug version.
 !win32-msvc* {
-MOC_DIR = ../../../objs
-RCC_DIR = ../../../objs
+MOC_DIR = ../../../build
+RCC_DIR = ../../../build
 }
 else {
 #--------------------------------------------------------------------
 # Objects directory
 #
-OBJECTS_DIR = ../../../objs
+OBJECTS_DIR = ../../../build
 }
 
 #---------------------------------------------------------------
