@@ -74,11 +74,12 @@ set(CMAKE_AUTOUIC_SEARCH_PATHS ./forms)
 
 find_package(Qt5 COMPONENTS Core Gui Network WebSockets Widgets REQUIRED)
 
-find_library(OSX_FRAMEWORK Foundation)
-if (NOT OSX_FRAMEWORK)
-    message(FATAL_ERROR "Foundation framework not found")
+if (APPLE)
+   find_library(OSX_FRAMEWORK Foundation)
+   if (NOT OSX_FRAMEWORK)
+      message(FATAL_ERROR "Foundation framework not found")
+   endif()
 endif()
-
 
 #-------------------------------------------------------------------------------------------------------
 # create binary from selected source files
@@ -93,7 +94,9 @@ add_executable(${PROJECT_NAME}
 # link Qt libs 
 #
 target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Widgets)
-target_link_libraries(${PROJECT_NAME} "-framework Foundation")
+if(APPLE)
+   target_link_libraries(${PROJECT_NAME} "-framework Foundation")
+endif()
 
 #-------------------------------------------------------------------------------------------------------
 # copy program to bin directory 
