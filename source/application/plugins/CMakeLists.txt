@@ -10,12 +10,10 @@ cmake_minimum_required(VERSION 3.16.4 FATAL_ERROR)
 cmake_policy(SET CMP0048 NEW)
 
 
-message("-- Enter source/application directory ..")
+message("-- Configure plugins ..")
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/can-config)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/can-dump)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/can-error)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/can-send)
+#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/can-config)
+#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/can-dump)
+#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/can-error)
+#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/can-send)
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/server)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/plugins)

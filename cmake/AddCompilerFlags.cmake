@@ -1,9 +1,6 @@
 #----------------------------------------------------------------------------------------------------------------------#
-# This CMake include defines the source directories and the source files for the project                               #
+# This CMake include defines compiler flags for the project                                                            #
 #                                                                                                                      #
-# The following defintions are used:                                                                                   #
-# CP_PATH_<name> : directory to source code files                                                                      #
-# CP_FILE_<name> : source files (C/C++)                                                                                #
 #                                                                                                                      #
 #----------------------------------------------------------------------------------------------------------------------#
 
