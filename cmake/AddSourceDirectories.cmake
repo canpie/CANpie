@@ -19,6 +19,19 @@ set(CP_PATH_CMAKE             ${CMAKE_CURRENT_LIST_DIR})
 set(CP_PATH_BIN               ${CP_PATH_CMAKE}/../bin)
 
 #-------------------------------------------------------------------------------------------------------
+# path for plugins
+# Windows: bin/plugins
+# Linux  : bin/plugins
+# macOS  : bin/CANpieServer.app/Contents/PlugIns
+#
+if(APPLE)
+   set(CP_PATH_PLUGINS        ${CP_PATH_BIN}/CANpieServer.app/Contents/PlugIns)
+else()
+   set(CP_PATH_PLUGINS        ${CP_PATH_BIN}/PlugIns)
+endif()
+
+
+#-------------------------------------------------------------------------------------------------------
 # general source path
 #
 set(CP_PATH_SOURCE            ${CP_PATH_CMAKE}/../source)
@@ -32,6 +45,9 @@ set(CP_PATH_MISC              ${CP_PATH_SOURCE}/misc)
 set(CP_PATH_QCAN              ${CP_PATH_SOURCE}/qcan)
 
 set(CP_PATH_TEST              ${CP_PATH_CMAKE}/../test)
+
+
+
 
 list(
     APPEND CP_FILE_CANPIE
