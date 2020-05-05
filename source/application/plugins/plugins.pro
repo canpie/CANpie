@@ -21,9 +21,9 @@ TEMPLATE = subdirs
 #---------------------------------------------------------------
 # list of sub directories
 #
-SUBDIRS  =  ./qcan_peak  		\
-            ./qcan_template	\
-            ./qcan_usart
+SUBDIRS  =  ./qcan-peak       \
+            ./qcan-template   \
+            ./qcan-usart
 
 
 #---------------------------------------------------------------
