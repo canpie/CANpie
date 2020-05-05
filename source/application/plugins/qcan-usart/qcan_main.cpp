@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
       pclQCanInterfaceT->setBitrate(0,0);
 
       // call for new config
-      pclQCanInterfaceT->deviceSpecificConfiguration();
+      pclQCanInterfaceT->configureDevice();
    }
 
    return a.exec();
