@@ -7,8 +7,17 @@
 .settings/
 
 #--------------------------------------------------------------------
-# ignore the bin folder
-bin/
+# ignore the bin and build folders
+bin/**
+**/build*
+**/Debug*
+*.exe
+*.db
+*.zip
+
+#--------------------------------------------------------------------
+# also ignore auto generated files
+*.pro.user
 
 #--------------------------------------------------------------------
 # ignore hidden qmake files
