@@ -439,7 +439,7 @@ typedef  signed   long long   int64_t;
 #define  CPP_INLINE           inline
 #define  CPP_PACK             __attribute__ ((packed))
 #ifndef  CPP_PARM_UNUSED
-#define  CPP_PARM_UNUSED(x)   x
+#define  CPP_PARM_UNUSED(x)   CPP_PARM_UNUSED_ ## x __attribute__((__unused__))
 #endif
 #define  CPP_BIG_ENDIAN       0
 #define  CPP_NULL             0
@@ -818,7 +818,16 @@ typedef  bool                 bool_t;
 #define  CPP_PACK
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   __attribute__((unused)) x
+#define  CPP_NULL             (void *) 0
 #endif
+
+//--------------------------------------------------------------
+// Keil-C does not support the C99 standard, so the keywords
+// are defined here
+//
+#define  inline
+#define  true                 1
+#define  false                0
 
 typedef  short                Status_tv;
 
@@ -847,21 +856,23 @@ typedef  long long            int64_t;
 #define  CPP_CONST            const
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE
+#define  CPP_NULL             (void *) 0
 #define  CPP_PACK
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
 #endif
+#define  CPP_BIG_ENDIAN       0
 
-typedef  int32_t              Status_tv;
+#include <stdint.h>
+#include <stdbool.h>
 
 typedef  unsigned char        bool_t;
 typedef  unsigned char        uint8_t;
 typedef  signed char          int8_t;
 typedef  unsigned short       uint16_t;
 typedef  short                int16_t;
-typedef  unsigned long        uint32_t;
-typedef  long                 int32_t;
 
+typedef  int32_t              Status_tv;
 
 #endif
 // End of definition: _MSC_VER
