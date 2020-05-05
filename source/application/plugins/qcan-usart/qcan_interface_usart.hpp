@@ -88,10 +88,7 @@ private:
 
    QWidget *         pclViewWidgedContainerP;
 
-   QTimer *          pclEventTimerP;
-
-private slots:
-
+//   QTimer *          pclEventTimerP;
 
 public:
 
@@ -137,10 +134,12 @@ public:
 Q_SIGNALS:
 
    void  addLogMessage(const QString & clMessageR, const LogLevel_e & teLogLevelR = eLOG_LEVEL_WARN);
-   void  connected(void);
-   void  disconnected(void);
+   void  connectionChanged(const QCanInterface::ConnectionState_e & teConnectionStateR);
    void  readyRead(void);
    void  stateChanged(const CAN_State_e & teCanStateR);
+
+private slots:
+   void  onTimerEvent(void);
 
 };
 

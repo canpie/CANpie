@@ -143,7 +143,7 @@ QCanInterfaceUsart::QCanInterfaceUsart(uint16_t uwDeviceNrV, QString clNameV)
    atsReadMessageListG.clear();
    atsWriteMessageListG.clear();
 
-   pclEventTimerP = new QTimer();
+//   pclEventTimerP = new QTimer();
 
 //   connect(&clMyTimerG, SIGNAL(timeout()),
 //           this,        SLOT(transmitFrame()));
@@ -163,9 +163,9 @@ QCanInterfaceUsart::~QCanInterfaceUsart()
 
    if (clCpUsartP.isAvailable())
    {
-      pclEventTimerP->stop();
-      pclEventTimerP->disconnect();
-      pclEventTimerP->deleteLater();
+//      pclEventTimerP->stop();
+//      pclEventTimerP->disconnect();
+//      pclEventTimerP->deleteLater();
 
       if (teConnectedP == ConnectedState)
       {
@@ -187,7 +187,7 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::connect(void)
    InterfaceError_e teReturnT = eERROR_LIBRARY;
    CpStatus_tv      tvStatusT;
 
-   qDebug() << QString("QCanInterfaceUsart::connect()...");
+   qDebug() << QString("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++QCanInterfaceUsart::connect()...");
 
     emit addLogMessage(tr("Connect ") + clDeviceNameP + tr(" from 'QCan USART' plugin"), eLOG_LEVEL_INFO);
 
@@ -233,9 +233,15 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::connect(void)
          atsReadMessageListG.clear();
          atsWriteMessageListG.clear();
 
+         emit connectionChanged(ConnectedState);
 
-         pclEventTimerP->start(1);
+//         pclEventTimerP->start(1);
          teReturnT = eERROR_NONE;
+
+         //---------------------------------------------------------------------------------------------------
+         // configure the refresh timer which updates all statistic information and sends some signals
+         //
+         QTimer::singleShot(10, this, SLOT(onTimerEvent()));
       }
       else
       {
@@ -281,12 +287,13 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::disconnect()
       tvStatusT = clCpUsartP.CpUsartDriverRelease(&tsPortP);
       if (tvStatusT == eCP_ERR_NONE)
       {
-         pclEventTimerP->stop();
+//         pclEventTimerP->stop();
 
          atsReadMessageListG.clear();
          atsWriteMessageListG.clear();
          teConnectedP = UnconnectedState;
-         emit disconnected();
+         emit connectionChanged(UnconnectedState);
+//         emit disconnected();
          teReturnT = eERROR_NONE;
       }
       else
@@ -339,6 +346,43 @@ QString QCanInterfaceUsart::name()
    return QString("PCAN Basic library is not available");
 }
 
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanInterfaceTemplate::onTimerEven()                                                                               //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanInterfaceUsart::onTimerEvent(void)
+{
+//   if (connectionState() == ConnectedState)
+//   {
+//      if (btHasReceivedFrameP == true)
+//      {
+//         btHasReceivedFrameP = false;
+//         emit readyRead();
+//      }
+
+//      if (teErrorStateP != clErrFrameP.errorState())
+//      {
+//         teErrorStateP = clErrFrameP.errorState();
+//         emit stateChanged(teErrorStateP);
+//      }
+//      QTimer::singleShot(50, this, SLOT(onTimerEvent()));
+//   }
+
+//   if (read(clRcvFrameP) == eERROR_NONE)
+//   {
+//      btHasReceivedFrameP = true;
+//      emit readyRead();
+//   }
+
+//   qDebug() << "onTimerEvent";
+   if (atsReadMessageListG.isEmpty() == false)
+   {
+//      qDebug() << "atsReadMessageListG is NOT empty!";
+      emit readyRead();
+   } else {
+      QTimer::singleShot(50, this, SLOT(onTimerEvent()));
+   }
+}
 
 //--------------------------------------------------------------------------------------------------------------------//
 // QCanInterfaceUsart::read()                                                                                         //
@@ -350,6 +394,8 @@ QCanInterface::InterfaceError_e  QCanInterfaceUsart::read( QCanFrame &clFrameR)
    uint8_t           ubCntT;
    QCanFrame         clCanFrameT;
    CpCanMsg_ts       tsCanMessageT;
+
+   qDebug() << "read( QCanFrame &clFrameR)";
 
    //----------------------------------------------------------------
    // check channel is available
@@ -373,6 +419,7 @@ QCanInterface::InterfaceError_e  QCanInterfaceUsart::read( QCanFrame &clFrameR)
    if (atsReadMessageListG.isEmpty())
    {
       clRetValueT = eERROR_FIFO_RCV_EMPTY;
+      QTimer::singleShot(50, this, SLOT(onTimerEvent()));
    }
 
    //----------------------------------------------------------------
@@ -437,8 +484,6 @@ QCanInterface::InterfaceError_e  QCanInterfaceUsart::read( QCanFrame &clFrameR)
       //
       clFrameR = clCanFrameT;
    }
-
-
 
    return (clRetValueT);
 }
