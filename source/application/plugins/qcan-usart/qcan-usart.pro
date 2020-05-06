@@ -131,6 +131,8 @@ HEADERS =   qcan_interface.hpp         \
             qcan_plugin.hpp            \
             qcan_plugin_usart.hpp
 
+HEADERS +=  cp_platform.h  \
+            mc_usart.h
 
 #---------------------------------------------------------------
 # source files of project
