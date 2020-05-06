@@ -226,33 +226,37 @@ void CpUsart2TrmHandler(uint8_t *pubDataV, uint32_t ulSizeV);
 // CalcUsartBitrate()                                                         //
 // Calculate USART bit rate from given nominal CAN bit rate                   //
 //----------------------------------------------------------------------------//
-static uint32_t CalcUsartBitrate(int32_t slNomBitRateV)
+static int32_t CalcUsartBitrate(int32_t slNomBitRateV)
 {
-   uint32_t ulUsartBitrateT = slNomBitRateV;
+   int32_t slUsartBitrateT = slNomBitRateV;
 
    if (slNomBitRateV <= eCP_BITRATE_1M)
    {
       switch (slNomBitRateV)
       {
          case eCP_BITRATE_20K:
-            ulUsartBitrateT = 19200;
+            slUsartBitrateT = 19200;
             break;
 
          case eCP_BITRATE_50K:
-            ulUsartBitrateT = 57600;
+            slUsartBitrateT = 57600;
             break;
 
          case eCP_BITRATE_125K:
-            ulUsartBitrateT = 115200;
+            slUsartBitrateT = 115200;
+            break;
+
+         case eCP_BITRATE_250K:
+            slUsartBitrateT = 256000;
             break;
 
          default:
-            ulUsartBitrateT = 115200;
+            slUsartBitrateT = 115200;
             break;
       }
    }
 
-   return ulUsartBitrateT;
+   return slUsartBitrateT;
 }
 
 //----------------------------------------------------------------------------//

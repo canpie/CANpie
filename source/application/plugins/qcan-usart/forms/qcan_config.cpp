@@ -67,7 +67,7 @@ QCanConfig::QCanConfig(QCanUsart::QCanUsartConfig_ts &tsConfigurationR, QWidget 
          {
             clStringListT.append(QString::number(infoBaud,10));
 
-            if (tsCurrentConfigP.ulBaud == (quint32)infoBaud)
+            if (tsCurrentConfigP.slBaud == qint32(infoBaud))
             {
                slCurrentIndexT = clStringListT.count()-1;
             }

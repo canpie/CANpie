@@ -232,7 +232,7 @@ int32_t McUsartGetTrmStatus(uint8_t ubPortV);
 /*!
 ** \brief   Initialise Serial Interface
 ** \param   ubPortV - USART port number #USART_PORT_e
-** \param   ulBaudV - Baud rate value
+** \param   slBaudV - Baud rate value
 ** \param   ubModeV - Mode of USART port
 ** \return  eUSART_ERROR_OK or an error value from #USART_ERROR_e
 **
@@ -240,14 +240,14 @@ int32_t McUsartGetTrmStatus(uint8_t ubPortV);
 **
 ** This function initialises the serial USART port with the index
 ** \a ubPortV. The number is taken from the enumeration #USART_PORT_e.
-** The initial baudrate is set via \a ulBaudV. The number of
+** The initial baudrate is set via \a slBaudV. The number of
 ** data bits, stop bits and the parity is configured via the
 ** parameter \a ubModeV.
 **
 ** \attention After initialisation USART reception and sending are disabled.
 **            Call #McUsartSetDir() to setup direction of transmission.
 */
-int32_t McUsartInit(uint8_t ubPortV, uint32_t ulBaudV, uint8_t ubModeV);
+int32_t McUsartInit(uint8_t ubPortV, int32_t slBaudV, uint8_t ubModeV);
 
 //------------------------------------------------------------------------------
 /*!

@@ -57,7 +57,7 @@ class QCanUsart : public QObject
 public:
    typedef struct QCanUsartConfig_s{
       QString clName;
-      quint32 ulBaud;
+      qint32  slBaud;
       quint8  ubDirection;  // USART_DIR_e from mc_usart.h
       quint8  ubMode;       // USART_MODE_e from mc_usart.h
    } QCanUsartConfig_ts;
@@ -131,7 +131,7 @@ public:
    //----------------------------------------------------------------
    // this functions will be called from cp_usart module
    // -> Realize the transition from C to C++
-   qint32 DevInit(quint32 ulBaudV, quint8 ubModeV);
+   qint32 DevInit(qint32 slBaudV, quint8 ubModeV);
    qint32 DevRelease(void);
    qint32 DevSetDir(quint8 ubDirV);
    qint32 DevSetRcvBufferSize(quint32 ulSizeV);

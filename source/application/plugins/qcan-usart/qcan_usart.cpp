@@ -41,21 +41,22 @@ QByteArray  clUartTrmBufG;
 // McUsartInit()                                                              //
 //                                                                            //
 //----------------------------------------------------------------------------//
-int32_t McUsartInit(uint8_t ubPortV, uint32_t ulBaudV, uint8_t ubModeV)
+int32_t McUsartInit(uint8_t ubPortV, int32_t slBaudV, uint8_t ubModeV)
 {
    Q_UNUSED(ubPortV);
 
    QCanUsart &pclCanUsartT = QCanUsart::getInstance();
-   return pclCanUsartT.DevInit(ulBaudV,ubModeV);
+   return pclCanUsartT.DevInit(slBaudV,ubModeV);
 }
 
 //----------------------------------------------------------------------------//
 // McUsartSetRcvBufferSize()                                                  //
 //                                                                            //
 //----------------------------------------------------------------------------//
-int32_t McUsartSetRcvBufferSize(uint8_t ubPortV, uint32_t ulSizeV, uint8_t * pubBufferV)
+int32_t McUsartSetRcvBufferSize(uint8_t ubPortV, uint32_t ulSizeV, uint8_t *pubBufferV)
 {
    Q_UNUSED(ubPortV);
+   Q_UNUSED(pubBufferV);
 
    QCanUsart &pclCanUsartT = QCanUsart::getInstance();
    return pclCanUsartT.DevSetRcvBufferSize(ulSizeV);
@@ -185,23 +186,23 @@ bool QCanUsart::setConfig(QCanUsartConfig_ts & tsNewConfigR)
    switch (tsConfigP.ubDirection)
    {
    case eUSART_DIR_NONE:
-      pclSerialPortP->setBaudRate(tsConfigP.ulBaud,QSerialPort::AllDirections);
+      pclSerialPortP->setBaudRate(tsConfigP.slBaud,QSerialPort::AllDirections);
       break;
    case eUSART_DIR_RX:
-      pclSerialPortP->setBaudRate(tsConfigP.ulBaud,QSerialPort::Input);
+      pclSerialPortP->setBaudRate(tsConfigP.slBaud,QSerialPort::Input);
       break;
    case eUSART_DIR_TX:
-      pclSerialPortP->setBaudRate(tsConfigP.ulBaud,QSerialPort::Output);
+      pclSerialPortP->setBaudRate(tsConfigP.slBaud,QSerialPort::Output);
       break;
    case eUSART_DIR_RXTX:
-      pclSerialPortP->setBaudRate(tsConfigP.ulBaud,QSerialPort::AllDirections);
+      pclSerialPortP->setBaudRate(tsConfigP.slBaud,QSerialPort::AllDirections);
       break;
    case eUSART_DIR_RS485:
       //! todo
       break;
    default:
       tsConfigP.ubDirection = eUSART_DIR_RXTX;
-      pclSerialPortP->setBaudRate(tsConfigP.ulBaud,QSerialPort::AllDirections);
+      pclSerialPortP->setBaudRate(tsConfigP.slBaud,QSerialPort::AllDirections);
       break;
    }
 
@@ -268,11 +269,11 @@ void QCanUsart::setDeviceName(QString clNameV)
 // DevInit()                                                                  //
 //                                                                            //
 //----------------------------------------------------------------------------//
-qint32 QCanUsart::DevInit(quint32 ulBaudV, quint8 ubModeV)
+qint32 QCanUsart::DevInit(qint32 slBaudV, quint8 ubModeV)
 {
    Q_UNUSED(ubModeV);
 
-   tsConfigP.ulBaud = ulBaudV;
+   tsConfigP.slBaud = slBaudV;
    tsConfigP.ubDirection = eUSART_DIR_RXTX;
    if (setConfig(tsConfigP) == true)
    {
@@ -383,7 +384,7 @@ void QCanUsart::onError(QSerialPort::SerialPortError teErrorV)
 //----------------------------------------------------------------------------//
 void QCanUsart::onReadyRead()
 {
-//   qDebug() << "............................onReadyRead("+QString::number(pclSerialPortP->bytesAvailable(),10)+")";
+   qDebug() << "............................onReadyRead("+QString::number(pclSerialPortP->bytesAvailable(),10)+")";
    if (pclSerialPortP->bytesAvailable() >= ulUsartRcvBufferSizeP)
    {
       //--------------------------------------------------------
