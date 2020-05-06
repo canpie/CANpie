@@ -2,7 +2,7 @@
 // File:          cp_msg.c                                                    //
 // Description:   CANpie message access functions                             //
 //                                                                            //
-// Copyright 2017 MicroControl GmbH & Co. KG                                  //
+// Copyright 2020 MicroControl GmbH & Co. KG                                  //
 // 53844 Troisdorf - Germany                                                  //
 // www.microcontrol.net                                                       //
 //                                                                            //
@@ -140,7 +140,12 @@ void CpMsgClrRemote(CpCanMsg_ts *ptsCanMsgV)
    }
 }
 
-uint8_t CpMsgDlcToSize(const uint8_t ubDlcV)
+
+//----------------------------------------------------------------------------//
+// CpMsgDlcToSize()                                                           //
+//                                                                            //
+//----------------------------------------------------------------------------//
+inline uint8_t CpMsgDlcToSize(const uint8_t ubDlcV)
 {
    uint8_t  ubSizeT;
 
@@ -690,7 +695,11 @@ void  CpMsgSetStdId(CpCanMsg_ts *ptsCanMsgV, uint16_t uwStdIdV)
 // CpMsgSetTime()                                                             //
 //                                                                            //
 //----------------------------------------------------------------------------//
+#if CP_CAN_MSG_TIME > 0
 void  CpMsgSetTime(CpCanMsg_ts *ptsCanMsgV, const CpTime_ts *ptsTimeV)
+#else
+void  CpMsgSetTime(CpCanMsg_ts *ptsCanMsgV, const CpTime_ts * CPP_PARM_UNUSED(ptsTimeV))
+#endif
 {
    //----------------------------------------------------------------
    // check for valid pointer
@@ -705,6 +714,10 @@ void  CpMsgSetTime(CpCanMsg_ts *ptsCanMsgV, const CpTime_ts *ptsTimeV)
 }
 
 
+//----------------------------------------------------------------------------//
+// CpMsgSizeToDlc()                                                           //
+//                                                                            //
+//----------------------------------------------------------------------------//
 uint8_t CpMsgSizeToDlc(uint8_t ubSizeV)
 {
    uint8_t  ubDlcT;
