@@ -52,14 +52,37 @@
 #include "qcan_usart.hpp"
 
 /*--------------------------------------------------------------------------------------------------------------------*\
+** Definitions                                                                                                        **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
+
+/*!
+ * \brief The maximal number of QCAN Frames for atsWriteMessageListG before they will be discarded.
+ */
+#define QCAN_FRAME_LIST_MAX   32
+
+/*--------------------------------------------------------------------------------------------------------------------*\
 ** Declaration of global variables that are used by C and C++ code                                                    **
 **                                                                                                                    **
 \*--------------------------------------------------------------------------------------------------------------------*/
+
+/*!
+ * \brief btWrtieIsPendingG is set to true when transmission of a CANpie Message is pending.
+ * So that no collisions occur when sending the messages.
+ */
 extern bool btWrtieIsPendingG;
 extern QVector<CpCanMsg_ts> atsReadMessageListG;
 extern QVector<QCanFrame> atsWriteMessageListG;
+
+/*!
+ * \brief tsPortP holds the CANpie Port information that is used to access the CpCore functions of CANpie.
+ */
 extern CpPort_ts tsPortP;
-extern quint32 ulTrmCountG;
+
+/*!
+ * \brief ulStatisticTrmCountG counts number of transmit messages
+ */
+extern quint32 ulStatisticTrmCountG;
 
 /*--------------------------------------------------------------------------------------------------------------------*\
 ** Declaration of global function that are triggered by C code                                                        **
@@ -87,11 +110,6 @@ uint8_t AppCanRcvHandler(CpCanMsg_ts *ptsMsgV, uint8_t ubBufferV);
  * \return
  */
 uint8_t AppCanTrmHandler(CpCanMsg_ts *ptsMsgV, uint8_t ubBufferV);
-
-/*!
- * \brief transmitFrame
- */
-void transmitFrame(void);
 
 
 //----------------------------------------------------------------------------------------------------------------
@@ -180,9 +198,9 @@ private:
    ConnectionState_e teConnectedP;
 
    /*!
-    * \brief ulUsartBitrateP - Bitrate used for USART communication
+    * \brief slUsartBitrateP - Bitrate used for USART communication
     */
-   uint32_t ulUsartBitrateP;
+   int32_t slUsartBitrateP;
 
    /*!
     * \brief ulUsartModeP - Mode used for USART communication
