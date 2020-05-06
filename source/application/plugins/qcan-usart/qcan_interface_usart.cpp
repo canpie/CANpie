@@ -1,82 +1,72 @@
-//============================================================================//
-// File:          qcan_interface_usart.cpp                                    //
-// Description:   QCan Inteface of USART library                              //
-//                                                                            //
-// Copyright (C) MicroControl GmbH & Co. KG                                   //
-// 53842 Troisdorf - Germany                                                  //
-// www.microcontrol.net                                                       //
-//                                                                            //
-//----------------------------------------------------------------------------//
-// Redistribution and use in source and binary forms, with or without         //
-// modification, are permitted provided that the following conditions         //
-// are met:                                                                   //
-// 1. Redistributions of source code must retain the above copyright          //
-//    notice, this list of conditions, the following disclaimer and           //
-//    the referenced file 'COPYING'.                                          //
-// 2. Redistributions in binary form must reproduce the above copyright       //
-//    notice, this list of conditions and the following disclaimer in the     //
-//    documentation and/or other materials provided with the distribution.    //
-// 3. Neither the name of MicroControl nor the names of its contributors      //
-//    may be used to endorse or promote products derived from this software   //
-//    without specific prior written permission.                              //
-//                                                                            //
-// Provided that this notice is retained in full, this software may be        //
-// distributed under the terms of the GNU Lesser General Public License       //
-// ("LGPL") version 3 as distributed in the 'COPYING' file.                   //
-//                                                                            //
-//============================================================================//
+//====================================================================================================================//
+// File:          qcan_interface_usart.cpp                                                                            //
+// Description:   QCan Inteface for USART                                                                             //
+//                                                                                                                    //
+// Copyright (C) MicroControl GmbH & Co. KG                                                                           //
+// 53844 Troisdorf - Germany                                                                                          //
+// www.microcontrol.net                                                                                               //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the   //
+// following conditions are met:                                                                                      //
+// 1. Redistributions of source code must retain the above copyright notice, this list of conditions, the following   //
+//    disclaimer and the referenced file 'LICENSE'.                                                                   //
+// 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the       //
+//    following disclaimer in the documentation and/or other materials provided with the distribution.                //
+// 3. Neither the name of MicroControl nor the names of its contributors may be used to endorse or promote products   //
+//    derived from this software without specific prior written permission.                                           //
+//                                                                                                                    //
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance     //
+// with the License. You may obtain a copy of the License at                                                          //
+//                                                                                                                    //
+//    http://www.apache.org/licenses/LICENSE-2.0                                                                      //
+//                                                                                                                    //
+// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed   //
+// on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for  //
+// the specific language governing permissions and limitations under the License.                                     //
+//                                                                                                                    //
+//====================================================================================================================//
+
+
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Include files                                                                                                      **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
 
 #include "qcan_interface_usart.hpp"
+
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Definitions                                                                                                        **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
+
 
 bool btWrtieIsPendingG;
 QVector<CpCanMsg_ts> atsReadMessageListG;
 QVector<QCanFrame> atsWriteMessageListG;
 CpPort_ts tsPortP;
 quint32 ulTrmCountG;
-void transmitFrame(void);
 
-//----------------------------------------------------------------------------//
-// AppCanErrHandler()                                                         //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// AppCanErrHandler()                                                                                                 //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 uint8_t AppCanErrHandler(CpState_ts  *ptsErrV)
 {
-   // demo handling of error
-   if (ptsErrV->ubCanErrState == eCP_STATE_BUS_OFF)
-   {
-
-   }
+   Q_UNUSED(ptsErrV);
 
    return eCP_ERR_NONE;
 }
 
-//----------------------------------------------------------------------------//
-// AppCanRcvHandler()                                                         //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// AppCanRcvHandler()                                                                                                 //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 uint8_t AppCanRcvHandler(CpCanMsg_ts *ptsMsgV, uint8_t ubBufferV)
 {
-//   qDebug() << "---------------------------------------------------------AppCanRcvHandler------HIT!!";
-//   qDebug() << "Buffer: " << QString::number(ubBufferV,10);
-//   qDebug() << "NID: " << QString::number(ptsMsgV->ulIdentifier,16) << "h";
-//   qDebug() << "DLC: " << QString::number(ptsMsgV->ubMsgDLC,10);
+   Q_UNUSED(ubBufferV);
 
-   //----------------------------------------------------------------
-   // append new CAN message
-   //
-   switch (ubBufferV)
-   {
-      case eCP_BUFFER_3 :
-         break;
-
-      case eCP_BUFFER_4 :
-         break;
-
-      default:
-         break;
-   }
-
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // append new CAN message
    //
    atsReadMessageListG.append(*ptsMsgV);
@@ -84,26 +74,28 @@ uint8_t AppCanRcvHandler(CpCanMsg_ts *ptsMsgV, uint8_t ubBufferV)
    return eCP_ERR_NONE;
 }
 
-//----------------------------------------------------------------------------//
-// AppCanTrmHandler()                                                         //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// AppCanTrmHandler()                                                                                                 //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 uint8_t AppCanTrmHandler(CpCanMsg_ts *ptsMsgV, uint8_t ubBufferV)
 {
-//   qDebug() << "---------------------------------------------------------AppCanTrmHandler------HIT!! -> on buffer" << QString::number(ubBufferV,10);
-
-   //----------------------------------------------------------------
-   // handle transmit event from corresponding, if necessary
+   //---------------------------------------------------------------------------------------------------
+   // handle transmit event from corresponding buffer
    //
    switch (ubBufferV)
    {
       case eCP_BUFFER_1:
-         // handle data if necessary...
-         if (ptsMsgV != NULL)
-         {
 
-         }
+         //-----------------------------------------------------------------------------------
+         // clear write pending flag, so next message can be written
+         //
+         btWrtieIsPendingG = false;
 
+         //-----------------------------------------------------------------------------------
+         // Only Buffer 1 will be used for sending all CANpie mesages via USART
+         // Trigger next one after the transmission has been finished
+         //
          transmitFrame();
 
          break;
@@ -114,10 +106,92 @@ uint8_t AppCanTrmHandler(CpCanMsg_ts *ptsMsgV, uint8_t ubBufferV)
    return eCP_ERR_NONE;
 }
 
-//----------------------------------------------------------------------------//
-// QCanInterfaceUsart()                                                       //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// transmitFrame()                                                                                                    //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void transmitFrame(void)
+{
+   QCanUsart &clCpUsartT = QCanUsart::getInstance();
+   CpStatus_tv tvStatusT = eCP_ERR_NONE;
+   QCanFrame clFrameT;
+
+   //---------------------------------------------------------------------------------------------------
+   // check for actually running transmission and quit if one is pending
+   //
+   if (btWrtieIsPendingG == true)
+   {
+      return;
+   }
+   btWrtieIsPendingG = true;
+
+   //---------------------------------------------------------------------------------------------------
+   // check for pending missages for transmission
+   //
+   if (atsWriteMessageListG.isEmpty() == true)
+   {
+      btWrtieIsPendingG = false;
+      return;
+   }
+
+   //---------------------------------------------------------------------------------------------------
+   // get the next CANpie message from the list
+   //
+   clFrameT = atsWriteMessageListG.first();
+   atsWriteMessageListG.removeFirst();
+
+   //---------------------------------------------------------------------------------------------------
+   // setup buffer for transmission and send message
+   //
+   if (clFrameT.isExtended())
+   {
+      tvStatusT += clCpUsartT.CpUsartBufferConfig(&tsPortP, eCP_BUFFER_1,
+                                                   (uint32_t) clFrameT.identifier(),
+                                                   CP_MASK_EXT_FRAME,
+                                                   CP_MSG_FORMAT_CEFF,
+                                                   eCP_BUFFER_DIR_TRM);
+   }
+   else
+   {
+      tvStatusT += clCpUsartT.CpUsartBufferConfig(&tsPortP, eCP_BUFFER_1,
+                                                   (uint32_t) clFrameT.identifier(),
+                                                   CP_MASK_EXT_FRAME,
+                                                   CP_MSG_FORMAT_CBFF,
+                                                   eCP_BUFFER_DIR_TRM);
+   }
+
+   tvStatusT += clCpUsartT.CpUsartBufferSetDlc(&tsPortP, eCP_BUFFER_1,
+                                                clFrameT.dlc());
+
+   tvStatusT += clCpUsartT.CpUsartBufferSetData(&tsPortP, eCP_BUFFER_1,
+                                                 (uint8_t *)clFrameT.data().data(),
+                                                 0,
+                                                 clFrameT.dlc());
+
+   tvStatusT += clCpUsartT.CpUsartBufferSend(&tsPortP, eCP_BUFFER_1);
+
+   //---------------------------------------------------------------------------------------------------
+   // check transmission was succesfull
+   //
+   if (tvStatusT == eCP_ERR_NONE)
+   {
+      ulTrmCountG++;
+   } else
+   {
+      qCritical() << "FAIL to send a CANpie Message via USART buffer with error 0x" + QString::number(tvStatusT,16);
+   }
+}
+
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Class methods                                                                                                      **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanInterfaceUsart()                                                                                               //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 QCanInterfaceUsart::QCanInterfaceUsart(uint16_t uwDeviceNrV, QString clNameV)
 {
    if (!clCpUsartP.isAvailable())
@@ -125,12 +199,10 @@ QCanInterfaceUsart::QCanInterfaceUsart(uint16_t uwDeviceNrV, QString clNameV)
       qCritical() << "QCanInterfaceUsart(): USART interface is available!";
    }
 
-   clDeviceNameP = clNameV;
-   uwDeviceNumberP = uwDeviceNrV;
+   clUsartNameP = clNameV;
+   uwUsartNumberP = uwDeviceNrV;
 
-   pclViewWidgedContainerP = NULL;
-
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // setup interface variables
    //
    teConnectedP = UnconnectedState;
@@ -140,18 +212,12 @@ QCanInterfaceUsart::QCanInterfaceUsart(uint16_t uwDeviceNrV, QString clNameV)
    //
    teErrorStateP = eCAN_STATE_BUS_ACTIVE;
 
+   teCanModeP = eCAN_MODE_STOP;
+
    atsReadMessageListG.clear();
    atsWriteMessageListG.clear();
-
-//   pclEventTimerP = new QTimer();
-
-//   connect(&clMyTimerG, SIGNAL(timeout()),
-//           this,        SLOT(transmitFrame()));
-
-//   connect(pclEventTimerP, QTimer::timeout,
-//           this,           QCanInterfaceUsart::transmitEvent);
-
 }
+
 
 //----------------------------------------------------------------------------//
 // ~QCanInterfaceUsart()                                                      //
@@ -189,15 +255,15 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::connect(void)
 
    qDebug() << QString("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++QCanInterfaceUsart::connect()...");
 
-    emit addLogMessage(tr("Connect ") + clDeviceNameP + tr(" from 'QCan USART' plugin"), eLOG_LEVEL_INFO);
+    emit addLogMessage(tr("Connect ") + clUsartNameP + tr(" from 'QCan USART' plugin"), eLOG_LEVEL_INFO);
 
    //----------------------------------------------------------------
    //
    //
    if (clCpUsartP.isAvailable())
    {
-      clCpUsartP.setDeviceName(clDeviceNameP);
-      tvStatusT = clCpUsartP.CpUsartDriverInit(uwDeviceNumberP+1,&tsPortP,0);
+      clCpUsartP.setDeviceName(clUsartNameP);
+      tvStatusT = clCpUsartP.CpUsartDriverInit(uwUsartNumberP+1,&tsPortP,0);
       if (tvStatusT == eCP_ERR_NONE)
       {
          tvStatusT += clCpUsartP.CpUsartIntFunctions(&tsPortP,
@@ -245,7 +311,7 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::connect(void)
       }
       else
       {
-         qWarning() << QString("QCanInterfaceUsart::connect(0x" +QString::number(tsPortP.ubPhyIf,16)+", "+clDeviceNameP+")") << "fail with error:" << clCpUsartP.formatedError(tvStatusT);
+         qWarning() << QString("QCanInterfaceUsart::connect(0x" +QString::number(tsPortP.ubPhyIf,16)+", "+clUsartNameP+")") << "fail with error:" << clCpUsartP.formatedError(tvStatusT);
       }
    }
 
@@ -298,7 +364,7 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::disconnect()
       }
       else
       {
-         qWarning() << QString("QCanInterfaceUsart::disconnect(0x" +QString::number(tsPortP.ubPhyIf,16)+", "+clDeviceNameP+")") << "fail with error:" << clCpUsartP.formatedError(tvStatusT);
+         qWarning() << QString("QCanInterfaceUsart::disconnect(0x" +QString::number(tsPortP.ubPhyIf,16)+", "+clUsartNameP+")") << "fail with error:" << clCpUsartP.formatedError(tvStatusT);
       }
    }
 
@@ -340,7 +406,7 @@ QString QCanInterfaceUsart::name()
    qDebug() << "QCanInterfaceUsart::name()";
    if (clCpUsartP.isAvailable())
    {
-      return clDeviceNameP;
+      return clUsartNameP;
    }
 
    return QString("PCAN Basic library is not available");
@@ -477,7 +543,7 @@ QCanInterface::InterfaceError_e  QCanInterfaceUsart::read( QCanFrame &clFrameR)
       //------------------------------------------------
       // increase statistic counter
       //
-      clStatisticP.ulRcvCount++;
+      tsStatisticP.ulRcvCount++;
 
       //------------------------------------------------
       // copy the CAN frame
@@ -508,8 +574,8 @@ QCanInterface::InterfaceError_e  QCanInterfaceUsart::reset()
    //----------------------------------------------------------------
    // reset statistic values
    //
-   clStatisticP.ulErrCount = 0;
-   clStatisticP.ulRcvCount = 0;
+   tsStatisticP.ulErrCount = 0;
+   tsStatisticP.ulRcvCount = 0;
    ulTrmCountG = 0;
 
    //----------------------------------------------------------------
@@ -551,7 +617,7 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::setBitrate(int32_t slNomBitR
       }
       else
       {
-         qWarning() << QString("QCanInterfaceUsart::disconnect(0x" +QString::number(tsPortP.ubPhyIf,16)+", "+clDeviceNameP+")") << "fail with error:" << clCpUsartP.formatedError(tvStatusT);
+         qWarning() << QString("QCanInterfaceUsart::disconnect(0x" +QString::number(tsPortP.ubPhyIf,16)+", "+clUsartNameP+")") << "fail with error:" << clCpUsartP.formatedError(tvStatusT);
       }
    }
 
@@ -566,6 +632,7 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::setBitrate(int32_t slNomBitR
 QCanInterface::InterfaceError_e	QCanInterfaceUsart::setMode(const CAN_Mode_e teModeV)
 {
    CpStatus_tv tvStatusT;
+   //CpMode_e    teCanModeP
 
    qDebug() << "QCanInterfaceUsart::setMode()";
 
@@ -587,8 +654,8 @@ QCanInterface::InterfaceError_e	QCanInterfaceUsart::setMode(const CAN_Mode_e teM
          //---------------------------------------------------
          // reset statistic values
          //
-         clStatisticP.ulErrCount = 0;
-         clStatisticP.ulRcvCount = 0;
+         tsStatisticP.ulErrCount = 0;
+         tsStatisticP.ulRcvCount = 0;
          ulTrmCountG = 0;
 
          tvStatusT = clCpUsartP.CpUsartCanMode(&tsPortP, eCAN_MODE_START);
@@ -597,7 +664,7 @@ QCanInterface::InterfaceError_e	QCanInterfaceUsart::setMode(const CAN_Mode_e teM
             teCanModeP = eCAN_MODE_START;
          } else
          {
-            qWarning() << QString("QCanInterfaceUsart::setMode(0x" +QString::number(tsPortP.ubPhyIf,16)+", "+clDeviceNameP+")") << "fail with error:" << clCpUsartP.formatedError(tvStatusT);
+            qWarning() << QString("QCanInterfaceUsart::setMode(0x" +QString::number(tsPortP.ubPhyIf,16)+", "+clUsartNameP+")") << "fail with error:" << clCpUsartP.formatedError(tvStatusT);
          }
          break;
 
@@ -632,8 +699,8 @@ QCanInterface::InterfaceError_e	QCanInterfaceUsart::statistic(QCanStatistic_ts &
 {
    if(clCpUsartP.isAvailable())
    {
-      clStatisticR.ulErrCount = clStatisticP.ulErrCount;
-      clStatisticR.ulRcvCount = clStatisticP.ulRcvCount;
+      clStatisticR.ulErrCount = tsStatisticP.ulErrCount;
+      clStatisticR.ulRcvCount = tsStatisticP.ulRcvCount;
       clStatisticR.ulTrmCount = ulTrmCountG;
    }
    else
@@ -724,11 +791,9 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::write(const QCanFrame &clFra
       QCanFrame clPendingFrameT = clFrameR;
       atsWriteMessageListG.append(clPendingFrameT);
 
-      // trigger transmission if no one is pending
-      if (btWrtieIsPendingG == false)
-      {
-         transmitFrame();
-      }
+      // trigger transmission
+      transmitFrame();
+
       return eERROR_NONE;
    }
 
@@ -736,66 +801,6 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::write(const QCanFrame &clFra
 
    return eERROR_FIFO_TRM_FULL;
 
-}
-
-//----------------------------------------------------------------------------//
-// transmitFrame()                                                            //
-//                                                                            //
-//----------------------------------------------------------------------------//
-void transmitFrame(void)
-{
-   QCanUsart &clCpUsartT = QCanUsart::getInstance();
-   CpStatus_tv tvStatusT = eCP_ERR_NONE;
-   QCanFrame clFrameT;
-
-   if (atsWriteMessageListG.isEmpty() == true)
-   {
-      btWrtieIsPendingG = false;
-      return;
-   }
-   clFrameT = atsWriteMessageListG.first();
-   atsWriteMessageListG.removeFirst();
-
-   //----------------------------------------------------------------
-   // setup buffer for transmission and send message
-   //
-   if (clFrameT.isExtended())
-   {
-      tvStatusT += clCpUsartT.CpUsartBufferConfig(&tsPortP, eCP_BUFFER_1,
-                                                   (uint32_t) clFrameT.identifier(),
-                                                   CP_MASK_EXT_FRAME,
-                                                   CP_MSG_FORMAT_CEFF,
-                                                   eCP_BUFFER_DIR_TRM);
-   }
-   else
-   {
-      tvStatusT += clCpUsartT.CpUsartBufferConfig(&tsPortP, eCP_BUFFER_1,
-                                                   (uint32_t) clFrameT.identifier(),
-                                                   CP_MASK_EXT_FRAME,
-                                                   CP_MSG_FORMAT_CBFF,
-                                                   eCP_BUFFER_DIR_TRM);
-   }
-
-   tvStatusT += clCpUsartT.CpUsartBufferSetDlc(&tsPortP, eCP_BUFFER_1,
-                                                clFrameT.dlc());
-
-   tvStatusT += clCpUsartT.CpUsartBufferSetData(&tsPortP, eCP_BUFFER_1,
-                                                 (uint8_t *)clFrameT.data().data(),
-                                                 0,
-                                                 clFrameT.dlc());
-
-   tvStatusT += clCpUsartT.CpUsartBufferSend(&tsPortP, eCP_BUFFER_1);
-
-   //----------------------------------------------------------------
-   // check transmission was succesfull
-   //
-   if (tvStatusT == eCP_ERR_NONE)
-   {
-      ulTrmCountG++;
-   } else
-   {
-      qDebug() << "FAIL to send a USART buffer";
-   }
 }
 
 //----------------------------------------------------------------------------//
