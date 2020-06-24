@@ -2,7 +2,7 @@
 // File:          cp_msg.c                                                    //
 // Description:   CANpie message access functions                             //
 //                                                                            //
-// Copyright 2017 MicroControl GmbH & Co. KG                                  //
+// Copyright 2020 MicroControl GmbH & Co. KG                                  //
 // 53844 Troisdorf - Germany                                                  //
 // www.microcontrol.net                                                       //
 //                                                                            //
@@ -718,7 +718,11 @@ void  CpMsgSetStdId(CpCanMsg_ts *ptsCanMsgV, uint16_t uwStdIdV)
 // CpMsgSetTime()                                                             //
 //                                                                            //
 //----------------------------------------------------------------------------//
+#if CP_CAN_MSG_TIME > 0
 void  CpMsgSetTime(CpCanMsg_ts *ptsCanMsgV, const CpTime_ts *ptsTimeV)
+#else
+void  CpMsgSetTime(CpCanMsg_ts *ptsCanMsgV, const CpTime_ts * CPP_PARM_UNUSED(ptsTimeV))
+#endif
 {
    //----------------------------------------------------------------
    // check for valid pointer
