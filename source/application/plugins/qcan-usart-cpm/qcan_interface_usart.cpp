@@ -208,8 +208,8 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::disconnect()
       //-----------------------------------------------------------------------------------s
       // reset / clear all local resources
       //
-
       clCpUsartP.release();
+      clCpUsartP.disconnect();
       atsReceiveMessageListP.clear();
       teConnectedP = UnconnectedState;
       emit connectionChanged(UnconnectedState);
