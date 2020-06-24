@@ -140,7 +140,12 @@ void CpMsgClrRemote(CpCanMsg_ts *ptsCanMsgV)
    }
 }
 
-uint8_t CpMsgDlcToSize(const uint8_t ubDlcV)
+
+//----------------------------------------------------------------------------//
+// CpMsgDlcToSize()                                                           //
+//                                                                            //
+//----------------------------------------------------------------------------//
+CPP_INLINE uint8_t CpMsgDlcToSize(const uint8_t ubDlcV)
 {
    uint8_t  ubSizeT;
 
@@ -490,6 +495,29 @@ bool_t  CpMsgIsRemote(const CpCanMsg_ts *ptsCanMsgV)
 
 
 //----------------------------------------------------------------------------//
+// CpMsgIsRpc()                                                               //
+//                                                                            //
+//----------------------------------------------------------------------------//
+bool_t  CpMsgIsRpc(const CpCanMsg_ts *ptsCanMsgV)
+{
+   bool_t btResultT = false;
+
+   //----------------------------------------------------------------
+   // check for valid pointer
+   //
+   if (ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      if ((ptsCanMsgV->ubMsgCtrl & CP_MSG_CTRL_RPC_BIT) > 0)
+      {
+         btResultT = true;
+      }
+   }
+
+   return (btResultT);
+}
+
+
+//----------------------------------------------------------------------------//
 // CpMsgSetBitrateSwitch()                                                    //
 //                                                                            //
 //----------------------------------------------------------------------------//
@@ -705,7 +733,11 @@ void  CpMsgSetTime(CpCanMsg_ts *ptsCanMsgV, const CpTime_ts *ptsTimeV)
 }
 
 
-uint8_t CpMsgSizeToDlc(uint8_t ubSizeV)
+//----------------------------------------------------------------------------//
+// CpMsgSizeToDlc()                                                           //
+//                                                                            //
+//----------------------------------------------------------------------------//
+CPP_INLINE uint8_t CpMsgSizeToDlc(uint8_t ubSizeV)
 {
    uint8_t  ubDlcT;
    //--------------------------------------------------------

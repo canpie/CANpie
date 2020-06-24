@@ -146,6 +146,17 @@ void  CpMsgClrOverrun(CpCanMsg_ts *ptsCanMsgV);
 void  CpMsgClrRemote(CpCanMsg_ts *ptsCanMsgV);
 
 
+//------------------------------------------------------------------------------
+/*!
+** \brief   Convert DLC to payload size
+** \param   ubDlcV      Data Length Code
+** \return  Number of bytes in CAN payload
+** \see     CpMsgSizeToDlc()
+**
+** This function converts the DLC value to the corresponding size of the CAN
+** message payload. 
+** 
+*/
 uint8_t CpMsgDlcToSize(const uint8_t ubDlcV);
 
 
@@ -156,7 +167,7 @@ uint8_t CpMsgDlcToSize(const uint8_t ubDlcV);
 ** \param   ubPosV      Zero based index of byte position
 ** \return  Value of data at position ubPosV
 **
-** This functions retrieves the data of a CAN message. The parameter
+** This function retrieves the data of a CAN message. The parameter
 ** \c ubPosV must be within the range 0 .. 7 for Classical CAN frames. For
 ** ISO CAN FD frames the valid range is 0 .. 63. Please note that the
 ** macro implementation does not check the value range of the parameter
@@ -320,6 +331,19 @@ bool_t   CpMsgIsRemote(const CpCanMsg_ts *ptsCanMsgV);
 
 //------------------------------------------------------------------------------
 /*!
+** \brief   Check for Remote Procedure Call
+** \param   ptsCanMsgV  Pointer to a CpCanMsg_ts message
+** \return  0 for CAN frame, 1 for Remote Procedure Call
+**
+** This function checks if the Remote Procedure Call bit (RPC) is
+** set. If the RPC bit is set, the function will return 1, otherwise
+** 0.
+*/
+bool_t   CpMsgIsRpc(const CpCanMsg_ts *ptsCanMsgV);
+
+
+//------------------------------------------------------------------------------
+/*!
 ** \brief   Set bit-rate switch
 ** \param   ptsCanMsgV  Pointer to a CpCanMsg_ts message
 ** \see     CpMsgIsBitrateSwitch()
@@ -443,6 +467,16 @@ void  CpMsgSetStdId(CpCanMsg_ts *ptsCanMsgV, uint16_t uwStdIdV);
 void  CpMsgSetTime(CpCanMsg_ts *ptsCanMsgV, const CpTime_ts *ptsTimeV);
 
 
+//------------------------------------------------------------------------------
+/*!
+** \brief   Convert CAN payload size to DLC
+** \param   ubSizeV      Size of CAN message payload in bytes
+** \return  DLC value
+** \see     CpMsgDlcToSize()
+**
+** This function converts the size of the CAN message payload into a DLC value. 
+** 
+*/
 uint8_t CpMsgSizeToDlc(uint8_t ubSizeV);
 
 

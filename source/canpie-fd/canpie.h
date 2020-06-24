@@ -275,7 +275,7 @@
 **
 ** This symbol defines the driver version minor value.
 */
-#define  CP_VERSION_MINOR           6
+#define  CP_VERSION_MINOR           8
 
 
 //-----------------------------------------------------------------------------
@@ -370,6 +370,15 @@
 */
 #define  CP_MSG_CTRL_OVR_BIT     ((uint8_t) 0x08)
 
+/*-------------------------------------------------------------------*/
+/*!
+** \def     CP_MSG_CTRL_RPC_BIT
+** \ingroup CP_MSG_CTRL
+**
+** Bit mask for the RPC (Remote Procedure Call) bit in the
+** \c ubMsgCtrl field of the CpCanMsg_ts structure (CpCanMsg_s::ubMsgCtrl).
+*/
+#define  CP_MSG_CTRL_RPC_BIT     ((uint8_t) 0x10)
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -1017,7 +1026,7 @@ typedef struct CpCanMsg_s
    ** <li>Bit 1: ISO CAN FD: value of FDF bit
    ** <li>Bit 2: Remote Frame
    ** <li>Bit 3: Overload Frame
-   ** <li>Bit 4: reserved, always 0
+   ** <li>Bit 4: Remote Procedure Call
    ** <li>Bit 5: reserved, always 0
    ** <li>Bit 6: ISO CAN FD: value of BRS bit
    ** <li>Bit 7: ISO CAN FD: value of ESI bit
