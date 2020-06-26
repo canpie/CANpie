@@ -71,7 +71,7 @@ public:
    //---------------------------------------------------------------------------------------------------
    /*!
    ** \param[in]  pclParentV     Pointer to QObject parent class
-   ** \param[in]  uwPortV        Port number for WebSocket access
+   ** \param[in]  uwPortNumberV  Port number for WebSocket access
    ** \param[in]  ubNetworkNumV  Number of supported CAN networks
    **
    ** Create new QCanServer object. The parameter \a ubNetworkNumV defines the maximum number of
@@ -145,6 +145,7 @@ public:
    //---------------------------------------------------------------------------------------------------
    /*!
    ** \param[in]  clHostAddressV - Host address
+   ** \param[in]  uwPortV        - Port number for WebSocket access
    **
    ** The function configures the host address of the server.
    */

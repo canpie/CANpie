@@ -85,6 +85,8 @@ class QCanServerSettings : public QObject
 public:
    //---------------------------------------------------------------------------------------------------
    /*!
+   ** \param[in]  pclParentV - Pointer to QObject parent class
+   **
    ** Construct a QCanServerSettings object
    */
    QCanServerSettings(QObject * pclParentV = Q_NULLPTR);

@@ -63,6 +63,7 @@ public:
    //---------------------------------------------------------------------------------------------------
    /*!
    ** \param[in]  teChannelV - CAN channel
+   ** \param[in]  pclParentV - Pointer to QObject parent class
    **
    ** Construct a QCanNetworkSettings object for the channel \a teChannelV.
    */
@@ -231,6 +232,7 @@ signals:
 
    //---------------------------------------------------------------------------------------------------
    /*!
+   ** \param[in]  teChannelV - CAN channel
    ** \param[in]  clNetworkSettingsV - JSON data
    **
    ** This signal is emitted after a new object was received from a QCanNetwork instance. The JSON data

@@ -91,7 +91,7 @@ public:
    ** The function changes the default file path and file name for the log attached to the CAN
    ** channel defined by the parameter \a teChannelV.
    */
-   LogLevel_e     logLevel(const CAN_Channel_e ubChannelV);
+   LogLevel_e     logLevel(const CAN_Channel_e teChannelV);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -141,7 +141,7 @@ public slots:
    ** Only messages with a log level smaller or equal to the actual defined log level will be appended
    ** (see setLogLevel()).
    */
-   virtual void   appendMessage(const CAN_Channel_e ubChannelV, const QString & clLogMessageV,
+   virtual void   appendMessage(const CAN_Channel_e teChannelV, const QString & clLogMessageV,
                                LogLevel_e teLogLevelV = eLOG_LEVEL_INFO);
 
 

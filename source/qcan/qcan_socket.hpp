@@ -82,8 +82,7 @@ public:
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \param[in]  teChannelV     CAN channel
-   ** \param[in]  slMilliSecsV   Time to wait for connection
+   ** \param[in]  teChannelR     CAN channel
    ** \return     \c true if connection is possible
    ** \see        disconnectNetwork()
    **

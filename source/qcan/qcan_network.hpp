@@ -95,7 +95,6 @@ public:
    //---------------------------------------------------------------------------------------------------
    /*!
    ** \param[in]  pclParentV     Pointer to QObject parent class
-   ** \param[in]  uwPortV        Port number
    **
    ** Create new CAN network with unique channel number.
    */
