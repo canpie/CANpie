@@ -946,18 +946,22 @@ enum CpBufferDir_e
 ** \enum    CpRpc_e
 ** \brief   Remote Procedure Call definition
 **
-** The enumeration CpRpc_e is used to define the different 
-** Remote Procedure Calls. The enumeration values are
-** used by the function CpMsgRpc() to identify the received 
-** Remote Procedure Call.
+** The enumeration CpRpc_e is used to define different  Remote Procedure 
+** Calls. The enumeration values are used by the function #CpMsgRpcType() to 
+** identify a Remote Procedure Call upon reception.
 */
 enum CpRpc_e
 {
-   /*! RPC for Mode                                      */
-   eCP_RPC_MODE = 0,
+   /*! RPC for no operation                                    */
+   eCP_RPC_NOOP = 0,
 
-   /*! RPC for Bitrate                                   */
-   eCP_RPC_BITRATE
+   /*! RPC for #CpCoreCanMode()                                */
+   eCP_RPC_MODE,
+
+   /*! RPC for CpCoreBitrate()                                 */
+   eCP_RPC_BITRATE,
+
+   eCP_RPC_MAX
 };
 
 
