@@ -94,6 +94,7 @@ DEFINES  += CP_CAN_FD=1
 DEFINES  += CP_CAN_MSG_TIME=1
 DEFINES  += CP_CAN_MSG_USER=1
 DEFINES  += CP_CAN_MSG_MARKER=1
+DEFINES  += CP_CAN_MSG_MACRO=0
 
 #---------------------------------------------------------------
 # UI files
@@ -135,6 +136,8 @@ HEADERS =   qcan_interface.hpp         \
             qcan_plugin.hpp            \
             qcan_plugin_usart.hpp
 
+HEADERS +=  cp_msg.h
+
 #---------------------------------------------------------------
 # source files of project
 #
@@ -144,6 +147,9 @@ SOURCES =   qcan_frame.cpp             \
             qcan_config.cpp            \
             qcan_usart.cpp             \
             qcan_plugin_usart.cpp
+
+SOURCES +=  cp_msg.c
+
 
 contains(TEMPLATE, app) {
 SOURCES += qcan_main.cpp
