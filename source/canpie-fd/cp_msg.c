@@ -309,6 +309,24 @@ uint32_t  CpMsgGetIdentifier(const CpCanMsg_ts *ptsCanMsgV)
    return (ulIdentifierT);
 }
 
+//----------------------------------------------------------------------------//
+// CpMsgGetRpc()                                                              //
+//                                                                            //
+//----------------------------------------------------------------------------//
+uint32_t  CpMsgGetRpc(const CpCanMsg_ts *ptsCanMsgV)
+{
+   uint32_t  ulRpcT = 0UL;
+
+   //----------------------------------------------------------------
+   // check for valid pointer
+   //
+   if (ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      ulRpcT = ptsCanMsgV->ulIdentifier;
+   }
+
+   return (ulRpcT);
+}  
 
 //----------------------------------------------------------------------------//
 // CpMsgGetStdId()                                                            //
@@ -516,6 +534,100 @@ bool_t  CpMsgIsRpc(const CpCanMsg_ts *ptsCanMsgV)
    return (btResultT);
 }
 
+//----------------------------------------------------------------------------//
+// CpMsgRpcGetCanMode()                                                       //
+//                                                                            //
+//----------------------------------------------------------------------------//
+uint8_t CpMsgRpcGetCanMode(const CpCanMsg_ts *ptsCanMsgV)
+{
+   uint8_t ubModeT = eCP_MODE_INIT;
+
+   //----------------------------------------------------------------
+   // check for valid pointer
+   //
+   if (ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      ubModeT = ptsCanMsgV->ubMsgDLC;
+   }
+
+   return ubModeT;
+}
+
+//----------------------------------------------------------------------------//
+// CpMsgRpcGetDataBitrate()                                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+int32_t CpMsgRpcGetDataBitrate(const CpCanMsg_ts *ptsCanMsgV)
+{
+   int32_t slBitrateT = eCP_BITRATE_NONE;
+
+   //----------------------------------------------------------------
+   // check for valid pointer
+   //
+   if (ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      slBitrateT = (int32_t)(ptsCanMsgV->tuMsgData.aulLong[1]);
+   }
+
+   return slBitrateT;
+}
+
+//----------------------------------------------------------------------------//
+// CpMsgRpcGetNominalBitrate()                                                //
+//                                                                            //
+//----------------------------------------------------------------------------//
+int32_t CpMsgRpcGetNominalBitrate(const CpCanMsg_ts *ptsCanMsgV)
+{
+   int32_t slBitrateT = eCP_BITRATE_NONE;
+
+   //----------------------------------------------------------------
+   // check for valid pointer
+   //
+   if (ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      slBitrateT = (int32_t)(ptsCanMsgV->tuMsgData.aulLong[0]);
+   }
+
+   return slBitrateT;
+}
+
+//----------------------------------------------------------------------------//
+// CpMsgRpcSetCanMode()                                                       //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void  CpMsgRpcSetCanMode(CpCanMsg_ts *ptsCanMsgV, uint8_t ubModeV)
+{
+   //----------------------------------------------------------------
+   // check for valid pointer
+   //
+   if (ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      ptsCanMsgV->ubMsgDLC = ubModeV;
+
+      ptsCanMsgV->ulIdentifier = (uint32_t)(eCP_RPC_MODE);
+      ptsCanMsgV->ubMsgCtrl = (uint8_t)(CP_MSG_CTRL_RPC_BIT);
+   }
+}
+
+//----------------------------------------------------------------------------//
+// CpMsgRpcSetBitrate()                                                       //
+//                                                                            //
+//----------------------------------------------------------------------------//
+void  CpMsgRpcSetBitrate(CpCanMsg_ts *ptsCanMsgV, int32_t slNomBitRateV,
+                         int32_t slDatBitRateV)
+{
+   //----------------------------------------------------------------
+   // check for valid pointer
+   //
+   if (ptsCanMsgV != (CpCanMsg_ts *) 0L)
+   {
+      ptsCanMsgV->tuMsgData.aulLong[0] = (uint32_t)(slNomBitRateV);
+      ptsCanMsgV->tuMsgData.aulLong[1] = (uint32_t)(slDatBitRateV);
+
+      ptsCanMsgV->ulIdentifier = (uint32_t)(eCP_RPC_BITRATE);
+      ptsCanMsgV->ubMsgCtrl = (uint8_t)(CP_MSG_CTRL_RPC_BIT);
+   }
+}
 
 //----------------------------------------------------------------------------//
 // CpMsgSetBitrateSwitch()                                                    //

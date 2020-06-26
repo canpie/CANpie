@@ -275,7 +275,7 @@
 **
 ** This symbol defines the driver version minor value.
 */
-#define  CP_VERSION_MINOR           8
+#define  CP_VERSION_MINOR           7
 
 
 //-----------------------------------------------------------------------------
@@ -940,6 +940,27 @@ enum CpBufferDir_e
    eCP_BUFFER_DIR_TRM
 };
 
+
+/*----------------------------------------------------------------------------*/
+/*!
+** \enum    CpRpc_e
+** \brief   Remote Procedure Call definition
+**
+** The enumeration CpRpc_e is used to define the different 
+** Remote Procedure Calls. The enumeration values are
+** used by the function CpMsgRpc() to identify the received 
+** Remote Procedure Call.
+*/
+enum CpRpc_e
+{
+   /*! RPC for Mode                                      */
+   eCP_RPC_MODE = 0,
+
+   /*! RPC for Bitrate                                   */
+   eCP_RPC_BITRATE
+};
+
+
 /*----------------------------------------------------------------------------*\
 ** Structures                                                                 **
 **                                                                            **
@@ -1181,7 +1202,7 @@ typedef struct CpHdi_s
    */
    int32_t  slDatBitRate;
 
-} CpHdi_ts ;
+} CpHdi_ts;
 
 
 /*----------------------------------------------------------------------------*/
