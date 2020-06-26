@@ -78,9 +78,14 @@ add_executable(canpie_test_macro
 
 add_test( cp_func canpie_test_function )
 
-#-----------------------------------------------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------------------------------
 # copy program to bin directory 
 #
-#add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-#                   COMMAND ${CMAKE_COMMAND} -E echo "Copy ${PROJECT_NAME} to ${PROG_PATH}"
-#                   COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_NAME} ${PROG_PATH})
+add_custom_command(TARGET canpie_test_function POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E echo "Copy canpie_test_function to ${CP_PATH_BIN}"
+                   COMMAND ${CMAKE_COMMAND} -E copy canpie_test_function ${CP_PATH_BIN})
+
+add_custom_command(TARGET canpie_test_macro POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E echo "Copy canpie_test_macro to ${CP_PATH_BIN}"
+                   COMMAND ${CMAKE_COMMAND} -E copy canpie_test_macro ${CP_PATH_BIN})
