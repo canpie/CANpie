@@ -78,6 +78,21 @@ QCanConfig::QCanConfig(QCanUsart::QCanUsartConfig_ts &tsConfigurationR, QWidget 
    //----------------------------------------------------------------
    // insert default baud rates and select current one
    //
+   clStringListT.append(QString::number(1000000,10));
+   if (tsCurrentConfigP.slBaud == qint32(1000000))
+   {
+      slCurrentIndexT = clStringListT.count()-1;
+   }
+   clStringListT.append(QString::number(2000000,10));
+   if (tsCurrentConfigP.slBaud == qint32(2000000))
+   {
+      slCurrentIndexT = clStringListT.count()-1;
+   }
+   clStringListT.append(QString::number(3000000,10));
+   if (tsCurrentConfigP.slBaud == qint32(3000000))
+   {
+      slCurrentIndexT = clStringListT.count()-1;
+   }
    clQCanCfgGuiP.clComboBoxCOMBaud->insertItems(0,clStringListT);
    clQCanCfgGuiP.clComboBoxCOMBaud->setCurrentIndex(slCurrentIndexT);
 
@@ -88,14 +103,6 @@ QCanConfig::QCanConfig(QCanUsart::QCanUsartConfig_ts &tsConfigurationR, QWidget 
    clStringListT << "8N1" << "8E1" << "8O1";
    clQCanCfgGuiP.clComboBoxCOMMode->insertItems(0,clStringListT);
    clQCanCfgGuiP.clComboBoxCOMMode->setCurrentIndex(tsCurrentConfigP.ubMode-4);
-
-   //----------------------------------------------------------------
-   // insert default baud rates and select current one
-   //
-//   clStringListT.clear();
-//   clStringListT << "Rx & Tx OFF" << "Only Rx" << "Only Tx" << "Rx & Tx ON" << "RS485";
-//   clQCanCfgGuiP.clComboBoxCOMDirection->insertItems(0,clStringListT);
-//   clQCanCfgGuiP.clComboBoxCOMDirection->setCurrentIndex(tsCurrentConfigP.ubDirection);
 }
 
 //----------------------------------------------------------------------------//
@@ -104,8 +111,8 @@ QCanConfig::QCanConfig(QCanUsart::QCanUsartConfig_ts &tsConfigurationR, QWidget 
 //----------------------------------------------------------------------------//
 QCanUsart::QCanUsartConfig_ts & QCanConfig::currentConfig()
 {
-//   tsCurrentConfigP.ubDirection = clQCanCfgGuiP.clComboBoxCOMDirection->currentIndex();
    tsCurrentConfigP.ubMode = (clQCanCfgGuiP.clComboBoxCOMMode->currentIndex()+4);
+   tsCurrentConfigP.slBaud = (clQCanCfgGuiP.clComboBoxCOMBaud->currentText().toInt());
 
    return tsCurrentConfigP;
 }

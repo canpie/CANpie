@@ -71,7 +71,7 @@
 
 #define  CP_CAN_FD                  1
 
-#define  CP_CAN_MSG_MACRO           1
+#define  CP_CAN_MSG_MACRO           0
 
 #define  CP_CAN_MSG_MARKER          1
 

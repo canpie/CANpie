@@ -101,12 +101,15 @@ private:
     */
    CpCanMsg_ts CpCanMsgFromByteArray(QByteArray clByteArrayV, bool *pbtOkV = Q_NULLPTR);
 
+   quint32 ulUsartFrameRcvP;
+
 private slots:
    void onError(QSerialPort::SerialPortError error);
    void onReadyRead(void);
    void onBytesWritten(qint64 sqByteCountV);
 
 signals:
+   void logMessage(const QString & clMessageR);
    void messageReceive(CpCanMsg_ts);
 
 public:
@@ -118,6 +121,9 @@ public:
     *         which parameters are provided by QCanUsartConfig_s.
     */
    QCanUsartConfig_ts & currentConfig();
+
+   void setCanBitrate(int32_t slNomBitRateV, int32_t slDatBitRateV);
+   void setCanMode(uint8_t ubModeV);
 
    /*!
     * \brief Provide new/updated configuration for USART device interface.

@@ -45,12 +45,13 @@ QCanUsart::QCanUsart()
    // setup default USART configuration
    //
    pclSerialPortP = Q_NULLPTR;
+   ulUsartFrameRcvP = 0;
 
    //---------------------------------------------------------------------------------------------------
    // setup default USART configuration, that can be ovewritten by the loaded or user configuration
    //
    tsConfigP.clName = "COM1";
-   tsConfigP.slBaud = 115200;
+   tsConfigP.slBaud = 3000000;
    tsConfigP.ubMode = eUSART_MODE_8N1;
 }
 
@@ -81,6 +82,8 @@ bool QCanUsart::connect()
 CpCanMsg_ts QCanUsart::CpCanMsgFromByteArray(QByteArray clArrayV, bool *pbtOkV)
 {
    CpCanMsg_ts tsCanMessageT;
+   quint32     ulCrcT = 0x5A5A5A5A;
+   quint32     ulIndexT = 0;
 
    //---------------------------------------------------------------------------------------------------
    // convert theByte Array to CANpie CAN Message (Message to Value)
@@ -88,13 +91,13 @@ CpCanMsg_ts QCanUsart::CpCanMsgFromByteArray(QByteArray clArrayV, bool *pbtOkV)
    if (clArrayV.size() == USART_FRAME_SIZE) // size of CpCanMsg_ts is 86 byte
    {
       // identifier field
-      tsCanMessageT.ulIdentifier   = static_cast<quint32>(clArrayV.data()[3]);
+      tsCanMessageT.ulIdentifier   = (0xFF & static_cast<quint32>(clArrayV.data()[3]));
       tsCanMessageT.ulIdentifier <<= 8;
-      tsCanMessageT.ulIdentifier  |= static_cast<quint32>(clArrayV.data()[2]);
+      tsCanMessageT.ulIdentifier  |= (0xFF & static_cast<quint32>(clArrayV.data()[2]));
       tsCanMessageT.ulIdentifier <<= 8;
-      tsCanMessageT.ulIdentifier  |= static_cast<quint32>(clArrayV.data()[1]);
+      tsCanMessageT.ulIdentifier  |= (0xFF & static_cast<quint32>(clArrayV.data()[1]));
       tsCanMessageT.ulIdentifier <<= 8;
-      tsCanMessageT.ulIdentifier  |= static_cast<quint32>(clArrayV.data()[0]);
+      tsCanMessageT.ulIdentifier  |= (0xFF & static_cast<quint32>(clArrayV.data()[0]));
 
       // data field
       for (int index = 0; index < 64; index++) {
@@ -102,49 +105,65 @@ CpCanMsg_ts QCanUsart::CpCanMsgFromByteArray(QByteArray clArrayV, bool *pbtOkV)
       }
 
       // data length code
-      tsCanMessageT.ubMsgDLC = static_cast<quint8>(clArrayV.data()[68]);
+      tsCanMessageT.ubMsgDLC = (0xFF & static_cast<quint8>(clArrayV.data()[68]));
 
       // message control field
-      tsCanMessageT.ubMsgCtrl = static_cast<quint8>(clArrayV.data()[69]);
+      tsCanMessageT.ubMsgCtrl = (0xFF & static_cast<quint8>(clArrayV.data()[69]));
 
       //time stamp field
-      tsCanMessageT.tsMsgTime.ulSec1970   = static_cast<quint32>(clArrayV.data()[73]);
+      tsCanMessageT.tsMsgTime.ulSec1970   = (0xFF & static_cast<quint32>(clArrayV.data()[73]));
       tsCanMessageT.tsMsgTime.ulSec1970 <<= 8;
-      tsCanMessageT.tsMsgTime.ulSec1970  |= static_cast<quint32>(clArrayV.data()[72]);
+      tsCanMessageT.tsMsgTime.ulSec1970  |= (0xFF & static_cast<quint32>(clArrayV.data()[72]));
       tsCanMessageT.tsMsgTime.ulSec1970 <<= 8;
-      tsCanMessageT.tsMsgTime.ulSec1970  |= static_cast<quint32>(clArrayV.data()[71]);
+      tsCanMessageT.tsMsgTime.ulSec1970  |= (0xFF & static_cast<quint32>(clArrayV.data()[71]));
       tsCanMessageT.tsMsgTime.ulSec1970 <<= 8;
-      tsCanMessageT.tsMsgTime.ulSec1970  |= static_cast<quint32>(clArrayV.data()[70]);
+      tsCanMessageT.tsMsgTime.ulSec1970  |= (0xFF & static_cast<quint32>(clArrayV.data()[70]));
 
-      tsCanMessageT.tsMsgTime.ulNanoSec   = static_cast<quint32>(clArrayV.data()[77]);
+      tsCanMessageT.tsMsgTime.ulNanoSec   = (0xFF & static_cast<quint32>(clArrayV.data()[77]));
       tsCanMessageT.tsMsgTime.ulNanoSec <<= 8;
-      tsCanMessageT.tsMsgTime.ulNanoSec  |= static_cast<quint32>(clArrayV.data()[76]);
+      tsCanMessageT.tsMsgTime.ulNanoSec  |= (0xFF & static_cast<quint32>(clArrayV.data()[76]));
       tsCanMessageT.tsMsgTime.ulNanoSec <<= 8;
-      tsCanMessageT.tsMsgTime.ulNanoSec  |= static_cast<quint32>(clArrayV.data()[75]);
+      tsCanMessageT.tsMsgTime.ulNanoSec  |= (0xFF & static_cast<quint32>(clArrayV.data()[75]));
       tsCanMessageT.tsMsgTime.ulNanoSec <<= 8;
-      tsCanMessageT.tsMsgTime.ulNanoSec  |= static_cast<quint32>(clArrayV.data()[74]);
+      tsCanMessageT.tsMsgTime.ulNanoSec  |= (0xFF & static_cast<quint32>(clArrayV.data()[74]));
 
       // user data field
-      tsCanMessageT.ulMsgUser   = static_cast<quint32>(clArrayV.data()[81]);
+      tsCanMessageT.ulMsgUser   = (0xFF & static_cast<quint32>(clArrayV.data()[81]));
       tsCanMessageT.ulMsgUser <<= 8;
-      tsCanMessageT.ulMsgUser  |= static_cast<quint32>(clArrayV.data()[80]);
+      tsCanMessageT.ulMsgUser  |= (0xFF & static_cast<quint32>(clArrayV.data()[80]));
       tsCanMessageT.ulMsgUser <<= 8;
-      tsCanMessageT.ulMsgUser  |= static_cast<quint32>(clArrayV.data()[79]);
+      tsCanMessageT.ulMsgUser  |= (0xFF & static_cast<quint32>(clArrayV.data()[79]));
       tsCanMessageT.ulMsgUser <<= 8;
-      tsCanMessageT.ulMsgUser  |= static_cast<quint32>(clArrayV.data()[78]);
+      tsCanMessageT.ulMsgUser  |= (0xFF & static_cast<quint32>(clArrayV.data()[78]));
 
       // message marker field
-      tsCanMessageT.ulMsgMarker   = static_cast<quint32>(clArrayV.data()[85]);
+      tsCanMessageT.ulMsgMarker   = (0xFF & static_cast<quint32>(clArrayV.data()[85]));
       tsCanMessageT.ulMsgMarker <<= 8;
-      tsCanMessageT.ulMsgMarker  |= static_cast<quint32>(clArrayV.data()[84]);
+      tsCanMessageT.ulMsgMarker  |= (0xFF & static_cast<quint32>(clArrayV.data()[84]));
       tsCanMessageT.ulMsgMarker <<= 8;
-      tsCanMessageT.ulMsgMarker  |= static_cast<quint32>(clArrayV.data()[83]);
+      tsCanMessageT.ulMsgMarker  |= (0xFF & static_cast<quint32>(clArrayV.data()[83]));
       tsCanMessageT.ulMsgMarker <<= 8;
-      tsCanMessageT.ulMsgMarker  |= static_cast<quint32>(clArrayV.data()[82]);
+      tsCanMessageT.ulMsgMarker  |= (0xFF & static_cast<quint32>(clArrayV.data()[82]));
 
+
+      //-------------------------------------------------------------------------------------------
+      // build simple CRC of received byte data
+      //
       if (pbtOkV != Q_NULLPTR)
       {
-         *pbtOkV = true;
+         while (ulIndexT < USART_FRAME_SIZE-4)
+         {
+            ulCrcT += (0xFF & static_cast<quint32>(clArrayV.data()[ulIndexT]));
+            ulIndexT++;
+         }
+
+         if (ulCrcT != tsCanMessageT.ulMsgMarker)
+         {
+            *pbtOkV = false;
+         } else
+         {
+            *pbtOkV = true;
+         }
       }
    } else
    {
@@ -164,6 +183,8 @@ CpCanMsg_ts QCanUsart::CpCanMsgFromByteArray(QByteArray clArrayV, bool *pbtOkV)
 QByteArray  QCanUsart::CpCanMsgToByteArray(CpCanMsg_ts tsCanMessageV)
 {
    QByteArray clArrayT;
+   quint32    ulCrcT = 0x5A5A5A5A;
+   quint32    ulIndexT = 0;
 
    //---------------------------------------------------------------------------------------------------
    // convert the CANpie CAN Message to Byte Array (Value to Message)
@@ -204,12 +225,17 @@ QByteArray  QCanUsart::CpCanMsgToByteArray(CpCanMsg_ts tsCanMessageV)
    clArrayT.data()[80] = static_cast<char>(tsCanMessageV.ulMsgUser >> 16);
    clArrayT.data()[81] = static_cast<char>(tsCanMessageV.ulMsgUser >> 24);
 
-   // message marker field
-   clArrayT.data()[82] = static_cast<char>(tsCanMessageV.ulMsgMarker);
-   clArrayT.data()[83] = static_cast<char>(tsCanMessageV.ulMsgMarker >> 8);
-   clArrayT.data()[84] = static_cast<char>(tsCanMessageV.ulMsgMarker >> 16);
-   clArrayT.data()[85] = static_cast<char>(tsCanMessageV.ulMsgMarker >> 24);
+   // message marker field is used as simple CRC
+   while (ulIndexT < USART_FRAME_SIZE-4)
+   {
+      ulCrcT += (0xFF & static_cast<quint32>(clArrayT.data()[ulIndexT]));
+      ulIndexT++;
+   }
 
+   clArrayT.data()[82] = static_cast<char>(ulCrcT);
+   clArrayT.data()[83] = static_cast<char>(ulCrcT >> 8);
+   clArrayT.data()[84] = static_cast<char>(ulCrcT >> 16);
+   clArrayT.data()[85] = static_cast<char>(ulCrcT >> 24);
 
    qDebug() << "............................CpCanMsgToByteArray:" << clArrayT.toHex();
    qDebug() << "Expected size (CpCanMsg_ts) is: " + QString::number(sizeof(CpCanMsg_ts),10);
@@ -262,6 +288,9 @@ bool QCanUsart::messageSend(CpCanMsg_ts tsCanMessageV)
    if (qint32(pclSerialPortP->write(CpCanMsgToByteArray(tsCanMessageV))) == USART_FRAME_SIZE)
    {
       btReturnT = true;
+   } else
+   {
+      logMessage("messageSend(): WRONG number of bytes has been written");
    }
 
    pclSerialPortP->flush();
@@ -306,11 +335,16 @@ void QCanUsart::onReadyRead()
 {
 //   qDebug() << "............................onReadyRead("+QString::number(pclSerialPortP->bytesAvailable(),10)+")";
 
+   CpCanMsg_ts tsCanMessageT;
+   bool btOkV;
+
    //---------------------------------------------------------------------------------------------------
    // handle data only if whole frame with expected data size has been received
    //
-   if (quint64(pclSerialPortP->bytesAvailable()) >= USART_FRAME_SIZE)
+   while (quint64(pclSerialPortP->bytesAvailable()) >= USART_FRAME_SIZE)
    {
+//      logMessage("UF: "+QString::number(ulUsartFrameRcvP++,10));
+
       //-------------------------------------------------------------------------------------------
       // read received byte array
       //
@@ -320,9 +354,19 @@ void QCanUsart::onReadyRead()
       pclSerialPortP->read(clUartRcvBufT.data(), clUartRcvBufT.size());
 
       //-------------------------------------------------------------------------------------------
-      // convert it to the CANpie Message and provide to the higher level application
+      // convert it to the CANpie Message
       //
-      emit messageReceive(CpCanMsgFromByteArray(clUartRcvBufT));
+      tsCanMessageT = CpCanMsgFromByteArray(clUartRcvBufT, &btOkV);
+
+      //emit logMessage("ID: " + QString::number(tsCanMessageT.ulIdentifier,16) + "h");
+
+      //-------------------------------------------------------------------------------------------
+      // provide the message to the higher level application only if it was parsed successfully
+      //
+      if (btOkV == true)
+      {
+         emit messageReceive(tsCanMessageT);
+      }
    }
 }
 
@@ -344,6 +388,49 @@ void QCanUsart::release()
    }
 }
 
+//--------------------------------------------------------------------------------------------------------------------//
+// setCanBitrate()                                                                                                    //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanUsart::setCanBitrate(int32_t slNomBitRateV, int32_t slDatBitRateV)
+{
+   CpCanMsg_ts tsCanMessageT;
+
+   logMessage("setCanBitrate(): "+QString::number(slNomBitRateV,10) +", " + QString::number(slDatBitRateV,10));
+
+   //---------------------------------------------------------------------------------------------------
+   // pass new Bitrate configuration via RPC to the target MCU
+   //
+   CpMsgClear(&tsCanMessageT);
+   CpMsgRpcSetBitrate(&tsCanMessageT, slNomBitRateV, slDatBitRateV);
+
+   if (messageSend(tsCanMessageT) != true)
+   {
+      logMessage("setCanBitrate(): FAIL to send message!");
+   }
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+// setCanMode()                                                                                                       //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanUsart::setCanMode(uint8_t ubModeV)
+{
+   CpCanMsg_ts tsCanMessageT;
+
+   logMessage("setCanMode(): "+QString::number(ubModeV,10));
+
+   //---------------------------------------------------------------------------------------------------
+   // pass new Bitrate configuration via RPC to the target MCU
+   //
+   CpMsgClear(&tsCanMessageT);
+   CpMsgRpcSetCanMode(&tsCanMessageT, ubModeV);
+
+   if (messageSend(tsCanMessageT) != true)
+   {
+      logMessage("setCanMode(): FAIL to send message!");
+   }
+}
 
 //--------------------------------------------------------------------------------------------------------------------//
 // setConfig()                                                                                                        //

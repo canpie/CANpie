@@ -176,6 +176,7 @@ private slots:
     */
    void  onTimerEvent(void);
 
+   void  onLogMessage(const QString & clMessageR);
    void  onUsartMessageReceive(CpCanMsg_ts);
 
 };

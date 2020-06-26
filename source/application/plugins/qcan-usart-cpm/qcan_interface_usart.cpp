@@ -141,6 +141,9 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::connect(void)
       QObject::connect( &clCpUsartP, &QCanUsart::messageReceive,
                         this,        &QCanInterfaceUsart::onUsartMessageReceive);
 
+      QObject::connect( &clCpUsartP, &QCanUsart::logMessage,
+                        this,        &QCanInterfaceUsart::onLogMessage);
+
       clCpUsartP.connect();
 
       //-------------------------------------------------------------------------------------------
@@ -295,6 +298,13 @@ void QCanInterfaceUsart::onTimerEvent(void)
    }
 }
 
+
+void QCanInterfaceUsart::onLogMessage(const QString & clMessageR)
+{
+   emit addLogMessage("USART-CPM: " + clMessageR, eLOG_LEVEL_DEBUG);
+}
+
+
 void QCanInterfaceUsart::onUsartMessageReceive(CpCanMsg_ts tsCanMessageV)
 {
    qDebug() << "onUsartMessageReceive ................... ";
@@ -438,13 +448,16 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::setBitrate(int32_t slNomBitR
    //
    if (clCpUsartP.isAvailable() == true)
    {
-      emit addLogMessage(tr("Set CAN bit-rate is actually not supported for USART plugin only 125kBaud are used. Also the changes in 'Device Configuration' are not considered for USART baud-rate."), eLOG_LEVEL_WARN);
+
+      clCpUsartP.setCanBitrate(slNomBitRateV, slDatBitRateV);
+
+      //emit addLogMessage(tr("Set CAN bit-rate is actually not supported for USART plugin only 125kBaud are used. Also the changes in 'Device Configuration' are not considered for USART baud-rate."), eLOG_LEVEL_WARN);
 
       //-------------------------------------------------------------------------------------------
       // \todo the setBitrate function is not supported
       //
-      slNomBitRateV = eCP_BITRATE_125K;
-      slDatBitRateV = eCP_BITRATE_NONE;
+//      slNomBitRateV = eCP_BITRATE_125K;
+//      slDatBitRateV = eCP_BITRATE_NONE;
 
       //-------------------------------------------------------------------------------------------
       // provide new bit-rate to the CANpie Core implementation
@@ -494,12 +507,13 @@ QCanInterface::InterfaceError_e	QCanInterfaceUsart::setMode(const CAN_Mode_e teM
             tsStatisticP.ulRcvCount = 0;
             tsStatisticP.ulTrmCount = 0;
 
-            //! \ToDo Mode übernehmen
-            tvStatusT = eCP_ERR_NONE; // clCpUsartP.CpUsartCanMode(&tsPortP, eCAN_MODE_START);
+            teCanModeP = eCAN_MODE_START;
+            clCpUsartP.setCanMode(quint8(teModeV));
             break;
 
          case eCAN_MODE_STOP :
             teCanModeP = eCAN_MODE_STOP;
+            clCpUsartP.setCanMode(quint8(teModeV));
             break;
 
          default :
