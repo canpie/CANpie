@@ -218,16 +218,6 @@ uint32_t  CpMsgGetExtId(const CpCanMsg_ts *ptsCanMsgV);
 */
 uint32_t  CpMsgGetIdentifier(const CpCanMsg_ts *ptsCanMsgV);
 
-//------------------------------------------------------------------------------
-/*!
-** \brief   Get Remote Procedure Call 
-** \param   ptsCanMsgV  Pointer to a CpCanMsg_ts message
-** \return  Value from #CpRpc_e enumeration
-**
-** This function returns value from #CpRpc_e that defines function for 
-** Remote Procedure Call.
-*/
-uint32_t  CpMsgGetRpc(const CpCanMsg_ts *ptsCanMsgV);
 
 //------------------------------------------------------------------------------
 /*!
@@ -354,44 +344,47 @@ bool_t   CpMsgIsRpc(const CpCanMsg_ts *ptsCanMsgV);
 
 //------------------------------------------------------------------------------
 /*!
-** \brief      Get CAN controller mode that is provided via Remote Procedure Call
-** \param[in]  ptsPortV       Pointer to CAN port structure
+** \brief      Get CAN controller mode via RPC
+** \param[in]  ptsCanMsgV  Pointer to a CpCanMsg_ts message
 ** 
 ** \return     Mode selection
 **
-** This function returns the operating mode of the CAN controller.
+** This function returns the operating mode of the CAN controller which is 
+** provided via a Remote Procedure Call.
 ** Possible return values are defined in the #CpMode_e enumeration.
 */
 uint8_t CpMsgRpcGetCanMode(const CpCanMsg_ts *ptsCanMsgV);
 
 //------------------------------------------------------------------------------
 /*!
-** \brief      Get CAN Data Bitrate that is provided via Remote Procedure Call
-** \param[in]  ptsPortV       Pointer to CAN port structure
+** \brief      Get Data Bit Timing selection via RPC
+** \param[in]  ptsCanMsgV  Pointer to a CpCanMsg_ts message
 ** 
 ** \return     Data Bitrate
 **
-** This function returns Data Bitrate of the CAN controller.
+** This function returns the Data Bit Timing selection of the CAN controller
+** which is provided via a Remote Procedure Call.
 ** Possible return values are defined in the #CpBitrate_e enumeration.
 */
 int32_t CpMsgRpcGetDataBitrate(const CpCanMsg_ts *ptsCanMsgV);
 
 //------------------------------------------------------------------------------
 /*!
-** \brief      Get CAN Nominal Bitrate that is provided via Remote Procedure Call
-** \param[in]  ptsPortV       Pointer to CAN port structure
+** \brief      Get Nominal Bit Timing selection via RPC
+** \param[in]  ptsCanMsgV  Pointer to a CpCanMsg_ts message
 ** 
 ** \return     Nominal Bitrate
 **
-** This function returns Nominal Bitrate of the CAN controller.
+** This function returns the Nominal Bit Timing selection of the CAN controller
+** which is provided via a Remote Procedure Call.
 ** Possible return values are defined in the #CpBitrate_e enumeration.
 */
 int32_t CpMsgRpcGetNominalBitrate(const CpCanMsg_ts *ptsCanMsgV);
 
 //------------------------------------------------------------------------------
 /*!
-** \brief      Set state of CAN controller via Remote Procedure Call
-** \param[in]  ptsPortV       Pointer to CAN port structure
+** \brief      Set state of CAN controller via RPC
+** \param[in]  ptsCanMsgV     Pointer to a CpCanMsg_ts message
 ** \param[in]  ubModeV        Mode selection
 **
 ** This function changes the operating mode of the CAN controller FSA.
@@ -402,8 +395,8 @@ void     CpMsgRpcSetCanMode(CpCanMsg_ts *ptsCanMsgV, uint8_t ubModeV);
 
 //------------------------------------------------------------------------------
 /*!
-** \brief      Set bit-rate of CAN controller via Remote Procedure Call
-** \param[in]  ptsPortV       Pointer to CAN port structure
+** \brief      Set bit-rate of CAN controller via RPC
+** \param[in]  ptsCanMsgV     Pointer to a CpCanMsg_ts message
 ** \param[in]  slNomBitRateV  Nominal Bit Timing selection
 ** \param[in]  slDatBitRateV  Data Bit Timing selection
 **
@@ -413,6 +406,17 @@ void     CpMsgRpcSetCanMode(CpCanMsg_ts *ptsCanMsgV, uint8_t ubModeV);
 */
 void     CpMsgRpcSetBitrate(CpCanMsg_ts *ptsCanMsgV, int32_t slNomBitRateV,
                             int32_t slDatBitRateV);
+
+//------------------------------------------------------------------------------
+/*!
+** \brief      Identify Remote Procedure Call 
+** \param[in]  ptsCanMsgV     Pointer to a CpCanMsg_ts message
+** \return     Value from #CpRpc_e enumeration
+**
+** This function returns a value defined inside the #CpRpc_e enumeration
+** which identifies the RPC type.
+*/
+uint32_t  CpMsgRpcType(const CpCanMsg_ts *ptsCanMsgV);
 
 //------------------------------------------------------------------------------
 /*!
