@@ -71,7 +71,7 @@ QCanSocket::QCanSocket(QObject * pclParentV)
    uwServerPortP     = QCAN_WEB_SOCKET_DEFAULT_PORT;
 
    //---------------------------------------------------------------------------------------------------
-   // create a local and a TCP socket by default, the selection which one is used will be done in 
+   // create a local and a WebSocket by default, the selection which one is used will be done in 
    // setHostAddress().
    //
    pclLocalSocketP = new QLocalSocket(this);

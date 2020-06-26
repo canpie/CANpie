@@ -71,8 +71,8 @@ using namespace QCan;
 ** interfaces (sockets).
 ** <p>
 ** <h2>Sockets</h2>
-** Clients can connect to a QCanNetwork via the QCanSocket class, either via a local socket or a TCP socket. The
-** maximum number of available sockets is defined by #QCAN_LOCAL_SOCKET_MAX and #QCAN_TCP_SOCKET_MAX.
+** Clients can connect to a QCanNetwork via the QCanSocket class, either via a local socket or a WebSocket. The
+** maximum number of available sockets is defined by #QCAN_LOCAL_SOCKET_MAX and #QCAN_WEB_SOCKET_MAX.
 ** It is only possible to connect to a network when it is enabled (see setNetworkEnabled() and isNetworkEnabled()).
 **
 **

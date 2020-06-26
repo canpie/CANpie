@@ -1628,7 +1628,7 @@ void QCanNetwork::setNetworkEnabled(bool btEnableV)
 
 
       //-------------------------------------------------------------------------------------------
-      // close local and TCP server
+      // close local server
       //
       pclLocalSrvP->close();
 

@@ -31,7 +31,7 @@
     </message>
     <message>
         <location filename="../qcan_server_dialog.cpp" line="412"/>
-        <source>Number of local connections / number of TCP connections</source>
+        <source>Number of local connections / number of WebSocket connections</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

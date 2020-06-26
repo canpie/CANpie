@@ -408,7 +408,7 @@ void QCanServerDialog::createCanInfo(void)
       // number of connections
       //
       pclNetworkItemT->setText(1, " 0 / 0 ");
-      pclNetworkItemT->setToolTip(1, tr("Number of local connections / number of TCP connections"));
+      pclNetworkItemT->setToolTip(1, tr("Number of local connections / number of WebSocket connections"));
 
       //-------------------------------------------------------------------------------------------
       // interface name
