@@ -277,7 +277,6 @@ void QCanConfig::onServerObjectReceived(QJsonObject clServerConfigV)
       fprintf(stdout, "%s\n", qPrintable(clJsonDocumentT.toJson()));
    }
 
-   showServerSettings();
    if (teCanChannelP <= clServerSettingsP.networkCount())
    {
       clNetworkSettingsP.setChannel(teCanChannelP);
