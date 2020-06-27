@@ -1,5 +1,5 @@
 #=============================================================================#
-# File:          qcan_peak.pro                                                #
+# File:          qcan-peak.pro                                                #
 # Description:   qmake project file for Peak plugin                           #
 #                                                                             #
 # Copyright (C) MicroControl GmbH & Co. KG                                    #

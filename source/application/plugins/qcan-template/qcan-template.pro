@@ -1,6 +1,6 @@
 #=============================================================================#
-# File:          qcan_peak.pro                                                #
-# Description:   qmake project file for Peak plugin                           #
+# File:          qcan-template.pro                                            #
+# Description:   qmake project file for template plugin                       #
 #                                                                             #
 # Copyright (C) MicroControl GmbH & Co. KG                                    #
 # 53844 Troisdorf - Germany                                                   #
