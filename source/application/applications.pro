@@ -29,13 +29,13 @@ SUBDIRS  = ./can-config    \
            ./can-send 
 
 macx {
-SUBDIRS += ./plugins       \
-           ./server
+SUBDIRS += ./server        \
+           ./plugins
 }
 
 win32 {
-SUBDIRS += ./plugins       \
-           ./server
+SUBDIRS += ./server        \
+           ./plugins
 }
 
 
