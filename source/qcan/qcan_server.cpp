@@ -336,10 +336,10 @@ void QCanServer::checkServerSettings(bool btClearServerV)
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// QCanServer::enableBitrateChange()                                                                                  //
+// QCanServer::allowBitrateChange()                                                                                   //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-void QCanServer::enableBitrateChange(bool btEnabledV)
+void QCanServer::allowBitrateChange(bool btEnabledV)
 {
    qDebug() << " QCanServer::enableBitrateChange()" << btEnabledV;
    btAllowBitrateChangeP = btEnabledV;
@@ -348,10 +348,10 @@ void QCanServer::enableBitrateChange(bool btEnabledV)
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// QCanServer::enableBusOffRecovery()                                                                                 //
+// QCanServer::allowBusOffRecovery()                                                                                  //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-void QCanServer::enableBusOffRecovery(bool btEnabledV)
+void QCanServer::allowBusOffRecovery(bool btEnabledV)
 {
    btAllowBusOffRecoverP = btEnabledV;
 
@@ -359,10 +359,10 @@ void QCanServer::enableBusOffRecovery(bool btEnabledV)
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// QCanServer::enableModeChange()                                                                                     //
+// QCanServer::allowModeChange()                                                                                      //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-void QCanServer::enableModeChange(bool btEnabledV)
+void QCanServer::allowModeChange(bool btEnabledV)
 {
    btAllowCanModeChangeP = btEnabledV;
 

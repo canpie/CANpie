@@ -162,13 +162,12 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    // settings for server
    //
    pclSettingsP->beginGroup("Server");
-   QHostAddress clHostAddrT = QHostAddress(pclSettingsP->value("hostAddress",
-                                             "127.0.0.1").toString());
+   QHostAddress clHostAddrT = QHostAddress(pclSettingsP->value("hostAddress", "127.0.0.1").toString());
    pclCanServerP->setServerAddress(clHostAddrT);
 
-   pclCanServerP->enableBitrateChange(true);
-   pclCanServerP->enableBusOffRecovery(true);
-   pclCanServerP->enableModeChange(true);
+   pclCanServerP->allowBitrateChange(  pclSettingsP->value("allowBitrateChange"  , 0).toBool());
+   pclCanServerP->allowBusOffRecovery( pclSettingsP->value("allowBusOffRecovery" , 0).toBool());
+   pclCanServerP->allowModeChange(     pclSettingsP->value("allowModeChange"     , 0).toBool());
 
    pclSettingsP->endGroup();
 
@@ -182,27 +181,20 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
       pclSettingsP->beginGroup(clNetNameT);
 
       pclLoggerP->setLogLevel((CAN_Channel_e)(ubNetworkIdxT + 1),
-                              (LogLevel_e) pclSettingsP->value("loglevel",
-                                                eLOG_LEVEL_INFO).toInt());
+                              (LogLevel_e) pclSettingsP->value("loglevel", eLOG_LEVEL_INFO).toInt());
 
-      pclNetworkT->setNetworkEnabled(pclSettingsP->value("enable",
-                                     0).toBool());
+      pclNetworkT->setNetworkEnabled(     pclSettingsP->value("enabled"             , 0).toBool());
 
-      pclNetworkT->setErrorFrameEnabled(pclSettingsP->value("errorFrame",
-                                     0).toBool());
+      pclNetworkT->setErrorFrameEnabled(  pclSettingsP->value("errorFrameEnabled"   , 0).toBool());
 
-      pclNetworkT->setFlexibleDataEnabled(pclSettingsP->value("canFD",
-                                     0).toBool());
+      pclNetworkT->setFlexibleDataEnabled(pclSettingsP->value("flexibleDataEnabled" , 0).toBool());
 
-      pclNetworkT->setListenOnlyEnabled(pclSettingsP->value("listenOnly",
-                                     0).toBool());
+      pclNetworkT->setListenOnlyEnabled(  pclSettingsP->value("listenOnlyEnabled"   , 0).toBool());
 
-      pclNetworkT->setBitrate(pclSettingsP->value("bitrateNom",
-                              500000).toInt(),
-                              pclSettingsP->value("bitrateDat",
-                              eCAN_BITRATE_NONE).toInt());
+      pclNetworkT->setBitrate(            pclSettingsP->value("bitrateNominal"   , 500000).toInt(),
+                                          pclSettingsP->value("bitrateData"      , eCAN_BITRATE_NONE).toInt());
 
-      apclCanIfWidgetP[ubNetworkIdxT]->setInterface(pclSettingsP->value("interface","").toString());
+      apclCanIfWidgetP[ubNetworkIdxT]->setInterface(pclSettingsP->value("interfaceName","").toString());
 
       pclSettingsP->endGroup();
 
@@ -233,14 +225,17 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    connect(ui.pclBtnConfigDefaultM, SIGNAL(clicked(bool)),
            this, SLOT(onServerSetDefault(bool)));
 
-   connect(ui.pclChkChangeBitrateM, SIGNAL(stateChanged(int)),
-           this, SLOT(onServerAccessBitrate(int)));
-
    connect(ui.pclChkServerRemoteAccessM, SIGNAL(stateChanged(int)),
            this, SLOT(onServerAccessRemote(int)));
 
    connect(ui.pclChkChangeBitrateM, SIGNAL(stateChanged(int)),
            this, SLOT(onServerAccessBitrate(int)));
+
+   connect(ui.pclChkChangeModeM, SIGNAL(stateChanged(int)),
+           this, SLOT(onServerAccessMode(int)));
+
+   connect(ui.pclChkBusOffRecoverM, SIGNAL(stateChanged(int)),
+           this, SLOT(onServerAccessBusOff(int)));
 
    connect(ui.pclPbtNetDevSpecificConfigM, SIGNAL(clicked()),
            this, SLOT(onDeviceSpecificConfig()));
@@ -315,37 +310,39 @@ QCanServerDialog::~QCanServerDialog()
    QCanNetwork *  pclNetworkT;
    QString        clNetNameT;
 
-   //----------------------------------------------------------------
-   // store settings
+   //---------------------------------------------------------------------------------------------------
+   // store network settings
    //
-   //----------------------------------------------------------------
-
    for(ubNetworkIdxT = 0; ubNetworkIdxT < QCAN_NETWORK_MAX; ubNetworkIdxT++)
    {
-      //--------------------------------------------------------
+      //-------------------------------------------------------------------------------------------
       // settings for network
       //
       pclNetworkT = pclCanServerP->network(ubNetworkIdxT);
       clNetNameT  = "CAN_" + QString("%1").arg(ubNetworkIdxT+1);
       pclSettingsP->beginGroup(clNetNameT);
-      pclSettingsP->setValue("bitrateNom", pclNetworkT->nominalBitrate());
-      pclSettingsP->setValue("bitrateDat", pclNetworkT->dataBitrate());
-      pclSettingsP->setValue("enable"    , pclNetworkT->isNetworkEnabled());
-      pclSettingsP->setValue("errorFrame", pclNetworkT->isErrorFrameEnabled());
-      pclSettingsP->setValue("canFD"     , pclNetworkT->isFlexibleDataEnabled());
-      pclSettingsP->setValue("listenOnly", pclNetworkT->isListenOnlyEnabled());
-      pclSettingsP->setValue("loglevel"  , pclLoggerP->logLevel((CAN_Channel_e)(ubNetworkIdxT+1)));
-      pclSettingsP->setValue("interface" , apclCanIfWidgetP[ubNetworkIdxT]->name());
+      pclSettingsP->setValue("bitrateNominal"      , pclNetworkT->nominalBitrate());
+      pclSettingsP->setValue("bitrateData"         , pclNetworkT->dataBitrate());
+      pclSettingsP->setValue("enabled"             , pclNetworkT->isNetworkEnabled());
+      pclSettingsP->setValue("errorFrameEnabled"   , pclNetworkT->isErrorFrameEnabled());
+      pclSettingsP->setValue("flexibleDataEnabled" , pclNetworkT->isFlexibleDataEnabled());
+      pclSettingsP->setValue("listenOnlyEnabled"   , pclNetworkT->isListenOnlyEnabled());
+      pclSettingsP->setValue("loglevel"            , pclLoggerP->logLevel((CAN_Channel_e)(ubNetworkIdxT+1)));
+      pclSettingsP->setValue("interfaceName"       , apclCanIfWidgetP[ubNetworkIdxT]->name());
 
       pclSettingsP->endGroup();
    }
-   //-----------------------------------------------------------
+
+   //-------------------------------------------------------------------------------------------
    // settings for server
    //
    pclSettingsP->beginGroup("Server");
-   pclSettingsP->setValue("hostAddress",
-                           pclCanServerP->serverAddress().toString());
 
+   pclSettingsP->setValue("hostAddress",         pclCanServerP->serverAddress().toString());
+
+   pclSettingsP->setValue("allowBitrateChange",  pclCanServerP->isBitrateChangeAllowed());
+   pclSettingsP->setValue("allowBusOffRecovery", pclCanServerP->isBusOffRecoveryAllowed());
+   pclSettingsP->setValue("allowModeChange",     pclCanServerP->isModeChangeAllowed());
    pclSettingsP->endGroup();
 
    delete(pclSettingsP);
@@ -633,7 +630,6 @@ void QCanServerDialog::onNetworkShowBitrate(CAN_Channel_e ubChannelV, uint32_t s
    Q_UNUSED(slNomBitRateV);
    Q_UNUSED(slDatBitRateV);
 
-   qDebug() << "QCanServerDialog::onNetworkShowBitrate(CAN channel" << ubChannelV << ")";
    updateUI(ubChannelV);
 }
 
@@ -650,7 +646,6 @@ void QCanServerDialog::onNetworkConfBitrateDat(int slBitrateSelV)
    if(pclNetworkT != Q_NULLPTR)
    {
       slBitrateSelV = ui.pclCbbNetDatBitrateM->currentData().toInt();
-      qDebug() << "QCanServerDialog::onNetworkConfBitrateDat(" << slBitrateSelV << ")";
       pclNetworkT->setBitrate(pclNetworkT->nominalBitrate(), slBitrateSelV);
    }
 }
@@ -668,7 +663,6 @@ void QCanServerDialog::onNetworkConfBitrateNom(int slBitrateSelV)
    if(pclNetworkT != Q_NULLPTR)
    {
       slBitrateSelV = ui.pclCbbNetNomBitrateM->currentData().toInt();
-      qDebug() << "QCanServerDialog::onNetworkConfBitrateNom(" << slBitrateSelV << ")";
       pclNetworkT->setBitrate(slBitrateSelV, pclNetworkT->dataBitrate());
    }
 }
@@ -898,7 +892,7 @@ void QCanServerDialog::onNetworkShowState(CAN_Channel_e teChannelV, CAN_State_e 
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// QCanServerDialog::onServerBitrateAccess()                                                                          //
+// QCanServerDialog::onServerAccessBitrate()                                                                          //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanServerDialog::onServerAccessBitrate(int slStateV)
@@ -906,17 +900,52 @@ void QCanServerDialog::onServerAccessBitrate(int slStateV)
 
    if(slStateV == Qt::Unchecked)
    {
-      pclCanServerP->enableBitrateChange(false);
+      pclCanServerP->allowBitrateChange(false);
    }
    else
    {
-      pclCanServerP->enableBitrateChange(true);
+      pclCanServerP->allowBitrateChange(true);
    }
 }
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// QCanServerDialog::onServerRemoteAccess()                                                                           //
+// QCanServerDialog::onServerAccessBusOff()                                                                           //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServerDialog::onServerAccessBusOff(int slStateV)
+{
+   if(slStateV == Qt::Unchecked)
+   {
+      pclCanServerP->allowBusOffRecovery(false);
+   }
+   else
+   {
+      pclCanServerP->allowBusOffRecovery(true);
+   }
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::onServerAccessMode()                                                                             //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanServerDialog::onServerAccessMode(int slStateV)
+{
+   if(slStateV == Qt::Unchecked)
+   {
+      pclCanServerP->allowModeChange(false);
+   }
+   else
+   {
+      pclCanServerP->allowModeChange(true);
+   }
+
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanServerDialog::onServerAccessRemote()                                                                           //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanServerDialog::onServerAccessRemote(int slStateV)
@@ -1178,8 +1207,10 @@ void QCanServerDialog::updateUI(const CAN_Channel_e & ubChannelR)
    //---------------------------------------------------------------------------------------------------
    // update server tab
    //
+   //---------------------------------------------------------------------------------------------------
+
    QHostAddress clHostAddrT = pclCanServerP->serverAddress();
-   if (clHostAddrT == QHostAddress(QHostAddress::Any))
+   if (clHostAddrT == QHostAddress("0.0.0.0"))
    {
       ui.pclChkServerRemoteAccessM->setCheckState(Qt::Checked);
    }
@@ -1187,4 +1218,41 @@ void QCanServerDialog::updateUI(const CAN_Channel_e & ubChannelR)
    {
       ui.pclChkServerRemoteAccessM->setCheckState(Qt::Unchecked);
    }
+
+   //---------------------------------------------------------------------------------------------------
+   // Clear / set check for bitrate change
+   //
+   if (pclCanServerP->isBitrateChangeAllowed())
+   {
+      ui.pclChkChangeBitrateM->setCheckState(Qt::Checked);
+   }
+   else
+   {
+      ui.pclChkChangeBitrateM->setCheckState(Qt::Unchecked);
+   }
+
+   //---------------------------------------------------------------------------------------------------
+   // Clear / set check for mode change
+   //
+   if (pclCanServerP->isModeChangeAllowed())
+   {
+      ui.pclChkChangeModeM->setCheckState(Qt::Checked);
+   }
+   else
+   {
+      ui.pclChkChangeModeM->setCheckState(Qt::Unchecked);
+   }
+
+   //---------------------------------------------------------------------------------------------------
+   // Clear / set check for bus-off recovery
+   //
+   if (pclCanServerP->isBusOffRecoveryAllowed())
+   {
+      ui.pclChkBusOffRecoverM->setCheckState(Qt::Checked);
+   }
+   else
+   {
+      ui.pclChkBusOffRecoverM->setCheckState(Qt::Unchecked);
+   }
+   
 }

@@ -106,6 +106,8 @@ private slots:
    void onDeviceSpecificConfig();
 
    void onServerAccessBitrate(int slStateV);
+   void onServerAccessBusOff(int slStateV);
+   void onServerAccessMode(int slStateV);
    void onServerAccessRemote(int slStateV);
 
    //----------------------------------------------------------------------------------------------

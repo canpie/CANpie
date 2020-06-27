@@ -108,11 +108,17 @@ public:
    ** This function enables the setting of bit-rate via any application if \a btEnable 
    ** is \c true, it is disabled on \c false.
    */
-   void           enableBitrateChange(bool btEnabledV = true);
+   void           allowBitrateChange(bool btEnabledV = true);
 
-   void           enableBusOffRecovery(bool btEnabledV = true);
+   void           allowBusOffRecovery(bool btEnabledV = true);
 
-   void           enableModeChange(bool btEnabledV = true);
+   void           allowModeChange(bool btEnabledV = true);
+
+   bool           isBitrateChangeAllowed(void)     { return (btAllowBitrateChangeP);   };
+
+   bool           isBusOffRecoveryAllowed(void)    { return (btAllowBusOffRecoverP);   };
+
+   bool           isModeChangeAllowed(void)        { return (btAllowCanModeChangeP);   };
 
    //---------------------------------------------------------------------------------------------------
    /*!
