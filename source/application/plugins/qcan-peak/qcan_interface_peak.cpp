@@ -611,6 +611,7 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFrame(QCanFrame &clFrame
    //
    else if ((ulStatusT & (TPCANStatus)PCAN_ERROR_ANYBUSERR) > 0)
    {
+      
       setupErrorFrame(ulStatusT);
       emit addLogMessage("PCAN status  - PCAN_ERROR_ANYBUSERR  ", eLOG_LEVEL_TRACE);
       clRetValueT = eERROR_FIFO_RCV_EMPTY;
