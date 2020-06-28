@@ -4,7 +4,7 @@
 
 The following picture shows the file structure of the %CANpie FD package.
 
-\image html Package-CANpie-Overview.png width=600px
+\image html Package-CANpie-Overview.png width=900px
 <p>
 <br>
 
