@@ -1,6 +1,0 @@
-<RCC>
-  <qresource prefix="/">
-    <file>../../app-icons/mc_network_256.png</file>
-    <file>../../app-icons/mc_quit_256.png</file>
-  </qresource>
-</RCC>
