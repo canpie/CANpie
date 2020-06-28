@@ -23,7 +23,7 @@ deprecated.
 <tr>
    <td class="entry" style="width:25%">CpCoreBufferAccMask()</td>
    <td class="desc">#CpCoreBufferConfig()</td>
-   <td class="desc">Acceptance mask is a paramter of replacement</td>
+   <td class="desc">Acceptance mask is now parameter during configuration</td>
 </tr>
 
 <tr class="odd">
