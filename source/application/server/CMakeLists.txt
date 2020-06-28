@@ -79,16 +79,21 @@ if (APPLE)
    if (NOT OSX_FRAMEWORK)
       message(FATAL_ERROR "Foundation framework not found")
    endif()
+
+   set(ICON_FILE  ${CMAKE_CURRENT_SOURCE_DIR}/images/canpie_server.icns)
+   set_source_files_properties(${ICON_FILE} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 endif()
 
 #-------------------------------------------------------------------------------------------------------
 # create binary from selected source files
 #
-add_executable(${PROJECT_NAME} 
+add_executable(${PROJECT_NAME} MACOSX_BUNDLE
    ${APP_SOURCES}
    ${QCAN_SOURCES}
    ${RESOURCES}
+   ${ICON_FILE}
 )
+
 
 #-------------------------------------------------------------------------------------------------------
 # link Qt libs 
@@ -96,11 +101,23 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Gui Qt5::Network Qt5::WebSockets Qt5::Widgets)
 if(APPLE)
    target_link_libraries(${PROJECT_NAME} "-framework Foundation")
+
+   set_target_properties(${PROJECT_NAME} PROPERTIES
+      OUTPUT_NAME "CANpieServer"
+      MACOSX_BUNDLE TRUE
+      MACOSX_RPATH TRUE
+      MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist
+   )
+
+    set(BINARY_NAME ${PROJECT_NAME}.app
+)
+else()
+    set(BINARY_NAME ${PROJECT_NAME})
 endif()
 
 #-------------------------------------------------------------------------------------------------------
 # copy program to bin directory 
 #
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E echo "       Copy ${PROJECT_NAME} to ${CP_PATH_BIN}"
-                   COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_NAME} ${CP_PATH_BIN})
+                   COMMAND ${CMAKE_COMMAND} -E echo "       Copy ${BINARY_NAME} to ${CP_PATH_BIN}"
+                   COMMAND ${CMAKE_COMMAND} -E copy ${BINARY_NAME} ${CP_PATH_BIN})
