@@ -3,26 +3,26 @@
 ** \page page.cp_plugins    %CANpie FD Server Plug-Ins
 
 The  \ref page.cp_server plug-ins allow to add any kind of physical CAN interface.
-For an example implementation please refer to the \c qcan_template directory.
+For an example implementation please refer to the \c qcan-template directory.
 <p>
 The following table gives an overview of plug-ins available inside the 
-\c source/qcan/applications/plugins directory.
+\c source/application/plugins directory.
 
 <div class="function" style="width:800px">
 <table class="function" style="width:800px">
 
 <tr class="odd">
-   <td class="entry" style="width:25%">qcan_ixxat</td>
+   <td class="entry" style="width:25%">qcan-ixxat</td>
    <td class="desc">Plug-in for IXXAT CAN interfaces</td>
 </tr>
 
 <tr>
-   <td class="entry" style="width:25%">qcan_peak</td>
+   <td class="entry" style="width:25%">qcan-peak</td>
    <td class="desc">Plug-in for PEAK CAN interfaces</td>
 </tr>
 
 <tr class="odd">
-   <td class="entry" style="width:25%">qcan_template</td>
+   <td class="entry" style="width:25%">qcan-template</td>
    <td class="desc">Plug-in example, Template for CAN interface implementation</td>
 </tr>
 
