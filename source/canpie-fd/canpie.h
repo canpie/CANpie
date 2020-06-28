@@ -275,7 +275,7 @@
 **
 ** This symbol defines the driver version minor value.
 */
-#define  CP_VERSION_MINOR           7
+#define  CP_VERSION_MINOR           8
 
 
 //-----------------------------------------------------------------------------
