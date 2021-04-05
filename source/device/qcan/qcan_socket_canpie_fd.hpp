@@ -57,7 +57,7 @@ class QCanSocketCpFD : public QCanSocket
    Q_OBJECT
 
 public:
-   QCanSocketCpFD(uint8_t ubPhyIfV);
+   QCanSocketCpFD();
 
    ~QCanSocketCpFD();
 
@@ -171,17 +171,17 @@ private:
    //
    CpState_ts     tsCanStateP;
 
-   uint8_t        ubPhyIfP;
 };
 
 
-CpStatus_tv CpSocketConnectSlots( uint8_t ubPhyIfV, QObject * pclDestObjectV,
-                                  const char * pubSockConnectV,
-                                  const char * pubSockDisconnectV,
-                                  const char * pubSockErrorV);
+CpStatus_tv    CpSocketConnectSlots( uint8_t ubPhyIfV, QObject * pclDestObjectV,
+                                     const char * pubSockConnectV,
+                                     const char * pubSockDisconnectV,
+                                     const char * pubSockErrorV);
 
-CpStatus_tv CpSocketSetHostAddress(uint8_t ubPhyIfV, 
-                                   QHostAddress clHostAddressV);
+QCanSocket *   CpSocketInstance(uint8_t ubPhyIfV);
+
+CpStatus_tv    CpSocketSetHostAddress(uint8_t ubPhyIfV, QHostAddress clHostAddressV);
 
 
 //-------------------------------------------------------------------//
@@ -191,7 +191,7 @@ extern "C" {                                                         //
 #endif                                                               //
 //-------------------------------------------------------------------//
 
-void CpSocketProcessEvents(uint8_t ubChannelV);
+void CpSocketProcessEvents();
 
 //-------------------------------------------------------------------//
 #ifdef __cplusplus                                                   //

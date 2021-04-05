@@ -38,6 +38,7 @@
 #include "qcan_socket_canpie_fd.hpp"
 
 #include <QtCore/QCoreApplication>
+#include <QtCore/QTimer>
 
 
 /*--------------------------------------------------------------------------------------------------------------------*\
@@ -62,7 +63,7 @@
 **
 ** Minor version number of CANpie driver implementation.
 */
-#define  CP_DRIVER_MINOR          2
+#define  CP_DRIVER_MINOR          4
 
 
 #define  CP_USER_FLAG_RCV        ((uint32_t)(0x00000001))
@@ -84,13 +85,10 @@ enum DrvInfo_e {
 //
 static QCoreApplication *  pclApplicationS = 0L;
 
-//------------------------------------------------------------------------------------------------------
-//
-static uint8_t             aubModeS[CP_CHANNEL_MAX] = {0, 0, 0, 0, 0, 0, 0, 0,};
 
 //------------------------------------------------------------------------------------------------------
 //
-static QCanSocketCpFD *    apclCanSockListS[CP_CHANNEL_MAX] = {0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L};
+static QCanSocketCpFD      aclCanSockListS[QCAN_NETWORK_MAX];
 
 
 /*--------------------------------------------------------------------------------------------------------------------*\
@@ -156,8 +154,11 @@ CpStatus_tv CpCoreBitrate( CpPort_ts * ptsPortV, int32_t slNomBitRateV, int32_t 
    {
       if (ptsPortV->ubPhyIf < QCAN_NETWORK_MAX)
       {
+         //----------------------------------------------------------------------------------------
+         // This function does not modify the bitrate settings of the CANpie FD server, because
+         // alter the bitrate settings might be denied by the server. So we just return here.
+         // 
          tvStatusT = eCP_ERR_NONE;
-
       }
    }
 
@@ -173,7 +174,7 @@ CpStatus_tv CpCoreBufferConfig( CpPort_ts * ptsPortV, uint8_t   ubBufferIdxV,
                                 uint32_t  ulIdentifierV, uint32_t  ulAcceptMaskV,
                                 uint8_t   ubFormatV, uint8_t   ubDirectionV)
 {
-   QCanSocketCpFD *  pclSockT;
+   QCanSocketCpFD *  pclSockT = (QCanSocketCpFD *) 0L;
    CpStatus_tv       tvStatusT;
 
    //---------------------------------------------------------------------------------------------------
@@ -184,12 +185,18 @@ CpStatus_tv CpCoreBufferConfig( CpPort_ts * ptsPortV, uint8_t   ubBufferIdxV,
    //---------------------------------------------------------------------------------------------------
    // get pointer to CANpie socket class
    //
-   pclSockT  = apclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+   if (tvStatusT == eCP_ERR_NONE)
+   {
+      if ( ((ptsPortV->ubPhyIf) > eCP_CHANNEL_NONE) && ((ptsPortV->ubPhyIf) <= QCAN_NETWORK_MAX) )
+      {
+         pclSockT  = &aclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+      }
+   }
 
    //---------------------------------------------------------------------------------------------------
    // test if previous operations failed before we proceed
    //
-   if ( (tvStatusT == eCP_ERR_NONE) && (pclSockT != (QCanSocketCpFD *) 0L) )
+   if ( pclSockT != (QCanSocketCpFD *) 0L ) 
    {
       
       //-------------------------------------------------------------------------------------------
@@ -246,7 +253,7 @@ CpStatus_tv CpCoreBufferConfig( CpPort_ts * ptsPortV, uint8_t   ubBufferIdxV,
 CpStatus_tv CpCoreBufferGetData( CpPort_ts * ptsPortV, uint8_t   ubBufferIdxV,
                                  uint8_t * pubDestDataV, uint8_t   ubStartPosV, uint8_t   ubSizeV)
 {
-   QCanSocketCpFD *  pclSockT;
+   QCanSocketCpFD *  pclSockT = (QCanSocketCpFD *) 0L;
    CpStatus_tv       tvStatusT;
    uint8_t           ubCntT;
 
@@ -258,12 +265,18 @@ CpStatus_tv CpCoreBufferGetData( CpPort_ts * ptsPortV, uint8_t   ubBufferIdxV,
    //---------------------------------------------------------------------------------------------------
    // get pointer to CANpie socket class
    //
-   pclSockT  = apclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+   if (tvStatusT == eCP_ERR_NONE)
+   {
+      if ( ((ptsPortV->ubPhyIf) > eCP_CHANNEL_NONE) && ((ptsPortV->ubPhyIf) <= QCAN_NETWORK_MAX) )
+      {
+         pclSockT  = &aclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+      }
+   }
 
    //---------------------------------------------------------------------------------------------------
    // test if previous operations failed before we proceed
    //
-   if ( (tvStatusT == eCP_ERR_NONE) && (pclSockT != (QCanSocketCpFD *) 0L) )
+   if ( pclSockT != (QCanSocketCpFD *) 0L ) 
    {
 
       //-------------------------------------------------------------------------------------------
@@ -296,7 +309,7 @@ CpStatus_tv CpCoreBufferGetData( CpPort_ts * ptsPortV, uint8_t   ubBufferIdxV,
 //--------------------------------------------------------------------------------------------------------------------//
 CpStatus_tv CpCoreBufferGetDlc(  CpPort_ts * ptsPortV, uint8_t ubBufferIdxV, uint8_t * pubDlcV)
 {
-   QCanSocketCpFD *  pclSockT;
+   QCanSocketCpFD *  pclSockT = (QCanSocketCpFD *) 0L;
    CpStatus_tv       tvStatusT;
 
    //---------------------------------------------------------------------------------------------------
@@ -307,12 +320,18 @@ CpStatus_tv CpCoreBufferGetDlc(  CpPort_ts * ptsPortV, uint8_t ubBufferIdxV, uin
    //---------------------------------------------------------------------------------------------------
    // get pointer to CANpie socket class
    //
-   pclSockT  = apclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+   if (tvStatusT == eCP_ERR_NONE)
+   {
+      if ( ((ptsPortV->ubPhyIf) > eCP_CHANNEL_NONE) && ((ptsPortV->ubPhyIf) <= QCAN_NETWORK_MAX) )
+      {
+         pclSockT  = &aclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+      }
+   }
 
    //---------------------------------------------------------------------------------------------------
    // test if previous operations failed before we proceed
    //
-   if ( (tvStatusT == eCP_ERR_NONE) && (pclSockT != (QCanSocketCpFD *) 0L) )
+   if ( pclSockT != (QCanSocketCpFD *) 0L ) 
    {
       
       //-------------------------------------------------------------------------------------------
@@ -331,8 +350,8 @@ CpStatus_tv CpCoreBufferGetDlc(  CpPort_ts * ptsPortV, uint8_t ubBufferIdxV, uin
 //--------------------------------------------------------------------------------------------------------------------//
 CpStatus_tv CpCoreBufferRelease( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 {
-   QCanSocketCpFD * pclSockT;
-   CpStatus_tv      tvStatusT;
+   QCanSocketCpFD *  pclSockT = (QCanSocketCpFD *) 0L;
+   CpStatus_tv       tvStatusT;
 
    //---------------------------------------------------------------------------------------------------
    // test parameter ptsPortV and ubBufferIdxV
@@ -342,12 +361,18 @@ CpStatus_tv CpCoreBufferRelease( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
    //---------------------------------------------------------------------------------------------------
    // get pointer to CANpie socket class
    //
-   pclSockT  = apclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+   if (tvStatusT == eCP_ERR_NONE)
+   {
+      if ( ((ptsPortV->ubPhyIf) > eCP_CHANNEL_NONE) && ((ptsPortV->ubPhyIf) <= QCAN_NETWORK_MAX) )
+      {
+         pclSockT  = &aclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+      }
+   }
 
    //---------------------------------------------------------------------------------------------------
    // test if previous operations failed before we proceed
    //
-   if ( (tvStatusT == eCP_ERR_NONE) && (pclSockT != (QCanSocketCpFD *) 0L) )
+   if ( pclSockT != (QCanSocketCpFD *) 0L ) 
    {
 
       //-------------------------------------------------------------------------------------------
@@ -370,10 +395,10 @@ CpStatus_tv CpCoreBufferRelease( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 //--------------------------------------------------------------------------------------------------------------------//
 CpStatus_tv CpCoreBufferSend(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 {
-   QCanFrame        clFrameT;
-   QCanSocketCpFD * pclSockT;
-   CpStatus_tv      tvStatusT;
-   CpTrmHandler_Fn  pfnTrmHandlerT;
+   QCanFrame         clFrameT;
+   QCanSocketCpFD *  pclSockT = (QCanSocketCpFD *) 0L;
+   CpStatus_tv       tvStatusT;
+   CpTrmHandler_Fn   pfnTrmHandlerT;
    
    //---------------------------------------------------------------------------------------------------
    // test parameter ptsPortV and ubBufferIdxV
@@ -383,12 +408,18 @@ CpStatus_tv CpCoreBufferSend(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
    //---------------------------------------------------------------------------------------------------
    // get pointer to CANpie socket class
    //
-   pclSockT  = apclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+   if (tvStatusT == eCP_ERR_NONE)
+   {
+      if ( ((ptsPortV->ubPhyIf) > eCP_CHANNEL_NONE) && ((ptsPortV->ubPhyIf) <= QCAN_NETWORK_MAX) )
+      {
+         pclSockT  = &aclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+      }
+   }
 
    //---------------------------------------------------------------------------------------------------
    // test if previous operations failed before we proceed
    //
-   if ( (tvStatusT == eCP_ERR_NONE) && (pclSockT != (QCanSocketCpFD *) 0L) )
+   if ( pclSockT != (QCanSocketCpFD *) 0L ) 
    {
       //-------------------------------------------------------------------------------------------
       // write CAN frame
@@ -422,7 +453,7 @@ CpStatus_tv CpCoreBufferSend(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 CpStatus_tv CpCoreBufferSetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,  uint8_t * pubSrcDataV,
                                  uint8_t   ubStartPosV, uint8_t   ubSizeV)
 {
-   QCanSocketCpFD *  pclSockT;
+   QCanSocketCpFD *  pclSockT = (QCanSocketCpFD *) 0L;
    CpStatus_tv       tvStatusT;
    uint8_t           ubCntT;
 
@@ -434,12 +465,18 @@ CpStatus_tv CpCoreBufferSetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,  ui
    //---------------------------------------------------------------------------------------------------
    // get pointer to CANpie socket class
    //
-   pclSockT  = apclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+   if (tvStatusT == eCP_ERR_NONE)
+   {
+      if ( ((ptsPortV->ubPhyIf) > eCP_CHANNEL_NONE) && ((ptsPortV->ubPhyIf) <= QCAN_NETWORK_MAX) )
+      {
+         pclSockT  = &aclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+      }
+   }
 
    //---------------------------------------------------------------------------------------------------
    // test if previous operations failed before we proceed
    //
-   if ( (tvStatusT == eCP_ERR_NONE) && (pclSockT != (QCanSocketCpFD *) 0L) )
+   if ( pclSockT != (QCanSocketCpFD *) 0L ) 
    {
 
       //-------------------------------------------------------------------------------------------
@@ -454,7 +491,7 @@ CpStatus_tv CpCoreBufferSetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,  ui
          //-----------------------------------------------------------------------------------
          // copy data from simulated CAN buffer
          //
-         for(ubCntT = ubStartPosV; ubCntT < (ubStartPosV + ubSizeV); ubCntT++)
+         for (ubCntT = ubStartPosV; ubCntT < (ubStartPosV + ubSizeV); ubCntT++)
          {
             CpMsgSetData(&(pclSockT->atsCanMsgP[ubBufferIdxV]), ubCntT, *pubSrcDataV);
             pubSrcDataV++;
@@ -472,7 +509,7 @@ CpStatus_tv CpCoreBufferSetData( CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,  ui
 //--------------------------------------------------------------------------------------------------------------------//
 CpStatus_tv CpCoreBufferSetDlc(  CpPort_ts * ptsPortV, uint8_t ubBufferIdxV, uint8_t ubDlcV)
 {
-   QCanSocketCpFD *  pclSockT;
+   QCanSocketCpFD *  pclSockT = (QCanSocketCpFD *) 0L;
    CpStatus_tv       tvStatusT;
 
    //---------------------------------------------------------------------------------------------------
@@ -483,12 +520,18 @@ CpStatus_tv CpCoreBufferSetDlc(  CpPort_ts * ptsPortV, uint8_t ubBufferIdxV, uin
    //---------------------------------------------------------------------------------------------------
    // get pointer to CANpie socket class
    //
-   pclSockT  = apclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+   if (tvStatusT == eCP_ERR_NONE)
+   {
+      if ( ((ptsPortV->ubPhyIf) > eCP_CHANNEL_NONE) && ((ptsPortV->ubPhyIf) <= QCAN_NETWORK_MAX) )
+      {
+         pclSockT  = &aclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+      }
+   }
 
    //---------------------------------------------------------------------------------------------------
    // test if previous operations failed before we proceed
    //
-   if ( (tvStatusT == eCP_ERR_NONE) && (pclSockT != (QCanSocketCpFD *) 0L) )
+   if ( pclSockT != (QCanSocketCpFD *) 0L ) 
    {
       
       //-------------------------------------------------------------------------------------------
@@ -507,7 +550,7 @@ CpStatus_tv CpCoreBufferSetDlc(  CpPort_ts * ptsPortV, uint8_t ubBufferIdxV, uin
 //--------------------------------------------------------------------------------------------------------------------//
 CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV)
 {
-   QCanSocketCpFD *  pclSockT;
+   QCanSocketCpFD *  pclSockT = (QCanSocketCpFD *) 0L;
    CpStatus_tv       tvStatusT = eCP_ERR_CHANNEL;
 
    
@@ -516,59 +559,64 @@ CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV)
    //
    qDebug() << "CpCoreCanMode() ............. :" << ubModeV;
 
+   //---------------------------------------------------------------------------------------------------
+   // test parameter ptsPortV 
+   //
+   tvStatusT = CheckParam(ptsPortV, eCP_BUFFER_1, eDRV_INFO_INIT);
 
    //---------------------------------------------------------------------------------------------------
-   // get access to socket
+   // get pointer to CANpie socket class
    //
-   if (ptsPortV != (CpPort_ts *) 0L)
+   if (tvStatusT == eCP_ERR_NONE)
    {
-      if (ptsPortV->ubPhyIf < QCAN_NETWORK_MAX)
+      if ( ((ptsPortV->ubPhyIf) > eCP_CHANNEL_NONE) && ((ptsPortV->ubPhyIf) <= QCAN_NETWORK_MAX) )
       {
-         pclSockT = apclCanSockListS[(ptsPortV->ubPhyIf) - 1];
-
-         if (pclSockT != (QCanSocketCpFD *) 0L)
-         {
-            //---------------------------------------------------------------------------
-            // switch CAN controller into mode "ubModeV"
-            //
-            switch(ubModeV)
-            {
-               //-------------------------------------------------------------------
-               // Stop the CAN controller (passive on the bus)
-               //
-               case eCP_MODE_INIT:
-                  pclSockT->tsCanStateP.ubCanErrState  = eCP_STATE_INIT;
-                  tvStatusT = eCP_ERR_NONE;
-                  break;
-
-               //-------------------------------------------------------------------
-               // Start the CAN controller (active on the bus)
-               //
-               case eCP_MODE_START:
-                  pclSockT->tsCanStateP.ubCanErrState  = eCP_STATE_BUS_ACTIVE;
-                  tvStatusT = eCP_ERR_NONE;
-                  break;
-
-               //--------------------------------------------------------------------------------
-               // Start the CAN controller (Listen-Only)
-               //
-               case eCP_MODE_LISTEN_ONLY:
-                  pclSockT->tsCanStateP.ubCanErrState  = eCP_STATE_BUS_ACTIVE;
-                  tvStatusT = eCP_ERR_NONE;
-                  break;
-
-               //--------------------------------------------------------------------------------
-               // Other modes are not supported
-               //
-               default:
-                  tvStatusT = eCP_ERR_NOT_SUPPORTED;
-                  break;
-            }
-
-         }
-
-         aubModeS[(ptsPortV->ubPhyIf) - 1] = ubModeV;
+         pclSockT  = &aclCanSockListS[(ptsPortV->ubPhyIf) - 1];
       }
+   }
+
+   //---------------------------------------------------------------------------------------------------
+   // test if previous operations failed before we proceed
+   //
+   if ( pclSockT != (QCanSocketCpFD *) 0L ) 
+   {
+      //-------------------------------------------------------------------------------------------
+      // switch CAN controller into mode "ubModeV"
+      //
+      switch(ubModeV)
+      {
+         //-----------------------------------------------------------------------------------
+         // Stop the CAN controller (passive on the bus)
+         //
+         case eCP_MODE_INIT:
+            pclSockT->tsCanStateP.ubCanErrState  = eCP_STATE_INIT;
+            tvStatusT = eCP_ERR_NONE;
+            break;
+
+         //-----------------------------------------------------------------------------------
+         // Start the CAN controller (active on the bus)
+         //
+         case eCP_MODE_START:
+            pclSockT->tsCanStateP.ubCanErrState  = eCP_STATE_BUS_ACTIVE;
+            tvStatusT = eCP_ERR_NONE;
+            break;
+
+         //-----------------------------------------------------------------------------------
+         // Start the CAN controller (Listen-Only)
+         //
+         case eCP_MODE_LISTEN_ONLY:
+            pclSockT->tsCanStateP.ubCanErrState  = eCP_STATE_BUS_ACTIVE;
+            tvStatusT = eCP_ERR_NONE;
+            break;
+
+         //-----------------------------------------------------------------------------------
+         // Other modes are not supported
+         //
+         default:
+            tvStatusT = eCP_ERR_NOT_SUPPORTED;
+            break;
+      }
+
    }
 
    return (tvStatusT);
@@ -581,37 +629,48 @@ CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV)
 //--------------------------------------------------------------------------------------------------------------------//
 CpStatus_tv CpCoreCanState(CpPort_ts * ptsPortV, CpState_ts * ptsStateV)
 {
-   QCanSocketCpFD *  pclSockT;
+   QCanSocketCpFD *  pclSockT = (QCanSocketCpFD *) 0L;
    CpStatus_tv       tvStatusT = eCP_ERR_CHANNEL;
    
+   //---------------------------------------------------------------------------------------------------
+   // test parameter ptsPortV 
+   //
+   tvStatusT = CheckParam(ptsPortV, eCP_BUFFER_1, eDRV_INFO_INIT);
 
    //---------------------------------------------------------------------------------------------------
-   // get access to socket
+   // get pointer to CANpie socket class
    //
-   if (ptsPortV != (CpPort_ts *) 0L)
+   if (tvStatusT == eCP_ERR_NONE)
    {
-      if (ptsPortV->ubPhyIf < QCAN_NETWORK_MAX)
+      if ( ((ptsPortV->ubPhyIf) > eCP_CHANNEL_NONE) && ((ptsPortV->ubPhyIf) <= QCAN_NETWORK_MAX) )
       {
-         pclSockT = apclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+         pclSockT  = &aclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+      }
+   }
 
-         tvStatusT = eCP_ERR_PARAM;
-         
-         if ( (ptsStateV != (CpState_ts *) 0L) && (pclSockT != (QCanSocketCpFD *) 0L) )
-         {
-            //--------------------------------------------------------------------------------
-            // copy current CAN state
-            //
-            ptsStateV->ubCanErrState = pclSockT->tsCanStateP.ubCanErrState;
-            ptsStateV->ubCanErrType  = pclSockT->tsCanStateP.ubCanErrType;
 
-            //--------------------------------------------------------------------------------
-            // copy current error counter
-            //
-            ptsStateV->ubCanRcvErrCnt = pclSockT->tsCanStateP.ubCanRcvErrCnt;
-            ptsStateV->ubCanTrmErrCnt = pclSockT->tsCanStateP.ubCanTrmErrCnt;
+   //---------------------------------------------------------------------------------------------------
+   // test if previous operations failed before we proceed
+   //
+   if ( pclSockT != (QCanSocketCpFD *) 0L ) 
+   {
+      tvStatusT = eCP_ERR_PARAM;
+
+      if ( ptsStateV != (CpState_ts *) 0L )
+      {
+         //----------------------------------------------------------------------------------------
+         // copy current CAN state
+         //
+         ptsStateV->ubCanErrState = pclSockT->tsCanStateP.ubCanErrState;
+         ptsStateV->ubCanErrType  = pclSockT->tsCanStateP.ubCanErrType;
+
+         //----------------------------------------------------------------------------------------
+         // copy current error counter
+         //
+         ptsStateV->ubCanRcvErrCnt = pclSockT->tsCanStateP.ubCanRcvErrCnt;
+         ptsStateV->ubCanTrmErrCnt = pclSockT->tsCanStateP.ubCanTrmErrCnt;
             
-            tvStatusT = eCP_ERR_NONE;
-         }
+         tvStatusT = eCP_ERR_NONE;
       }
    }
    
@@ -625,13 +684,30 @@ CpStatus_tv CpCoreCanState(CpPort_ts * ptsPortV, CpState_ts * ptsStateV)
 //--------------------------------------------------------------------------------------------------------------------//
 CpStatus_tv CpCoreDriverInit(uint8_t ubPhyIfV, CpPort_ts * ptsPortV, uint8_t ubConfigV)
 {
-   QCanSocketCpFD *  pclSockT;
+   QCanSocketCpFD *  pclSockT = (QCanSocketCpFD *) 0L;
    CpStatus_tv       tvStatusT = eCP_ERR_GENERIC;
 
    //---------------------------------------------------------------------------------------------------
    // debug information
    //
    qDebug() << "CpCoreDriverInit() .......... :" << ubPhyIfV << ubConfigV;
+
+   //---------------------------------------------------------------------------------------------------
+   // Check if an instance of QCoreApplication is active. In case there is no QCoreApplication there
+   // is no QEventLoop and we need a thread that polls data from the CANpie server.
+   //
+   if (pclApplicationS == 0L)
+   {
+      if (QCoreApplication::instance() == 0L)
+      {
+         int32_t slAppArgcT = 0;
+         char ** szAppArgvT = NULL;
+         pclApplicationS = new QCoreApplication(slAppArgcT, szAppArgvT);
+      
+         qDebug() << "QCanSocketCpFD() ............ : create new QCoreApplication";
+      }
+   }
+
 
    //---------------------------------------------------------------------------------------------------
    // test parameter
@@ -642,63 +718,74 @@ CpStatus_tv CpCoreDriverInit(uint8_t ubPhyIfV, CpPort_ts * ptsPortV, uint8_t ubC
    }
    else
    {
-      if (apclCanSockListS[ubPhyIfV - 1] == (QCanSocketCpFD *) 0L)
+      //-------------------------------------------------------------------------------------------
+      // Get access to socket and check if it is already connected
+      //
+      pclSockT = &aclCanSockListS[ubPhyIfV - 1];
+      if (pclSockT->isConnected() == false)
+      {
+         pclSockT->connectNetwork((CAN_Channel_e) ubPhyIfV);
+
+         //-----------------------------------------------------------------------------------
+         // Wait here until the connection is established
+         //
+         QTimer clConnectionTimerT;
+         clConnectionTimerT.setSingleShot(true);
+         clConnectionTimerT.start(100);
+         bool btConnectionEstablishedT = false;
+         while ( (btConnectionEstablishedT == false) && (clConnectionTimerT.isActive()) )
+         {
+            QCoreApplication::instance()->processEvents();
+            btConnectionEstablishedT = pclSockT->isConnected();
+         }
+      }
+
+      //-------------------------------------------------------------------------------------------
+      // initialise members if socket is conneted
+      //
+      if (pclSockT->isConnected())
       {
          //-----------------------------------------------------------------------------------
-         // create new CANpie socket class
+         // connect the readyRead() signal with the slot for message reception
          //
-         apclCanSockListS[ubPhyIfV - 1] = new QCanSocketCpFD(ubPhyIfV);
+         pclSockT->connect(pclSockT, &QCanSocketCpFD::readyRead, pclSockT, &QCanSocketCpFD::onSocketReceive);
 
          //-----------------------------------------------------------------------------------
-         // get access to socket
+         // no FIFOs attached to message buffers
          //
-         pclSockT = apclCanSockListS[ubPhyIfV - 1];
-         if (pclSockT->connectNetwork((CAN_Channel_e) ubPhyIfV))
+         for (uint8_t ubBufferCntT = 0; ubBufferCntT < CP_BUFFER_MAX; ubBufferCntT++)
          {
-            //---------------------------------------------------------------------------
-            // no FIFOs attached to message buffers
-            //
-            for (uint8_t ubBufferCntT = 0; ubBufferCntT < CP_BUFFER_MAX; ubBufferCntT++)
-            {
-               pclSockT->aptsCanFifoP[ubBufferCntT] = Q_NULLPTR;
-            }
-
-            //---------------------------------------------------------------------------
-            // store physical channel information
-            //
-            ptsPortV->ubPhyIf   = ubPhyIfV;
-            ptsPortV->ubDrvInfo = eDRV_INFO_INIT;
-
-            //---------------------------------------------------------------------------
-            // clear CAN state
-            //
-            pclSockT->tsCanStateP.ubCanErrState  = eCP_STATE_INIT;
-            pclSockT->tsCanStateP.ubCanErrType   = eCP_ERR_TYPE_NONE;
-            pclSockT->tsCanStateP.ubCanRcvErrCnt = 0;
-            pclSockT->tsCanStateP.ubCanTrmErrCnt = 0;
-
-            //---------------------------------------------------------------------------
-            // clear statistic information
-            //
-            pclSockT->tsStatisticP.ulErrMsgCount = 0;
-            pclSockT->tsStatisticP.ulRcvMsgCount = 0;
-            pclSockT->tsStatisticP.ulTrmMsgCount = 0;
-
-            tvStatusT = eCP_ERR_NONE;
-
+            pclSockT->aptsCanFifoP[ubBufferCntT] = Q_NULLPTR;
          }
-         else
-         {
-            tvStatusT = eCP_ERR_INIT_FAIL;
-         }
+
+         //---------------------------------------------------------------------------
+         // store physical channel information
+         //
+         ptsPortV->ubPhyIf   = ubPhyIfV;
+         ptsPortV->ubDrvInfo = eDRV_INFO_INIT;
+
+         //---------------------------------------------------------------------------
+         // clear CAN state
+         //
+         pclSockT->tsCanStateP.ubCanErrState  = eCP_STATE_INIT;
+         pclSockT->tsCanStateP.ubCanErrType   = eCP_ERR_TYPE_NONE;
+         pclSockT->tsCanStateP.ubCanRcvErrCnt = 0;
+         pclSockT->tsCanStateP.ubCanTrmErrCnt = 0;
+
+         //---------------------------------------------------------------------------
+         // clear statistic information
+         //
+         pclSockT->tsStatisticP.ulErrMsgCount = 0;
+         pclSockT->tsStatisticP.ulRcvMsgCount = 0;
+         pclSockT->tsStatisticP.ulTrmMsgCount = 0;
+
+         tvStatusT = eCP_ERR_NONE;
 
       }
       else
       {
-         tvStatusT = eCP_ERR_INIT_READY;
+         tvStatusT = eCP_ERR_INIT_FAIL;
       }
-
-
    }
 
    return (tvStatusT);
@@ -712,24 +799,43 @@ CpStatus_tv CpCoreDriverInit(uint8_t ubPhyIfV, CpPort_ts * ptsPortV, uint8_t ubC
 CpStatus_tv CpCoreDriverRelease(CpPort_ts * ptsPortV)
 {
    CpStatus_tv       tvStatusT;
-   QCanSocketCpFD *  pclSockT;
+   QCanSocketCpFD *  pclSockT = (QCanSocketCpFD *) 0L;
 
    //---------------------------------------------------------------------------------------------------
    // debug information
    //
    qDebug() << "CpCoreDriverRelease() ....... :" << (ptsPortV->ubPhyIf);
 
-   tvStatusT = CpCoreCanMode(ptsPortV, eCP_MODE_INIT);
+   //---------------------------------------------------------------------------------------------------
+   // release ready read connection
+   //
+   pclSockT->disconnect(pclSockT, &QCanSocketCpFD::readyRead, pclSockT, &QCanSocketCpFD::onSocketReceive);
 
+   //---------------------------------------------------------------------------------------------------
+   // test parameter ptsPortV 
+   //
+   tvStatusT = CheckParam(ptsPortV, eCP_BUFFER_1, eDRV_INFO_INIT);
+
+   //---------------------------------------------------------------------------------------------------
+   // get pointer to CANpie socket class
+   //
    if (tvStatusT == eCP_ERR_NONE)
    {
-      pclSockT = apclCanSockListS[ptsPortV->ubPhyIf - 1];
-      if (pclSockT != (QCanSocketCpFD *) 0L)
+      if ( ((ptsPortV->ubPhyIf) > eCP_CHANNEL_NONE) && ((ptsPortV->ubPhyIf) <= QCAN_NETWORK_MAX) )
       {
-         pclSockT->disconnectNetwork();
-         delete (pclSockT);
+         pclSockT  = &aclCanSockListS[(ptsPortV->ubPhyIf) - 1];
       }
-      apclCanSockListS[ptsPortV->ubPhyIf - 1] = (QCanSocketCpFD *) 0L;
+   }
+
+   CpCoreCanMode(ptsPortV, eCP_MODE_INIT);
+
+
+   //---------------------------------------------------------------------------------------------------
+   // Disconnect the socket
+   //
+   if (pclSockT != (QCanSocketCpFD *) 0L)
+   {
+      pclSockT->disconnectNetwork();
    }
 
    return (tvStatusT);
@@ -740,11 +846,10 @@ CpStatus_tv CpCoreDriverRelease(CpPort_ts * ptsPortV)
 // CpCoreFifoConfig()                                                                                                 //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-CpStatus_tv CpCoreFifoConfig(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
-                             CpFifo_ts * ptsFifoV)
+CpStatus_tv CpCoreFifoConfig(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV, CpFifo_ts * ptsFifoV)
 {
    CpStatus_tv       tvStatusT;
-   QCanSocketCpFD *  pclSockT;
+   QCanSocketCpFD *  pclSockT = (QCanSocketCpFD *) 0L;
    
    
    qDebug() << "CpCoreFifoConfig()........... :" << ubBufferIdxV;
@@ -757,12 +862,18 @@ CpStatus_tv CpCoreFifoConfig(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
    //---------------------------------------------------------------------------------------------------
    // get pointer to CANpie socket class
    //
-   pclSockT  = apclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+   if (tvStatusT == eCP_ERR_NONE)
+   {
+      if ( ((ptsPortV->ubPhyIf) > eCP_CHANNEL_NONE) && ((ptsPortV->ubPhyIf) <= QCAN_NETWORK_MAX) )
+      {
+         pclSockT  = &aclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+      }
+   }
 
    //---------------------------------------------------------------------------------------------------
    // test if previous operations failed before we proceed
    //
-   if ( (tvStatusT == eCP_ERR_NONE) && (pclSockT != (QCanSocketCpFD *) 0L) )
+   if ( pclSockT != (QCanSocketCpFD *) 0L ) 
    {
       
       pclSockT->aptsCanFifoP[ubBufferIdxV] = ptsFifoV;
@@ -776,12 +887,10 @@ CpStatus_tv CpCoreFifoConfig(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 // CpCoreFifoRead()                                                                                                   //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-CpStatus_tv CpCoreFifoRead(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
-                           CpCanMsg_ts * ptsCanMsgV,
-                           uint32_t * pulMsgCntV)
+CpStatus_tv CpCoreFifoRead(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV, CpCanMsg_ts * ptsCanMsgV, uint32_t * pulMsgCntV)
 {
    CpStatus_tv       tvStatusT;
-   QCanSocketCpFD *  pclSockT;
+   QCanSocketCpFD *  pclSockT = (QCanSocketCpFD *) 0L;
    CpFifo_ts *       ptsFifoT;
    CpCanMsg_ts *     ptsFifoMsgT;
    
@@ -794,12 +903,18 @@ CpStatus_tv CpCoreFifoRead(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
    //---------------------------------------------------------------------------------------------------
    // get pointer to CANpie socket class
    //
-   pclSockT  = apclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+   if (tvStatusT == eCP_ERR_NONE)
+   {
+      if ( ((ptsPortV->ubPhyIf) > eCP_CHANNEL_NONE) && ((ptsPortV->ubPhyIf) <= QCAN_NETWORK_MAX) )
+      {
+         pclSockT  = &aclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+      }
+   }
 
    //---------------------------------------------------------------------------------------------------
    // test if previous operations failed before we proceed
    //
-   if ( (tvStatusT == eCP_ERR_NONE) && (pclSockT != (QCanSocketCpFD *) 0L) )
+   if ( pclSockT != (QCanSocketCpFD *) 0L ) 
    {
       ptsFifoT = pclSockT->aptsCanFifoP[ubBufferIdxV];
       
@@ -838,7 +953,7 @@ CpStatus_tv CpCoreFifoRead(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 CpStatus_tv CpCoreFifoRelease(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 {
    CpStatus_tv       tvStatusT;
-   QCanSocketCpFD *  pclSockT;
+   QCanSocketCpFD *  pclSockT = (QCanSocketCpFD *) 0L;
 
    //---------------------------------------------------------------------------------------------------
    // test parameter ptsPortV and ubBufferIdxV
@@ -848,12 +963,18 @@ CpStatus_tv CpCoreFifoRelease(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
    //---------------------------------------------------------------------------------------------------
    // get pointer to CANpie socket class
    //
-   pclSockT  = apclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+   if (tvStatusT == eCP_ERR_NONE)
+   {
+      if ( ((ptsPortV->ubPhyIf) > eCP_CHANNEL_NONE) && ((ptsPortV->ubPhyIf) <= QCAN_NETWORK_MAX) )
+      {
+         pclSockT  = &aclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+      }
+   }
 
    //---------------------------------------------------------------------------------------------------
    // test if previous operations failed before we proceed
    //
-   if ( (tvStatusT == eCP_ERR_NONE) && (pclSockT != (QCanSocketCpFD *) 0L) )
+   if ( pclSockT != (QCanSocketCpFD *) 0L ) 
    {
       pclSockT->aptsCanFifoP[ubBufferIdxV] = Q_NULLPTR;
    }
@@ -866,12 +987,10 @@ CpStatus_tv CpCoreFifoRelease(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV)
 // CpCoreFifoWrite()                                                                                                  //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-CpStatus_tv CpCoreFifoWrite(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
-                            CpCanMsg_ts * ptsCanMsgV,
-                            uint32_t * pulMsgCntV)
+CpStatus_tv CpCoreFifoWrite(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV, CpCanMsg_ts * ptsCanMsgV, uint32_t * pulMsgCntV)
 {
    QCanFrame         clFrameT;
-   QCanSocketCpFD *  pclSockT;
+   QCanSocketCpFD *  pclSockT = (QCanSocketCpFD *) 0L;
    CpStatus_tv       tvStatusT;
    uint32_t          ulMsgCntT;
    CpTrmHandler_Fn   pfnTrmHandlerT;
@@ -885,12 +1004,18 @@ CpStatus_tv CpCoreFifoWrite(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
    //---------------------------------------------------------------------------------------------------
    // get pointer to CANpie socket class
    //
-   pclSockT  = apclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+   if (tvStatusT == eCP_ERR_NONE)
+   {
+      if ( ((ptsPortV->ubPhyIf) > eCP_CHANNEL_NONE) && ((ptsPortV->ubPhyIf) <= QCAN_NETWORK_MAX) )
+      {
+         pclSockT  = &aclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+      }
+   }
 
    //---------------------------------------------------------------------------------------------------
    // test if previous operations failed before we proceed
    //
-   if ( (tvStatusT == eCP_ERR_NONE) && (pclSockT != (QCanSocketCpFD *) 0L) )
+   if ( pclSockT != (QCanSocketCpFD *) 0L ) 
    {
 
       //-------------------------------------------------------------------------------------------
@@ -928,37 +1053,44 @@ CpStatus_tv CpCoreFifoWrite(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
 //--------------------------------------------------------------------------------------------------------------------//
 CpStatus_tv CpCoreHDI(CpPort_ts *ptsPortV, CpHdi_ts *ptsHdiV)
 {
-   QCanSocketCpFD *  pclSockT;
+   QCanSocketCpFD *  pclSockT = (QCanSocketCpFD *) 0L;
    CpStatus_tv       tvStatusT = eCP_ERR_CHANNEL;
    
 
    //---------------------------------------------------------------------------------------------------
-   // get access to socket
+   // test parameter ptsPortV 
    //
-   if (ptsPortV != (CpPort_ts *) 0L)
+   tvStatusT = CheckParam(ptsPortV, eCP_BUFFER_1, eDRV_INFO_INIT);
+
+   //---------------------------------------------------------------------------------------------------
+   // get pointer to CANpie socket class
+   //
+   if (tvStatusT == eCP_ERR_NONE)
    {
-      if (ptsPortV->ubPhyIf < QCAN_NETWORK_MAX)
+      if ( ((ptsPortV->ubPhyIf) > eCP_CHANNEL_NONE) && ((ptsPortV->ubPhyIf) <= QCAN_NETWORK_MAX) )
       {
-         
-         //-----------------------------------------------------------------------------------
-         // get pointer to CANpie socket class
-         //
-         pclSockT  = apclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+         pclSockT  = &aclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+      }
+   }
 
-         if (pclSockT != (QCanSocketCpFD *) 0L)
-         {
-            ptsHdiV->ubVersionMajor   = CP_VERSION_MAJOR;
-            ptsHdiV->ubVersionMinor   = CP_VERSION_MINOR;
-            ptsHdiV->ubCanFeatures    = 0;
-            ptsHdiV->ubDriverFeatures = 0;
-            ptsHdiV->ubDriverMajor    = CP_DRIVER_MAJOR;
-            ptsHdiV->ubDriverMinor    = CP_DRIVER_MINOR;
-            ptsHdiV->ubBufferMax      = CP_BUFFER_MAX;
-            ptsHdiV->slNomBitRate     = pclSockT->slNomBitRateP;
-            ptsHdiV->slDatBitRate     = pclSockT->slDatBitRateP;
+   //---------------------------------------------------------------------------------------------------
+   // test if previous operations failed before we proceed
+   //
+   if ( pclSockT != (QCanSocketCpFD *) 0L ) 
+   {
+      if (ptsHdiV != (CpHdi_ts *) 0L)
+      {
+         ptsHdiV->ubVersionMajor   = CP_VERSION_MAJOR;
+         ptsHdiV->ubVersionMinor   = CP_VERSION_MINOR;
+         ptsHdiV->ubCanFeatures    = 3;
+         ptsHdiV->ubDriverFeatures = 0;
+         ptsHdiV->ubDriverMajor    = CP_DRIVER_MAJOR;
+         ptsHdiV->ubDriverMinor    = CP_DRIVER_MINOR;
+         ptsHdiV->ubBufferMax      = CP_BUFFER_MAX;
+         ptsHdiV->slNomBitRate     = pclSockT->slNomBitRateP;
+         ptsHdiV->slDatBitRate     = pclSockT->slDatBitRateP;
 
-            tvStatusT = eCP_ERR_NONE;
-         }
+         tvStatusT = eCP_ERR_NONE;
       }
    }
    
@@ -975,34 +1107,40 @@ CpStatus_tv CpCoreIntFunctions( CpPort_ts * ptsPortV,
                         uint8_t (* pfnTrmHandler)(CpCanMsg_ts *, uint8_t),
                         uint8_t (* pfnErrHandler)(CpState_ts *) )
 {
-   QCanSocketCpFD *  pclSockT;
+   QCanSocketCpFD *  pclSockT = (QCanSocketCpFD *) 0L;
    CpStatus_tv       tvStatusT = eCP_ERR_CHANNEL;
    
 
    //---------------------------------------------------------------------------------------------------
-   // get access to socket
+   // test parameter ptsPortV 
    //
-   if (ptsPortV != (CpPort_ts *) 0L)
+   tvStatusT = CheckParam(ptsPortV, eCP_BUFFER_1, eDRV_INFO_INIT);
+
+   //---------------------------------------------------------------------------------------------------
+   // get pointer to CANpie socket class
+   //
+   if (tvStatusT == eCP_ERR_NONE)
    {
-      if (ptsPortV->ubPhyIf < QCAN_NETWORK_MAX)
+      if ( ((ptsPortV->ubPhyIf) > eCP_CHANNEL_NONE) && ((ptsPortV->ubPhyIf) <= QCAN_NETWORK_MAX) )
       {
-         //-----------------------------------------------------------------------------------
-         // get pointer to CANpie socket class
-         //
-         pclSockT  = apclCanSockListS[(ptsPortV->ubPhyIf) - 1];
-
-         if (pclSockT != (QCanSocketCpFD *) 0L)
-         {
-            //---------------------------------------------------------------------------
-            // store the new callbacks
-            //
-            pclSockT->pfnRcvIntHandlerP = pfnRcvHandler;
-            pclSockT->pfnTrmIntHandlerP = pfnTrmHandler;
-            pclSockT->pfnErrIntHandlerP = pfnErrHandler;
-
-            tvStatusT = eCP_ERR_NONE;
-         }
+         pclSockT  = &aclCanSockListS[(ptsPortV->ubPhyIf) - 1];
       }
+   }
+
+
+   //---------------------------------------------------------------------------------------------------
+   // test if previous operations failed before we proceed
+   //
+   if (pclSockT != (QCanSocketCpFD *) 0L)
+   {
+      //---------------------------------------------------------------------------
+      // store the new callbacks
+      //
+      pclSockT->pfnRcvIntHandlerP = pfnRcvHandler;
+      pclSockT->pfnTrmIntHandlerP = pfnTrmHandler;
+      pclSockT->pfnErrIntHandlerP = pfnErrHandler;
+
+      tvStatusT = eCP_ERR_NONE;
    }
    
    return (tvStatusT);
@@ -1015,21 +1153,42 @@ CpStatus_tv CpCoreIntFunctions( CpPort_ts * ptsPortV,
 //--------------------------------------------------------------------------------------------------------------------//
 CpStatus_tv CpCoreStatistic(CpPort_ts * ptsPortV, CpStatistic_ts * ptsStatsV)
 {
+   CpStatus_tv       tvStatusT = eCP_ERR_CHANNEL;
+   QCanSocketCpFD *  pclSockT = (QCanSocketCpFD *) 0L;
+
    //---------------------------------------------------------------------------------------------------
-   // avoid compiler warning
+   // test parameter ptsPortV 
    //
-   #if CP_SMALL_CODE == 0
-   if(ptsPortV == 0L)
+   tvStatusT = CheckParam(ptsPortV, eCP_BUFFER_1, eDRV_INFO_INIT);
+
+   //---------------------------------------------------------------------------------------------------
+   // get pointer to CANpie socket class
+   //
+   if (tvStatusT == eCP_ERR_NONE)
    {
-      return(eCP_ERR_PARAM);
+      if ( ((ptsPortV->ubPhyIf) > eCP_CHANNEL_NONE) && ((ptsPortV->ubPhyIf) <= QCAN_NETWORK_MAX) )
+      {
+         pclSockT  = &aclCanSockListS[(ptsPortV->ubPhyIf) - 1];
+      }
    }
-   #endif
 
-   ptsStatsV->ulErrMsgCount = 0;
-   ptsStatsV->ulRcvMsgCount = 0;
-   ptsStatsV->ulTrmMsgCount = 0;
 
-   return(eCP_ERR_NONE);
+   //---------------------------------------------------------------------------------------------------
+   // test if previous operations failed before we proceed
+   //
+   if (pclSockT != (QCanSocketCpFD *) 0L)
+   {
+      tvStatusT = eCP_ERR_PARAM;
+      if (ptsStatsV != (CpStatistic_ts *) 0L)
+      {
+         ptsStatsV->ulErrMsgCount = pclSockT->tsStatisticP.ulErrMsgCount;
+         ptsStatsV->ulRcvMsgCount = pclSockT->tsStatisticP.ulRcvMsgCount;
+         ptsStatsV->ulTrmMsgCount = pclSockT->tsStatisticP.ulTrmMsgCount;
+         tvStatusT = eCP_ERR_NONE;
+      }
+   }
+
+   return (tvStatusT);
 }
 
 
@@ -1041,7 +1200,7 @@ CpStatus_tv CpSocketConnectSlots(uint8_t ubPhyIfV, QObject * pclDestObjectV,
                                  const char * pubSockConnectV, const char * pubSockDisconnectV,
                                  const char * pubSockErrorV)
 {
-   QCanSocketCpFD *   pclSockT;
+   QCanSocketCpFD *  pclSockT = (QCanSocketCpFD *) 0L;
 
    //---------------------------------------------------------------------------------------------------
    // debug information
@@ -1061,7 +1220,7 @@ CpStatus_tv CpSocketConnectSlots(uint8_t ubPhyIfV, QObject * pclDestObjectV,
    //-----------------------------------------------------------------------------------
    // get pointer to CANpie socket class
    //
-   pclSockT  = apclCanSockListS[ubPhyIfV - 1];
+   pclSockT  = &aclCanSockListS[ubPhyIfV - 1];
 
    if(pubSockConnectV != Q_NULLPTR)
    {
@@ -1086,25 +1245,33 @@ CpStatus_tv CpSocketConnectSlots(uint8_t ubPhyIfV, QObject * pclDestObjectV,
 
 
 //--------------------------------------------------------------------------------------------------------------------//
+// CpSocketInstance()                                                                                                 //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+QCanSocket * CpSocketInstance(uint8_t ubPhyIfV)
+{
+   QCanSocket *  pclSockT = (QCanSocket *) 0L;
+
+   //---------------------------------------------------------------------------------------------------
+   // test parameter
+   //
+   if ((ubPhyIfV < QCAN_NETWORK_MAX) && (ubPhyIfV > eCAN_CHANNEL_NONE))
+   {
+      pclSockT = (QCanSocket *) &aclCanSockListS[ubPhyIfV - 1];
+   }
+
+   return (pclSockT);
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
 // CpSocketProcessEvents()                                                                                            //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-void CpSocketProcessEvents(uint8_t ubChannelV)
+void CpSocketProcessEvents()
 {
    if (pclApplicationS != 0L)
    {
       pclApplicationS->processEvents();
-
-      //---------------------------------------------------------------------------
-      // Since we want to read data from a socket without the event loop of
-      // QCoreApplication we need to poll data from the socket. This is done by
-      // calling waitForReadyRead(). The parameter denotes the time in milliseconds
-      // the method is blocking before it returns.
-      //
-      if (apclCanSockListS[ubChannelV] != (QCanSocketCpFD *) 0L)
-      {
-         // apclCanSockListS[ubChannelV]->onSocketReceive();
-      }
    }
 }
 
@@ -1116,26 +1283,24 @@ void CpSocketProcessEvents(uint8_t ubChannelV)
 CpStatus_tv CpSocketSetHostAddress(uint8_t ubPhyIfV, QHostAddress clHostAddressV)
 {
    QCanSocketCpFD *   pclSockT;
+   CpStatus_tv        tvStatusT = eCP_ERR_CHANNEL;
 
    //---------------------------------------------------------------------------------------------------
    // test parameter
    //
-   if ((ubPhyIfV > QCAN_NETWORK_MAX) || (ubPhyIfV == eCAN_CHANNEL_NONE))
+   if ( (ubPhyIfV > eCAN_CHANNEL_NONE) && (ubPhyIfV <= QCAN_NETWORK_MAX) )
    {
-      return(eCP_ERR_CHANNEL);
-   }
 
-   //-----------------------------------------------------------------------------------
-   // get pointer to CANpie socket class
-   //
-   pclSockT  = apclCanSockListS[ubPhyIfV - 1];
+      //-------------------------------------------------------------------------------------------
+      // get pointer to CANpie socket class
+      //
+      pclSockT  = &aclCanSockListS[ubPhyIfV - 1];
 
-   if (pclSockT != (QCanSocketCpFD *) 0L)
-   {
       pclSockT->setHostAddress(clHostAddressV);
+      tvStatusT = eCP_ERR_NONE;
    }
-   return (eCP_ERR_NONE);
 
+   return (tvStatusT);
 }
 
 
@@ -1143,12 +1308,12 @@ CpStatus_tv CpSocketSetHostAddress(uint8_t ubPhyIfV, QHostAddress clHostAddressV
 // QCanSocketCpFD::QCanSocketCpFD()                                                                                   //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-QCanSocketCpFD::QCanSocketCpFD(uint8_t ubPhyIfV)
+QCanSocketCpFD::QCanSocketCpFD()
 {
    //---------------------------------------------------------------------------------------------------
    // debug information
    //
-   qDebug() << "QCanSocketCpFD() ............ : init CAN " << ubPhyIfV;
+   qDebug() << "QCanSocketCpFD() ............ : create object";
 
 
    //---------------------------------------------------------------------------------------------------
@@ -1160,34 +1325,6 @@ QCanSocketCpFD::QCanSocketCpFD(uint8_t ubPhyIfV)
 
    slNomBitRateP      = eCAN_BITRATE_NONE;
    slDatBitRateP      = eCAN_BITRATE_NONE;
-
-   ubPhyIfP           = ubPhyIfV;
-
-   aubModeS[ubPhyIfP - 1] = eCP_MODE_INIT;
-
-
-   //---------------------------------------------------------------------------------------------------
-   // connect the readyRead() signal with the slot for message reception
-   //
-   connect(this, &QCanSocketCpFD::readyRead, this, &QCanSocketCpFD::onSocketReceive);
-
-
-   //---------------------------------------------------------------------------------------------------
-   // Check if an instance of QCoreApplication is active. In case there is no QCoreApplication there
-   // is no QEventLoop and we need a thread that polls data from the CANpie server.
-   //
-   if (pclApplicationS == 0L)
-   {
-      if (QCoreApplication::instance() == 0L)
-      {
-         printf("Create new QCoreApplication \n");
-
-         int32_t slAppArgcT = 0;
-         char ** szAppArgvT = NULL;
-         pclApplicationS = new QCoreApplication(slAppArgcT, szAppArgvT);
-      }
-   }
-
 
 }
 
@@ -1203,7 +1340,6 @@ QCanSocketCpFD::~QCanSocketCpFD()
    //
    qDebug() << "~QCanSocketCpFD() ........... : delete object";
 
-   aubModeS[ubPhyIfP - 1] = eCP_MODE_INIT;
 }
 
 
@@ -1378,8 +1514,7 @@ void QCanSocketCpFD::handleCanFrame(QCanFrame & clCanFrameR)
          //-----------------------------------------------------------------------------------
          // check for identifier
          //
-         if( (CpMsgGetIdentifier(ptsCanBufT) & ulAccMaskT) ==
-             (CpMsgGetIdentifier(&tsCanMsgT) & ulAccMaskT)    )
+         if( (CpMsgGetIdentifier(ptsCanBufT) & ulAccMaskT) == (CpMsgGetIdentifier(&tsCanMsgT) & ulAccMaskT) )
          {
             //---------------------------------------------------------------------------
             // copy to buffer
@@ -1414,9 +1549,14 @@ void QCanSocketCpFD::handleCanFrame(QCanFrame & clCanFrameR)
             }
 
             //---------------------------------------------------------------------------
-            // update statistic
+            // Update statistic
             //
             tsStatisticP.ulRcvMsgCount++;
+
+            //---------------------------------------------------------------------------
+            // Quit loop because there was an identifier match
+            //
+            break;
          }
       }
    }
@@ -1432,7 +1572,6 @@ void QCanSocketCpFD::onSocketReceive()
    QCanFrame         clCanFrameT;
    uint32_t          ulFrameCntT;
    uint32_t          ulFrameMaxT;
-
 
    //---------------------------------------------------------------------------------------------------
    // Check how many frames are available
