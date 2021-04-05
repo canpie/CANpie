@@ -249,7 +249,7 @@ QString QCanSocket::errorString() const
          break;
 
       case QAbstractSocket::NetworkError:
-         clErrorT = qPrintable(tr("error occurred with the network (e.g. cable plugged out.")   );
+         clErrorT = qPrintable(tr("error occurred with the network (e.g. cable plugged out).")  );
          break;
 
       case QAbstractSocket::AddressInUseError:
