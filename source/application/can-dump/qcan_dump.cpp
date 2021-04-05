@@ -178,8 +178,7 @@ void QCanDump::onNetworkObjectReceived(const CAN_Channel_e teChannelV, QJsonObje
    //---------------------------------------------------------------------------------------------------
    // remove all signals from this class
    //
-   disconnect(&clNetworkSettingsP);
-
+   disconnect(&clNetworkSettingsP, nullptr, this, nullptr);
 
    if (teChannelV == teCanChannelP)
    {
@@ -232,19 +231,26 @@ void QCanDump::onServerObjectReceived(QJsonObject clServerConfigV)
 {
    Q_UNUSED(clServerConfigV);
 
-   fprintf( stdout, "%s %d.%02d.%02d \n",
-            qPrintable(tr("Connected to CANpie FD server, version:")),
-            clServerSettingsP.versionMajor(),
-            clServerSettingsP.versionMinor(),
-            clServerSettingsP.versionBuild() );
+   if (teCanChannelP <= clServerSettingsP.networkCount())
+   {
+      fprintf( stdout, "%s %d.%02d.%02d \n",
+               qPrintable(tr("Connected to CANpie FD server, version:")),
+               clServerSettingsP.versionMajor(),
+               clServerSettingsP.versionMinor(),
+               clServerSettingsP.versionBuild() );
 
-   clNetworkSettingsP.setChannel(teCanChannelP);
-   clNetworkSettingsP.connectToServer();
+      clNetworkSettingsP.setChannel(teCanChannelP);
+      clNetworkSettingsP.connectToServer(clHostAddressP);
 
-   connect(&clNetworkSettingsP, &QCanNetworkSettings::objectReceived, 
-           this,                &QCanDump::onNetworkObjectReceived);
-
-
+      connect(&clNetworkSettingsP, &QCanNetworkSettings::objectReceived, 
+              this,                &QCanDump::onNetworkObjectReceived);
+   }
+   else
+   {
+      fprintf(stdout, "%s%d %s \n", qPrintable("CAN interface can"), teCanChannelP, qPrintable("not available"));
+      disconnect(&clServerSettingsP, nullptr, this, nullptr);
+      quit();
+   }
 }
 
 
@@ -535,7 +541,9 @@ void QCanDump::runCommandParser()
       fprintf(stdout, "No valid address for CANpie FD Server\n");
       quit();
    }
-   
+   clCanSocketP.setHostAddress(clHostAddressP);
+
+
    //---------------------------------------------------------------------------------------------------
    // check for time-stamp
    //

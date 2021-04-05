@@ -68,7 +68,7 @@ CONFIG += silent
 #
 VERSION_MAJOR = 0
 VERSION_MINOR = 99
-VERSION_BUILD = 06
+VERSION_BUILD = 10
 
 
 #---------------------------------------------------------------
@@ -111,7 +111,8 @@ VPATH += ./../../qcan
 #---------------------------------------------------------------
 # header files of project 
 #
-HEADERS =   qcan_server_settings.hpp   \
+HEADERS =   qcan_network_settings.hpp  \
+            qcan_server_settings.hpp   \
             qcan_socket.hpp            \
             qcan_send.hpp
                 
@@ -120,6 +121,7 @@ HEADERS =   qcan_server_settings.hpp   \
 # source files of project 
 #
 SOURCES =   qcan_frame.cpp             \
+            qcan_network_settings.cpp  \
             qcan_server_settings.cpp   \
             qcan_socket.cpp            \
             qcan_timestamp.cpp         \

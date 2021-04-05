@@ -95,31 +95,41 @@ int main(int argc, char *argv[])
 // QCanSend()                                                                                                         //
 // constructor                                                                                                        //
 //--------------------------------------------------------------------------------------------------------------------//
-QCanSend::QCanSend(QObject *parent) :
-    QObject(parent)
+QCanSend::QCanSend(QObject *parent) 
+         :QObject(parent)
 {
    //---------------------------------------------------------------------------------------------------
    // get the instance of the main application
    //
-   pclAppP = QCoreApplication::instance();
-
+   pclApplicationP = QCoreApplication::instance();
    
    //---------------------------------------------------------------------------------------------------
    // connect signals for socket operations
    //
-   QObject::connect(&clCanSocketP, SIGNAL(connected()),
-                    this, SLOT(socketConnected()));
+   QObject::connect( &clCanSocketP, &QCanSocket::connected,
+                     this,          &QCanSend::onSocketConnected);
 
-   QObject::connect(&clCanSocketP, SIGNAL(disconnected()),
-                    this, SLOT(socketDisconnected()));
+   QObject::connect( &clCanSocketP, &QCanSocket::disconnected,
+                    this,           &QCanSend::onSocketDisconnected);
    
-   QObject::connect(&clCanSocketP, SIGNAL(error(QAbstractSocket::SocketError)),
-                    this, SLOT(socketError(QAbstractSocket::SocketError)));
+   QObject::connect( &clCanSocketP, QOverload<QAbstractSocket::SocketError>::of(&QCanSocket::error), 
+                     this,          &QCanSend::onSocketError);
+
    
+   //---------------------------------------------------------------------------------------------------
+   // connect QServerSettings object
+   //
+   connect(&clServerSettingsP, &QCanServerSettings::stateChanged, 
+           this,               &QCanSend::onServerStateChanged);
+
+   connect(&clServerSettingsP, &QCanServerSettings::objectReceived, 
+           this,               &QCanSend::onServerObjectReceived);
+
+
    //---------------------------------------------------------------------------------------------------
    // set default values
    //
-   ubChannelP     = eCAN_CHANNEL_NONE;
+   teCanChannelP  = eCAN_CHANNEL_NONE;
    ulFrameIdP     = 0;
    ulFrameGapP    = 0;
    ubFrameDlcP    = 0;
@@ -143,11 +153,103 @@ void QCanSend::aboutToQuitApp()
 
 
 //--------------------------------------------------------------------------------------------------------------------//
+// QCanSend::onNetworkObjectReceived()                                                                                //
+// print details about CAN interface and connect to interface                                                         //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanSend::onNetworkObjectReceived(const CAN_Channel_e teChannelV, QJsonObject clNetworkConfigV)
+{
+   Q_UNUSED (clNetworkConfigV);
+
+   //---------------------------------------------------------------------------------------------------
+   // remove all signals from this class
+   //
+   disconnect(&clNetworkSettingsP, nullptr, this, nullptr);
+
+   if (teChannelV == teCanChannelP)
+   {
+      //-------------------------------------------------------------------------------------------
+      // since this slot has been called, we can connect to the network
+      //
+      clCanSocketP.connectNetwork(teCanChannelP);
+   }
+
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanSend::onServerObjectReceived()                                                                                 //
+// print version of CANpie FD Server                                                                                  //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanSend::onServerObjectReceived(QJsonObject clServerConfigV)
+{
+   Q_UNUSED(clServerConfigV);
+
+   if (teCanChannelP <= clServerSettingsP.networkCount())
+   {
+      clNetworkSettingsP.setChannel(teCanChannelP);
+      clNetworkSettingsP.connectToServer(clHostAddressP);
+
+      connect(&clNetworkSettingsP, &QCanNetworkSettings::objectReceived, 
+              this,                &QCanSend::onNetworkObjectReceived);
+   }
+   else
+   {
+      fprintf(stdout, "%s%d %s \n", qPrintable("CAN interface can"), teCanChannelP, qPrintable("not available"));
+      disconnect(&clServerSettingsP, nullptr, this, nullptr);
+      quit();
+   }
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanSend::onServerStateChanged()                                                                                   //
+// check for new state of the CANpie FD Server                                                                        //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanSend::onServerStateChanged(enum QCanServerSettings::State_e teStateV)
+{  
+   bool btQuitProgramT = false;
+
+   qDebug() << " QCanSend::onServerStateChanged()" << teStateV;
+
+   switch (teStateV)
+   {
+      case QCanServerSettings::eSTATE_CLOSED:
+         fprintf(stdout, "CANpie FD server %s \n", qPrintable(clServerSettingsP.stateString()));
+         btQuitProgramT = true;
+         break;
+
+      case QCanServerSettings::eSTATE_UNKNOWN:
+         fprintf(stdout, "CANpie FD server %s \n", qPrintable(clServerSettingsP.stateString()));
+         btQuitProgramT = true;
+         break;
+
+      case QCanServerSettings::eSTATE_INACTIVE:
+         fprintf(stdout, "CANpie FD server %s \n", qPrintable(clServerSettingsP.stateString()));
+         btQuitProgramT = true;
+         break;
+
+      case QCanServerSettings::eSTATE_ACTIVE:
+         break;
+
+      default:
+         btQuitProgramT = true;
+         break;
+   }
+
+   if (btQuitProgramT)
+   {
+      this->quit();
+   }
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
 // QCanSend::quit()                                                                                                   //
 // call this routine to quit the application                                                                          //
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanSend::quit()
 {
+   disconnect(&clServerSettingsP, nullptr, this, nullptr);
    clCanSocketP.disconnectNetwork();
 
    emit finished();
@@ -155,7 +257,7 @@ void QCanSend::quit()
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// QCanDump::runCmdParser()                                                                                           //
+// QCanSend::runCmdParser()                                                                                           //
 // 10ms after the application starts this method will parse all commands                                              //
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanSend::runCmdParser(void)
@@ -163,14 +265,13 @@ void QCanSend::runCmdParser(void)
    //---------------------------------------------------------------------------------------------------
    // setup command line parser
    //
-   clCmdParserP.setApplicationDescription(tr("Send messages on CAN interface"));
-   clCmdParserP.addHelpOption();
+   clCommandParserP.setApplicationDescription(tr("Send messages on CAN interface"));
    
    //---------------------------------------------------------------------------------------------------
    // argument <interface> is required
    //
-   clCmdParserP.addPositionalArgument("interface", 
-                                      tr("CAN interface, e.g. can1"));
+   clCommandParserP.addPositionalArgument("interface", 
+                                          tr("CAN interface, e.g. can1"));
 
    //---------------------------------------------------------------------------------------------------
    // command line option: -D <dlc>
@@ -179,7 +280,7 @@ void QCanSend::runCmdParser(void)
          tr("Set DLC to <dlc>"),
          tr("dlc"),
          "0");          // default value
-   clCmdParserP.addOption(clOptFrameDlcT);
+   clCommandParserP.addOption(clOptFrameDlcT);
    
    //---------------------------------------------------------------------------------------------------
    // command line option: -f <format>
@@ -188,7 +289,7 @@ void QCanSend::runCmdParser(void)
          tr("Set frame format to [CBFF|CEFF|FBFF|FEFF]"),
          tr("format"),
          "CBFF");       // default value
-   clCmdParserP.addOption(clOptFormatT);
+   clCommandParserP.addOption(clOptFormatT);
    
    //---------------------------------------------------------------------------------------------------
    // command line option: -g <msec>
@@ -197,15 +298,17 @@ void QCanSend::runCmdParser(void)
          tr("Time gap in milli-seconds between multiple CAN frames"),
          tr("gap"),
          "0");          // default value
-   clCmdParserP.addOption(clOptGapT);
+   clCommandParserP.addOption(clOptGapT);
    
+   clCommandParserP.addHelpOption();
+
    //---------------------------------------------------------------------------------------------------
    // command line option: -H <host>
    //
    QCommandLineOption clOptHostT("H", 
          tr("Connect to <host>"),
          tr("host"));
-   clCmdParserP.addOption(clOptHostT);
+   clCommandParserP.addOption(clOptHostT);
    
    //---------------------------------------------------------------------------------------------------
    // command line option: -i <type>
@@ -213,7 +316,7 @@ void QCanSend::runCmdParser(void)
    QCommandLineOption clOptIncT("i", 
          tr("Increment the requested type"),
          tr("I|D|P"));
-   clCmdParserP.addOption(clOptIncT);
+   clCommandParserP.addOption(clOptIncT);
    
    //---------------------------------------------------------------------------------------------------
    // command line option: -I <id>
@@ -221,7 +324,7 @@ void QCanSend::runCmdParser(void)
    QCommandLineOption clOptFrameIdT("I", 
          tr("Set identifier to <id>"),
          tr("id"));
-   clCmdParserP.addOption(clOptFrameIdT);
+   clCommandParserP.addOption(clOptFrameIdT);
    
 
    //---------------------------------------------------------------------------------------------------
@@ -231,7 +334,7 @@ void QCanSend::runCmdParser(void)
          tr("Terminate after transmission of <count> CAN frames"),
          tr("count"),
          "1");          // default value
-   clCmdParserP.addOption(clOptCountT);
+   clCommandParserP.addOption(clOptCountT);
 
    
    //---------------------------------------------------------------------------------------------------
@@ -240,25 +343,25 @@ void QCanSend::runCmdParser(void)
    QCommandLineOption clOptFrameDataT("P", 
          tr("Set payload to <payload>, i.e. a string of hex values"),
          tr("payload"));
-   clCmdParserP.addOption(clOptFrameDataT);
+   clCommandParserP.addOption(clOptFrameDataT);
    
    
    //---------------------------------------------------------------------------------------------------
    // command line option: -v, --version
    //
-   clCmdParserP.addVersionOption();
+   clCommandParserP.addVersionOption();
 
 
    //---------------------------------------------------------------------------------------------------
    // Process the actual command line arguments given by the user
    //
-   clCmdParserP.process(*pclAppP);
-   const QStringList clArgsT = clCmdParserP.positionalArguments();
+   clCommandParserP.process(*pclApplicationP);
+   const QStringList clArgsT = clCommandParserP.positionalArguments();
    if (clArgsT.size() != 1) 
    {
       fprintf(stderr, "%s\n", 
               qPrintable(tr("Error: Must specify CAN interface.\n")));
-      clCmdParserP.showHelp(0);
+      clCommandParserP.showHelp(0);
    }
 
    
@@ -271,7 +374,7 @@ void QCanSend::runCmdParser(void)
       fprintf(stderr, "%s %s\n", 
               qPrintable(tr("Error: Unknown CAN interface ")),
               qPrintable(clInterfaceT));
-      clCmdParserP.showHelp(0);
+      clCommandParserP.showHelp(0);
    }
    
    //---------------------------------------------------------------------------------------------------
@@ -285,30 +388,30 @@ void QCanSend::runCmdParser(void)
    {
       fprintf(stderr, "%s \n\n", 
               qPrintable(tr("Error: CAN interface out of range")));
-      clCmdParserP.showHelp(0);
+      clCommandParserP.showHelp(0);
    }
    
    //---------------------------------------------------------------------------------------------------
    // store CAN interface channel (CAN_Channel_e)
    //
-   ubChannelP = (uint8_t) (slChannelT);
+   teCanChannelP = (CAN_Channel_e) (slChannelT);
 
    //---------------------------------------------------------------------------------------------------
    // get frame format
    //
-   if (clCmdParserP.value(clOptFormatT).contains("CBFF", Qt::CaseInsensitive))
+   if (clCommandParserP.value(clOptFormatT).contains("CBFF", Qt::CaseInsensitive))
    {
       ubFrameFormatP = QCanFrame::eFORMAT_CAN_STD;
    }
-   else if (clCmdParserP.value(clOptFormatT).contains("CEFF", Qt::CaseInsensitive))
+   else if (clCommandParserP.value(clOptFormatT).contains("CEFF", Qt::CaseInsensitive))
    {
       ubFrameFormatP = QCanFrame::eFORMAT_CAN_EXT;
    }
-   else if (clCmdParserP.value(clOptFormatT).contains("FBFF", Qt::CaseInsensitive))
+   else if (clCommandParserP.value(clOptFormatT).contains("FBFF", Qt::CaseInsensitive))
    {
       ubFrameFormatP = QCanFrame::eFORMAT_FD_STD;
    }
-   else if (clCmdParserP.value(clOptFormatT).contains("FEFF", Qt::CaseInsensitive))
+   else if (clCommandParserP.value(clOptFormatT).contains("FEFF", Qt::CaseInsensitive))
    {
       ubFrameFormatP = QCanFrame::eFORMAT_FD_EXT;
    }
@@ -316,30 +419,30 @@ void QCanSend::runCmdParser(void)
    {
       fprintf(stderr, "%s \n\n", 
               qPrintable(tr("Error: Unknown option for frame format.")));
-      clCmdParserP.showHelp(0);
+      clCommandParserP.showHelp(0);
    }
    
    //---------------------------------------------------------------------------------------------------
    // get identifier value
    //
-   ulFrameIdP = clCmdParserP.value(clOptFrameIdT).toInt(Q_NULLPTR, 16);
+   ulFrameIdP = clCommandParserP.value(clOptFrameIdT).toInt(Q_NULLPTR, 16);
    
    //---------------------------------------------------------------------------------------------------
    // get DLC value
    //
-   ubFrameDlcP = clCmdParserP.value(clOptFrameDlcT).toInt(Q_NULLPTR, 10);
+   ubFrameDlcP = clCommandParserP.value(clOptFrameDlcT).toInt(Q_NULLPTR, 10);
    if( ((ubFrameFormatP > QCanFrame::eFORMAT_CAN_EXT) && (ubFrameDlcP > 15)) ||
        ((ubFrameFormatP < QCanFrame::eFORMAT_FD_STD)  && (ubFrameDlcP >  8)) )
    {
       fprintf(stderr, "%s \n\n", 
               qPrintable(tr("Error: DLC value out of range.")));
-      clCmdParserP.showHelp(0);
+      clCommandParserP.showHelp(0);
    }
    
    //---------------------------------------------------------------------------------------------------
    // get payload
    //
-   QString clPayloadT = clCmdParserP.value(clOptFrameDataT);
+   QString clPayloadT = clCommandParserP.value(clOptFrameDataT);
    for (uint8_t ubCntT = 0; ubCntT < QCAN_MSG_DATA_MAX; ubCntT++)
    {
       if (clPayloadT.size() >= 2)
@@ -360,53 +463,55 @@ void QCanSend::runCmdParser(void)
    //---------------------------------------------------------------------------------------------------
    // get number of frames to send
    //
-   ulFrameCountP = clCmdParserP.value(clOptCountT).toInt(Q_NULLPTR, 10);
+   ulFrameCountP = clCommandParserP.value(clOptCountT).toInt(Q_NULLPTR, 10);
 
    //---------------------------------------------------------------------------------------------------
    // get time gap between frames
    //
-   ulFrameGapP = clCmdParserP.value(clOptGapT).toInt(Q_NULLPTR, 10);
+   ulFrameGapP = clCommandParserP.value(clOptGapT).toInt(Q_NULLPTR, 10);
    
    //---------------------------------------------------------------------------------------------------
    // get increment type
    //
-   btIncIdP  = clCmdParserP.value(clOptIncT).contains("I", Qt::CaseInsensitive);
-   btIncDlcP = clCmdParserP.value(clOptIncT).contains("D", Qt::CaseInsensitive);
-   btIncDataP= clCmdParserP.value(clOptIncT).contains("P", Qt::CaseInsensitive);
+   btIncIdP  = clCommandParserP.value(clOptIncT).contains("I", Qt::CaseInsensitive);
+   btIncDlcP = clCommandParserP.value(clOptIncT).contains("D", Qt::CaseInsensitive);
+   btIncDataP= clCommandParserP.value(clOptIncT).contains("P", Qt::CaseInsensitive);
    
+
    //---------------------------------------------------------------------------------------------------
    // set host address for socket
    //
-   if (clCmdParserP.isSet(clOptHostT))
+   if (clCommandParserP.isSet(clOptHostT))
    {
-      QHostAddress clAddressT = QHostAddress(clCmdParserP.value(clOptHostT));
-      clCanSocketP.setHostAddress(clAddressT);
+      clHostAddressP = QHostAddress(clCommandParserP.value(clOptHostT));
    }
    else
    {
-      /*
-      //-------------------------------------------------------------------------------------------
-      // check to local server state and print error if it is not active
-      //
-      if (pclServerP->state() < QCanServerSettings::eSTATE_ACTIVE)
-      {
-         fprintf(stdout, "CANpie FD server %s \n", qPrintable(pclServerP->stateString()));
-         exit(0);
-      }
-      */
+      clHostAddressP.setAddress(QHostAddress::LocalHost);
    }
+   
+
+   //---------------------------------------------------------------------------------------------------
+   // check for valid server host address
+   //
+   if (clHostAddressP.isNull())
+   {
+      fprintf(stdout, "No valid address for CANpie FD Server\n");
+      quit();
+   }
+   clCanSocketP.setHostAddress(clHostAddressP);
 
 
    //---------------------------------------------------------------------------------------------------
-   // connect to CAN interface
+   // connect to QCanServer class (i.e. CANpie FD Server)
    //
-   clCanSocketP.connectNetwork((CAN_Channel_e) ubChannelP);
+   clServerSettingsP.connectToServer(clHostAddressP);
 
 }
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// QCanDump::sendFrame()                                                                                              //
+// QCanSend::sendFrame()                                                                                              //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanSend::sendFrame(void)
@@ -519,10 +624,10 @@ void QCanSend::sendFrame(void)
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// QCanSend::socketConnected()                                                                                        //
+// QCanSend::onSocketConnected()                                                                                      //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-void QCanSend::socketConnected()
+void QCanSend::onSocketConnected()
 {
    //---------------------------------------------------------------------------------------------------
    // initial setup of CAN frame
@@ -540,22 +645,21 @@ void QCanSend::socketConnected()
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// QCanSend::socketDisconnected()                                                                                     //
+// QCanSend::onSocketDisconnected()                                                                                   //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-
-void QCanSend::socketDisconnected()
+void QCanSend::onSocketDisconnected()
 {
-   qDebug() << "Disconnected from CAN " << ubChannelP;
+   qDebug() << "Disconnected from CAN " << teCanChannelP;
    
 }
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// QCanSend::socketError()                                                                                            //
+// QCanSend::onSocketError()                                                                                          //
 // Show error message and quit                                                                                        //
 //--------------------------------------------------------------------------------------------------------------------//
-void QCanSend::socketError(QAbstractSocket::SocketError teSocketErrorV)
+void QCanSend::onSocketError(QAbstractSocket::SocketError teSocketErrorV)
 {
    Q_UNUSED(teSocketErrorV);  // parameter not used 
    

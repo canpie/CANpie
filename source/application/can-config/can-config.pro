@@ -60,7 +60,7 @@ CONFIG += console
 #
 VERSION_MAJOR = 0
 VERSION_MINOR = 99
-VERSION_BUILD = 06
+VERSION_BUILD = 10
 
 
 #---------------------------------------------------------------

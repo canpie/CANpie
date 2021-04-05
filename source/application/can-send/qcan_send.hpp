@@ -40,6 +40,7 @@
 
 #include "qcan_namespace.hpp"
 
+#include <QCanNetworkSettings>
 #include <QCanServerSettings>
 #include <QCanSocket>
 
@@ -55,36 +56,64 @@ signals:
    void finished();
 
 public slots:
-   void aboutToQuitApp(void);
+   void  aboutToQuitApp(void);
 
-   void runCmdParser(void);
+private slots:
+   void  onNetworkObjectReceived(const CAN_Channel_e teChannelV, QJsonObject clNetworkConfigV);
 
-   void sendFrame(void);
-   void socketConnected();
-   void socketDisconnected();
-   void socketError(QAbstractSocket::SocketError teSocketErrorV);
-   void quit();
+   void  onServerObjectReceived(QJsonObject clServerConfigV);
+   void  onServerStateChanged(enum QCanServerSettings::State_e teStateV);
+
+   void  onSocketConnected();
+   void  onSocketDisconnected();
+   void  onSocketError(QAbstractSocket::SocketError teSocketErrorV);
+
+   void  quit();
+
+   void  runCmdParser(void);
+
+   void  sendFrame(void);
    
 private:
 
-   QCoreApplication *   pclAppP;
+   QPointer<QCoreApplication>    pclApplicationP;
 
-   QCommandLineParser   clCmdParserP;
-   QCanServerSettings   clServerP;
+   //----------------------------------------------------------------------------------------------
+   // Command line parser
+   //
+   QCommandLineParser            clCommandParserP;
 
-   QCanSocket           clCanSocketP;
-   uint8_t              ubChannelP;
+   //----------------------------------------------------------------------------------------------
+   // Retrieve information from CANpie FD server
+   //
+   QCanNetworkSettings           clNetworkSettingsP;
+   QCanServerSettings            clServerSettingsP;
+
+   //----------------------------------------------------------------------------------------------
+   // Host address of CANpie FD server, set with -H option
+   //
+   QHostAddress                  clHostAddressP;
+
+   //----------------------------------------------------------------------------------------------
+   // Socket to CANpie FD server
+   //
+   QCanSocket                    clCanSocketP;
    
-   QCanFrame            clCanFrameP;
-   uint32_t             ulFrameIdP;
-   uint32_t             ulFrameGapP;
-   uint8_t              ubFrameDlcP;
-   uint8_t              ubFrameFormatP;
-   uint8_t              aubFrameDataP[QCAN_MSG_DATA_MAX];
-   bool                 btIncIdP;
-   bool                 btIncDlcP;
-   bool                 btIncDataP;
-   uint32_t             ulFrameCountP;
+   //----------------------------------------------------------------------------------------------
+   // Number of selected CAN channel
+   //
+   CAN_Channel_e                 teCanChannelP;
+
+   QCanFrame                     clCanFrameP;
+   uint32_t                      ulFrameIdP;
+   uint32_t                      ulFrameGapP;
+   uint8_t                       ubFrameDlcP;
+   uint8_t                       ubFrameFormatP;
+   uint8_t                       aubFrameDataP[QCAN_MSG_DATA_MAX];
+   bool                          btIncIdP;
+   bool                          btIncDlcP;
+   bool                          btIncDataP;
+   uint32_t                      ulFrameCountP;
 };
 
 
