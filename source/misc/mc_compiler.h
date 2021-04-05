@@ -527,13 +527,21 @@ typedef  long                 int32_t;
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
 #endif
+#define  CPP_NULL             0
+
+//--------------------------------------------------------------
+// IAR C does not support the C99 standard, so the keywords
+// are defined here
+//
+#define  inline
+#define  true                 1
+#define  false                0
 
 #include <stdint.h>
 
 typedef  int32_t              Status_tv;
 
 typedef  uint8_t              bool_t;
-
 
 #endif
 // End of definition: __ICCARM__
@@ -736,38 +744,6 @@ typedef  uint8_t              bool_t;
 
 
 
-//--------------------------------------------------------------------
-// Microchip C30 compiler for PIC24 and dsPIC
-//
-#ifdef __C30
-#ifdef __PIC24E__
-
-#define  CPP_CONST
-#define  CPP_DATA_SIZE        64
-#define  CPP_INLINE
-#define  CPP_PACK
-#ifndef  CPP_PARM_UNUSED
-#define  CPP_PARM_UNUSED(x)   __attribute__((unused)) x
-#endif
-
-typedef  short                Status_tv;
-
-typedef  unsigned char        bool_t;
-typedef  unsigned char        uint8_t;
-typedef  signed char          int8_t;
-typedef  unsigned short       uint16_t;
-typedef  short                int16_t;
-typedef  unsigned long        uint32_t;
-typedef  long                 int32_t;
-typedef  unsigned long long   uint64_t;
-typedef  long long            int64_t;
-
-
-#endif
-#endif
-// End of definition: __C30 && __PIC24E__
-//--------------------------------------------------------------------
-
 
 //--------------------------------------------------------------------
 // Microchip XC16 compiler
@@ -821,6 +797,9 @@ typedef  bool                 bool_t;
 #define  CPP_NULL             (void *) 0
 #endif
 
+#include <stdint.h> /* For uint32_t definition */
+#include <stdbool.h> /* For true/false definition */
+
 //--------------------------------------------------------------
 // Keil-C does not support the C99 standard, so the keywords
 // are defined here
@@ -836,10 +815,6 @@ typedef  unsigned char        uint8_t;
 typedef  signed char          int8_t;
 typedef  unsigned short       uint16_t;
 typedef  short                int16_t;
-typedef  unsigned long        uint32_t;
-typedef  long                 int32_t;
-typedef  unsigned long long   uint64_t;
-typedef  long long            int64_t;
 
 
 
@@ -1075,8 +1050,10 @@ typedef  long long            int64_t;
 
 /*!
 ** \union Float_u
-** \brief Needed to access a float value like an 32bit unsigned value
-**        and otherwise
+** \brief Conversion between float and int32_t data type
+**
+** This union keeps a float value and a int32_t value at the same memory
+** location.
 */
 typedef union Float_u {
    /*!
