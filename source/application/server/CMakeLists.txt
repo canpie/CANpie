@@ -11,7 +11,7 @@ message("-- Configure CANpieServer")
 #-------------------------------------------------------------------------------------------------------
 # define the project name and version
 #
-project(CANpieServer VERSION 0.99.8)
+project(CANpieServer VERSION 1.00.02)
 
 
 #-------------------------------------------------------------------------------------------------------

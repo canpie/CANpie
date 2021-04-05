@@ -43,12 +43,6 @@ DESTDIR = ../../../bin
 MOC_DIR = ../../../build
 RCC_DIR = ../../../build
 }
-else {
-#--------------------------------------------------------------------
-# Objects directory
-#
-OBJECTS_DIR = ../../../build
-}
 
 #---------------------------------------------------------------
 # project configuration and compiler options
@@ -62,9 +56,9 @@ CONFIG += silent
 #---------------------------------------------------------------
 # version of the application
 #
-VERSION_MAJOR = 0
-VERSION_MINOR = 99
-VERSION_BUILD = 06
+VERSION_MAJOR = 1
+VERSION_MINOR = 0
+VERSION_BUILD = 2
 
 
 #---------------------------------------------------------------

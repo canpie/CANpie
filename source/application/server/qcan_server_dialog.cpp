@@ -87,8 +87,8 @@ QCanServerDialog::QCanServerDialog(QWidget * parent)
    // update version number in info tab
    //
    QString clVersionT = "CANpie FD Server Version ";
-   clVersionT += QString("%1.%2.").arg(VERSION_MAJOR).arg(VERSION_MINOR);
-   clVersionT += QString("%1").arg(VERSION_BUILD);
+   clVersionT += QString("%1.%2.").arg(VERSION_MAJOR).arg(VERSION_MINOR, 2, 10, QLatin1Char('0'));
+   clVersionT += QString("%1").arg(VERSION_BUILD, 2, 10, QLatin1Char('0'));
    ui.pclLblInfoVersionM->setText(clVersionT);
 
    //---------------------------------------------------------------------------------------------------
