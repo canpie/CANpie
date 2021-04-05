@@ -12,7 +12,7 @@
 #---------------------------------------------------------------
 # Name of QMake project
 #
-QMAKE_PROJECT_NAME = "QCan USART"
+QMAKE_PROJECT_NAME = "QCan USART CAN"
 
 #---------------------------------------------------------------
 # template type

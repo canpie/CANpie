@@ -180,7 +180,7 @@ QIcon QCanPluginUsart::icon()
 //----------------------------------------------------------------------------//
 QString QCanPluginUsart::name()
 {
-   return QString("USART CANpie");
+   return QString("USART CAN");
 }
 
 
