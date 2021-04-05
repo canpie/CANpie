@@ -244,6 +244,14 @@ QCanNetwork::~QCanNetwork()
 {
 
    //---------------------------------------------------------------------------------------------------
+   // if there is an attached interface than set it into stop mode when server application quits
+   //
+   if (!pclInterfaceP.isNull())
+   {
+      pclInterfaceP->setMode(eCAN_MODE_STOP);
+   }
+
+   //---------------------------------------------------------------------------------------------------
    // clear list for local socket and web socket
    //
    clLocalSockListP.clear();
