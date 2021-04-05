@@ -23,7 +23,8 @@ TEMPLATE = subdirs
 #
 SUBDIRS  =  ./qcan-peak       \
             ./qcan-template   \
-            ./qcan-usart
+            ./qcan-usart      \
+            ./qcan-usart-cpm
 
 
 #---------------------------------------------------------------
