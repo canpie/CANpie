@@ -51,7 +51,7 @@ class QCanConfig : public QDialog
    Q_OBJECT
 
    public:
-      QCanConfig(QCanUsart::QCanUsartConfig_ts &tsConfigurationR, QWidget *parent = Q_NULLPTR);
+      QCanConfig(QCanUsart::QCanUsartConfig_ts tsConfigurationR, QWidget *parent = Q_NULLPTR);
 
    private:
       Ui::QCanCfgGui clQCanCfgGuiP;

@@ -41,13 +41,20 @@
 #include <QtSerialPort/QSerialPort>
 #include <QtSerialPort/QSerialPortInfo>
 
+
+#include <QtCore/QThread>
+#include <QtCore/QMutex>
+#include <QtCore/QEventLoop>
+
 #include "cp_msg.h"
+
+//QThread *pclMyThreadG = Q_NULLPTR;
 
 //--------------------------------------------------------------------------------------------------------------------//
 // QCanUsart                                                                                                          //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-class QCanUsart : public QObject
+class QCanUsart : public QThread
 {
     Q_OBJECT
 
@@ -78,13 +85,18 @@ public:
    */
    #define USART_FRAME_SIZE 86
 
+   explicit QCanUsart(QObject *parent = nullptr);
+
 private:
-   QCanUsart();
-   QCanUsart(const QCanUsart &);
+   void run() override;
+   bool btQuitThreadP = false;
 
    QSerialPort    *pclSerialPortP;
+   uint8_t        ubThreadStateP;
+   QEventLoop     clEventLoopP;
 
    QCanUsartConfig_ts tsConfigP;
+   CpCanMsg_ts        tsCanMessageP;
 
    /*!
     * \brief CpCanMsgToByteArray
@@ -102,11 +114,33 @@ private:
    CpCanMsg_ts CpCanMsgFromByteArray(QByteArray clByteArrayV, bool *pbtOkV = Q_NULLPTR);
 
    quint32 ulUsartFrameRcvP;
+   QByteArray clUsartFrameRcvBufferT;
+
+   QMutex mutex;
+
+   /*!
+    * \brief atsQCanIfUsartP
+    * Contains write frames for USART interface
+    */
+   QList<QByteArray> aclUsartWriteFramesP;
+
+   QList<QByteArray> aclUsartWriteConfigFramesP;
+
+   bool btUsartConfigurationP;
+   bool btUsartIsWritingP;
 
 private slots:
-   void onError(QSerialPort::SerialPortError error);
-   void onReadyRead(void);
-   void onBytesWritten(qint64 sqByteCountV);
+//   void onError(QSerialPort::SerialPortError error);
+//   void onReadyRead(void);
+//   void onBytesWritten(qint64 sqByteCountV);
+
+public slots:
+   /*!
+    * \brief Connect the USART interface device
+    * \return
+    */
+   void connect(void);
+
 
 signals:
    void logMessage(const QString & clMessageR);
@@ -120,7 +154,7 @@ public:
     * \return Current configuration of USART device interface,
     *         which parameters are provided by QCanUsartConfig_s.
     */
-   QCanUsartConfig_ts & currentConfig();
+   QCanUsartConfig_ts currentConfig();
 
    void setCanBitrate(int32_t slNomBitRateV, int32_t slDatBitRateV);
    void setCanMode(uint8_t ubModeV);
@@ -155,14 +189,20 @@ public:
    static QCanUsart & getInstance()
    {
       static QCanUsart clInstanceS;
+//      if (pclMyThreadG == Q_NULLPTR)
+//      {
+//        pclMyThreadG = new QThread();
+//      }
+//      //QMutexLocker locker(&mutex);
+//      if (pclMyThreadG->isRunning() != true)
+//      {
+//         qDebug() << "--------------------------------------------------- MOVE TO THREAD ------------- ";
+//         clInstanceS.moveToThread(pclMyThreadG);
+//      }
       return clInstanceS;
    }
 
-   /*!
-    * \brief Connect the USART interface device
-    * \return
-    */
-   bool connect(void);
+
 
    /*!
     * \brief Release USART interface device

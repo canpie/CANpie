@@ -71,7 +71,12 @@ private:
     * \brief pclCpUsartP
     * Reference to the static USART lib
     */
-   QCanUsart &pclCpUsartP = QCanUsart::getInstance();
+//   QCanUsart &pclCpUsartP = QCanUsart::getInstance();
+
+
+   QCanUsart *pclCpUsartP;
+
+
 
 public:
    QCanPluginUsart();

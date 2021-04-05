@@ -34,25 +34,31 @@
 \*--------------------------------------------------------------------------------------------------------------------*/
 #include "qcan_usart.hpp"
 
-
 //--------------------------------------------------------------------------------------------------------------------//
 // QCanUsart()                                                                                                        //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-QCanUsart::QCanUsart()
+QCanUsart::QCanUsart(QObject *parent)
+   : QThread(parent)
 {
    //---------------------------------------------------------------------------------------------------
    // setup default USART configuration
    //
    pclSerialPortP = Q_NULLPTR;
    ulUsartFrameRcvP = 0;
+   clUsartFrameRcvBufferT.clear();
+   clUsartFrameRcvBufferT.resize(USART_FRAME_SIZE);
+
+   aclUsartWriteFramesP.clear();
 
    //---------------------------------------------------------------------------------------------------
    // setup default USART configuration, that can be ovewritten by the loaded or user configuration
    //
    tsConfigP.clName = "COM1";
-   tsConfigP.slBaud = 3000000;
+//   tsConfigP.slBaud = 115200;
+   tsConfigP.slBaud = 3456000;
    tsConfigP.ubMode = eUSART_MODE_8N1;
+
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -62,6 +68,9 @@ QCanUsart::QCanUsart()
 QCanUsart::~QCanUsart()
 {
    qDebug() << "QCanUsart::~QCanUsart()";
+
+   emit logMessage("~QCanUsart()");
+
 }
 
 
@@ -69,9 +78,35 @@ QCanUsart::~QCanUsart()
 // connect()                                                                                                          //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-bool QCanUsart::connect()
+void QCanUsart::connect()
 {
-   return setConfig(tsConfigP);
+   //---------------------------------------------------------------------------------------------------
+   // at a reconnect release the interface, before performing a new connection
+   //
+   if (isRunning())
+   {
+      qDebug() << "Process is runnning release it ...";
+
+      release();
+      quit();
+      while (isFinished() == true) {};
+
+      qDebug() << ".... release finished!";
+   }
+
+   //---------------------------------------------------------------------------------------------------
+   // provide new configuration for USART interface
+   //
+   setConfig(tsConfigP);
+
+   //---------------------------------------------------------------------------------------------------
+   // start the thread
+   //
+   if (!isRunning())
+   {
+      btQuitThreadP = false;
+      start();
+   }
 }
 
 
@@ -84,6 +119,7 @@ CpCanMsg_ts QCanUsart::CpCanMsgFromByteArray(QByteArray clArrayV, bool *pbtOkV)
    CpCanMsg_ts tsCanMessageT;
    quint32     ulCrcT = 0x5A5A5A5A;
    quint32     ulIndexT = 0;
+   QString     clDebugValueT;
 
    //---------------------------------------------------------------------------------------------------
    // convert theByte Array to CANpie CAN Message (Message to Value)
@@ -160,6 +196,15 @@ CpCanMsg_ts QCanUsart::CpCanMsgFromByteArray(QByteArray clArrayV, bool *pbtOkV)
          if (ulCrcT != tsCanMessageT.ulMsgMarker)
          {
             *pbtOkV = false;
+
+            emit logMessage("UF1: WRONG CRC: ID: " + QString::number(tsCanMessageT.ulIdentifier,16) + "h");
+
+            for (int slCounterT = 0; slCounterT < clUsartFrameRcvBufferT.length(); slCounterT++)
+            {
+               clDebugValueT.append(QString::number(clUsartFrameRcvBufferT.at(slCounterT), 16) + " ");
+            }
+            emit logMessage(clDebugValueT);
+
          } else
          {
             *pbtOkV = true;
@@ -237,9 +282,6 @@ QByteArray  QCanUsart::CpCanMsgToByteArray(CpCanMsg_ts tsCanMessageV)
    clArrayT.data()[84] = static_cast<char>(ulCrcT >> 16);
    clArrayT.data()[85] = static_cast<char>(ulCrcT >> 24);
 
-   qDebug() << "............................CpCanMsgToByteArray:" << clArrayT.toHex();
-   qDebug() << "Expected size (CpCanMsg_ts) is: " + QString::number(sizeof(CpCanMsg_ts),10);
-
    return clArrayT;
 }
 
@@ -248,9 +290,11 @@ QByteArray  QCanUsart::CpCanMsgToByteArray(CpCanMsg_ts tsCanMessageV)
 // currentConfig()                                                                                                    //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-QCanUsart::QCanUsartConfig_ts & QCanUsart::currentConfig()
+QCanUsart::QCanUsartConfig_ts QCanUsart::currentConfig()
 {
-   return tsConfigP;
+   QCanUsartConfig_ts tsConfigurationT;
+   tsConfigurationT = tsConfigP;
+   return tsConfigurationT;
 }
 
 
@@ -280,96 +324,15 @@ bool QCanUsart::isAvailable()
 //--------------------------------------------------------------------------------------------------------------------//
 bool QCanUsart::messageSend(CpCanMsg_ts tsCanMessageV)
 {
-   bool btReturnT = false;
+   bool btReturnT = true;
 
    //---------------------------------------------------------------------------------------------------
-   // convert the provided CANpie Message in to byte arra and send it
+   // append new message so it is passed to the target MCU later int the thread
    //
-   if (qint32(pclSerialPortP->write(CpCanMsgToByteArray(tsCanMessageV))) == USART_FRAME_SIZE)
-   {
-      btReturnT = true;
-   } else
-   {
-      logMessage("messageSend(): WRONG number of bytes has been written");
-   }
-
-   pclSerialPortP->flush();
+   aclUsartWriteFramesP.append(CpCanMsgToByteArray(tsCanMessageV));
 
    return btReturnT;
 }
-
-
-//--------------------------------------------------------------------------------------------------------------------//
-// onBytesWritten()                                                                                                   //
-//                                                                                                                    //
-//--------------------------------------------------------------------------------------------------------------------//
-void QCanUsart::onBytesWritten(qint64 sqByteCountV)
-{
-   //---------------------------------------------------------------------------------------------------
-   // We could check here number of bytes that has been written against vaue that should be written.
-   //
-   if (sqByteCountV != 0)
-   {
-
-   }
-}
-
-
-//--------------------------------------------------------------------------------------------------------------------//
-// onError()                                                                                                          //
-//                                                                                                                    //
-//--------------------------------------------------------------------------------------------------------------------//
-void QCanUsart::onError(QSerialPort::SerialPortError teErrorV)
-{
-   qWarning() << tr("Error on USART interface: ") << pclSerialPortP->portName();
-   qWarning() << tr("             Error value: ") << QString::number(teErrorV,16)+"h";
-   qWarning() << tr("            Error string: ") << pclSerialPortP->errorString();
-}
-
-
-//--------------------------------------------------------------------------------------------------------------------//
-// onReadyRead()                                                                                                      //
-//                                                                                                                    //
-//--------------------------------------------------------------------------------------------------------------------//
-void QCanUsart::onReadyRead()
-{
-//   qDebug() << "............................onReadyRead("+QString::number(pclSerialPortP->bytesAvailable(),10)+")";
-
-   CpCanMsg_ts tsCanMessageT;
-   bool btOkV;
-
-   //---------------------------------------------------------------------------------------------------
-   // handle data only if whole frame with expected data size has been received
-   //
-   while (quint64(pclSerialPortP->bytesAvailable()) >= USART_FRAME_SIZE)
-   {
-//      logMessage("UF: "+QString::number(ulUsartFrameRcvP++,10));
-
-      //-------------------------------------------------------------------------------------------
-      // read received byte array
-      //
-      QByteArray clUartRcvBufT;
-      clUartRcvBufT.clear();
-      clUartRcvBufT.resize(USART_FRAME_SIZE);
-      pclSerialPortP->read(clUartRcvBufT.data(), clUartRcvBufT.size());
-
-      //-------------------------------------------------------------------------------------------
-      // convert it to the CANpie Message
-      //
-      tsCanMessageT = CpCanMsgFromByteArray(clUartRcvBufT, &btOkV);
-
-      //emit logMessage("ID: " + QString::number(tsCanMessageT.ulIdentifier,16) + "h");
-
-      //-------------------------------------------------------------------------------------------
-      // provide the message to the higher level application only if it was parsed successfully
-      //
-      if (btOkV == true)
-      {
-         emit messageReceive(tsCanMessageT);
-      }
-   }
-}
-
 
 //--------------------------------------------------------------------------------------------------------------------//
 // release()                                                                                                          //
@@ -377,15 +340,15 @@ void QCanUsart::onReadyRead()
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanUsart::release()
 {
-   QCanUsart &pclCanUsartT = QCanUsart::getInstance();
+   emit logMessage("QCanUsart::release() start");
 
-   if (pclSerialPortP != Q_NULLPTR)
-   {
-      pclCanUsartT.pclSerialPortP->close();
-      delete(pclCanUsartT.pclSerialPortP);
+   //---------------------------------------------------------------------------------------------------
+   // now relese the USART interface by quitting the thread
+   //
+   btQuitThreadP = true;
+   quit();
 
-      pclCanUsartT.pclSerialPortP = Q_NULLPTR;
-   }
+   emit logMessage("QCanUsart::release() stop");
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -396,18 +359,14 @@ void QCanUsart::setCanBitrate(int32_t slNomBitRateV, int32_t slDatBitRateV)
 {
    CpCanMsg_ts tsCanMessageT;
 
-   logMessage("setCanBitrate(): "+QString::number(slNomBitRateV,10) +", " + QString::number(slDatBitRateV,10));
-
    //---------------------------------------------------------------------------------------------------
-   // pass new Bitrate configuration via RPC to the target MCU
+   // append new configuration frame so the configuration is passed via RPC to the target MCU
    //
    CpMsgClear(&tsCanMessageT);
    CpMsgRpcSetBitrate(&tsCanMessageT, slNomBitRateV, slDatBitRateV);
+   aclUsartWriteConfigFramesP.append(CpCanMsgToByteArray(tsCanMessageT));
 
-   if (messageSend(tsCanMessageT) != true)
-   {
-      logMessage("setCanBitrate(): FAIL to send message!");
-   }
+   emit logMessage("setCanBitrate(): "+QString::number(slNomBitRateV,10) +", " + QString::number(slDatBitRateV,10));
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -418,18 +377,14 @@ void QCanUsart::setCanMode(uint8_t ubModeV)
 {
    CpCanMsg_ts tsCanMessageT;
 
-   logMessage("setCanMode(): "+QString::number(ubModeV,10));
-
    //---------------------------------------------------------------------------------------------------
-   // pass new Bitrate configuration via RPC to the target MCU
+   // append new configuration frame so the configuration is passed via RPC to the target MCU
    //
    CpMsgClear(&tsCanMessageT);
    CpMsgRpcSetCanMode(&tsCanMessageT, ubModeV);
+   aclUsartWriteConfigFramesP.append(CpCanMsgToByteArray(tsCanMessageT));
 
-   if (messageSend(tsCanMessageT) != true)
-   {
-      logMessage("setCanMode(): FAIL to send message!");
-   }
+   emit logMessage("setCanMode(): "+QString::number(ubModeV,10));
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -438,13 +393,40 @@ void QCanUsart::setCanMode(uint8_t ubModeV)
 //--------------------------------------------------------------------------------------------------------------------//
 bool QCanUsart::setConfig(QCanUsartConfig_ts & tsNewConfigR)
 {
-   qDebug() << "QCanUsart::setConfig()";
-   bool btStatusT = false;
+   bool btStatusT = true;
 
    //---------------------------------------------------------------------------------------------------
    // store provided configuration
    //
    tsConfigP = tsNewConfigR;
+
+   return btStatusT;
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+// setDeviceName()                                                                                                    //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanUsart::setDeviceName(QString clNameV)
+{
+   tsConfigP.clName = clNameV;
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+//                                                                                                                    //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanUsart::run()
+{
+   QTimer     clTimerT;
+   QEventLoop clDelayT;
+   bool btOkV;
+   CpCanMsg_ts tsCanMessageT;
+   QString clMessageT;
+
+
+   qDebug() << "QCanUsart::run() >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ";
 
    //---------------------------------------------------------------------------------------------------
    // if USART port is already intialized, so release it
@@ -467,43 +449,41 @@ bool QCanUsart::setConfig(QCanUsartConfig_ts & tsNewConfigR)
    //
    switch (tsConfigP.ubMode)
    {
-   case eUSART_MODE_8N1:
-      pclSerialPortP->setDataBits(QSerialPort::Data8);
-      pclSerialPortP->setParity(QSerialPort::NoParity);
-      pclSerialPortP->setStopBits(QSerialPort::OneStop);
-      pclSerialPortP->setFlowControl(QSerialPort::NoFlowControl);
+      case eUSART_MODE_8N1:
+         pclSerialPortP->setDataBits(QSerialPort::Data8);
+         pclSerialPortP->setParity(QSerialPort::NoParity);
+         pclSerialPortP->setStopBits(QSerialPort::OneStop);
+         pclSerialPortP->setFlowControl(QSerialPort::NoFlowControl);
       break;
-   case eUSART_MODE_8E1:
-      pclSerialPortP->setDataBits(QSerialPort::Data8);
-      pclSerialPortP->setParity(QSerialPort::EvenParity);
-      pclSerialPortP->setStopBits(QSerialPort::OneStop);
-      pclSerialPortP->setFlowControl(QSerialPort::NoFlowControl);
+      case eUSART_MODE_8E1:
+         pclSerialPortP->setDataBits(QSerialPort::Data8);
+         pclSerialPortP->setParity(QSerialPort::EvenParity);
+         pclSerialPortP->setStopBits(QSerialPort::OneStop);
+         pclSerialPortP->setFlowControl(QSerialPort::NoFlowControl);
       break;
-   case eUSART_MODE_8O1:
-      pclSerialPortP->setDataBits(QSerialPort::Data8);
-      pclSerialPortP->setParity(QSerialPort::OddParity);
-      pclSerialPortP->setStopBits(QSerialPort::OneStop);
-      pclSerialPortP->setFlowControl(QSerialPort::NoFlowControl);
+      case eUSART_MODE_8O1:
+         pclSerialPortP->setDataBits(QSerialPort::Data8);
+         pclSerialPortP->setParity(QSerialPort::OddParity);
+         pclSerialPortP->setStopBits(QSerialPort::OneStop);
+         pclSerialPortP->setFlowControl(QSerialPort::NoFlowControl);
       break;
-   default:
-      tsConfigP.ubMode = eUSART_MODE_8E1;
-      pclSerialPortP->setDataBits(QSerialPort::Data8);
-      pclSerialPortP->setParity(QSerialPort::EvenParity);
-      pclSerialPortP->setStopBits(QSerialPort::OneStop);
-      pclSerialPortP->setFlowControl(QSerialPort::NoFlowControl);
+      default:
+         tsConfigP.ubMode = eUSART_MODE_8E1;
+         pclSerialPortP->setDataBits(QSerialPort::Data8);
+         pclSerialPortP->setParity(QSerialPort::EvenParity);
+         pclSerialPortP->setStopBits(QSerialPort::OneStop);
+         pclSerialPortP->setFlowControl(QSerialPort::NoFlowControl);
       break;
    }
 
    pclSerialPortP->setBaudRate(tsConfigP.slBaud, QSerialPort::AllDirections);
 
-   //---------------------------------------------------------------------------------------------------
+   //-------------------------------------------------------------------------------------------
    // now open COM port with given configuration
    //
    if (pclSerialPortP->open(QIODevice::ReadWrite))
    {
-      qDebug() << "   SUCCESS!!!";
-      qDebug() << "Serial COM Port: " + pclSerialPortP->portName() + " opened!";
-
+      qDebug() << "QCanUsart::setConfig() +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ ";
       //-------------------------------------------------------------------------------------------
       // reset reception buffer of the USART
       //
@@ -515,49 +495,132 @@ bool QCanUsart::setConfig(QCanUsartConfig_ts & tsNewConfigR)
          pclSerialPortP->read(&(clUartRcvBufT.data()[0]), pclSerialPortP->bytesAvailable());
       }
       clUartRcvBufT.clear();
-
       pclSerialPortP->flush();
-
-      //-------------------------------------------------------------------------------------------
-      // (re)initialise serial interface signal slot connections
-      //
-      pclSerialPortP->connect(pclSerialPortP, SIGNAL(error(QSerialPort::SerialPortError)),
-                              this,           SLOT(onError(QSerialPort::SerialPortError)));
-
-      pclSerialPortP->connect(pclSerialPortP, SIGNAL(readyRead()),
-                              this,           SLOT(  onReadyRead()));
-
-      pclSerialPortP->connect(pclSerialPortP, SIGNAL(bytesWritten(qint64)),
-                              this,           SLOT(  onBytesWritten(qint64)));
-
-      btStatusT = true;
+      emit logMessage("Successfully open " + pclSerialPortP->portName());
    }
 
-   //---------------------------------------------------------------------------------------------------
+   //-------------------------------------------------------------------------------------------
    // handle the open error
    //
    else
    {
-      qWarning() << tr("Fail to open USART interface: ") << pclSerialPortP->portName();
-      qWarning() << tr("                 Error value: ") << pclSerialPortP->error();
-      qWarning() << tr("                Error string: ") << pclSerialPortP->errorString();
+      clMessageT.clear();
+      clMessageT.append(tr("Error on USART interface: ") + pclSerialPortP->portName());
+      clMessageT.append(tr("             Error value: ") + QString::number(pclSerialPortP->error(), 16) + "h");
+      clMessageT.append(tr("            Error string: ") + pclSerialPortP->errorString());
+
+      emit logMessage(clMessageT);
    }
 
-   return btStatusT;
+   //---------------------------------------------------------------------------------------------------
+   // make initialisation for a non blocking delay in the thread
+   //
+   clTimerT.setInterval(1);
+   clTimerT.connect(&clTimerT, &QTimer::timeout, &clDelayT, &QEventLoop::quit);
+   clTimerT.start();
+
+   qDebug() << "QCanUsart::run() --------------------------------------------------------------- ";
+
+   //---------------------------------------------------------------------------------------------------
+   // perform processing of receive data, while
+   // - thread is running
+   //          or
+   // - some configuration data for USART transmission is pending
+   //
+   while ((btQuitThreadP == false) || (aclUsartWriteConfigFramesP.isEmpty() == false))
+   {
+      //-------------------------------------------------------------------------------------------
+      // perform a non blocking delay, so event loop in background is also processed
+      //
+      clDelayT.exec();
+
+      //-------------------------------------------------------------------------------------------
+      // process received USART data
+      //
+      while (pclSerialPortP->bytesAvailable() >= USART_FRAME_SIZE)
+      {
+         ulUsartFrameRcvP++;
+         //emit logMessage("UF: "+QString::number(ulUsartFrameRcvP,10));
+
+         //-------------------------------------------------------------------------------------------
+         // read received byte array
+         //
+         pclSerialPortP->read(clUsartFrameRcvBufferT.data(), clUsartFrameRcvBufferT.size());
+
+         //-------------------------------------------------------------------------------------------
+         // convert it to the CANpie Message
+         //
+         tsCanMessageT = CpCanMsgFromByteArray(clUsartFrameRcvBufferT, &btOkV);
+
+         //-------------------------------------------------------------------------------------------
+         // provide the message to the higher level application only if it was parsed successfully
+         //
+         if (btOkV == true)
+         {
+            emit messageReceive(tsCanMessageT);
+         }
+      }
+
+      //-------------------------------------------------------------------------------------------
+      // Write CANpie Configuration messages to USART, if some pending
+      //
+      if ((aclUsartWriteConfigFramesP.isEmpty() == false) && (pclSerialPortP->bytesToWrite() == 0))
+      {
+         if (pclSerialPortP->write(aclUsartWriteConfigFramesP.first()) == USART_FRAME_SIZE)
+         {
+            btUsartIsWritingP = true;
+         }
+         pclSerialPortP->flush();
+         aclUsartWriteConfigFramesP.removeFirst();
+      }
+
+      //-------------------------------------------------------------------------------------------
+      // Write CANpie messages to USART, if some pending
+      //
+      if ((aclUsartWriteFramesP.isEmpty() == false) && (pclSerialPortP->bytesToWrite() == 0))
+      {
+         qDebug() << "USART Frames to write: " << QString::number(aclUsartWriteFramesP.size(),10);
+         if (pclSerialPortP->write(aclUsartWriteFramesP.first()) == USART_FRAME_SIZE)
+         {
+            qDebug() << "QCanUsart::run() USART write OK";
+            btUsartIsWritingP = true;
+         }
+         pclSerialPortP->flush();
+         aclUsartWriteFramesP.removeFirst();
+      }
+
+   }
+
+   //---------------------------------------------------------------------------------------------------
+   // insert here a delay of 10ms to ensure the whole USART frame is transmitted, befor closing that
+   // interface
+   //
+   clTimerT.stop();
+   clTimerT.singleShot(10, &clDelayT, &QEventLoop::quit);
+   clDelayT.exec();
+
+   //---------------------------------------------------------------------------------------------------
+   // reset USART write buffer
+   //
+   aclUsartWriteConfigFramesP.clear();
+   aclUsartWriteFramesP.clear();
+   btUsartIsWritingP = false;
+
+   //---------------------------------------------------------------------------------------------------
+   // release serial port
+   //
+   if (pclSerialPortP != Q_NULLPTR)
+   {
+      pclSerialPortP->disconnect();
+      pclSerialPortP->close();
+      delete(pclSerialPortP);
+
+      pclSerialPortP = Q_NULLPTR;
+   }
+
+
+   qDebug() << "QCanUsart::run() <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  ";
 }
-
-//--------------------------------------------------------------------------------------------------------------------//
-// setDeviceName()                                                                                                    //
-//                                                                                                                    //
-//--------------------------------------------------------------------------------------------------------------------//
-void QCanUsart::setDeviceName(QString clNameV)
-{
-   tsConfigP.clName = clNameV;
-}
-
-
-
-
 
 
 

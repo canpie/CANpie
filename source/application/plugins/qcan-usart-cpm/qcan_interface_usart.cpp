@@ -59,10 +59,12 @@
 //--------------------------------------------------------------------------------------------------------------------//
 QCanInterfaceUsart::QCanInterfaceUsart(uint16_t uwDeviceNrV, QString clNameV)
 {
+   qRegisterMetaType<CpCanMsg_ts>("CpCanMsg_ts");
+
    //---------------------------------------------------------------------------------------------------
    // throw an error if no access to USART is avaialable
    //
-   if (clCpUsartP.isAvailable() == false)
+   if (pclCpUsartP->isAvailable() == false)
    {
       qCritical() << "QCanInterfaceUsart::QCanInterfaceUsart(): USART instance is not available!";
    }
@@ -71,7 +73,6 @@ QCanInterfaceUsart::QCanInterfaceUsart(uint16_t uwDeviceNrV, QString clNameV)
    // setup interface variables
    //
    clUsartNameP = clNameV;
-   uwUsartNumberP = uwDeviceNrV;
    teConnectedP = UnconnectedState;
 
    //---------------------------------------------------------------------------------------------------
@@ -95,12 +96,12 @@ QCanInterfaceUsart::~QCanInterfaceUsart()
    //---------------------------------------------------------------------------------------------------
    // Relese USART driver
    //
-   if (clCpUsartP.isAvailable() == true)
+   if (pclCpUsartP->isAvailable() == true)
    {
       if (teConnectedP == ConnectedState)
       {
          teConnectedP = UnconnectedState;
-         clCpUsartP.release();
+         pclCpUsartP->release();
       }
    }
 }
@@ -114,20 +115,22 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::connect(void)
 {
    InterfaceError_e teReturnT = eERROR_LIBRARY;
 
+
+   qDebug(" QCanInterfaceUsart::connect(void) .................. ");
    //---------------------------------------------------------------------------------------------------
    // log the connect event
    //
-   emit addLogMessage(tr("Connect ") + clUsartNameP +QString::number(uwUsartNumberP+1,10) + tr(" from 'QCan USART' plugin"), eLOG_LEVEL_INFO);
+   emit addLogMessage(tr("Connect ") + clUsartNameP + tr(" from 'QCan USART CANpie Message' plugin"), eLOG_LEVEL_INFO);
 
    //---------------------------------------------------------------------------------------------------
    // process the connect only if USART instance is available
    //
-   if (clCpUsartP.isAvailable() == true)
+   if (pclCpUsartP->isAvailable() == true)
    {
       //-------------------------------------------------------------------------------------------
       // initialise USART interface by defined Name and Number
       //
-      clCpUsartP.setDeviceName(clUsartNameP);
+      pclCpUsartP->setDeviceName(clUsartNameP);
 
       //-------------------------------------------------------------------------------------------
       // reset transmission lists for CAN messags
@@ -138,13 +141,23 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::connect(void)
       // connect the signal from USART to local slot for message reception
       // and connect USART interface
       //
-      QObject::connect( &clCpUsartP, &QCanUsart::messageReceive,
+      QObject::connect( pclCpUsartP, &QCanUsart::messageReceive,
                         this,        &QCanInterfaceUsart::onUsartMessageReceive);
 
-      QObject::connect( &clCpUsartP, &QCanUsart::logMessage,
+      QObject::connect( pclCpUsartP, &QCanUsart::logMessage,
                         this,        &QCanInterfaceUsart::onLogMessage);
 
-      clCpUsartP.connect();
+
+      // Wait in a event loop till the USART Thread has been started
+      QObject::connect(pclCpUsartP, &QCanUsart::started, &clEventLoopP, &QEventLoop::quit);
+
+      // the USART Thread is started at connect, so trigger it from a nonblocking timer
+      QTimer::singleShot(1, pclCpUsartP, SLOT(connect()));
+
+      // wait in an event loop till the start of the thread finishes
+      clEventLoopP.exec();
+
+      qDebug() << "Thread has been started!!!";
 
       //-------------------------------------------------------------------------------------------
       // configure the refresh timer which triggers the reception of can messages
@@ -155,7 +168,7 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::connect(void)
       // update and report the state of the interface
       //
       teConnectedP = ConnectedState;
-      emit connectionChanged(teConnectedP);
+//      emit connectionChanged(teConnectedP);
 
       teReturnT = eERROR_NONE;
 
@@ -163,7 +176,7 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::connect(void)
    else
    {
       qCritical() << "QCanInterfaceUsart::connect(): USART instance is not available!";
-      emit addLogMessage(tr("Connect to ") + clUsartNameP + QString::number(uwUsartNumberP+1,10) + tr(" is not possible, no USART instance available."), eLOG_LEVEL_FATAL);
+      emit addLogMessage(tr("Connect to ") + clUsartNameP + tr(" is not possible, no USART instance available."), eLOG_LEVEL_FATAL);
    }
 
    return teReturnT;
@@ -197,38 +210,38 @@ void QCanInterfaceUsart::disableFeatures(uint32_t ulFeatureMaskV)
 QCanInterface::InterfaceError_e QCanInterfaceUsart::disconnect()
 {
    InterfaceError_e teReturnT = eERROR_LIBRARY;
+   qDebug("QCanInterfaceUsart::disconnect()");
 
    //---------------------------------------------------------------------------------------------------
    // log the disconnect event
    //
-   emit addLogMessage(tr("Disonnect ") + clUsartNameP +QString::number(uwUsartNumberP+1,10) + tr(" from 'QCan USART' plugin"), eLOG_LEVEL_INFO);
+   emit addLogMessage(tr("Disonnect ") + clUsartNameP + tr(" from 'QCan USART CANpie Message' plugin"), eLOG_LEVEL_INFO);
 
    //---------------------------------------------------------------------------------------------------
    // process the disconnect only if USART instance is available
    //
-   if (clCpUsartP.isAvailable() == true)
+   if (pclCpUsartP->isAvailable() == true)
    {
       //-----------------------------------------------------------------------------------s
       // reset / clear all local resources
       //
-      clCpUsartP.release();
-      clCpUsartP.disconnect();
+      qDebug("QCanInterfaceUsart::disconnect() 1");
+      pclCpUsartP->release();
+      qDebug("QCanInterfaceUsart::disconnect() 2");
+      pclCpUsartP->disconnect();
+      qDebug("QCanInterfaceUsart::disconnect() 3");
       atsReceiveMessageListP.clear();
+      qDebug("QCanInterfaceUsart::disconnect() 4");
+
       teConnectedP = UnconnectedState;
       emit connectionChanged(UnconnectedState);
 
       teReturnT = eERROR_NONE;
-
-//      else
-//      {
-//         qWarning() << QString("QCanInterfaceUsart::disconnect(0x" +QString::number(tsPortP.ubPhyIf,16)+", "+clUsartNameP+")") << "fail with error:" << clCpUsartP.errorString();
-//         emit addLogMessage(tr("Disconnect from ") + clUsartNameP + QString::number(uwUsartNumberP+1,10) + tr(" fails"), eLOG_LEVEL_FATAL);
-//      }
    }
    else
    {
       qCritical() << "QCanInterfaceUsart::disconnect(): USART instance is not available!";
-      emit addLogMessage(tr("Disconnect from ") + clUsartNameP + QString::number(uwUsartNumberP+1,10) + tr(" is not possible, no USART instance available."), eLOG_LEVEL_FATAL);
+      emit addLogMessage(tr("Disconnect from ") + clUsartNameP + tr(" is not possible, no USART instance available."), eLOG_LEVEL_FATAL);
    }
 
    return teReturnT;
@@ -251,7 +264,7 @@ void QCanInterfaceUsart::enableFeatures(uint32_t ulFeatureMaskV)
 //--------------------------------------------------------------------------------------------------------------------//
 QIcon QCanInterfaceUsart::icon(void)
 {
-   if (clCpUsartP.isAvailable())
+   if (pclCpUsartP->isAvailable())
    {
       return QIcon(":/images/usart_plugin_256.png");
    }
@@ -267,7 +280,7 @@ QIcon QCanInterfaceUsart::icon(void)
 QString QCanInterfaceUsart::name()
 {
    qDebug() << "QCanInterfaceUsart::name()";
-   if (clCpUsartP.isAvailable())
+   if (pclCpUsartP->isAvailable())
    {
       return clUsartNameP;
    }
@@ -307,10 +320,8 @@ void QCanInterfaceUsart::onLogMessage(const QString & clMessageR)
 
 void QCanInterfaceUsart::onUsartMessageReceive(CpCanMsg_ts tsCanMessageV)
 {
-   qDebug() << "onUsartMessageReceive ................... ";
-
    atsReceiveMessageListP.append(tsCanMessageV);
-   // convert the clMessageR into CpCanMsg_ts *ptsMsgV
+
 }
 
 
@@ -327,7 +338,7 @@ QCanInterface::InterfaceError_e  QCanInterfaceUsart::read( QCanFrame &clFrameR)
    //---------------------------------------------------------------------------------------------------
    // process the read only if USART instance is available
    //
-   if (clCpUsartP.isAvailable() == true)
+   if (pclCpUsartP->isAvailable() == true)
    {
       //-------------------------------------------------------------------------------------------
       // check channel is connected
@@ -401,7 +412,7 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::reset()
    //---------------------------------------------------------------------------------------------------
    // process only if USART instance is available
    //
-   if (clCpUsartP.isAvailable() == true)
+   if (pclCpUsartP->isAvailable() == true)
    {
       //-------------------------------------------------------------------------------------------
       // reset statistic values
@@ -416,7 +427,7 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::reset()
       if (teConnectedP == ConnectedState)
       {
          disconnect();
-         connect();
+         //connect();
          setBitrate(slUsartBitrateP, eCP_BITRATE_NONE);
       }
 
@@ -446,28 +457,9 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::setBitrate(int32_t slNomBitR
    //---------------------------------------------------------------------------------------------------
    // process only if USART instance is available
    //
-   if (clCpUsartP.isAvailable() == true)
+   if (pclCpUsartP->isAvailable() == true)
    {
-
-      clCpUsartP.setCanBitrate(slNomBitRateV, slDatBitRateV);
-
-      //emit addLogMessage(tr("Set CAN bit-rate is actually not supported for USART plugin only 125kBaud are used. Also the changes in 'Device Configuration' are not considered for USART baud-rate."), eLOG_LEVEL_WARN);
-
-      //-------------------------------------------------------------------------------------------
-      // \todo the setBitrate function is not supported
-      //
-//      slNomBitRateV = eCP_BITRATE_125K;
-//      slDatBitRateV = eCP_BITRATE_NONE;
-
-      //-------------------------------------------------------------------------------------------
-      // provide new bit-rate to the CANpie Core implementation
-      //
-      //! \ToDo Bitrate übernehmen
-//      tvStatusT = clCpUsartP.connect(slUsartBitrateP); // clCpUsartP.CpUsartBitrate(&tsPortP, slUsartBitrateP, slDatBitRateV);
-//      if (tvStatusT != eCP_ERR_NONE)
-//      {
-//         emit addLogMessage(tr("Set CAN bit-rate for ") + clUsartNameP + QString::number(uwUsartNumberP+1,10) + tr(" fails with error 0x") + QString::number(tvStatusT,16), eLOG_LEVEL_FATAL);
-//      }
+      pclCpUsartP->setCanBitrate(slNomBitRateV, slDatBitRateV);
    } else
    {
       teReturnT = eERROR_LIBRARY;
@@ -484,14 +476,13 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::setBitrate(int32_t slNomBitR
 QCanInterface::InterfaceError_e	QCanInterfaceUsart::setMode(const CAN_Mode_e teModeV)
 {
    InterfaceError_e  teReturnT = eERROR_NONE;
-   CpStatus_tv tvStatusT;
 
    qDebug() << "QCanInterfaceUsart::setMode()";
 
    //---------------------------------------------------------------------------------------------------
    // process only if USART instance is available
    //
-   if (clCpUsartP.isAvailable() == true)
+   if (pclCpUsartP->isAvailable() == true)
    {
       //-------------------------------------------------------------------------------------------
       // select mode
@@ -508,12 +499,12 @@ QCanInterface::InterfaceError_e	QCanInterfaceUsart::setMode(const CAN_Mode_e teM
             tsStatisticP.ulTrmCount = 0;
 
             teCanModeP = eCAN_MODE_START;
-            clCpUsartP.setCanMode(quint8(teModeV));
+            pclCpUsartP->setCanMode(quint8(teModeV));
             break;
 
          case eCAN_MODE_STOP :
             teCanModeP = eCAN_MODE_STOP;
-            clCpUsartP.setCanMode(quint8(teModeV));
+            pclCpUsartP->setCanMode(quint8(teModeV));
             break;
 
          default :
@@ -549,7 +540,7 @@ QCanInterface::InterfaceError_e	QCanInterfaceUsart::statistic(QCanStatistic_ts &
    //---------------------------------------------------------------------------------------------------
    // process only if USART instance is available
    //
-   if(clCpUsartP.isAvailable() == true)
+   if(pclCpUsartP->isAvailable() == true)
    {
       clStatisticR.ulErrCount = tsStatisticP.ulErrCount;
       clStatisticR.ulRcvCount = tsStatisticP.ulRcvCount;
@@ -578,7 +569,7 @@ uint32_t QCanInterfaceUsart::supportedFeatures()
    //---------------------------------------------------------------------------------------------------
    // process only if USART instance is available
    //
-   if(clCpUsartP.isAvailable() == true)
+   if(pclCpUsartP->isAvailable() == true)
    {
       ulFeaturesT  = QCAN_IF_SUPPORT_CAN_FD;
       ulFeaturesT |= QCAN_IF_SUPPORT_SPECIFIC_CONFIG;
@@ -607,6 +598,18 @@ QString QCanInterfaceUsart::version(void)
 
 
 //--------------------------------------------------------------------------------------------------------------------//
+// setActiveUsartInterface()                                                                                          //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanInterfaceUsart::setActiveUsartInterface(QCanUsart *pclCpUsartV)
+{
+   qDebug() << "setActiveUsartInterface()";
+
+   pclCpUsartP = pclCpUsartV;
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
 // write()                                                                                                            //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
@@ -617,7 +620,7 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::write(const QCanFrame &clFra
    //---------------------------------------------------------------------------------------------------
    // process only if USART instance is available
    //
-   if (clCpUsartP.isAvailable() == true)
+   if (pclCpUsartP->isAvailable() == true)
    {
       //-------------------------------------------------------------------------------------------
       // Convert the QCanFrame in to the CpCanMsg object and provide it to the USART interface
@@ -628,7 +631,7 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::write(const QCanFrame &clFra
       {
          teReturnT = eERROR_UNKNOWN;
       }
-      else if (clCpUsartP.messageSend(tsCanMessageT) != true)
+      else if (pclCpUsartP->messageSend(tsCanMessageT) != true)
       {
          teReturnT = eERROR_UNKNOWN;
       }
@@ -650,14 +653,14 @@ bool QCanInterfaceUsart::configureDevice(void)
    bool btStateT = false; // if true than new initialisation shoud be done
 
    qDebug() << "QCanInterfaceUsart::configureDevice";
-   qDebug() << "value from current connfig, name: "<<clCpUsartP.currentConfig().clName;
-   qDebug() << "value from current connfig, mode: "<<clCpUsartP.currentConfig().ubMode;
-   qDebug() << "value from current connfig, bitrate: "<<clCpUsartP.currentConfig().slBaud;
+   qDebug() << "value from current connfig, name: "<<pclCpUsartP->currentConfig().clName;
+   qDebug() << "value from current connfig, mode: "<<pclCpUsartP->currentConfig().ubMode;
+   qDebug() << "value from current connfig, bitrate: "<<pclCpUsartP->currentConfig().slBaud;
 
    //---------------------------------------------------------------------------------------------------
    // create configuration GUI
    //
-   QCanConfig *pclConfigGuiT = new QCanConfig(clCpUsartP.currentConfig());
+   QCanConfig *pclConfigGuiT = new QCanConfig(pclCpUsartP->currentConfig());
    pclConfigGuiT->exec();
 
    //---------------------------------------------------------------------------------------------------
@@ -666,7 +669,10 @@ bool QCanInterfaceUsart::configureDevice(void)
    if (pclConfigGuiT->result() == QDialog::Accepted)
    {
       // Setup the Hardware or other changed parameters
-      clCpUsartP.setConfig(pclConfigGuiT->currentConfig());
+//      pclCpUsartP->setConfig(pclConfigGuiT->currentConfig());
+      QMessageBox msgBox;
+      msgBox.setText("User configurations are not porivided to COM interface!");
+      msgBox.exec();
 
       btStateT = true;
    }

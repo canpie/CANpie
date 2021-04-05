@@ -44,6 +44,7 @@
 
 #include <QtWidgets/QDialog>
 #include <QtWidgets/QWidget>
+#include <QtWidgets/QMessageBox>
 
 #include <QCanInterface>
 
@@ -114,6 +115,7 @@ public:
 
    InterfaceError_e  write(const QCanFrame &clFrameR) Q_DECL_OVERRIDE;
 
+   void setActiveUsartInterface(QCanUsart *pclCpUsartV);
 
 Q_SIGNALS:
    void  addLogMessage(const QString & clMessageR, const LogLevel_e & teLogLevelR = eLOG_LEVEL_WARN);
@@ -122,11 +124,12 @@ Q_SIGNALS:
    void  stateChanged(const CAN_State_e & teCanStateR);
 
 private:
+   QEventLoop     clEventLoopP;
 
    /*!
    * \brief Reference to the static instance of USART interfaces
    */
-   QCanUsart &clCpUsartP = QCanUsart::getInstance();
+   QCanUsart *pclCpUsartP;
 
    /*!
     * \brief clStatisticP - Statistic information for CAN communication
@@ -162,11 +165,6 @@ private:
     * \brief clUsartNameP - Name of USART interface
     */
    QString  clUsartNameP;
-
-   /*!
-    * \brief uwUsartNumberP - Number of USART interface
-    */
-   uint16_t uwUsartNumberP;
 
    QVector<CpCanMsg_ts> atsReceiveMessageListP;
 

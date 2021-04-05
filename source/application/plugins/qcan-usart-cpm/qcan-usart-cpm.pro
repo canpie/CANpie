@@ -49,13 +49,6 @@ win32 {
 }
 
 #---------------------------------------------------------------
-# Objects directory
-#
-OBJECTS_DIR = ./objs
-MOC_DIR     = ./objs
-RCC_DIR     = ./objs
-
-#---------------------------------------------------------------
 # project configuration and compiler options
 #
 CONFIG += debug_and_release
@@ -68,7 +61,7 @@ CONFIG += silent
 # version of the application
 #
 VERSION_MAJOR = 1
-VERSION_MINOR = 0
+VERSION_MINOR = 2
 VERSION_BUILD = 0
 
 

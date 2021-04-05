@@ -38,7 +38,7 @@
 // QCanConfig                                                                 //
 //                                                                            //
 //----------------------------------------------------------------------------//
-QCanConfig::QCanConfig(QCanUsart::QCanUsartConfig_ts &tsConfigurationR, QWidget *parent)
+QCanConfig::QCanConfig(QCanUsart::QCanUsartConfig_ts tsConfigurationR, QWidget *parent)
    : QDialog(parent)
 {
    //-----------------------------------------------------------------
@@ -78,18 +78,13 @@ QCanConfig::QCanConfig(QCanUsart::QCanUsartConfig_ts &tsConfigurationR, QWidget 
    //----------------------------------------------------------------
    // insert default baud rates and select current one
    //
-   clStringListT.append(QString::number(1000000,10));
-   if (tsCurrentConfigP.slBaud == qint32(1000000))
+   clStringListT.append(QString::number(2304000,10));
+   if (tsCurrentConfigP.slBaud == qint32(2304000))
    {
       slCurrentIndexT = clStringListT.count()-1;
    }
-   clStringListT.append(QString::number(2000000,10));
-   if (tsCurrentConfigP.slBaud == qint32(2000000))
-   {
-      slCurrentIndexT = clStringListT.count()-1;
-   }
-   clStringListT.append(QString::number(3000000,10));
-   if (tsCurrentConfigP.slBaud == qint32(3000000))
+   clStringListT.append(QString::number(3456000,10));
+   if (tsCurrentConfigP.slBaud == qint32(3456000))
    {
       slCurrentIndexT = clStringListT.count()-1;
    }
@@ -111,7 +106,7 @@ QCanConfig::QCanConfig(QCanUsart::QCanUsartConfig_ts &tsConfigurationR, QWidget 
 //----------------------------------------------------------------------------//
 QCanUsart::QCanUsartConfig_ts & QCanConfig::currentConfig()
 {
-   tsCurrentConfigP.ubMode = (clQCanCfgGuiP.clComboBoxCOMMode->currentIndex()+4);
+   tsCurrentConfigP.ubMode = quint8(clQCanCfgGuiP.clComboBoxCOMMode->currentIndex()+4);
    tsCurrentConfigP.slBaud = (clQCanCfgGuiP.clComboBoxCOMBaud->currentText().toInt());
 
    return tsCurrentConfigP;

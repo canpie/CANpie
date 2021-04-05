@@ -39,13 +39,17 @@ QCanPluginUsart::QCanPluginUsart()
    // reset number of interfaces
    apclQCanIfUsartP.clear();
 
+   pclCpUsartP = new QCanUsart();
+
    //----------------------------------------------------------------
    // check PCAN Basic lib is available
    //
-   if (!pclCpUsartP.isAvailable())
+   if (!pclCpUsartP->isAvailable())
    {
       qCritical() << "QCanPluginUsart::QCanPluginUsart() CRITICAL: PEAKBasic library is not available or not all functions could be loaded!";
    }
+
+
 }
 
 //----------------------------------------------------------------------------//
@@ -85,7 +89,7 @@ uint8_t QCanPluginUsart::interfaceCount()
 
    qDebug() << "QCanPluginUsart::interfaceCount()";
 
-   if (!pclCpUsartP.isAvailable())
+   if (!pclCpUsartP->isAvailable())
    {
       return 0;
    }
@@ -129,7 +133,10 @@ uint8_t QCanPluginUsart::interfaceCount()
          if (btIfIsInListT == false)
          {
             qDebug() << "Device exists not in list, add it... ";
-            apclQCanIfUsartP.append(new QCanInterfaceUsart(uwDeviceNrT, clSerialIfInfoT.portName()));
+            QCanInterfaceUsart *pclCanInterfaceT = new QCanInterfaceUsart(uwDeviceNrT, clSerialIfInfoT.portName());
+            pclCanInterfaceT->setActiveUsartInterface(pclCpUsartP);
+            apclQCanIfUsartP.append(pclCanInterfaceT);
+
 
             qInfo() << "QCanPluginUsart::QCanPluginUsart() INFO: Add Interface" << QString::number(apclQCanIfUsartP.length());
          }
