@@ -48,19 +48,36 @@
 **                                                                                                                    **
 \*--------------------------------------------------------------------------------------------------------------------*/
 
-#define CAN_FRAME_FORMAT_EXT ((uint8_t)0x01)
+constexpr uint8_t    CAN_FRAME_FORMAT_EXT = 0x01;
 
-#define CAN_FRAME_FORMAT_FDF ((uint8_t)0x02)
+constexpr uint8_t    CAN_FRAME_FORMAT_RTR = 0x04;
 
-#define CAN_FRAME_FORMAT_RTR ((uint8_t)0x04)
+constexpr uint32_t   CAN_FRAME_TYPE_ERROR = 0x20000000;
 
-#define CAN_FRAME_TYPE_ERROR ((uint32_t)0x20000000)
+constexpr uint32_t   CAN_FRAME_TYPE_MASK  = 0xE0000000;
 
-#define CAN_FRAME_TYPE_MASK ((uint32_t)0xE0000000)
+constexpr uint8_t    CAN_FRAME_ISO_FD_BRS = 0x40;
 
-#define CAN_FRAME_ISO_FD_BRS ((uint8_t)0x40)
+constexpr uint8_t    CAN_FRAME_ISO_FD_ESI = 0x80;
 
-#define CAN_FRAME_ISO_FD_ESI ((uint8_t)0x80)
+//------------------------------------------------------------------------------------------------------
+// For conversion between a CpCanMsg_ts structure and the class QCanFrame we need definitions for
+// accessing the CpCanMsg_ts::ubMsgCtrl field. We use constexpr here to avoid compiler warnings of 
+// type "use of old-style cast". The constant values use the same definitions like in the canpie.h
+// file, but use the prefix CAN_ instead of CP_
+//
+constexpr uint8_t    CAN_MSG_CTRL_EXT_BIT = 0x01;        // refer to CP_MSG_CTRL_EXT_BIT
+constexpr uint8_t    CAN_MSG_CTRL_FDF_BIT = 0x02;        // refer to CP_MSG_CTRL_FDF_BIT 
+constexpr uint8_t    CAN_MSG_CTRL_RTR_BIT = 0x04;        // refer to CP_MSG_CTRL_RTR_BIT
+
+//-------------------------------------------------------------------------------------------------
+// overload frame is not supported by QCanFrame class as it does not occur in modern systems
+//
+// constexpr uint8_t    CAN_MSG_CTRL_OVR_BIT = 0x08;        // refer to CP_MSG_CTRL_OVR_BIT
+
+constexpr uint8_t    CAN_MSG_CTRL_BRS_BIT = 0x40;        // refer to CP_MSG_CTRL_BRS_BIT
+constexpr uint8_t    CAN_MSG_CTRL_ESI_BIT = 0x80;        // refer to CP_MSG_CTRL_ESI_BIT
+
 
 /*--------------------------------------------------------------------------------------------------------------------*\
 ** Local variables                                                                                                    **
@@ -140,11 +157,52 @@ QCanFrame::QCanFrame(const FrameFormat_e &ubFormatR, const uint32_t &ulIdentifie
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// ~QCanFrame()                                                                                                       //
-// destructor                                                                                                         //
+// QCanFrame()                                                                                                        //
+// copy constructor                                                                                                   //
 //--------------------------------------------------------------------------------------------------------------------//
-QCanFrame::~QCanFrame()
+QCanFrame::QCanFrame(const QCanFrame  &clOtherR)
 {
+   ulIdentifierP  = clOtherR.ulIdentifierP;
+   ulMsgUserP     = clOtherR.ulMsgUserP;
+   ulMsgMarkerP   = clOtherR.ulMsgMarkerP;
+
+   clMsgTimeP     = clOtherR.clMsgTimeP;
+   ubMsgDlcP      = clOtherR.ubMsgDlcP;
+   ubMsgCtrlP     = clOtherR.ubMsgCtrlP;
+
+   for (auto ubDataCountT = 0; ubDataCountT < QCAN_MSG_DATA_MAX; ubDataCountT++)
+   {
+      aubByteP[ubDataCountT]  = clOtherR.aubByteP[ubDataCountT];
+   }
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanFrame()::operator=                                                                                             //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+QCanFrame& QCanFrame::operator=(const QCanFrame &clOtherR)
+{
+   //---------------------------------------------------------------------------------------------------
+   // Guard self assignment
+   //
+   if (this != &clOtherR)
+   {
+      ulIdentifierP  = clOtherR.ulIdentifierP;
+      ulMsgUserP     = clOtherR.ulMsgUserP;
+      ulMsgMarkerP   = clOtherR.ulMsgMarkerP;
+
+      clMsgTimeP     = clOtherR.clMsgTimeP;
+      ubMsgDlcP      = clOtherR.ubMsgDlcP;
+      ubMsgCtrlP     = clOtherR.ubMsgCtrlP;
+
+      for (auto ubDataCountT = 0; ubDataCountT < QCAN_MSG_DATA_MAX; ubDataCountT++)
+      {
+         aubByteP[ubDataCountT]  = clOtherR.aubByteP[ubDataCountT];
+      }
+   }
+
+   return *this;
 }
 
 
@@ -188,8 +246,7 @@ uint8_t QCanFrame::data(const uint8_t &ubPosR) const
 //--------------------------------------------------------------------------------------------------------------------//
 QByteArray QCanFrame::data(void) const
 {
-   QByteArray clDataT = QByteArray((const char *)&aubByteP[0],
-                                   this->dataSize());
+   QByteArray clDataT = QByteArray(reinterpret_cast< const char* >(&aubByteP[0]), this->dataSize());
    return (clDataT);
 }
 
@@ -212,25 +269,25 @@ uint8_t QCanFrame::dataSize(void) const
 //--------------------------------------------------------------------------------------------------------------------//
 uint16_t QCanFrame::dataUInt16(const uint8_t &ubPosR, const bool &btMsbFirstR) const
 {
-   uint16_t uwValueT = 0;
+   uint32_t ulValueT = 0;
 
    if ( (ubPosR < (this->dataSize() - 1)) && ((this->dataSize() > 1)) )
    {
       if (btMsbFirstR)
       {
-         uwValueT = aubByteP[ubPosR];
-         uwValueT = uwValueT << 8;
-         uwValueT = uwValueT + (uint8_t)aubByteP[ubPosR + 1];
+         ulValueT  = static_cast< uint8_t >(aubByteP[ubPosR]);
+         ulValueT  = static_cast< uint16_t >(ulValueT << 8);
+         ulValueT += static_cast< uint8_t >(aubByteP[ubPosR + 1]);
       }
       else
       {
-         uwValueT = aubByteP[ubPosR + 1];
-         uwValueT = uwValueT << 8;
-         uwValueT = uwValueT + (uint8_t)aubByteP[ubPosR];
+         ulValueT  = static_cast< uint8_t >(aubByteP[ubPosR + 1]);
+         ulValueT  = static_cast< uint16_t >(ulValueT << 8);
+         ulValueT += static_cast< uint8_t >(aubByteP[ubPosR]);
       }
    }
 
-   return (uwValueT);
+   return static_cast<uint16_t>(ulValueT);
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -247,21 +304,21 @@ uint32_t QCanFrame::dataUInt32(const uint8_t &ubPosR, const bool &btMsbFirstR) c
       {
          ulValueT = aubByteP[ubPosR];
          ulValueT = ulValueT << 8;
-         ulValueT = ulValueT + (uint8_t)aubByteP[ubPosR + 1];
+         ulValueT = ulValueT + static_cast< uint8_t >(aubByteP[ubPosR + 1]);
          ulValueT = ulValueT << 8;
-         ulValueT = ulValueT + (uint8_t)aubByteP[ubPosR + 2];
+         ulValueT = ulValueT + static_cast< uint8_t >(aubByteP[ubPosR + 2]);
          ulValueT = ulValueT << 8;
-         ulValueT = ulValueT + (uint8_t)aubByteP[ubPosR + 3];
+         ulValueT = ulValueT + static_cast< uint8_t >(aubByteP[ubPosR + 3]);
       }
       else
       {
          ulValueT = aubByteP[ubPosR + 3];
          ulValueT = ulValueT << 8;
-         ulValueT = ulValueT + (uint8_t)aubByteP[ubPosR + 2];
+         ulValueT = ulValueT + static_cast< uint8_t >(aubByteP[ubPosR + 2]);
          ulValueT = ulValueT << 8;
-         ulValueT = ulValueT + (uint8_t)aubByteP[ubPosR + 1];
+         ulValueT = ulValueT + static_cast< uint8_t >(aubByteP[ubPosR + 1]);
          ulValueT = ulValueT << 8;
-         ulValueT = ulValueT + (uint8_t)aubByteP[ubPosR];
+         ulValueT = ulValueT + static_cast< uint8_t >(aubByteP[ubPosR]);
       }
    }
 
@@ -317,13 +374,13 @@ uint8_t QCanFrame::errorCounterTransmit(void) const
 // QCanFrame::errorState()                                                                                            //
 // use data byte 0 for storage                                                                                        //
 //--------------------------------------------------------------------------------------------------------------------//
-CAN_State_e QCanFrame::errorState(void) const
+QCan::CAN_State_e QCanFrame::errorState(void) const
 {
-   CAN_State_e teStateT = eCAN_STATE_STOPPED;
+   QCan::CAN_State_e teStateT = QCan::eCAN_STATE_STOPPED;
 
    if (frameType() == eFRAME_TYPE_ERROR)
    {
-      teStateT = (CAN_State_e)aubByteP[0];
+      teStateT = static_cast< QCan::CAN_State_e >(aubByteP[0]);
    }
 
    return (teStateT);
@@ -360,7 +417,7 @@ QCanFrame::ErrorType_e QCanFrame::errorType(void) const
 
    if (frameType() == eFRAME_TYPE_ERROR)
    {
-      teTypeT = (ErrorType_e)aubByteP[1];
+      teTypeT = static_cast< ErrorType_e >(aubByteP[1]);
    }
 
    return (teTypeT);
@@ -373,7 +430,7 @@ QCanFrame::ErrorType_e QCanFrame::errorType(void) const
 //--------------------------------------------------------------------------------------------------------------------//
 QCanFrame::FrameFormat_e QCanFrame::frameFormat(void) const
 {
-   return ((FrameFormat_e)(ubMsgCtrlP & 0x03));
+   return (static_cast< FrameFormat_e >(ubMsgCtrlP & 0x03));
 }
 
 
@@ -411,8 +468,8 @@ bool QCanFrame::fromByteArray(const QByteArray &clByteArrayR)
    // test size of byte array and marker at the end
    //
    if ( (clByteArrayR.size() == QCAN_FRAME_ARRAY_SIZE) && 
-        ((uint8_t) clByteArrayR[94] == 0xCA)           && 
-        ((uint8_t) clByteArrayR[95] == 0x01) )
+        (static_cast< uint8_t >(clByteArrayR[94]) == 0xCA)           && 
+        (static_cast< uint8_t >(clByteArrayR[95]) == 0x01) )
    {
       //---------------------------------------------------------------------------------------------------
       // structure seems to be valid, now start copying the contents,
@@ -422,30 +479,30 @@ bool QCanFrame::fromByteArray(const QByteArray &clByteArrayR)
       //---------------------------------------------------------------------------------------------------
       // set identifier field from byte 0 .. 3, MSB first
       //
-      ulIdentifierP = clByteArrayR[0];
+      ulIdentifierP = static_cast< uint8_t >(clByteArrayR[0]);
       ulIdentifierP = ulIdentifierP << 8;
-      ulIdentifierP = ulIdentifierP + (uint8_t)clByteArrayR[1];
+      ulIdentifierP = ulIdentifierP + static_cast< uint8_t >(clByteArrayR[1]);
       ulIdentifierP = ulIdentifierP << 8;
-      ulIdentifierP = ulIdentifierP + (uint8_t)clByteArrayR[2];
+      ulIdentifierP = ulIdentifierP + static_cast< uint8_t >(clByteArrayR[2]);
       ulIdentifierP = ulIdentifierP << 8;
-      ulIdentifierP = ulIdentifierP + (uint8_t)clByteArrayR[3];
+      ulIdentifierP = ulIdentifierP + static_cast< uint8_t >(clByteArrayR[3]);
 
       //---------------------------------------------------------------------------------------------------
       // set DLC field from byte 4
       //
-      ubMsgDlcP = clByteArrayR[4];
+      ubMsgDlcP = static_cast< uint8_t >(clByteArrayR[4]);
 
       //---------------------------------------------------------------------------------------------------
       // set message control field from byte 5
       //
-      ubMsgCtrlP = clByteArrayR[5];
+      ubMsgCtrlP = static_cast< uint8_t >(clByteArrayR[5]);
 
       //---------------------------------------------------------------------------------------------------
       // set message data field from byte 6 .. 69
       //
       for (uint8_t ubPosT = 0; ubPosT < QCAN_MSG_DATA_MAX; ubPosT++)
       {
-         aubByteP[ubPosT] = clByteArrayR[6 + ubPosT];
+         aubByteP[ubPosT] = static_cast< uint8_t >(clByteArrayR[6 + ubPosT]);
       }
 
       //---------------------------------------------------------------------------------------------------
@@ -453,46 +510,46 @@ bool QCanFrame::fromByteArray(const QByteArray &clByteArrayR)
       //
       uint32_t ulTimeValT = 0;
 
-      ulTimeValT = clByteArrayR[70];
-      ulTimeValT = ulTimeValT << 8;
-      ulTimeValT += (uint8_t)clByteArrayR[71];
-      ulTimeValT = ulTimeValT << 8;
-      ulTimeValT += (uint8_t)clByteArrayR[72];
-      ulTimeValT = ulTimeValT << 8;
-      ulTimeValT += (uint8_t)clByteArrayR[73];
+      ulTimeValT  = static_cast< uint8_t >(clByteArrayR[70]);
+      ulTimeValT  = ulTimeValT << 8;
+      ulTimeValT += static_cast< uint8_t >(clByteArrayR[71]);
+      ulTimeValT  = ulTimeValT << 8;
+      ulTimeValT += static_cast< uint8_t >(clByteArrayR[72]);
+      ulTimeValT  = ulTimeValT << 8;
+      ulTimeValT += static_cast< uint8_t >(clByteArrayR[73]);
       clMsgTimeP.setSeconds(ulTimeValT);
 
-      ulTimeValT = 0;
-      ulTimeValT = clByteArrayR[74];
-      ulTimeValT = ulTimeValT << 8;
-      ulTimeValT += (uint8_t)clByteArrayR[75];
-      ulTimeValT = ulTimeValT << 8;
-      ulTimeValT += (uint8_t)clByteArrayR[76];
-      ulTimeValT = ulTimeValT << 8;
-      ulTimeValT += (uint8_t)clByteArrayR[77];
+      ulTimeValT  = 0;
+      ulTimeValT  = static_cast< uint8_t >(clByteArrayR[74]);
+      ulTimeValT  = ulTimeValT << 8;
+      ulTimeValT += static_cast< uint8_t >(clByteArrayR[75]);
+      ulTimeValT  = ulTimeValT << 8;
+      ulTimeValT += static_cast< uint8_t >(clByteArrayR[76]);
+      ulTimeValT  = ulTimeValT << 8;
+      ulTimeValT += static_cast< uint8_t >(clByteArrayR[77]);
       clMsgTimeP.setNanoSeconds(ulTimeValT);
 
       //---------------------------------------------------------------------------------------------------
       // set message user field from byte 78 .. 81, MSB first
       //
-      ulMsgUserP = clByteArrayR[78];
-      ulMsgUserP = ulMsgUserP << 8;
-      ulMsgUserP += (uint8_t)clByteArrayR[79];
-      ulMsgUserP = ulMsgUserP << 8;
-      ulMsgUserP += (uint8_t)clByteArrayR[80];
-      ulMsgUserP = ulMsgUserP << 8;
-      ulMsgUserP += (uint8_t)clByteArrayR[81];
+      ulMsgUserP  = static_cast< uint8_t >(clByteArrayR[78]);
+      ulMsgUserP  = ulMsgUserP << 8;
+      ulMsgUserP += static_cast< uint8_t >(clByteArrayR[79]);
+      ulMsgUserP  = ulMsgUserP << 8;
+      ulMsgUserP += static_cast< uint8_t >(clByteArrayR[80]);
+      ulMsgUserP  = ulMsgUserP << 8;
+      ulMsgUserP += static_cast< uint8_t >(clByteArrayR[81]);
 
       //---------------------------------------------------------------------------------------------------
       // set message marker field from byte 82 .. 85, MSB first
       //
-      ulMsgMarkerP = clByteArrayR[82];
-      ulMsgMarkerP = ulMsgMarkerP << 8;
-      ulMsgMarkerP += (uint8_t)clByteArrayR[83];
-      ulMsgMarkerP = ulMsgMarkerP << 8;
-      ulMsgMarkerP += (uint8_t)clByteArrayR[84];
-      ulMsgMarkerP = ulMsgMarkerP << 8;
-      ulMsgMarkerP += (uint8_t)clByteArrayR[85];
+      ulMsgMarkerP   = static_cast< uint8_t >(clByteArrayR[82]);
+      ulMsgMarkerP   = ulMsgMarkerP << 8;
+      ulMsgMarkerP  += static_cast< uint8_t >(clByteArrayR[83]);
+      ulMsgMarkerP   = ulMsgMarkerP << 8;
+      ulMsgMarkerP  += static_cast< uint8_t >(clByteArrayR[84]);
+      ulMsgMarkerP   = ulMsgMarkerP << 8;
+      ulMsgMarkerP  += static_cast< uint8_t >(clByteArrayR[85]);
 
       btResultT = true;
    }
@@ -513,16 +570,16 @@ bool QCanFrame::fromCpCanMsg(const CpCanMsg_ts *ptsCanMsgV)
    // The conversion is only performed if the pointer to the CpCanMsg_s structure is valid and
    // the size of the structure has the defined size.
    //
-   if ((ptsCanMsgV != (CpCanMsg_ts *)0))
+   if (ptsCanMsgV != nullptr)
    {
       uint8_t ubDataCntT;
 
       //-------------------------------------------------------------------------------------------
       // check frame format
       //
-      if ((ptsCanMsgV->ubMsgCtrl & CP_MSG_CTRL_FDF_BIT) > 0)
+      if ((ptsCanMsgV->ubMsgCtrl & CAN_MSG_CTRL_FDF_BIT) > 0)
       {
-         if ((ptsCanMsgV->ubMsgCtrl & CP_MSG_CTRL_EXT_BIT) > 0)
+         if ((ptsCanMsgV->ubMsgCtrl & CAN_MSG_CTRL_EXT_BIT) > 0)
          {
             this->setFrameFormat(QCanFrame::eFORMAT_FD_EXT);
          }
@@ -530,10 +587,19 @@ bool QCanFrame::fromCpCanMsg(const CpCanMsg_ts *ptsCanMsgV)
          {
             this->setFrameFormat(QCanFrame::eFORMAT_FD_STD);
          }
+         if ((ptsCanMsgV->ubMsgCtrl & CAN_MSG_CTRL_BRS_BIT) > 0)
+         {
+            this->setBitrateSwitch();
+         }
+         else
+         {
+            this->setBitrateSwitch(false);
+         }
+         
       }
       else
       {
-         if ((ptsCanMsgV->ubMsgCtrl & CP_MSG_CTRL_EXT_BIT) > 0)
+         if ((ptsCanMsgV->ubMsgCtrl & CAN_MSG_CTRL_EXT_BIT) > 0)
          {
             this->setFrameFormat(QCanFrame::eFORMAT_CAN_EXT);
          }
@@ -546,7 +612,7 @@ bool QCanFrame::fromCpCanMsg(const CpCanMsg_ts *ptsCanMsgV)
       //-------------------------------------------------------------------------------------------
       // set identifier and DLC
       //
-      this->setIdentifier(ptsCanMsgV->ulIdentifier); // & CP_MASK_EXT_FRAME);
+      this->setIdentifier(ptsCanMsgV->ulIdentifier);
       this->setDlc(ptsCanMsgV->ubMsgDLC);
 
       for (ubDataCntT = 0; ubDataCntT < this->dataSize(); ubDataCntT++)
@@ -723,21 +789,21 @@ void QCanFrame::setDataSize(uint8_t ubSizeV)
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanFrame::setDataUInt16(const uint8_t &ubPosR, const uint16_t &uwValueR, const bool &btMsbFirstR)
 {
-   uint16_t uwValueT = uwValueR;
+   uint32_t ulValueT = uwValueR;
 
    if ( (ubPosR < (this->dataSize() - 1)) && ((this->dataSize() > 1)) )
    {
       if (btMsbFirstR)
       {
-         aubByteP[ubPosR + 1] = (uint8_t)uwValueT;
-         uwValueT = uwValueT >> 8;
-         aubByteP[ubPosR + 0] = (uint8_t)uwValueT;
+         aubByteP[ubPosR + 1] = static_cast< uint8_t >(ulValueT);
+         ulValueT = ulValueT >> 8;
+         aubByteP[ubPosR + 0] = static_cast< uint8_t >(ulValueT);
       }
       else
       {
-         aubByteP[ubPosR + 0] = (uint8_t)uwValueT;
-         uwValueT = uwValueT >> 8;
-         aubByteP[ubPosR + 1] = (uint8_t)uwValueT;
+         aubByteP[ubPosR + 0] = static_cast< uint8_t >(ulValueT);
+         ulValueT = ulValueT >> 8;
+         aubByteP[ubPosR + 1] = static_cast< uint8_t >(ulValueT);
       }
    }
 }
@@ -754,23 +820,23 @@ void QCanFrame::setDataUInt32(const uint8_t &ubPosR, const uint32_t &ulValueR, c
    {
       if (btMsbFirstR)
       {
-         aubByteP[ubPosR + 3] = (uint8_t)ulValueT;
+         aubByteP[ubPosR + 3] = static_cast< uint8_t >(ulValueT);
          ulValueT = ulValueT >> 8;
-         aubByteP[ubPosR + 2] = (uint8_t)ulValueT;
+         aubByteP[ubPosR + 2] = static_cast< uint8_t >(ulValueT);
          ulValueT = ulValueT >> 8;
-         aubByteP[ubPosR + 1] = (uint8_t)ulValueT;
+         aubByteP[ubPosR + 1] = static_cast< uint8_t >(ulValueT);
          ulValueT = ulValueT >> 8;
-         aubByteP[ubPosR + 0] = (uint8_t)ulValueT;
+         aubByteP[ubPosR + 0] = static_cast< uint8_t >(ulValueT);
       }
       else
       {
-         aubByteP[ubPosR + 0] = (uint8_t)ulValueT;
+         aubByteP[ubPosR + 0] = static_cast< uint8_t >(ulValueT);
          ulValueT = ulValueT >> 8;
-         aubByteP[ubPosR + 1] = (uint8_t)ulValueT;
+         aubByteP[ubPosR + 1] = static_cast< uint8_t >(ulValueT);
          ulValueT = ulValueT >> 8;
-         aubByteP[ubPosR + 2] = (uint8_t)ulValueT;
+         aubByteP[ubPosR + 2] = static_cast< uint8_t >(ulValueT);
          ulValueT = ulValueT >> 8;
-         aubByteP[ubPosR + 3] = (uint8_t)ulValueT;
+         aubByteP[ubPosR + 3] = static_cast< uint8_t >(ulValueT);
       }
    }
 }
@@ -821,22 +887,22 @@ void QCanFrame::setErrorCounterReceive(const uint8_t &ubErrorCntR)
       //
       if ((aubByteP[2] < CAN_ERROR_LIMIT_WARNING) && (aubByteP[3] < CAN_ERROR_LIMIT_WARNING))
       {
-         setErrorState(eCAN_STATE_BUS_ACTIVE);
+         setErrorState(QCan::eCAN_STATE_BUS_ACTIVE);
       }
 
       if ((aubByteP[2] >= CAN_ERROR_LIMIT_WARNING) || (aubByteP[3] >= CAN_ERROR_LIMIT_WARNING))
       {
-         setErrorState(eCAN_STATE_BUS_WARN);
+         setErrorState(QCan::eCAN_STATE_BUS_WARN);
       }
 
       if ((aubByteP[2] >= CAN_ERROR_LIMIT_PASSIVE) || (aubByteP[3] >= CAN_ERROR_LIMIT_PASSIVE))
       {
-         setErrorState(eCAN_STATE_BUS_PASSIVE);
+         setErrorState(QCan::eCAN_STATE_BUS_PASSIVE);
       }
 
       if (aubByteP[3] == CAN_ERROR_LIMIT_BUS_OFF)
       {
-         setErrorState(eCAN_STATE_BUS_OFF);
+         setErrorState(QCan::eCAN_STATE_BUS_OFF);
       }
    }
 }
@@ -859,22 +925,22 @@ void QCanFrame::setErrorCounterTransmit(const uint8_t &ubErrorCntR)
    //
    if ((aubByteP[2] < CAN_ERROR_LIMIT_WARNING) && (aubByteP[3] < CAN_ERROR_LIMIT_WARNING))
    {
-      setErrorState(eCAN_STATE_BUS_ACTIVE);
+      setErrorState(QCan::eCAN_STATE_BUS_ACTIVE);
    }
 
    if ((aubByteP[2] >= CAN_ERROR_LIMIT_WARNING) || (aubByteP[3] >= CAN_ERROR_LIMIT_WARNING))
    {
-      setErrorState(eCAN_STATE_BUS_WARN);
+      setErrorState(QCan::eCAN_STATE_BUS_WARN);
    }
 
    if ((aubByteP[2] >= CAN_ERROR_LIMIT_PASSIVE) || (aubByteP[3] >= CAN_ERROR_LIMIT_PASSIVE))
    {
-      setErrorState(eCAN_STATE_BUS_PASSIVE);
+      setErrorState(QCan::eCAN_STATE_BUS_PASSIVE);
    }
 
    if (aubByteP[3] == CAN_ERROR_LIMIT_BUS_OFF)
    {
-      setErrorState(eCAN_STATE_BUS_OFF);
+      setErrorState(QCan::eCAN_STATE_BUS_OFF);
    }
 }
 
@@ -883,7 +949,7 @@ void QCanFrame::setErrorCounterTransmit(const uint8_t &ubErrorCntR)
 // QCanFrame::setErrorState()                                                                                         //
 // use data byte 0 for storage                                                                                        //
 //--------------------------------------------------------------------------------------------------------------------//
-void QCanFrame::setErrorState(CAN_State_e ubStateV)
+void QCanFrame::setErrorState(QCan::CAN_State_e ubStateV)
 {
    if (frameType() == eFRAME_TYPE_ERROR)
    {
@@ -976,7 +1042,7 @@ void QCanFrame::setFrameType(const FrameType_e &ubTypeR)
    // CAN data frame
    //
    case eFRAME_TYPE_DATA:
-      ulIdentifierP = (uint32_t)0;
+      ulIdentifierP = static_cast< uint32_t >(0);
       break;
 
    //------------------------------------------------------------------------------------------------
@@ -989,8 +1055,8 @@ void QCanFrame::setFrameType(const FrameType_e &ubTypeR)
    //------------------------------------------------------------------------------------------------
    // The frame type is not known, so set all bits inside the identifier field to 1
    //
-   default:
-      ulIdentifierP = (uint32_t)(~0);
+   case eFRAME_TYPE_UNKNOWN:
+      ulIdentifierP = static_cast< uint32_t >(~0);
    }
 
    memset(&aubByteP[0], 0x00, QCAN_MSG_DATA_MAX);
@@ -1072,27 +1138,27 @@ QByteArray QCanFrame::toByteArray() const
    //----------------------------------------------------------------
    // place identifier field in byte 0 .. 3, MSB first
    //
-   clByteArrayT[0] = (uint8_t)(ulIdentifierP >> 24);
-   clByteArrayT[1] = (uint8_t)(ulIdentifierP >> 16);
-   clByteArrayT[2] = (uint8_t)(ulIdentifierP >> 8);
-   clByteArrayT[3] = (uint8_t)(ulIdentifierP >> 0);
+   clByteArrayT[0] = static_cast< char >(ulIdentifierP >> 24);
+   clByteArrayT[1] = static_cast< char >(ulIdentifierP >> 16);
+   clByteArrayT[2] = static_cast< char >(ulIdentifierP >> 8);
+   clByteArrayT[3] = static_cast< char >(ulIdentifierP >> 0);
 
    //----------------------------------------------------------------
    // place message DLC field in byte 4
    //
-   clByteArrayT[4] = ubMsgDlcP;
+   clByteArrayT[4] = static_cast< char >(ubMsgDlcP);
 
    //----------------------------------------------------------------
    // place message control field in byte 5
    //
-   clByteArrayT[5] = ubMsgCtrlP;
+   clByteArrayT[5] = static_cast< char >(ubMsgCtrlP);
 
    //----------------------------------------------------------------
    // place message data field in byte 6 .. 69
    //
    for (uint8_t ubPosT = 0; ubPosT < QCAN_MSG_DATA_MAX; ubPosT++)
    {
-      clByteArrayT[6 + ubPosT] = aubByteP[ubPosT];
+      clByteArrayT[6 + ubPosT] = static_cast< char >(aubByteP[ubPosT]);
    }
 
    //----------------------------------------------------------------
@@ -1101,32 +1167,32 @@ QByteArray QCanFrame::toByteArray() const
    uint32_t ulTimeValT = 0;
 
    ulTimeValT = clMsgTimeP.seconds();
-   clByteArrayT[70] = (uint8_t)(ulTimeValT >> 24);
-   clByteArrayT[71] = (uint8_t)(ulTimeValT >> 16);
-   clByteArrayT[72] = (uint8_t)(ulTimeValT >> 8);
-   clByteArrayT[73] = (uint8_t)(ulTimeValT >> 0);
+   clByteArrayT[70] = static_cast< char >(ulTimeValT >> 24);
+   clByteArrayT[71] = static_cast< char >(ulTimeValT >> 16);
+   clByteArrayT[72] = static_cast< char >(ulTimeValT >> 8);
+   clByteArrayT[73] = static_cast< char >(ulTimeValT >> 0);
 
    ulTimeValT = clMsgTimeP.nanoSeconds();
-   clByteArrayT[74] = (uint8_t)(ulTimeValT >> 24);
-   clByteArrayT[75] = (uint8_t)(ulTimeValT >> 16);
-   clByteArrayT[76] = (uint8_t)(ulTimeValT >> 8);
-   clByteArrayT[77] = (uint8_t)(ulTimeValT >> 0);
+   clByteArrayT[74] = static_cast< char >(ulTimeValT >> 24);
+   clByteArrayT[75] = static_cast< char >(ulTimeValT >> 16);
+   clByteArrayT[76] = static_cast< char >(ulTimeValT >> 8);
+   clByteArrayT[77] = static_cast< char >(ulTimeValT >> 0);
 
    //----------------------------------------------------------------
    // place message user field in byte 78 .. 81, MSB first
    //
-   clByteArrayT[78] = (uint8_t)(ulMsgUserP >> 24);
-   clByteArrayT[79] = (uint8_t)(ulMsgUserP >> 16);
-   clByteArrayT[80] = (uint8_t)(ulMsgUserP >> 8);
-   clByteArrayT[81] = (uint8_t)(ulMsgUserP >> 0);
+   clByteArrayT[78] = static_cast< char >(ulMsgUserP >> 24);
+   clByteArrayT[79] = static_cast< char >(ulMsgUserP >> 16);
+   clByteArrayT[80] = static_cast< char >(ulMsgUserP >> 8);
+   clByteArrayT[81] = static_cast< char >(ulMsgUserP >> 0);
 
    //----------------------------------------------------------------
    // place message marker field in byte 82 .. 85, MSB first
    //
-   clByteArrayT[82] = (uint8_t)(ulMsgMarkerP >> 24);
-   clByteArrayT[83] = (uint8_t)(ulMsgMarkerP >> 16);
-   clByteArrayT[84] = (uint8_t)(ulMsgMarkerP >> 8);
-   clByteArrayT[85] = (uint8_t)(ulMsgMarkerP >> 0);
+   clByteArrayT[82] = static_cast< char >(ulMsgMarkerP >> 24);
+   clByteArrayT[83] = static_cast< char >(ulMsgMarkerP >> 16);
+   clByteArrayT[84] = static_cast< char >(ulMsgMarkerP >> 8);
+   clByteArrayT[85] = static_cast< char >(ulMsgMarkerP >> 0);
 
    //----------------------------------------------------------------
    // byte 86 .. 93 (i.e. 8 bytes) are not used, set to 0
@@ -1135,8 +1201,8 @@ QByteArray QCanFrame::toByteArray() const
    //----------------------------------------------------------------
    // set marker at end of byte array
    //
-   clByteArrayT[94] = (uint8_t)(0xCA);
-   clByteArrayT[95] = (uint8_t)(0x01);
+   clByteArrayT[94] = static_cast< char > (0xCA);
+   clByteArrayT[95] = static_cast< char > (0x01);
 
    return (clByteArrayT);
 }
@@ -1154,7 +1220,7 @@ bool QCanFrame::toCpCanMsg(struct CpCanMsg_s *ptsCanMsgV) const
    // The QCanFrame object is only converted if the pointer to the CpCanMsg_s structure is valid and
    // the size of the structure has the defined size.
    //
-   if ((ptsCanMsgV != (CpCanMsg_ts *)0))
+   if (ptsCanMsgV != nullptr)
    {
       //-------------------------------------------------------------------------------------------
       // copy the frame format
@@ -1166,7 +1232,7 @@ bool QCanFrame::toCpCanMsg(struct CpCanMsg_s *ptsCanMsgV) const
       //
       if (this->bitrateSwitch())
       {
-         ptsCanMsgV->ubMsgCtrl |= CP_MSG_CTRL_BRS_BIT;
+         ptsCanMsgV->ubMsgCtrl |= (CAN_MSG_CTRL_BRS_BIT);
       }
 
       //-------------------------------------------------------------------------------------------
@@ -1174,7 +1240,15 @@ bool QCanFrame::toCpCanMsg(struct CpCanMsg_s *ptsCanMsgV) const
       //
       if (this->errorStateIndicator())
       {
-         ptsCanMsgV->ubMsgCtrl |= CP_MSG_CTRL_ESI_BIT;
+         ptsCanMsgV->ubMsgCtrl |= (CAN_MSG_CTRL_ESI_BIT);
+      }
+
+      //-------------------------------------------------------------------------------------------
+      // test for RTR bit
+      //
+      if (this->isRemote())
+      {
+         ptsCanMsgV->ubMsgCtrl |= (CAN_MSG_CTRL_RTR_BIT);
       }
 
       //-------------------------------------------------------------------------------------------
@@ -1238,25 +1312,21 @@ QString QCanFrame::toString(const bool &btShowTimeR, const bool &btShowDataSizeR
       //
       switch (frameFormat())
       {
-      case eFORMAT_CAN_STD:
-         clStringT += "CBFF ";
-         break;
+         case eFORMAT_CAN_STD:
+            clStringT += "CBFF ";
+            break;
 
-      case eFORMAT_CAN_EXT:
-         clStringT += "CEFF ";
-         break;
+         case eFORMAT_CAN_EXT:
+            clStringT += "CEFF ";
+            break;
 
-      case eFORMAT_FD_STD:
-         clStringT += "FBFF ";
-         break;
+         case eFORMAT_FD_STD:
+            clStringT += "FBFF ";
+            break;
 
-      case eFORMAT_FD_EXT:
-         clStringT += "FEFF ";
-         break;
-
-      default:
-
-         break;
+         case eFORMAT_FD_EXT:
+            clStringT += "FEFF ";
+            break;
       }
 
       //-------------------------------------------------------------------------------------------
@@ -1325,17 +1395,17 @@ QString QCanFrame::toString(const bool &btShowTimeR, const bool &btShowDataSizeR
       for (uint8_t ubCntT = 0; ubCntT < ubDataSizeT; ubCntT++)
       {
          //-----------------------------------------------------------------------------------
-         // print a newline and 19/31 spaces after 32 data bytes
+         // print a newline and 27 (40 with timestamp) spaces after 16 data bytes
          //
-         if ((ubCntT > 0) && ((ubCntT % 32) == 0))
+         if ((ubCntT > 0) && ((ubCntT % 16) == 0))
          {
             if (btShowTimeR == true)
             {
-               clStringT += "\n                               ";
+               clStringT += "\n                                        ";
             }
             else
             {
-               clStringT += "\n                   ";
+               clStringT += "\n                           ";
             }
          }
 
@@ -1358,33 +1428,29 @@ QString QCanFrame::toString(const bool &btShowTimeR, const bool &btShowDataSizeR
 
       switch (this->errorState())
       {
-      case eCAN_STATE_STOPPED:
-         clStringT += "CAN controller stopped";
-         break;
+         case QCan::eCAN_STATE_STOPPED:
+            clStringT += "CAN controller stopped";
+            break;
 
-      case eCAN_STATE_SLEEPING:
-         clStringT += "CAN controller sleeping";
-         break;
+         case QCan::eCAN_STATE_SLEEPING:
+            clStringT += "CAN controller sleeping";
+            break;
 
-      case eCAN_STATE_BUS_ACTIVE:
-         clStringT += "Error active";
-         break;
+         case QCan::eCAN_STATE_BUS_ACTIVE:
+            clStringT += "Error active";
+            break;
 
-      case eCAN_STATE_BUS_WARN:
-         clStringT += "Warning level reached";
-         break;
+         case QCan::eCAN_STATE_BUS_WARN:
+            clStringT += "Warning level reached";
+            break;
 
-      case eCAN_STATE_BUS_PASSIVE:
-         clStringT += "Error passive";
-         break;
+         case QCan::eCAN_STATE_BUS_PASSIVE:
+            clStringT += "Error passive";
+            break;
 
-      case eCAN_STATE_BUS_OFF:
-         clStringT += "Bus off";
-         break;
-
-      default:
-         clStringT += "Unknown state";
-         break;
+         case QCan::eCAN_STATE_BUS_OFF:
+            clStringT += "Bus off";
+            break;
       }
 
       //-------------------------------------------------------------------------------------------

@@ -71,7 +71,7 @@ QCanInterfaceTemplate::QCanInterfaceTemplate(uint16_t uwChannelV)
    // setup Channel of this interface
    //
    uwChannelP = uwChannelV;
-   teCanModeP = eCAN_MODE_STOP;
+   teCanModeP = QCan::eCAN_MODE_STOP;
 
    //---------------------------------------------------------------------------------------------------
    // The interface is not yet connected
@@ -95,12 +95,12 @@ QCanInterfaceTemplate::QCanInterfaceTemplate(uint16_t uwChannelV)
    //
    ubCommandP    = eSIMULATION_COMMAND_NONE;
    ubCountP      = 0;
-   teErrorStateP = eCAN_STATE_STOPPED;
+   teErrorStateP = QCan::eCAN_STATE_STOPPED;
 
    clErrFrameP.setFrameType(QCanFrame::eFRAME_TYPE_ERROR);
    clErrFrameP.setErrorCounterReceive(0);
    clErrFrameP.setErrorCounterTransmit(0);
-   clErrFrameP.setErrorState(eCAN_STATE_STOPPED);
+   clErrFrameP.setErrorState(QCan::eCAN_STATE_STOPPED);
 }
 
 
@@ -130,10 +130,10 @@ QCanInterface::InterfaceError_e QCanInterfaceTemplate::connect(void)
       //---------------------------------------------------------------------------------------------------
       // tell some details about this CAN interface to the logger
       //
-      emit addLogMessage(version(), eLOG_LEVEL_INFO);
+      emit addLogMessage(version(), QCan::eLOG_LEVEL_INFO);
 
-      clErrFrameP.setErrorState(eCAN_STATE_BUS_ACTIVE);
-      teErrorStateP = eCAN_STATE_BUS_ACTIVE;
+      clErrFrameP.setErrorState(QCan::eCAN_STATE_BUS_ACTIVE);
+      teErrorStateP = QCan::eCAN_STATE_BUS_ACTIVE;
       teConnectedP = ConnectedState;
       emit connectionChanged(ConnectedState);
       teReturnT = eERROR_NONE;
@@ -175,11 +175,11 @@ QCanInterface::InterfaceError_e QCanInterfaceTemplate::disconnect()
       //---------------------------------------------------------------------------------------------------
       // tell some details about this CAN interface to the logger
       //
-      emit addLogMessage(version(), eLOG_LEVEL_INFO);
+      emit addLogMessage(version(), QCan::eLOG_LEVEL_INFO);
 
-      clErrFrameP.setErrorState(eCAN_STATE_STOPPED);
+      clErrFrameP.setErrorState(QCan::eCAN_STATE_STOPPED);
 
-      teErrorStateP = eCAN_STATE_STOPPED;
+      teErrorStateP = QCan::eCAN_STATE_STOPPED;
       teConnectedP  = UnconnectedState;
       emit connectionChanged(UnconnectedState);
       teReturnT     = eERROR_NONE;
@@ -433,10 +433,10 @@ QCanInterface::InterfaceError_e  QCanInterfaceTemplate::reset()
    clErrFrameP.setFrameType(QCanFrame::eFRAME_TYPE_ERROR);
    clErrFrameP.setErrorCounterReceive(0);
    clErrFrameP.setErrorCounterTransmit(0);
-   clErrFrameP.setErrorState(eCAN_STATE_BUS_ACTIVE);
+   clErrFrameP.setErrorState(QCan::eCAN_STATE_BUS_ACTIVE);
 
    clLogMessageT = "Reset CAN interface .... : done";
-   emit addLogMessage(clLogMessageT, eLOG_LEVEL_INFO);
+   emit addLogMessage(clLogMessageT, QCan::eLOG_LEVEL_INFO);
 
    return (clRetValueT);
 }
@@ -452,7 +452,7 @@ QCanInterface::InterfaceError_e QCanInterfaceTemplate::setBitrate( int32_t slNom
    InterfaceError_e  clRetValueT = eERROR_NONE;
 
 
-   if (slDatBitRateV == eCAN_BITRATE_NONE)
+   if (slDatBitRateV == QCan::eCAN_BITRATE_NONE)
    {
       //---------------------------------------------------------------
       // Classical CAN or no bit-rate switching
@@ -482,9 +482,9 @@ QCanInterface::InterfaceError_e QCanInterfaceTemplate::setBitrate( int32_t slNom
 
    }
 
-   emit addLogMessage(clLogMessageT, eLOG_LEVEL_INFO);
+   emit addLogMessage(clLogMessageT, QCan::eLOG_LEVEL_INFO);
 
-   return eERROR_NONE;
+   return (clRetValueT);
 }
 
 
@@ -492,15 +492,16 @@ QCanInterface::InterfaceError_e QCanInterfaceTemplate::setBitrate( int32_t slNom
 // QCanInterfaceTemplate::setMode                                                                                     //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-QCanInterface::InterfaceError_e QCanInterfaceTemplate::setMode(const CAN_Mode_e teModeV)
+QCanInterface::InterfaceError_e QCanInterfaceTemplate::setMode(const QCan::CAN_Mode_e teModeV)
 {
+   QCanInterface::InterfaceError_e  teResultT = eERROR_NONE;
 
    //----------------------------------------------------------------
    // select mode
    //
    switch (teModeV)
    {
-      case eCAN_MODE_START :
+      case QCan::eCAN_MODE_START :
 
          //---------------------------------------------------
          // reset statistic values
@@ -510,19 +511,19 @@ QCanInterface::InterfaceError_e QCanInterfaceTemplate::setMode(const CAN_Mode_e 
          clStatisticP.ulTrmCount = 0;
 
 
-         teCanModeP = eCAN_MODE_START;
+         teCanModeP = QCan::eCAN_MODE_START;
          break;
 
-      case eCAN_MODE_STOP :
-         teCanModeP = eCAN_MODE_STOP;
+      case QCan::eCAN_MODE_STOP :
+         teCanModeP = QCan::eCAN_MODE_STOP;
          break;
 
       default :
-         return eERROR_MODE;
+         teResultT = eERROR_MODE;
          break;
    }
 
-   return eERROR_NONE;
+   return (teResultT);
 }
 
 
@@ -530,7 +531,7 @@ QCanInterface::InterfaceError_e QCanInterfaceTemplate::setMode(const CAN_Mode_e 
 // QCanInterfaceTemplate::state()                                                                                     //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-CAN_State_e QCanInterfaceTemplate::state(void)
+QCan::CAN_State_e QCanInterfaceTemplate::state(void)
 {
    return (teErrorStateP);
 }
@@ -592,6 +593,7 @@ QString QCanInterfaceTemplate::version(void)
 //--------------------------------------------------------------------------------------------------------------------//
 QCanInterface::InterfaceError_e QCanInterfaceTemplate::write(const QCanFrame &clFrameR)
 {
+   uint8_t  ubIvertedDataT = 0;
 
    //---------------------------------------------------------------------------------------------------
    // handle CAN messages and simulate a response / reaction here
@@ -606,7 +608,8 @@ QCanInterface::InterfaceError_e QCanInterfaceTemplate::write(const QCanFrame &cl
       clRcvFrameP.setIdentifier(clRcvFrameP.identifier() + 1);
       for (uint8_t ubDataCountT = 0; ubDataCountT < clRcvFrameP.dataSize(); ubDataCountT++)
       {
-         clRcvFrameP.setData(ubDataCountT, ~(clRcvFrameP.data(ubDataCountT)));
+         ubIvertedDataT =  static_cast< uint8_t>(~(clRcvFrameP.data(ubDataCountT)));
+         clRcvFrameP.setData(ubDataCountT, ubIvertedDataT);
       }
 
       ubCommandP = eSIMULATION_COMMAND_REPLY_FRAME;

@@ -64,7 +64,12 @@ class QCanPluginTemplate : public QCanPlugin
 
 public:
     QCanPluginTemplate();
-   ~QCanPluginTemplate();
+   ~QCanPluginTemplate() override;
+
+   QCanPluginTemplate(const QCanPluginTemplate&) = delete;               // no copy constructor
+   QCanPluginTemplate& operator=(const QCanPluginTemplate&) = delete;    // no assignment operator
+   QCanPluginTemplate(QCanPluginTemplate&&) = delete;                    // no move constructor
+   QCanPluginTemplate& operator=(QCanPluginTemplate&&) = delete;         // no move operator
 
    QIcon           icon(void) Q_DECL_OVERRIDE;
    uint8_t         interfaceCount(void) Q_DECL_OVERRIDE;

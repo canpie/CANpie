@@ -45,7 +45,6 @@
 #include "qcan_defs.hpp"
 #include "qcan_namespace.hpp"
 
-using namespace QCan;
 
 /*--------------------------------------------------------------------------------------------------------------------*\
 ** Structures                                                                                                         **
@@ -89,9 +88,14 @@ public:
    **
    ** Construct a QCanServerSettings object
    */
-   QCanServerSettings(QObject * pclParentV = Q_NULLPTR);
+   QCanServerSettings(QObject * pclParentV = nullptr);
 
-   ~QCanServerSettings();
+   ~QCanServerSettings() override;
+
+   QCanServerSettings(const QCanServerSettings&) = delete;                  // no copy constructor
+   QCanServerSettings& operator=(const QCanServerSettings&) = delete;       // no assignment operator
+   QCanServerSettings(QCanServerSettings&&) = delete;                       // no move constructor
+   QCanServerSettings& operator=(QCanServerSettings&&) = delete;            // no move operator
 
    //---------------------------------------------------------------------------------------------------
    /*!

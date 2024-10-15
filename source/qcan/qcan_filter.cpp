@@ -80,15 +80,24 @@ QCanFilter::QCanFilter(const QCanFilter &clOtherR)
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// ~QCanFilter()                                                                                                      //
-// destructor                                                                                                         //
+// QCanFilter()::operator=                                                                                            //
+//                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-QCanFilter::~QCanFilter()
+QCanFilter& QCanFilter::operator=(const QCanFilter &clOtherR)
 {
+   //---------------------------------------------------------------------------------------------------
+   // Guard self assignment
+   //
+   if (this != &clOtherR)
+   {
+      teFilterTypeP     = clOtherR.teFilterTypeP;
+      teFormatP         = clOtherR.teFormatP;
+      ulIdentifierLowP  = clOtherR.ulIdentifierLowP;
+      ulIdentifierHighP = clOtherR.ulIdentifierHighP;
+   }
 
+   return *this;
 }
-
-
 //--------------------------------------------------------------------------------------------------------------------//
 // QCanFilter::acceptFrame()                                                                                          //
 //                                                                                                                    //

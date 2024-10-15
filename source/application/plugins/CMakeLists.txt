@@ -6,14 +6,31 @@
 #-------------------------------------------------------------------------------------------------------
 # specify minimum version of CMake that can be used with CMakeLists.txt file
 #
-cmake_minimum_required(VERSION 3.16.4 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 cmake_policy(SET CMP0048 NEW)
 
 
+#-------------------------------------------------------------------------------------------------------
+# define the project name
+#
+project(canpie-server-plugins )
+
 message("-- Configure plugins ..")
 
-#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/qcan-ixxat)
-#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/qcan-peak)
+
+#-------------------------------------------------------------------------------------------------------
+# PCAN plugin only supported on Windows and macOS
+#
+if(WIN32 OR APPLE)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/qcan-peak)
+endif()
+
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/qcan-template)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/qcan-usart)
+
+#-------------------------------------------------------------------------------------------------------
+# IXXAT plugin only supported on Windows
+#
+if(WIN32)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/qcan-hms-vci4)
+endif()
 

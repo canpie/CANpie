@@ -43,8 +43,6 @@
 #include <QCanServerSettings>
 
 
-using namespace QCan;
-
 /*--------------------------------------------------------------------------------------------------------------------*\
 ** Class definition                                                                                                   **
 **                                                                                                                    **
@@ -56,7 +54,12 @@ class QCanConfig : public QObject
    Q_OBJECT
 
 public:
-   QCanConfig(QObject *parent = 0);
+   QCanConfig(QObject *parent = nullptr);
+
+   QCanConfig(const QCanConfig&) = delete;               // no copy constructor
+   QCanConfig& operator=(const QCanConfig&) = delete;    // no assignment operator
+   QCanConfig(QCanConfig&&) = delete;                    // no move constructor
+   QCanConfig& operator=(QCanConfig&&) = delete;         // no move operator
 
 public slots:
    void  aboutToQuitApp(void);
@@ -67,7 +70,7 @@ signals:
 private slots:
    void  execCommand(void);
 
-   void  onNetworkObjectReceived(const CAN_Channel_e teChannelV, QJsonObject clNetworkConfigV);
+   void  onNetworkObjectReceived(const QCan::CAN_Channel_e teChannelV, QJsonObject clNetworkConfigV);
    void  onServerObjectReceived(QJsonObject clServerConfigV);
    void  onServerStateChanged(enum QCanServerSettings::State_e teStateV);
    
@@ -103,11 +106,11 @@ private:
    //----------------------------------------------------------------------------------------------
    // Number of selected CAN channel
    //
-   CAN_Channel_e                 teCanChannelP;
+   QCan::CAN_Channel_e           teCanChannelP;
    
    int32_t                       slNomBitRateP;
    int32_t                       slDatBitRateP;
-   CAN_Mode_e                    teCanModeP;
+   QCan::CAN_Mode_e              teCanModeP;
 
    uint32_t                      ulCommandFlagsP;
 

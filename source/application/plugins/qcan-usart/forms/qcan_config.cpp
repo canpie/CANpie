@@ -98,14 +98,14 @@ QCanConfig::QCanConfig(QCanUsart::QCanUsartConfig_ts &tsConfigurationR, QWidget 
    clQCanCfgGuiP.clComboBoxCOMDirection->setCurrentIndex(tsCurrentConfigP.ubDirection);
 }
 
-//----------------------------------------------------------------------------//
-// currentConfig                                                              //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanConfig::currentConfig                                                                                          //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 QCanUsart::QCanUsartConfig_ts & QCanConfig::currentConfig()
 {
-   tsCurrentConfigP.ubDirection = clQCanCfgGuiP.clComboBoxCOMDirection->currentIndex();
-   tsCurrentConfigP.ubMode = (clQCanCfgGuiP.clComboBoxCOMMode->currentIndex()+4);
+   tsCurrentConfigP.ubDirection = (uint8_t) clQCanCfgGuiP.clComboBoxCOMDirection->currentIndex();
+   tsCurrentConfigP.ubMode      = (uint8_t) (clQCanCfgGuiP.clComboBoxCOMMode->currentIndex()+4);
 
    return tsCurrentConfigP;
 }

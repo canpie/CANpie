@@ -59,7 +59,7 @@
 
 //-----------------------------------------------------------------------------
 /*!
-** \defgroup CP_CONF  CANpie configuration options
+** \defgroup CP_CONF  %CANpie FD configuration options
 **
 ** The CANpie driver can be configured during compile time via
 ** several configuration options. They are typically defined in
@@ -132,7 +132,9 @@
 ** - 0 = no marker field (not supported by hardware / driver)
 ** - 1 = include marker field
 */
+#ifndef  CP_CAN_MSG_MARKER
 #define  CP_CAN_MSG_MARKER          1
+#endif
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -144,7 +146,9 @@
 ** - 0 = no time-stamp field (not supported by hardware / driver)
 ** - 1 = include time-stamp field
 */
+#ifndef  CP_CAN_MSG_TIME
 #define  CP_CAN_MSG_TIME            1
+#endif
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -156,7 +160,9 @@
 ** - 0 = no user-defined field (not supported by driver)
 ** - 1 = include user-defined field
 */
+#ifndef  CP_CAN_MSG_USER
 #define  CP_CAN_MSG_USER            1
+#endif
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -167,7 +173,9 @@
 ** supported by the driver. For a LPC2294 microcontroller the value
 ** would be 4 (4 CAN channels).
 */
+#ifndef  CP_CHANNEL_MAX
 #define  CP_CHANNEL_MAX             1
+#endif
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -197,6 +205,17 @@
 */
 #define  CP_STATISTIC               1
 
+/*-------------------------------------------------------------------*/
+/*!
+** \def  CP_NRL_CHANNEL_MAX
+** \ingroup CP_CONF
+**
+** This symbol defines the total number of Network Redundancy Layer
+** (NRL) channels supported by the driver. A value of 0 denotes that 
+** a Network Redundancy Layer is not supported.
+** 
+*/
+#define  CP_NRL_CHANNEL_MAX         1
 
 
 /*----------------------------------------------------------------------------*\
@@ -220,6 +239,11 @@ struct CpPortEmbedded_s {
    /*!   Private driver information 
    */
    uint8_t     ubDrvInfo;
+
+   #if CP_NRL_CHANNEL_MAX > 0
+   uint8_t     ubNrlChannel;
+   #endif
+
 
 };
 

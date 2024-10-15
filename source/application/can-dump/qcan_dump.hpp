@@ -61,13 +61,18 @@ class QCanDump : public QObject
    Q_OBJECT
 
 public:
-   QCanDump(QObject *parent = 0);
+   QCanDump(QObject *parent = nullptr);
+
+   QCanDump(const QCanDump&) = delete;               // no copy constructor
+   QCanDump& operator=(const QCanDump&) = delete;    // no assignment operator
+   QCanDump(QCanDump&&) = delete;                    // no move constructor
+   QCanDump& operator=(QCanDump&&) = delete;         // no move operator
 
 public slots:
    void  aboutToQuitApp(void);
 
 private slots:
-   void  onNetworkObjectReceived(const CAN_Channel_e teChannelV, QJsonObject clNetworkConfigV);
+   void  onNetworkObjectReceived(const QCan::CAN_Channel_e teChannelV, QJsonObject clNetworkConfigV);
    void  onServerObjectReceived(QJsonObject clServerConfigV);
    void  onServerStateChanged(enum QCanServerSettings::State_e teStateV);
 
@@ -115,7 +120,7 @@ private:
    //----------------------------------------------------------------------------------------------
    // Number of selected CAN channel
    //
-   CAN_Channel_e                 teCanChannelP;
+   QCan::CAN_Channel_e           teCanChannelP;
    
    //----------------------------------------------------------------------------------------------
    // CAN frame filter list

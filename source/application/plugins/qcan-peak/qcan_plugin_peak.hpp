@@ -26,8 +26,8 @@
 //                                                                            //
 //============================================================================//
 
-#ifndef QCAN_PLUGIN_PEAK_H_
-#define QCAN_PLUGIN_PEAK_H_
+#ifndef QCAN_PLUGIN_PEAK_HPP_
+#define QCAN_PLUGIN_PEAK_HPP_
 
 #include <QtCore/QLibrary>
 #include <QtCore/QObject>
@@ -80,17 +80,21 @@ private:
     * \brief pclPcanBasicP
     * Reference to the static PCAN Basic lib
     */
-   QCanPcanBasic &pclPcanBasicP = QCanPcanBasic::getInstance();
+   QCanPcanBasic &pclPcanBasicP = QCanPcanBasic::instance();
 
 public:
    QCanPluginPeak();
-   ~QCanPluginPeak();
+   ~QCanPluginPeak() override;
 
-   QIcon           icon(void) Q_DECL_OVERRIDE;
-   uint8_t         interfaceCount(void) Q_DECL_OVERRIDE;
-   QCanInterface * getInterface(uint8_t ubInterfaceV) Q_DECL_OVERRIDE;
-   QString         name(void) Q_DECL_OVERRIDE;
+   QCanPluginPeak(const QCanPluginPeak&) = delete;               // no copy constructor
+   QCanPluginPeak& operator=(const QCanPluginPeak&) = delete;    // no assignment operator
+   QCanPluginPeak(QCanPluginPeak&&) = delete;                    // no move constructor
+   QCanPluginPeak& operator=(QCanPluginPeak&&) = delete;         // no move operator
+
+   QIcon          icon(void) override;
+   uint8_t        interfaceCount(void) override;
+   QCanInterface  *getInterface(uint8_t ubInterfaceV) override;
+   QString        name(void) override;
 };
 
-#endif /*QCAN_PLUGIN_PEAK_H_*/
-
+#endif /*QCAN_PLUGIN_PEAK_HPP_*/

@@ -62,6 +62,11 @@ public:
 
    QCanInterfaceWidget(uint8_t ubIdxV);
 
+   QCanInterfaceWidget(const QCanInterfaceWidget&) = delete;               // no copy constructor
+   QCanInterfaceWidget& operator=(const QCanInterfaceWidget&) = delete;    // no assignment operator
+   QCanInterfaceWidget(QCanInterfaceWidget&&) = delete;                    // no move constructor
+   QCanInterfaceWidget& operator=(QCanInterfaceWidget&&) = delete;         // no move operator
+
    /*!
     * \brief setIcon
     * \param clIconR - Icon
@@ -72,7 +77,6 @@ public:
    /*!
     * \brief setInterface
     * \param clNameV - Name of a plugin
-    * \param ubChannelV - Channel number
     * \return Returns true if given plugin could be set
     */
    bool setInterface(QString clNameV);
@@ -106,8 +110,8 @@ private:
    QList<QCanPlugin *> apclQCanPluginP;
 
 protected:
-   void mousePressEvent(QMouseEvent *event);
-   void paintEvent(QPaintEvent *event);
+   void mousePressEvent(QMouseEvent *event) override;
+   void paintEvent(QPaintEvent *event) override;
    bool loadPlugin(void);
 
 private slots:
@@ -127,12 +131,12 @@ signals:
    ** This signal is emitted by the CAN network to inform the application about status changes or
    ** error conditions.
    */
-   void  addLogMessage(const CAN_Channel_e & ubChannelR,
-                       const QString & clMessageR, const LogLevel_e & teLogLevelR = eLOG_LEVEL_WARN);
+   void  addLogMessage(const QCan::CAN_Channel_e & ubChannelR,
+                       const QString & clMessageR, const QCan::LogLevel_e & teLogLevelR = QCan::eLOG_LEVEL_WARN);
 
    void clicked(bool checked = false );
 
-   void interfaceChanged(const CAN_Channel_e & ubChannelR, QCanInterface * pclInterfaceV);
+   void interfaceChanged(const QCan::CAN_Channel_e & ubChannelR, QCanInterface * pclInterfaceV);
 
 };
 

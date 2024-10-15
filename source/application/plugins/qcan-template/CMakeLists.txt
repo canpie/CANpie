@@ -3,7 +3,7 @@
 #                                                                                                                      #
 #----------------------------------------------------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 3.16.4 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 cmake_policy(SET CMP0048 NEW)
 
 message("-- Configure plugin QCanTemplate")
@@ -18,8 +18,15 @@ project(QCanTemplate VERSION 1.00.4)
 # add project CMake module include path
 #
 SET( CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../../cmake" ${CMAKE_MODULE_PATH})
-INCLUDE(AddCompilerFlags )
-INCLUDE(AddSourceDirectories )
+INCLUDE(module/CompilerFlags)
+INCLUDE(CpDirectories)
+
+
+#-------------------------------------------------------------------------------------------------------
+# Make sure no sub-directories are automatically created for the binary during build
+#
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR})
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${CMAKE_CURRENT_BINARY_DIR})
 
 
 #-------------------------------------------------------------------------------------------------------
@@ -49,19 +56,59 @@ list(
 list(
    APPEND QCAN_SOURCES
    ${CP_PATH_QCAN}/qcan_frame.cpp
+   ${CP_PATH_QCAN}/qcan_plugin.cpp
    ${CP_PATH_QCAN}/qcan_timestamp.cpp
 )
 
 list (APPEND RESOURCES qcan_template.qrc)
 
+#-------------------------------------------------------------------------------------------------------
+# Test for Linux system 
+#
+if(UNIX AND NOT APPLE)
+   set(LINUX TRUE)
+endif()
+
+
+#-------------------------------------------------------------------------------------------------------
+# Use C++ 17 standard
+#
+set(CMAKE_CXX_STANDARD 17)
+
+#-------------------------------------------------------------------------------------------------------
+# Configure Qt support
+# Do not use the 'set(CMAKE_AUTOMOC ON)' command here, because this will produce conflicting header
+# files which are automatically included.
+#
+set(QT_VERSION_MAJOR 0)
+
+if (${QT_VERSION_MAJOR} EQUAL 0)
+   find_package(Qt5 QUIET COMPONENTS Core Widgets )
+   if (Qt5_FOUND)
+      set(QT_VERSION_MAJOR 5)
+      message("-- Found Qt version 5" )
+   endif()
+endif()
+
+
+if (${QT_VERSION_MAJOR} EQUAL 0)
+   find_package(Qt6 QUIET COMPONENTS Core Widgets )
+   if (Qt6_FOUND)
+      set(QT_VERSION_MAJOR 6)
+      message("-- Found Qt version 6" )
+   endif()
+endif()
+
+
+if (${QT_VERSION_MAJOR} EQUAL 0)
+   message(FATAL_ERROR  "-- No matchig Qt version (5 or 6) found")
+endif()
 
 #-------------------------------------------------------------------------------------------------------
 # Qt specific setup: use moc and rcc, check for required Qt libraries
 #
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
-
-find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
 
 
 #-------------------------------------------------------------------------------------------------------
@@ -73,7 +120,7 @@ add_library(${PROJECT_NAME} SHARED ${PLUGIN_SOURCES} ${QCAN_SOURCES} ${RESOURCES
 #-------------------------------------------------------------------------------------------------------
 # link Qt libs 
 #
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Core Qt5::Widgets)
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Widgets)
 
 
 #-------------------------------------------------------------------------------------------------------

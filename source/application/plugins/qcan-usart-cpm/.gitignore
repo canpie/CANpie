@@ -1,8 +1,0 @@
-/objs/
-/.DS_Store
-/.qmake.stash
-/include
-/debug
-/release
-/Makefile*
-/ui_*.h

@@ -59,7 +59,7 @@ TestQCanSocket::~TestQCanSocket()
 //--------------------------------------------------------------------------------------------------------------------//
 void TestQCanSocket::initTestCase()
 {
-   pclSocketP->connectNetwork(eCAN_CHANNEL_1);
+   pclSocketP->connectNetwork(QCan::eCAN_CHANNEL_1);
    QTest::qWait(500);
 
    if (pclSocketP->isConnected())
@@ -87,7 +87,7 @@ void TestQCanSocket::checkConnect()
    }
    else
    {
-      pclSocketP->connectNetwork(eCAN_CHANNEL_1);
+      pclSocketP->connectNetwork(QCan::eCAN_CHANNEL_1);
       QTest::qWait(500);
 
       QVERIFY(pclSocketP->isConnected() == true);
@@ -126,7 +126,7 @@ void TestQCanSocket::checkFrameWrite()
    }
    else
    {
-      pclSocketP->connectNetwork(eCAN_CHANNEL_1);
+      pclSocketP->connectNetwork(QCan::eCAN_CHANNEL_1);
       QTest::qWait(500);
 
       QVERIFY(pclSocketP->isConnected() == true);

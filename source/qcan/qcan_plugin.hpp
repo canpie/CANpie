@@ -38,6 +38,12 @@
 **                                                                                                                    **
 \*--------------------------------------------------------------------------------------------------------------------*/
 
+#include <QtCore/QDateTime>
+#include <QtCore/QFile>
+#include <QtCore/QObject>
+#include <QtGui/QIcon>
+
+
 #include "qcan_interface.hpp"
 
 
@@ -48,16 +54,25 @@
 ** \brief CAN plug-in representation
 **
 ** The QCanPlugin class is the base class for CAN interface plug-ins, which can be used to add any kind of
-** CAN interface cards to the \ref page.cp_server.
+** CAN interface cards to the \ref canpie_server.
 ** <p>
 ** For an example of the QCanPlugin class refer to the QCanPluginTemplate class located inside the
-** \c source/qcan/applications/plugins/qcan_template directory.
+** \c source/applications/plugins/qcan_template directory.
 ** 
 */
 class QCanPlugin : public QObject
 {
+   Q_OBJECT
 
 public:
+
+   QCanPlugin();
+   
+   QCanPlugin(const QCanPlugin &) = delete;            
+   QCanPlugin& operator=(const QCanPlugin &) = delete;
+
+   QCanPlugin(QCanPlugin&&) = delete;                    // no move constructor
+   QCanPlugin& operator=(QCanPlugin&&) = delete;         // no move operator
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -97,7 +112,46 @@ public:
    */
    virtual QString         name(void) = 0;
 
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]  clFileNameV    Log file name
+   ** \return     \c true if file could be opened, otherwise \c false
+   **
+   ** The function changes the default file path and file name for the log attached to the CAN
+   ** channel defined by the parameter \a teChannelV.
+   */
+   bool                    setFileName(const QString clFileNameV);
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]  teLogLevelV       Log level
+   ** \see        logLevel()
+   **
+   ** The function changes the default log level for the plugin.
+   */
+   inline void             setLogLevel(QCan::LogLevel_e teLogLevelV)    {  teLogLevelP = teLogLevelV; }
+
+public slots:
+
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]  clLogMessageV     Log message
+   ** \param[in]  teLogLevelV       Log level
+   **
+   ** The function function appends a log message to the log file. The message will be prepended
+   ** with a time-stamp. The parameter \c teLogLevelV defines the log level of the message.
+   ** Only messages with a log level smaller or equal to the actual defined log level will be appended
+   ** (see setLogLevel()).
+   */
+   virtual void            appendMessage(const QString & clLogMessageV,
+                                         const QCan::LogLevel_e teLogLevelV = QCan::eLOG_LEVEL_INFO);
+
 private:
+
+   QDateTime               clTimeP;
+   QString                 clLogMessageP;
+   std::unique_ptr<QFile>  pclLogFileP;
+   QCan::LogLevel_e        teLogLevelP;
 
 };
 

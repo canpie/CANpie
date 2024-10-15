@@ -111,48 +111,54 @@ void TestQCanTimeStamp::checkValueRange()
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// checkConversion()                                                          //
-// check conversions from other units                                         //
+// checkConversion()                                                                                                  //
+// check conversions from other units                                                                                 //
 //--------------------------------------------------------------------------------------------------------------------//
 void TestQCanTimeStamp::checkConversion()
 {
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // set 5005 micro-seconds
    //
    pclTimestampA->fromMicroSeconds(5005);
    QVERIFY(pclTimestampA->seconds()     == 0);
    QVERIFY(pclTimestampA->nanoSeconds() == 5005000);
    
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // set 999999 micro-seconds
    //
    pclTimestampA->fromMicroSeconds(999999);
    QVERIFY(pclTimestampA->seconds()     == 0);
    QVERIFY(pclTimestampA->nanoSeconds() == 999999000);
    
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // set 1000000 micro-seconds
    //
    pclTimestampA->fromMicroSeconds(1000000);
    QVERIFY(pclTimestampA->seconds()     == 1);
    QVERIFY(pclTimestampA->nanoSeconds() == 0);
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // set 5000005 micro-seconds
    //
    pclTimestampA->fromMicroSeconds(5000005);
    QVERIFY(pclTimestampA->seconds()     == 5);
    QVERIFY(pclTimestampA->nanoSeconds() == 5000);
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // set 4294967295 micro-seconds
    //
    pclTimestampA->fromMicroSeconds(4294967295);
    QVERIFY(pclTimestampA->seconds()     == 4294);
    QVERIFY(pclTimestampA->nanoSeconds() == 967295000);
    
+   //---------------------------------------------------------------------------------------------------
+   // set 80.900.555.600 micro-seconds
+   //
+   pclTimestampA->fromMicroSeconds(80900555600);
+   QVERIFY(pclTimestampA->seconds()     == 80900);
+   QVERIFY(pclTimestampA->nanoSeconds() == 555600000);
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // set 505 milli-seconds
    //
    pclTimestampA->fromMilliSeconds(505);
@@ -190,8 +196,8 @@ void TestQCanTimeStamp::checkConversion()
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
-// checkOperatorCompare()                                                     //
-// check comparision between time-stamp values                                //
+// checkOperatorCompare()                                                                                             //
+// check comparision between time-stamp values                                                                        //
 //--------------------------------------------------------------------------------------------------------------------//
 void TestQCanTimeStamp::checkOperatorCompare()
 {

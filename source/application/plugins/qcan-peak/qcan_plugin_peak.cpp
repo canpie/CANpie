@@ -1,47 +1,59 @@
-//============================================================================//
-// File:          qcan_plugin_peak.cpp                                        //
-// Description:   CAN plugin for PCAN Basic library                           //
-//                                                                            //
-// Copyright (C) MicroControl GmbH & Co. KG                                   //
-// 53842 Troisdorf - Germany                                                  //
-// www.microcontrol.net                                                       //
-//                                                                            //
-//----------------------------------------------------------------------------//
-// Redistribution and use in source and binary forms, with or without         //
-// modification, are permitted provided that the following conditions         //
-// are met:                                                                   //
-// 1. Redistributions of source code must retain the above copyright          //
-//    notice, this list of conditions, the following disclaimer and           //
-//    the referenced file 'COPYING'.                                          //
-// 2. Redistributions in binary form must reproduce the above copyright       //
-//    notice, this list of conditions and the following disclaimer in the     //
-//    documentation and/or other materials provided with the distribution.    //
-// 3. Neither the name of MicroControl nor the names of its contributors      //
-//    may be used to endorse or promote products derived from this software   //
-//    without specific prior written permission.                              //
-//                                                                            //
-// Provided that this notice is retained in full, this software may be        //
-// distributed under the terms of the GNU Lesser General Public License       //
-// ("LGPL") version 3 as distributed in the 'COPYING' file.                   //
-//                                                                            //
-//============================================================================//
+//====================================================================================================================//
+// File:          qcan_plugin_peak.cpp                                                                                //
+// Description:   CAN plugin for PCAN Basic library                                                                   //
+//                                                                                                                    //
+// Copyright (C) MicroControl GmbH & Co. KG                                                                           //
+// 53844 Troisdorf - Germany                                                                                          //
+// www.microcontrol.net                                                                                               //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the   //
+// following conditions are met:                                                                                      //
+// 1. Redistributions of source code must retain the above copyright notice, this list of conditions, the following   //
+//    disclaimer and the referenced file 'LICENSE'.                                                                   //
+// 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the       //
+//    following disclaimer in the documentation and/or other materials provided with the distribution.                //
+// 3. Neither the name of MicroControl nor the names of its contributors may be used to endorse or promote products   //
+//    derived from this software without specific prior written permission.                                           //
+//                                                                                                                    //
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance     //
+// with the License. You may obtain a copy of the License at                                                          //
+//                                                                                                                    //
+//    http://www.apache.org/licenses/LICENSE-2.0                                                                      //
+//                                                                                                                    //
+// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed   //
+// on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for  //
+// the specific language governing permissions and limitations under the License.                                     //
+//                                                                                                                    //
+//====================================================================================================================//
+
+
+
+
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Include files                                                                                                      **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
 
 #include "qcan_plugin_peak.hpp"
 
-//----------------------------------------------------------------------------//
-// QCanPluginPeak()                                                           //
-//                                                                            //
-//----------------------------------------------------------------------------//
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanPluginPeak()                                                                                                   //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 QCanPluginPeak::QCanPluginPeak()
 {
+   #ifndef QT_NO_DEBUG_OUTPUT
    qDebug() << "QCanPluginPeak::QCanPluginPeak()";
+   #endif
 
    // reset number of interfaces
-//   apclQCanInterfacePeakP.clear();
    atsQCanIfPeakP.clear();
    auwPCanChannelP.clear();
 
-   //----------------------------------------------------------------
+
+   //---------------------------------------------------------------------------------------------------
    // check PCAN Basic lib is available
    //
    if (!pclPcanBasicP.isAvailable())
@@ -78,15 +90,18 @@ QCanPluginPeak::QCanPluginPeak()
    }
 }
 
-//----------------------------------------------------------------------------//
-// ~QCanPeakUsb()                                                             //
-//                                                                            //
-//----------------------------------------------------------------------------//
+
+//--------------------------------------------------------------------------------------------------------------------//
+// ~QCanPeakUsb()                                                                                                     //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 QCanPluginPeak::~QCanPluginPeak()
 {
+   #ifndef QT_NO_DEBUG_OUTPUT
    qDebug() << "QCanPluginPeak::~QCanPluginPeak()";
+   #endif
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // disconnect all connected interfaces and delete objects
    //
    foreach (QCanIf_ts tsCanIfEntryT, atsQCanIfPeakP)
@@ -96,19 +111,20 @@ QCanPluginPeak::~QCanPluginPeak()
          tsCanIfEntryT.pclQCanInterfacePeak->disconnect();
       }
       tsCanIfEntryT.pclQCanInterfacePeak->deleteLater();
-      tsCanIfEntryT.pclQCanInterfacePeak = NULL;
+      tsCanIfEntryT.pclQCanInterfacePeak = nullptr;
    }
 
    atsQCanIfPeakP.clear();
 }
 
-//----------------------------------------------------------------------------//
-// interfaceCount()                                                           //
-//                                                                            //
-//----------------------------------------------------------------------------//
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanPluginPeak::interfaceCount()                                                                                   //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 uint8_t QCanPluginPeak::interfaceCount()
 {
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // check conditions of each channel
    //
    TPCANStatus    tsStatusT;
@@ -116,24 +132,29 @@ uint8_t QCanPluginPeak::interfaceCount()
    QCanIf_ts      tsCanIfEntryT;
    bool           btIfIsInListT;
 
+   #ifndef QT_NO_DEBUG_OUTPUT
    qDebug() << "QCanPluginPeak::interfaceCount()";
+   #endif
 
    if (!pclPcanBasicP.isAvailable())
    {
       return 0;
    }
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // remove all not connected devices and add new
    //
-   for (uint8_t ubPCanChnT = 0; ubPCanChnT < (uint8_t)auwPCanChannelP.length(); ubPCanChnT++)
+   for (uint8_t ubPCanChnT = 0; ubPCanChnT < static_cast< uint8_t >(auwPCanChannelP.length()); ubPCanChnT++)
    {
-      tsStatusT = pclPcanBasicP.pfnCAN_GetValueP(auwPCanChannelP[ubPCanChnT], PCAN_CHANNEL_CONDITION,
-                                         (void*)&ulParmBufferT, sizeof(ulParmBufferT));
+      tsStatusT = pclPcanBasicP.pfnCAN_GetValueP( auwPCanChannelP[ubPCanChnT], PCAN_CHANNEL_CONDITION,
+                                                  static_cast< void* >(&ulParmBufferT), sizeof(ulParmBufferT));
       if (tsStatusT != PCAN_ERROR_OK)
       {
-         qDebug() << "QCanPluginPeak::QCanPluginPeak()" << pclPcanBasicP.formatedError(tsStatusT);
-      } else if ((ulParmBufferT & PCAN_CHANNEL_AVAILABLE) == PCAN_CHANNEL_AVAILABLE)
+         #ifndef QT_NO_DEBUG_OUTPUT
+         qDebug() << "QCanPluginPeak::QCanPluginPeak()" << pclPcanBasicP.errorString(tsStatusT);
+         #endif
+      } 
+      else if ((ulParmBufferT & PCAN_CHANNEL_AVAILABLE) == PCAN_CHANNEL_AVAILABLE)
       {
          // -----------------------------------------------
          // check this channel is already in the atsQCanIfPeakP list
@@ -173,7 +194,7 @@ uint8_t QCanPluginPeak::interfaceCount()
          //------------------------------------------------
          // if this channel is in atsQCanIfPeakP
          //
-         for (uint8_t ubCntrT = 0; ubCntrT < (uint8_t)atsQCanIfPeakP.length(); ubCntrT++)
+         for (uint8_t ubCntrT = 0; ubCntrT < static_cast< uint8_t >(atsQCanIfPeakP.length()); ubCntrT++)
          {
             if (atsQCanIfPeakP.at(ubCntrT).uwPCanChannel == auwPCanChannelP[ubPCanChnT])
             {
@@ -195,43 +216,51 @@ uint8_t QCanPluginPeak::interfaceCount()
    // Length of apclQCanInterfacePeakP corresponds always to
    // the actual available interface number
    //
-   return (uint8_t)atsQCanIfPeakP.length();
+   return static_cast< uint8_t >(atsQCanIfPeakP.length());
 }
 
-//----------------------------------------------------------------------------//
-// getInterface()                                                             //
-//                                                                            //
-//----------------------------------------------------------------------------//
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanPluginPeak::getInterface()                                                                                     //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 QCanInterface * QCanPluginPeak::getInterface(uint8_t ubInterfaceV)
 {
+   #ifndef QT_NO_DEBUG_OUTPUT
    qDebug() << "QCanPluginPeak::getInterface(" + QString::number(ubInterfaceV,10) +")";
+   #endif
+
    if (ubInterfaceV < atsQCanIfPeakP.length())
    {
-      qDebug() << "QCanPluginPeak::getInterface() INFO: return pointer to interface" << QString::number(ubInterfaceV);
+      #ifndef QT_NO_DEBUG_OUTPUT
+      qDebug() << "QCanPluginPeak::getInterface() : return pointer to interface" << QString::number(ubInterfaceV);
+      #endif
 
       return (atsQCanIfPeakP.at(ubInterfaceV).pclQCanInterfacePeak);
    }
 
-   qDebug() << "QCanPluginPeak::getInterface() CRITICAL: interface" << QString::number(ubInterfaceV) << "is not available!";
+   #ifndef QT_NO_DEBUG_OUTPUT
+   qDebug() << "QCanPluginPeak::getInterface() : interface" << QString::number(ubInterfaceV) << "is not available!";
+   #endif
 
-   return NULL;
+   return nullptr;
 }
 
 
-//----------------------------------------------------------------------------//
-// icon()                                                                     //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanPluginPeak::icon()                                                                                             //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 QIcon QCanPluginPeak::icon()
 {
    return QIcon(":/images/pcan_256.png");
 }
 
 
-//----------------------------------------------------------------------------//
-// name()                                                                     //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanPluginPeak::name()                                                                                             //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 QString QCanPluginPeak::name()
 {
    return QString("PEAK PCANBasic");

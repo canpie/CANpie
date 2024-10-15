@@ -56,7 +56,7 @@
 ** 
 ** The symbol TIME_STAMP_SECS_LIMIT defines the maximum value for the seconds field of the time-stamp.
 */
-#define  TIME_STAMP_SECS_LIMIT      ((uint32_t) 4290000000)
+const uint32_t TIME_STAMP_SECS_LIMIT = 4290000000;
 
 
 //------------------------------------------------------------------------------------------------------
@@ -66,7 +66,7 @@
 ** The symbol TIME_STAMP_NSEC_LIMIT defines the maximum value for the nanoseconds field of the
 ** time-stamp.
 */
-#define  TIME_STAMP_NSEC_LIMIT      ((uint32_t)  999999999)
+const uint32_t TIME_STAMP_NSEC_LIMIT = 999999999;
 
 
 //------------------------------------------------------------------------------------------------------
@@ -75,7 +75,7 @@
 ** 
 ** The symbol TIME_STAMP_INVALID_VALUE defines the invalid value for both data fields.
 */
-#define  TIME_STAMP_INVALID_VALUE   ((uint32_t) 0xFFFFFFEE)
+const uint32_t TIME_STAMP_INVALID_VALUE = 0xFFFFFFEE;
 
 
 //------------------------------------------------------------------------------------------------------
@@ -114,7 +114,7 @@ public:
    /*!
    ** Clear time-stamp by setting both data fields to 0. 
    */
-   void              clear(void);
+   void                 clear(void);
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -122,7 +122,7 @@ public:
    ** 
    ** Set the time-stamp value according to the parameter \a ulMicroSecondsV.
    */
-   void              fromMicroSeconds(uint32_t ulMicroSecondsV);
+   void                 fromMicroSeconds(uint64_t uqMicroSecondsV);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -131,7 +131,7 @@ public:
    ** 
    ** Set the time-stamp value according to the parameter \a ulMilliSecondsV.
    */   
-   void              fromMilliSeconds(uint32_t ulMilliSecondsV);
+   void                 fromMilliSeconds(uint64_t uqMilliSecondsV);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -141,7 +141,7 @@ public:
    ** Returns \c true if this time-stamp is within the valid value range. The limit for the data fields
    ** are defined by #TIME_STAMP_SECS_LIMIT and #TIME_STAMP_NSEC_LIMIT.
    */
-   bool              isValid(void);
+   bool                 isValid(void);
    
    
    //---------------------------------------------------------------------------------------------------
@@ -152,7 +152,7 @@ public:
    ** Returns the nanoseconds part of this time-stamp. A return value of #TIME_STAMP_INVALID_VALUE marks
    ** the time-stamp value as invalid. The validity of a time-stamp can be tested with isValid().
    */
-   inline uint32_t   nanoSeconds(void) const   { return (ulNanoSecondsP);  };
+   inline uint32_t      nanoSeconds(void) const   { return (ulNanoSecondsP);  }
 
 
    //---------------------------------------------------------------------------------------------------
@@ -173,7 +173,7 @@ public:
    ** Returns the seconds part of this time-stamp. A return value of #TIME_STAMP_INVALID_VALUE marks the
    ** time-stamp value as invalid. The validity of a time-stamp can be tested with isValid().
    */
-   inline uint32_t   seconds(void) const       { return (ulSecondsP);      };
+   inline uint32_t   seconds(void) const       { return (ulSecondsP);      }
 
    
    //---------------------------------------------------------------------------------------------------
@@ -206,7 +206,7 @@ public:
    **
    ** The function converts a QCanTimeStamp object to a QByteArray. 
    */
-   QByteArray  toByteArray(void) const;
+   QByteArray        toByteArray(void) const;
 
 
    //---------------------------------------------------------------------------------------------------

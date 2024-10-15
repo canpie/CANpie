@@ -39,9 +39,11 @@
 \*--------------------------------------------------------------------------------------------------------------------*/
 
 
-#define  CAN_ERROR_LIMIT_WARNING    ((uint8_t)  96)
-#define  CAN_ERROR_LIMIT_PASSIVE    ((uint8_t) 128)
-#define  CAN_ERROR_LIMIT_BUS_OFF    ((uint8_t) 255)
+constexpr uint8_t    CAN_ERROR_LIMIT_WARNING =  96;
+
+constexpr uint8_t    CAN_ERROR_LIMIT_PASSIVE = 128;
+
+constexpr uint8_t    CAN_ERROR_LIMIT_BUS_OFF = 255;
 
 //------------------------------------------------------------------------------------------------------
 /*!

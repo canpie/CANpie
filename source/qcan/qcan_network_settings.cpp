@@ -47,14 +47,13 @@
 
 
 
-
 //--------------------------------------------------------------------------------------------------------------------//
 // QCanNetworkSettings::QCanNetworkSettings()                                                                         //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-QCanNetworkSettings::QCanNetworkSettings(const CAN_Channel_e teChannelV, QObject * pclParentV)
+QCanNetworkSettings::QCanNetworkSettings(const QCan::CAN_Channel_e teChannelV, QObject * pclParentV)
 {
-   if (pclParentV != Q_NULLPTR)
+   if (pclParentV != nullptr)
    {
       this->setParent(pclParentV);
    }
@@ -74,7 +73,7 @@ QCanNetworkSettings::QCanNetworkSettings(const CAN_Channel_e teChannelV, QObject
    // Initialize JSON object for commands to server
    //
    clJsonCommandP["apiVersion"]           = "1.0";
-   clJsonCommandP["channel"]              = (int32_t) teChannelP;
+   clJsonCommandP["channel"]              = static_cast< int32_t>(teChannelP);
 
 }
 
@@ -109,8 +108,15 @@ void QCanNetworkSettings::connectToServer(const QHostAddress clServerAddressV, c
    QObject::connect( pclWebSocketP, &QWebSocket::disconnected,        
                      this, &QCanNetworkSettings::onSocketDisconnect);
 
-   QObject::connect( pclWebSocketP, static_cast<void(QWebSocket::*)(QAbstractSocket::SocketError)>(&QWebSocket::error),  
+   #if QT_VERSION > QT_VERSION_CHECK(6, 4, 0)
+   QObject::connect( pclWebSocketP, 
+                     static_cast<void(QWebSocket::*)(QAbstractSocket::SocketError)>(&QWebSocket::errorOccurred),  
                      this, &QCanNetworkSettings::onSocketError);
+   #else
+   QObject::connect( pclWebSocketP, 
+                     static_cast<void(QWebSocket::*)(QAbstractSocket::SocketError)>(&QWebSocket::error),  
+                     this, &QCanNetworkSettings::onSocketError);
+   #endif
 
    QObject::connect( pclWebSocketP, &QWebSocket::textFrameReceived,        
                      this, &QCanNetworkSettings::onSocketMessageReceived);
@@ -142,7 +148,7 @@ void QCanNetworkSettings::closeConnection(void)
 //--------------------------------------------------------------------------------------------------------------------//
 int32_t QCanNetworkSettings::dataBitrate(void)
 {
-   int32_t  slResultT = eCAN_BITRATE_NONE;
+   int32_t  slResultT = QCan::eCAN_BITRATE_NONE;
 
    if (teServerStateP == QCanNetworkSettings::eSTATE_ACTIVE)
    {
@@ -173,7 +179,7 @@ QString QCanNetworkSettings::dataBitrateString(void)
    //---------------------------------------------------------------------------------------------------
    // Test for unknown bit-rate first
    //
-   if (slBitrateT == eCAN_BITRATE_NONE)
+   if (slBitrateT == QCan::eCAN_BITRATE_NONE)
    {
       clResultT = "None";
    }
@@ -203,9 +209,9 @@ QString QCanNetworkSettings::dataBitrateString(void)
 // QCanNetworkSettings::errorCount()                                                                                  //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-int32_t QCanNetworkSettings::errorCount(void)
+uint32_t QCanNetworkSettings::errorCount(void)
 {
-   int32_t teResultT = -1;
+   uint32_t ulResultT = 0;
 
    if (teServerStateP == QCanNetworkSettings::eSTATE_ACTIVE)
    {
@@ -213,12 +219,16 @@ int32_t QCanNetworkSettings::errorCount(void)
       {
          if (clJsonNetworkP.contains("frameCountError"))
          {
-            teResultT = clJsonNetworkP.value("frameCountError").toInt();
+            #if QT_VERSION > QT_VERSION_CHECK(5, 15, 0)
+            ulResultT = static_cast< uint32_t >(clJsonNetworkP.value("frameCountError").toInteger());
+            #else
+            ulResultT = static_cast< uint32_t >(clJsonNetworkP.value("frameCountError").toInt());
+            #endif
          }
       }
    }
 
-   return (teResultT);
+   return (ulResultT);
 }
 
 
@@ -226,9 +236,9 @@ int32_t QCanNetworkSettings::errorCount(void)
 // QCanNetworkSettings::frameCount()                                                                                  //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-int32_t QCanNetworkSettings::frameCount(void)
+uint32_t QCanNetworkSettings::frameCount(void)
 {
-   int32_t teResultT = -1;
+   uint32_t ulResultT = 0;
 
    if (teServerStateP == QCanNetworkSettings::eSTATE_ACTIVE)
    {
@@ -236,12 +246,16 @@ int32_t QCanNetworkSettings::frameCount(void)
       {
          if (clJsonNetworkP.contains("frameCount"))
          {
-            teResultT = clJsonNetworkP.value("frameCount").toInt();
+            #if QT_VERSION > QT_VERSION_CHECK(5, 15, 0)
+            ulResultT = static_cast< uint32_t >(clJsonNetworkP.value("frameCount").toInteger());
+            #else
+            ulResultT = static_cast< uint32_t >(clJsonNetworkP.value("frameCount").toInt());
+            #endif
          }
       }
    }
 
-   return (teResultT);
+   return (ulResultT);
 }
 
 
@@ -310,7 +324,7 @@ QString QCanNetworkSettings::name(void)
 //--------------------------------------------------------------------------------------------------------------------//
 int32_t QCanNetworkSettings::nominalBitrate(void)
 {
-   int32_t  slResultT = eCAN_BITRATE_NONE;
+   int32_t  slResultT = QCan::eCAN_BITRATE_NONE;
 
    if (teServerStateP == QCanNetworkSettings::eSTATE_ACTIVE)
    {
@@ -341,7 +355,7 @@ QString QCanNetworkSettings::nominalBitrateString(void)
    //---------------------------------------------------------------------------------------------------
    // Test for unknown bit-rate first
    //
-   if (slBitrateT == eCAN_BITRATE_NONE)
+   if (slBitrateT == QCan::eCAN_BITRATE_NONE)
    {
       clResultT = "None";
    }
@@ -369,12 +383,17 @@ QString QCanNetworkSettings::nominalBitrateString(void)
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// QCanNetworkSettings::onSocketConnect()                                                                              //
+// QCanNetworkSettings::onSocketConnect()                                                                             //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanNetworkSettings::onSocketConnect(void)
 {
+   //---------------------------------------------------------------------------------------------------
+   // debug information
+   //
+   #ifndef QT_NO_DEBUG_OUTPUT
    qDebug() << "QCanNetworkSettings::onSocketConnect() ";
+   #endif
 
    //---------------------------------------------------------------------------------------------------
    // keep connection state in member variable and signal it 
@@ -388,12 +407,17 @@ void QCanNetworkSettings::onSocketConnect(void)
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// QCanNetworkSettings::onSocketDisconnect()                                                                           //
+// QCanNetworkSettings::onSocketDisconnect()                                                                          //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanNetworkSettings::onSocketDisconnect(void)
 {
+   //---------------------------------------------------------------------------------------------------
+   // debug information
+   //
+   #ifndef QT_NO_DEBUG_OUTPUT
    qDebug() << "QCanNetworkSettings::onSocketDisconnect() ";
+   #endif
 
    //---------------------------------------------------------------------------------------------------
    // keep connection state in member variable and signal it 
@@ -407,14 +431,19 @@ void QCanNetworkSettings::onSocketDisconnect(void)
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// QCanNetworkSettings::onSocketError()                                                                                //
+// QCanNetworkSettings::onSocketError()                                                                               //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanNetworkSettings::onSocketError(QAbstractSocket::SocketError teSocketErrorV)
 {
    State_e  teNewStateV = QCanNetworkSettings::eSTATE_UNKNOWN;
 
+   //---------------------------------------------------------------------------------------------------
+   // debug information
+   //
+   #ifndef QT_NO_DEBUG_OUTPUT
    qDebug() << "QCanNetworkSettings::onSocketError()" << teSocketErrorV;
+   #endif
 
    //---------------------------------------------------------------------------------------------------
    // connection state is modified depending on the SocketError value
@@ -448,12 +477,17 @@ void QCanNetworkSettings::onSocketError(QAbstractSocket::SocketError teSocketErr
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// QCanNetworkSettings::onSocketReceive()                                                                              //
+// QCanNetworkSettings::onSocketReceive()                                                                             //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanNetworkSettings::onSocketMessageReceived(const QString & clMessageR)
 {
+   //---------------------------------------------------------------------------------------------------
+   // debug information
+   //
+   #ifndef QT_NO_DEBUG_OUTPUT
    qDebug() << "QCanNetworkSettings::onSocketMessageReceived()";
+   #endif
 
    //---------------------------------------------------------------------------------------------------
    // The message that we receive here is a JSON object, convert it into a JSON document first
@@ -485,7 +519,7 @@ void QCanNetworkSettings::reset(void)
    //---------------------------------------------------------------------------------------------------
    // Update JSON object for commands to server
    //
-   clJsonCommandP["reset"]                = (bool) true;
+   clJsonCommandP["reset"]                = true;
 
 }
 
@@ -545,8 +579,8 @@ void QCanNetworkSettings::setBitrate(int32_t slNomBitRateV, int32_t slDatBitRate
    //---------------------------------------------------------------------------------------------------
    // Update JSON object for commands to server
    //
-   clJsonCommandP["bitrateData"]          = (int32_t) slDatBitRateV;
-   clJsonCommandP["bitrateNominal"]       = (int32_t) slNomBitRateV;
+   clJsonCommandP["bitrateData"]          = static_cast< int32_t >(slDatBitRateV);
+   clJsonCommandP["bitrateNominal"]       = static_cast< int32_t >(slNomBitRateV);
 
 }
 
@@ -555,7 +589,7 @@ void QCanNetworkSettings::setBitrate(int32_t slNomBitRateV, int32_t slDatBitRate
 // QCanNetworkSettings::setChannel()                                                                                  //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-void QCanNetworkSettings::setChannel(const CAN_Channel_e teChannelV)
+void QCanNetworkSettings::setChannel(const QCan::CAN_Channel_e teChannelV)
 { 
    teChannelP = teChannelV; 
 
@@ -563,7 +597,7 @@ void QCanNetworkSettings::setChannel(const CAN_Channel_e teChannelV)
    // Update JSON object for commands to server
    //
    clJsonCommandP["apiVersion"]           = "1.0";
-   clJsonCommandP["channel"]              = (int32_t) teChannelP;
+   clJsonCommandP["channel"]              = static_cast< int32_t >(teChannelP);
 }
 
 
@@ -571,12 +605,12 @@ void QCanNetworkSettings::setChannel(const CAN_Channel_e teChannelV)
 // QCanNetworkSettings::setMode()                                                                                     //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-void QCanNetworkSettings::setMode(const CAN_Mode_e teModeV)
+void QCanNetworkSettings::setMode(const QCan::CAN_Mode_e teModeV)
 {
    //---------------------------------------------------------------------------------------------------
    // Update JSON object for commands to server
    //
-   clJsonCommandP["mode"]                 = (int32_t) teModeV;
+   clJsonCommandP["mode"]                 = static_cast< int32_t >(teModeV);
 }
 
 
@@ -584,9 +618,9 @@ void QCanNetworkSettings::setMode(const CAN_Mode_e teModeV)
 // QCanNetworkSettings::state()                                                                                       //
 // return CAN network state                                                                                           //
 //--------------------------------------------------------------------------------------------------------------------//
-CAN_State_e QCanNetworkSettings::state(void)
+QCan::CAN_State_e QCanNetworkSettings::state(void)
 {
-   CAN_State_e teResultT = eCAN_STATE_STOPPED;
+   QCan::CAN_State_e teResultT = QCan::eCAN_STATE_STOPPED;
 
    if (teServerStateP == QCanNetworkSettings::eSTATE_ACTIVE)
    {
@@ -594,7 +628,7 @@ CAN_State_e QCanNetworkSettings::state(void)
       {
          if (clJsonNetworkP.contains("state"))
          {
-            teResultT = (CAN_State_e) clJsonNetworkP.value("state").toInt();
+            teResultT = static_cast< QCan::CAN_State_e>(clJsonNetworkP.value("state").toInt());
          }
       }
    }
@@ -611,36 +645,31 @@ QString QCanNetworkSettings::stateString(void)
 {
    QString clResultT;
 
-   switch(state())
+   switch( state() )
    {
-      case eCAN_STATE_STOPPED:
+      case QCan::eCAN_STATE_STOPPED:
          clResultT = "Stopped";
          break;
 
-      case eCAN_STATE_SLEEPING:
+      case QCan::eCAN_STATE_SLEEPING:
          clResultT = "Sleeping";
          break;
 
-      case eCAN_STATE_BUS_ACTIVE:
+      case QCan::eCAN_STATE_BUS_ACTIVE:
          clResultT = "Error active";
          break;
 
-      case eCAN_STATE_BUS_WARN:
+      case QCan::eCAN_STATE_BUS_WARN:
          clResultT = "Warning";
          break;
 
-      case eCAN_STATE_BUS_PASSIVE:
+      case QCan::eCAN_STATE_BUS_PASSIVE:
          clResultT = "Error passive";
          break;
 
-      case eCAN_STATE_BUS_OFF:
+      case QCan::eCAN_STATE_BUS_OFF:
          clResultT = "Bus-off";
          break;
-
-      default:
-         clResultT = "Unknown";
-         break;
-
    }
 
    return (clResultT);

@@ -85,14 +85,15 @@ public:
    */
    QCanFilter();
    
+   virtual ~QCanFilter() {}
+
    QCanFilter(const QCanFilter &clOtherR);
 
-   virtual ~QCanFilter();
-   
+   QCanFilter & operator=(const QCanFilter &clOtherR);
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \param[in]  clFrameR - CAN frame
+   ** \param[in]  teFormatR   frame format
    **
    ** \return     \c TRUE if parameter values are valid
    ** \see        match()
@@ -135,7 +136,7 @@ public:
    ** The function returns the current filter type, which is implicitly set by the functions
    ** acceptFrame() or rejectFrame().
    */
-   FilterType_te  type(void) const        {  return (teFilterTypeP);    };
+   FilterType_te  type(void) const        {  return (teFilterTypeP);    }
 
 private:
    

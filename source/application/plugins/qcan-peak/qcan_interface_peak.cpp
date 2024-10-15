@@ -75,7 +75,7 @@ QCanInterfacePeak::QCanInterfacePeak(uint16_t uwPCanChannelV)
    //
    uwPCanChannelP = uwPCanChannelV;
    uwPCanBitrateP = PCAN_BAUD_500K; // initial value
-   teCanModeP     = eCAN_MODE_STOP;
+   teCanModeP     = QCan::eCAN_MODE_STOP;
 
    //---------------------------------------------------------------------------------------------------
    // The interface is not yet connected
@@ -98,12 +98,12 @@ QCanInterfacePeak::QCanInterfacePeak(uint16_t uwPCanChannelV)
    //---------------------------------------------------------------------------------------------------
    // clear error state and buffer for error frames
    //
-   teErrorStateP = eCAN_STATE_STOPPED;
+   teErrorStateP = QCan::eCAN_STATE_STOPPED;
 
    clErrFrameP.setFrameType(QCanFrame::eFRAME_TYPE_ERROR);
    clErrFrameP.setErrorCounterReceive(0);
    clErrFrameP.setErrorCounterTransmit(0);
-   clErrFrameP.setErrorState(eCAN_STATE_STOPPED);
+   clErrFrameP.setErrorState(QCan::eCAN_STATE_STOPPED);
 
    //---------------------------------------------------------------------------------------------------
    // connect the device and get alle necessary informations for further usage
@@ -124,7 +124,7 @@ QCanInterfacePeak::QCanInterfacePeak(uint16_t uwPCanChannelV)
       //-------------------------------------------------------------------------------------------
       // name should contain device number, get it
       //
-      tsStatusT = pclPcanBasicP.pfnCAN_GetValueP(uwPCanChannelP, PCAN_DEVICE_NUMBER,
+      tsStatusT = pclPcanBasicP.pfnCAN_GetValueP(uwPCanChannelP, PCAN_DEVICE_ID,
                                                  (void*)&aszBufferT[0], 1);
       if (tsStatusT == PCAN_ERROR_OK)
       {
@@ -182,7 +182,9 @@ QCanInterfacePeak::QCanInterfacePeak(uint16_t uwPCanChannelV)
 //--------------------------------------------------------------------------------------------------------------------//
 QCanInterfacePeak::~QCanInterfacePeak()
 {
+   #ifndef QT_NO_DEBUG_OUTPUT
    qDebug() << "QCanInterfacePeak::~QCanInterfacePeak()";
+   #endif
 
    if (pclPcanBasicP.isAvailable())
    {
@@ -207,13 +209,13 @@ void QCanInterfacePeak::checkStatus(void)
    {
       QString msg = "Status: ";
       msg += QString("%1").arg(ulStatusT);
-      emit addLogMessage(msg, eLOG_LEVEL_INFO);
+      emit addLogMessage(msg, QCan::eLOG_LEVEL_INFO);
    }
 }
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// connect()                                                                                                          //
+// QCanInterfacePeak::connect()                                                                                       //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
 QCanInterface::InterfaceError_e QCanInterfacePeak::connect(void)
@@ -222,16 +224,18 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::connect(void)
    uint8_t          ubValueT;
    TPCANStatus      tsStatusT;
 
+   #ifndef QT_NO_DEBUG_OUTPUT
    #if QCAN_SUPPORT_CAN_FD > 0
    qDebug() << QString("QCanInterfacePeak::connect()... - using CAN FD mode");
    #else
    qDebug() << QString("QCanInterfacePeak::connect()... - using Classic CAN mode");
    #endif
-
+   #endif
+   
    //---------------------------------------------------------------------------------------------------
    // tell some details about this CAN interface to the logger
    //
-   emit addLogMessage("Connect driver version   : " + version(), eLOG_LEVEL_INFO);
+   emit addLogMessage("Connect driver version   : " + version(), QCan::eLOG_LEVEL_INFO);
 
    //---------------------------------------------------------------------------------------------------
    // Try to connect the CAN interface
@@ -245,7 +249,7 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::connect(void)
       if (tsStatusT != PCAN_ERROR_OK)
       {
          qWarning() << QString("QCanInterfacePeak::connect(0x" + QString::number(uwPCanChannelP,16)+")") \
-                    << "fail with error:" << pclPcanBasicP.formatedError(tsStatusT);
+                    << "fail with error:" << pclPcanBasicP.errorString(tsStatusT);
       }
 
       //-------------------------------------------------------------------------------------------
@@ -253,8 +257,10 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::connect(void)
       //
       else if (ubValueT == PCAN_CHANNEL_UNAVAILABLE)
       {
+         #ifndef QT_NO_DEBUG_OUTPUT
          qDebug() << QString("QCanInterfacePeak::connect(0x" + QString::number(uwPCanChannelP,16)+")") \
-                  << " is not available " << pclPcanBasicP.formatedError(tsStatusT);
+                  << " is not available " << pclPcanBasicP.errorString(tsStatusT);
+         #endif
          teReturnT = eERROR_CHANNEL;
       }
 
@@ -264,7 +270,7 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::connect(void)
       else if (ubValueT == 0)
       {
          qWarning() << QString("QCanInterfacePeak::connect(0x" + QString::number(uwPCanChannelP,16)+")") \
-                    << " is occupied " << pclPcanBasicP.formatedError(tsStatusT);
+                    << " is occupied " << pclPcanBasicP.errorString(tsStatusT);
          teReturnT = eERROR_USED;
       }
 
@@ -290,7 +296,7 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::connect(void)
          if (tsStatusT != PCAN_ERROR_OK)
          {
             qCritical() << QString("QCanInterfacePeak::connect(0x" + QString::number(uwPCanChannelP,16)+")") \
-                        << "fail with error:" << pclPcanBasicP.formatedError(tsStatusT);
+                        << "fail with error:" << pclPcanBasicP.errorString(tsStatusT);
             teReturnT = eERROR_USED;
          }
 
@@ -313,7 +319,7 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::connect(void)
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// connectionState()                                                                                                  //
+// QCanInterfacePeak::connectionState()                                                                               //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
 QCanInterface::ConnectionState_e QCanInterfacePeak::connectionState(void)
@@ -342,7 +348,7 @@ void  QCanInterfacePeak::disableFeatures(uint32_t ulFeatureMaskV)
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// disconnect()                                                                                                       //
+// QCanInterfacePeak::disconnect()                                                                                    //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
 QCanInterface::InterfaceError_e QCanInterfacePeak::disconnect()
@@ -357,7 +363,7 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::disconnect()
          return eERROR_NONE;
       }
       qWarning() << QString("QCanInterfacePeak::disconnect(0x" + QString::number(uwPCanChannelP,16)+")") \
-                 << "fail with error:" << pclPcanBasicP.formatedError(tsStatusT);
+                 << "fail with error:" << pclPcanBasicP.errorString(tsStatusT);
    }
 
    return eERROR_LIBRARY;
@@ -384,7 +390,7 @@ void  QCanInterfacePeak::enableFeatures(uint32_t ulFeatureMaskV)
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// icon()                                                                                                             //
+// QCanInterfacePeak::icon()                                                                                          //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
 QIcon QCanInterfacePeak::icon(void)
@@ -394,7 +400,7 @@ QIcon QCanInterfacePeak::icon(void)
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// name()                                                                                                             //
+// QCanInterfacePeak::name()                                                                                          //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
 QString QCanInterfacePeak::name()
@@ -418,7 +424,7 @@ void QCanInterfacePeak::onTimerEvent(void)
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// read()                                                                                                             //
+// QCanInterfacePeak::read()                                                                                          //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
 QCanInterface::InterfaceError_e  QCanInterfacePeak::read(QCanFrame &clFrameR)
@@ -506,25 +512,23 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFrame(QCanFrame &clFrame
                break;
 
             case 0x04:
-               emit stateChanged(eCAN_STATE_BUS_WARN);
+               emit stateChanged(QCan::eCAN_STATE_BUS_WARN);
                break;
 
             case 0x08:
-               emit stateChanged(eCAN_STATE_BUS_PASSIVE);
+               emit stateChanged(QCan::eCAN_STATE_BUS_PASSIVE);
                break;
 
             case 0x10:
-               emit stateChanged(eCAN_STATE_BUS_OFF);
+               emit stateChanged(QCan::eCAN_STATE_BUS_OFF);
                break;
 
             default:
 
                break;
-
-
          }
          emit addLogMessage("PCAN message - PCAN_MESSAGE_STATUS   : status byte = " +
-                            QString("0x%1").arg(tsCanMsgT.DATA[3], 2, 16, QLatin1Char('0')), eLOG_LEVEL_TRACE);
+                            QString("0x%1").arg(tsCanMsgT.DATA[3], 2, 16, QLatin1Char('0')), QCan::eLOG_LEVEL_TRACE);
          clRetValueT = eERROR_FIFO_RCV_EMPTY;
          return (clRetValueT);
       }
@@ -534,7 +538,7 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFrame(QCanFrame &clFrame
       //
       if ((tsCanMsgT.MSGTYPE & PCAN_MESSAGE_ERRFRAME) > 0)
       {
-         emit addLogMessage("PCAN message - PCAN_MESSAGE_ERRFRAME ", eLOG_LEVEL_TRACE);
+         emit addLogMessage("PCAN message - PCAN_MESSAGE_ERRFRAME ", QCan::eLOG_LEVEL_TRACE);
          clRetValueT = eERROR_FIFO_RCV_EMPTY;
          return (clRetValueT);
       }
@@ -544,7 +548,7 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFrame(QCanFrame &clFrame
       //--------------------------------------------------------------------------------------
 
       //--------------------------------------------------------------------------------------
-      // Make sure that hte frame type is Test
+      // Make sure that the frame type is a data frame
       //
       if (clFrameR.frameType() == QCanFrame::eFRAME_TYPE_ERROR)
       {
@@ -584,10 +588,11 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFrame(QCanFrame &clFrame
       //--------------------------------------------------------------------------------------
       // copy the data
       //
-      for (ubCntT = 0; ubCntT < clFrameR.dataSize(); ubCntT++)
+      for (ubCntT = 0; ubCntT < 8; ubCntT++)
       {
          clFrameR.setData(ubCntT, tsCanMsgT.DATA[ubCntT]);
       }
+
 
       //--------------------------------------------------------------------------------------
       // copy the time-stamp
@@ -613,7 +618,7 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFrame(QCanFrame &clFrame
    {
       
       setupErrorFrame(ulStatusT);
-      emit addLogMessage("PCAN status  - PCAN_ERROR_ANYBUSERR  ", eLOG_LEVEL_TRACE);
+      emit addLogMessage("PCAN status  - PCAN_ERROR_ANYBUSERR  ", QCan::eLOG_LEVEL_TRACE);
       clRetValueT = eERROR_FIFO_RCV_EMPTY;
    }
 
@@ -630,8 +635,8 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFrame(QCanFrame &clFrame
    //
    else
    {
-      emit addLogMessage("Hardware error code " + QString("0x%1").arg(ulStatusT, 16), eLOG_LEVEL_DEBUG);
-      teErrorStateP = eCAN_STATE_STOPPED;
+      emit addLogMessage("Hardware error code " + QString("0x%1").arg(ulStatusT, 16), QCan::eLOG_LEVEL_DEBUG);
+      teErrorStateP = QCan::eCAN_STATE_STOPPED;
       emit stateChanged(teErrorStateP);
       disconnect();
       clRetValueT = eERROR_DEVICE;
@@ -642,7 +647,7 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFrame(QCanFrame &clFrame
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// readFD()                                                                                                           //
+// QCanInterfacePeak::readFrameFD()                                                                                   //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
 #if QCAN_SUPPORT_CAN_FD > 0
@@ -669,123 +674,173 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFrameFD(QCanFrame &clFra
       //-------------------------------------------------------------------------------------------
       // handle data depending on type
       //
-      if((tsCanMsgT.MSGTYPE & PCAN_MESSAGE_STATUS) > 0)
+      if ((tsCanMsgT.MSGTYPE & PCAN_MESSAGE_STATUS) > 0)
       {
          //-----------------------------------------------------------------------------------
          // this is a status message
          //
-         clRetValueT = eERROR_FIFO_RCV_EMPTY;
-      }
-      else
-      {
-         //------------------------------------------------
-         // this is a CAN message
-         //
-         if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_FD)
+         switch (tsCanMsgT.DATA[3])
          {
-            //----------------------------------------
-            // ISO CAN FD frame with standard or
-            // extended identifier
-            //
-            if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_EXTENDED)
-            {
-               clFrameR.setFrameFormat(QCanFrame::eFORMAT_FD_EXT);
-            }
-            else
-            {
-               clFrameR.setFrameFormat(QCanFrame::eFORMAT_FD_STD);
-            }
+            case 0x02:
 
-            //----------------------------------------
-            // Test for BRS bit
-            //
-            if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_BRS)
-            {
-               clFrameR.setBitrateSwitch();
-            }
+               break;
 
-            //----------------------------------------
-            // Test for ESI bit
-            //
-            if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_ESI)
-            {
-               clFrameR.setErrorStateIndicator();
-            }
+            case 0x04:
+               emit stateChanged(QCan::eCAN_STATE_BUS_WARN);
+               break;
+
+            case 0x08:
+               emit stateChanged(QCan::eCAN_STATE_BUS_PASSIVE);
+               break;
+
+            case 0x10:
+               emit stateChanged(QCan::eCAN_STATE_BUS_OFF);
+               break;
+
+            default:
+
+               break;
+         }
+         emit addLogMessage("PCAN message - PCAN_MESSAGE_STATUS   : status byte = " +
+                            QString("0x%1").arg(tsCanMsgT.DATA[3], 2, 16, QLatin1Char('0')), QCan::eLOG_LEVEL_TRACE);
+         clRetValueT = eERROR_FIFO_RCV_EMPTY;
+         return (clRetValueT);
+      }
+
+      //--------------------------------------------------------------------------------------
+      // this is a (undocumented) error frame message
+      //
+      if ((tsCanMsgT.MSGTYPE & PCAN_MESSAGE_ERRFRAME) > 0)
+      {
+         emit addLogMessage("PCAN message - PCAN_MESSAGE_ERRFRAME ", QCan::eLOG_LEVEL_TRACE);
+         clRetValueT = eERROR_FIFO_RCV_EMPTY;
+         return (clRetValueT);
+      }
+
+      //--------------------------------------------------------------------------------------
+      // now handle all data frames
+      //--------------------------------------------------------------------------------------
+
+      //--------------------------------------------------------------------------------------
+      // Make sure that the frame type is a data frame
+      //
+      if (clFrameR.frameType() == QCanFrame::eFRAME_TYPE_ERROR)
+      {
+         clFrameR.setFrameType(QCanFrame::eFRAME_TYPE_DATA);
+      }
+
+      //--------------------------------------------------------------------------------------
+      // Check for CAN FD frame
+      //
+      if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_FD)
+      {
+         //------------------------------------------------------------------------------
+         // ISO CAN FD frame with standard or extended identifier
+         //
+         if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_EXTENDED)
+         {
+            clFrameR.setFrameFormat(QCanFrame::eFORMAT_FD_EXT);
          }
          else
          {
-            //----------------------------------------
-            // Classical CAN frame with standard or
-            // extended identifier
-            //
-            if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_EXTENDED)
-            {
-               clFrameR.setFrameFormat(QCanFrame::eFORMAT_CAN_EXT);
-            }
-            else
-            {
-               clFrameR.setFrameFormat(QCanFrame::eFORMAT_CAN_STD);
-            }
-
-            //----------------------------------------
-            // Classical CAN remote frame
-            //
-            if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_RTR)
-            {
-               clFrameR.setRemote();
-            }
+            clFrameR.setFrameFormat(QCanFrame::eFORMAT_FD_STD);
          }
 
-         //------------------------------------------------
-         // copy the identifier
+         //------------------------------------------------------------------------------
+         // Test for BRS bit
          //
-         clFrameR.setIdentifier(tsCanMsgT.ID);
-
-         //------------------------------------------------
-         // copy the DLC
-         //
-         clFrameR.setDlc(tsCanMsgT.DLC);
-
-         //------------------------------------------------
-         // copy the data
-         //
-         for (ubCntT = 0; ubCntT < clFrameR.dataSize(); ubCntT++)
+         if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_BRS)
          {
-            clFrameR.setData(ubCntT, tsCanMsgT.DATA[ubCntT]);
+            clFrameR.setBitrateSwitch();
+         }
+         else
+         {
+            clFrameR.setBitrateSwitch(false);
          }
 
-         //------------------------------------------------
-         // copy the time-stamp
-         // the value is a multiple of 1 us and has a
-         // total time span of 4294,9 secs
+         //------------------------------------------------------------------------------
+         // Test for ESI bit
          //
-         clTimeStampT.fromMicroSeconds(tsCanTimeStampT);
-
-         clFrameR.setTimeStamp(clTimeStampT);
-
-         //------------------------------------------------
-         // increase statistic counter
+         if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_ESI)
+         {
+            clFrameR.setErrorStateIndicator();
+         }
+         else
+         {
+            clFrameR.setErrorStateIndicator(false);
+         }
+      }
+      else
+      {
+         //------------------------------------------------------------------------------
+         // Classical CAN frame with standard or extended identifier
          //
-         clStatisticP.ulRcvCount++;
+         if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_EXTENDED)
+         {
+            clFrameR.setFrameFormat(QCanFrame::eFORMAT_CAN_EXT);
+         }
+         else
+         {
+            clFrameR.setFrameFormat(QCanFrame::eFORMAT_CAN_STD);
+         }
+
+         //------------------------------------------------------------------------------
+         // Classical CAN remote frame
+         //
+         if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_RTR)
+         {
+            clFrameR.setRemote();
+         }
+         else
+         {
+            clFrameR.setRemote(false);
+         }
 
       }
+      
+      //-------------------------------------------------------------------------------------------
+      // copy the identifier
+      //
+      clFrameR.setIdentifier(tsCanMsgT.ID);
+      
+      //-------------------------------------------------------------------------------------------
+      // copy the DLC
+      //
+      clFrameR.setDlc(tsCanMsgT.DLC);
+
+      //-------------------------------------------------------------------------------------------
+      // copy the data
+      //
+      for (ubCntT = 0; ubCntT < clFrameR.dataSize(); ubCntT++)
+      {
+         clFrameR.setData(ubCntT, tsCanMsgT.DATA[ubCntT]);
+      }
+
+      //-------------------------------------------------------------------------------------------
+      // copy the time-stamp
+      // the value is a multiple of 1 us and has a total time span of 4294,9 secs
+      //
+      clTimeStampT.fromMicroSeconds(tsCanTimeStampT);
+
+      clFrameR.setTimeStamp(clTimeStampT);
+
+      //-------------------------------------------------------------------------------------------
+      // increase statistic counter
+      //
+      clStatisticP.ulRcvCount++;
+
    }
    else
    {
-      //--------------------------------------------------------
+      //-------------------------------------------------------------------------------------------
       // test for bus error
       //
       if ((ulStatusT & (TPCANStatus)PCAN_ERROR_ANYBUSERR) > 0)
       {
          setupErrorFrame(ulStatusT);
-         //------------------------------------------------
-         // copy the error frame to a byte array
-         //
-         //clDataR = clErrFrameT.toByteArray();
-         //qDebug() << "Error frame";
       }
 
-      //--------------------------------------------------------
+      //-------------------------------------------------------------------------------------------
       // the receive queue is empty
       //
       else if (ulStatusT == PCAN_ERROR_QRCVEMPTY)
@@ -804,7 +859,7 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFrameFD(QCanFrame &clFra
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// reset()                                                                                                            //
+// QCanInterfacePeak::reset()                                                                                         //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
 QCanInterface::InterfaceError_e  QCanInterfacePeak::reset()
@@ -867,165 +922,171 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::reset()
 //--------------------------------------------------------------------------------------------------------------------//
 QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slNomBitRateV, int32_t slDatBitRateV)
 {
-   if (!pclPcanBasicP.isAvailable())
-   {
-      return eERROR_LIBRARY;
-   }
-
-   WORD uwBtr0Btr1T = 0;
-   TPCANStatus ulStatusT;
+   QCanInterface::InterfaceError_e  teResultT = eERROR_LIBRARY;
+   WORD                             uwBtr0Btr1T = 0;
+   TPCANStatus                      ulStatusT;
    #if QCAN_SUPPORT_CAN_FD > 0
-   QString clTxtBitrateNomT;
-   QString clTxtBitrateDataT;
-   QByteArray clTxtBitrateT ;
+   QString                          clTxtBitrateNomT;
+   QString                          clTxtBitrateDataT;
+   QByteArray                       clTxtBitrateT;
    #endif
-   //----------------------------------------------------------------
-   // Check bit-rate value
-   //
-   if (slNomBitRateV >= eCAN_BITRATE_AUTO)
-   {
-      // maybe we get a value in Hz, normalise it to kHz
-      slNomBitRateV = slNomBitRateV / 1000;
-   }
 
-   #if QCAN_SUPPORT_CAN_FD > 0
-   //----------------------------------------------------------------
-   // Check data bit rate  value for CAN-FD
-   //
-   if (slDatBitRateV != eCAN_BITRATE_NONE)
+
+   if (pclPcanBasicP.isAvailable())
    {
-      //--------------------------------------------------------
-      // FD Bit-rate: all settings for 80 MHz clock
+      //-------------------------------------------------------------------------------------------
+      // Check bit-rate value
       //
-      QString clDebugMsgT = QString("PCAN - setBitrate(%1 , %2)").arg(slNomBitRateV).arg(slDatBitRateV);
-      emit addLogMessage(clDebugMsgT, eLOG_LEVEL_DEBUG);
-      //--------------------------------------------------------
-      // select corresponding PEAK configuration for
-      // nominal bit rate
-      //
-      switch(slNomBitRateV )
+      if (slNomBitRateV >= QCan::eCAN_BITRATE_AUTO)
       {
-         case 125:
-            clTxtBitrateNomT = "f_clock_mhz=80, nom_brp=2, nom_tseg1=255, nom_tseg2=64, nom_sjw=64";
-            break;
-
-         case 250:
-            clTxtBitrateNomT = "f_clock_mhz=80, nom_brp=2, nom_tseg1=127, nom_tseg2=32, nom_sjw=32";
-            break;
-
-         case 500:
-            clTxtBitrateNomT = "f_clock_mhz=80, nom_brp=2, nom_tseg1=63, nom_tseg2=16, nom_sjw=16";
-            break;
-
-         case 1000:
-            clTxtBitrateNomT = "f_clock_mhz=80, nom_brp=2, nom_tseg1=31, nom_tseg2=8, nom_sjw=8";
-            break;
-
-         default:
-            return eERROR_BITRATE;
-            break;
+         //-----------------------------------------------------------------------------------
+         // maybe we get a value in Hz, normalize it to kHz
+         //
+         slNomBitRateV = slNomBitRateV / 1000;
       }
 
-      //--------------------------------------------------------
-      // select corresponding PEAK configuration for
-      // data bit rate
+      #if QCAN_SUPPORT_CAN_FD > 0
+      //-------------------------------------------------------------------------------------------
+      // Check data bit rate value for CAN-FD
       //
-      slDatBitRateV = slDatBitRateV / 1000000;
-      switch(slDatBitRateV)
+      if (slDatBitRateV != QCan::eCAN_BITRATE_NONE)
       {
-         case 1:     // 1 MBit/s
-            clTxtBitrateDataT = ", data_brp=2, data_tseg1=31, data_tseg2=8, data_sjw=8";
+         //--------------------------------------------------------
+         // FD Bit-rate: all settings for 80 MHz clock
+         //
+         QString clDebugMsgT = QString("PCAN - setBitrate(%1 , %2)").arg(slNomBitRateV).arg(slDatBitRateV);
+         emit addLogMessage(clDebugMsgT, QCan::eLOG_LEVEL_DEBUG);
+         //--------------------------------------------------------
+         // select corresponding PEAK configuration for
+         // nominal bit rate
+         //
+         switch(slNomBitRateV )
+         {
+            case 125:
+               clTxtBitrateNomT = "f_clock_mhz=80, nom_brp=2, nom_tseg1=255, nom_tseg2=64, nom_sjw=64";
+               break;
+
+            case 250:
+               clTxtBitrateNomT = "f_clock_mhz=80, nom_brp=2, nom_tseg1=127, nom_tseg2=32, nom_sjw=32";
+               break;
+
+            case 500:
+               clTxtBitrateNomT = "f_clock_mhz=80, nom_brp=2, nom_tseg1=63, nom_tseg2=16, nom_sjw=16";
             break;
 
-         case 2:     // 2 MBit/s
-            clTxtBitrateDataT = ", data_brp=2, data_tseg1=15, data_tseg2=4, data_sjw=4";
-            break;
+            case 1000:
+               clTxtBitrateNomT = "f_clock_mhz=80, nom_brp=2, nom_tseg1=31, nom_tseg2=8, nom_sjw=8";
+               break;
 
-         case 4:     // 4 MBit/s
-            clTxtBitrateDataT = ", data_brp=2, data_tseg1=7, data_tseg2=2, data_sjw=2";
-            break;
+            default:
+               teResultT = eERROR_BITRATE;
+               break;
+         }
 
-         default:
-            return eERROR_BITRATE;
-            break;
+         //--------------------------------------------------------
+         // select corresponding PEAK configuration for
+         // data bit rate
+         //
+         slDatBitRateV = slDatBitRateV / 1000000;
+         switch(slDatBitRateV)
+         {
+            case 1:     // 1 MBit/s
+               clTxtBitrateDataT = ", data_brp=2, data_tseg1=31, data_tseg2=8, data_sjw=8";
+               break;
+
+            case 2:     // 2 MBit/s
+               clTxtBitrateDataT = ", data_brp=2, data_tseg1=15, data_tseg2=4, data_sjw=4";
+               break;
+
+            case 4:     // 4 MBit/s
+               clTxtBitrateDataT = ", data_brp=2, data_tseg1=7, data_tseg2=2, data_sjw=2";
+               break;
+
+            default:
+               teResultT = eERROR_BITRATE;
+               break;
+         }
+
+         clTxtBitrateNomT.append(clTxtBitrateDataT);
+         clTxtBitrateT = clTxtBitrateNomT.toUtf8();
+         emit addLogMessage(clTxtBitrateNomT, QCan::eLOG_LEVEL_DEBUG);
+
       }
-
-      clTxtBitrateNomT.append(clTxtBitrateDataT);
-      clTxtBitrateT = clTxtBitrateNomT.toUtf8();
-      emit addLogMessage(clTxtBitrateNomT, eLOG_LEVEL_DEBUG);
-
-   }
-   else
-   #endif
-   {
-
-      //----------------------------------------------------------------
-      // select corresponding PEAK baud rate value
-      //
-      switch(slNomBitRateV)
+      else
+      #endif
       {
-         // value from CANpie enumeration
-         case eCAN_BITRATE_10K:
-            uwBtr0Btr1T = PCAN_BAUD_10K;
-            break;
-         case eCAN_BITRATE_20K:
-            uwBtr0Btr1T = PCAN_BAUD_20K;
-            break;
-         case eCAN_BITRATE_50K:
-            uwBtr0Btr1T = PCAN_BAUD_50K;
-            break;
-         case eCAN_BITRATE_100K:
-            uwBtr0Btr1T = PCAN_BAUD_100K;
-            break;
-         case eCAN_BITRATE_125K:
-            uwBtr0Btr1T = PCAN_BAUD_125K;
-            break;
-         case eCAN_BITRATE_250K:
-            uwBtr0Btr1T = PCAN_BAUD_250K;
-            break;
-         case eCAN_BITRATE_500K:
-            uwBtr0Btr1T = PCAN_BAUD_500K;
-            break;
-         case eCAN_BITRATE_800K:
-            uwBtr0Btr1T = PCAN_BAUD_800K;
-            break;
-         case eCAN_BITRATE_1M:
-            uwBtr0Btr1T = PCAN_BAUD_1M;
-            break;
+
+         //----------------------------------------------------------------
+         // select corresponding PEAK baud rate value
+         //
+         switch(slNomBitRateV)
+         {
+            // value from CANpie enumeration
+            case QCan::eCAN_BITRATE_10K:
+               uwBtr0Btr1T = PCAN_BAUD_10K;
+               break;
+
+            case QCan::eCAN_BITRATE_20K:
+               uwBtr0Btr1T = PCAN_BAUD_20K;
+               break;
+            case QCan::eCAN_BITRATE_50K:
+               uwBtr0Btr1T = PCAN_BAUD_50K;
+               break;
+            case QCan::eCAN_BITRATE_100K:
+               uwBtr0Btr1T = PCAN_BAUD_100K;
+               break;
+            case QCan::eCAN_BITRATE_125K:
+               uwBtr0Btr1T = PCAN_BAUD_125K;
+               break;
+            case QCan::eCAN_BITRATE_250K:
+               uwBtr0Btr1T = PCAN_BAUD_250K;
+               break;
+            case QCan::eCAN_BITRATE_500K:
+               uwBtr0Btr1T = PCAN_BAUD_500K;
+               break;
+            case QCan::eCAN_BITRATE_800K:
+               uwBtr0Btr1T = PCAN_BAUD_800K;
+               break;
+            case QCan::eCAN_BITRATE_1M:
+               uwBtr0Btr1T = PCAN_BAUD_1M;
+               break;
 
          // value normalized to kHz
-         case 10:
-            uwBtr0Btr1T = PCAN_BAUD_10K;
-            break;
-         case 20:
-            uwBtr0Btr1T = PCAN_BAUD_20K;
-            break;
-         case 50:
-            uwBtr0Btr1T = PCAN_BAUD_50K;
-            break;
-         case 100:
-            uwBtr0Btr1T = PCAN_BAUD_100K;
-            break;
-         case 125:
-            uwBtr0Btr1T = PCAN_BAUD_125K;
-            break;
-         case 250:
-            uwBtr0Btr1T = PCAN_BAUD_250K;
-            break;
-         case 500:
-            uwBtr0Btr1T = PCAN_BAUD_500K;
-            break;
-         case 800:
-            uwBtr0Btr1T = PCAN_BAUD_800K;
-            break;
-         case 1000:
-            uwBtr0Btr1T = PCAN_BAUD_1M;
-            break;
+            case 10:
+               uwBtr0Btr1T = PCAN_BAUD_10K;
+               break;
+            case 20:
+               uwBtr0Btr1T = PCAN_BAUD_20K;
+               break;
+            case 50:
+               uwBtr0Btr1T = PCAN_BAUD_50K;
+               break;
+            case 100:
+               uwBtr0Btr1T = PCAN_BAUD_100K;
+               break;
+            case 125:
+               uwBtr0Btr1T = PCAN_BAUD_125K;
+               break;
+            case 250:
+               uwBtr0Btr1T = PCAN_BAUD_250K;
+               break;
+            case 500:
+               uwBtr0Btr1T = PCAN_BAUD_500K;
+               break;
+            case 800:
+               uwBtr0Btr1T = PCAN_BAUD_800K;
+               break;
+            case 1000:
+               uwBtr0Btr1T = PCAN_BAUD_1M;
+               break;
 
-         default:
-            return eERROR_BITRATE;
+            default:
+            teResultT = eERROR_BITRATE;
             break;
+         }
+
       }
+
    }
 
    //----------------------------------------------------------------
@@ -1033,7 +1094,7 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slNomBitR
    //
    pclPcanBasicP.pfnCAN_UninitializeP(uwPCanChannelP);
 
-   if (slDatBitRateV != eCAN_BITRATE_NONE)
+   if (slDatBitRateV != QCan::eCAN_BITRATE_NONE)
    {
 
       #if QCAN_SUPPORT_CAN_FD > 0
@@ -1053,14 +1114,14 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slNomBitR
 
    if (ulStatusT != PCAN_ERROR_OK)
    {
-      emit addLogMessage("Failed to configure bit-rate setting: " + pclPcanBasicP.formatedError(ulStatusT),
-                         eLOG_LEVEL_ERROR);
-      qCritical() << pclPcanBasicP.formatedError((TPCANStatus) ulStatusT);
+      emit addLogMessage("Failed to configure bit-rate setting: " + pclPcanBasicP.errorString(ulStatusT),
+                         QCan::eLOG_LEVEL_ERROR);
+      qCritical() << pclPcanBasicP.errorString((TPCANStatus) ulStatusT);
 
       return eERROR_DEVICE;
    }
 
-   return eERROR_NONE;
+   return (teResultT);
 }
 
 
@@ -1068,8 +1129,7 @@ QCanInterface::InterfaceError_e QCanInterfacePeak::setBitrate( int32_t slNomBitR
 // QCanInterfacePeak::setMode()                                                                                       //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-
-QCanInterface::InterfaceError_e	QCanInterfacePeak::setMode(const CAN_Mode_e teModeV)
+QCanInterface::InterfaceError_e	QCanInterfacePeak::setMode(const QCan::CAN_Mode_e teModeV)
 {
    uint8_t ubValueBufT;
 
@@ -1089,7 +1149,7 @@ QCanInterface::InterfaceError_e	QCanInterfacePeak::setMode(const CAN_Mode_e teMo
       //-------------------------------------------------------------------------------------------
       // set interface into operation mode
       //
-      case eCAN_MODE_OPERATION :
+      case QCan::eCAN_MODE_OPERATION :
 
          //-----------------------------------------------------------------------------------
          // reset statistic values
@@ -1102,34 +1162,33 @@ QCanInterface::InterfaceError_e	QCanInterfacePeak::setMode(const CAN_Mode_e teMo
          if (pclPcanBasicP.pfnCAN_SetValueP(uwPCanChannelP, PCAN_LISTEN_ONLY,
                                             &ubValueBufT, sizeof(ubValueBufT) )  )
          {
-            emit addLogMessage("Failed to clear 'Listen-only'", eLOG_LEVEL_WARN);
+            emit addLogMessage("Failed to clear 'Listen-only'", QCan::eLOG_LEVEL_WARN);
          }
 
-         teCanModeP = eCAN_MODE_START;
+         teCanModeP = QCan::eCAN_MODE_START;
          break;
 
       //-------------------------------------------------------------------------------------------
       // set interface into init mode
       //
-      case eCAN_MODE_INIT :
-         teCanModeP = eCAN_MODE_INIT;
+      case QCan::eCAN_MODE_INIT :
+         teCanModeP = QCan::eCAN_MODE_INIT;
          break;
 
       //-------------------------------------------------------------------------------------------
       // set interface into listen-only mode
       //
-      case eCAN_MODE_LISTEN_ONLY :
+      case QCan::eCAN_MODE_LISTEN_ONLY :
          ubValueBufT = 1;
          if (pclPcanBasicP.pfnCAN_SetValueP(uwPCanChannelP, PCAN_LISTEN_ONLY,
                                             &ubValueBufT, sizeof(ubValueBufT) )  )
          {
-            emit addLogMessage("Failed to set 'Listen-only'", eLOG_LEVEL_WARN);
+            emit addLogMessage("Failed to set 'Listen-only'", QCan::eLOG_LEVEL_WARN);
          }
          break;
 
       default :
          return eERROR_MODE;
-         break;
    }
 
    return eERROR_NONE;
@@ -1151,23 +1210,23 @@ void QCanInterfacePeak::setupErrorFrame(TPCANStatus ulStatusV)
    switch (ulStatusV)
    {
       case PCAN_ERROR_BUSLIGHT :
-         clErrFrameP.setErrorState(eCAN_STATE_BUS_WARN);
+         clErrFrameP.setErrorState(QCan::eCAN_STATE_BUS_WARN);
          break;
 
       case PCAN_ERROR_BUSWARNING :
-         clErrFrameP.setErrorState(eCAN_STATE_BUS_WARN);
+         clErrFrameP.setErrorState(QCan::eCAN_STATE_BUS_WARN);
          break;
 
       case PCAN_ERROR_BUSPASSIVE :
-         clErrFrameP.setErrorState(eCAN_STATE_BUS_PASSIVE);
+         clErrFrameP.setErrorState(QCan::eCAN_STATE_BUS_PASSIVE);
          break;
 
       case PCAN_ERROR_BUSOFF :
-         clErrFrameP.setErrorState(eCAN_STATE_BUS_OFF);
+         clErrFrameP.setErrorState(QCan::eCAN_STATE_BUS_OFF);
          break;
 
       default :
-         clErrFrameP.setErrorState(eCAN_STATE_BUS_ACTIVE);
+         clErrFrameP.setErrorState(QCan::eCAN_STATE_BUS_ACTIVE);
          break;
    }
 
@@ -1184,7 +1243,7 @@ void QCanInterfacePeak::setupErrorFrame(TPCANStatus ulStatusV)
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// statistic()                                                                                                        //
+// QCanInterfacePeak::statistic()                                                                                     //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
 QCanInterface::InterfaceError_e	QCanInterfacePeak::statistic(QCanStatistic_ts &clStatisticR)
@@ -1201,35 +1260,39 @@ QCanInterface::InterfaceError_e	QCanInterfacePeak::statistic(QCanStatistic_ts &c
 // QCanInterfacePeak::state()                                                                                         //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-CAN_State_e QCanInterfacePeak::state(void)
+QCan::CAN_State_e QCanInterfacePeak::state(void)
 {
    return (teErrorStateP);
 }
 
 
-//----------------------------------------------------------------------------//
-// supportedFeatures()                                                        //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanInterfacePeak::supportedFeatures()                                                                             //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
 uint32_t QCanInterfacePeak::supportedFeatures()
 {
    uint32_t ulFeaturesT = 0;
    #if QCAN_SUPPORT_CAN_FD > 0
    uint32_t ulBufferT = 0;
    #endif
-   if(pclPcanBasicP.isAvailable())
+   if (pclPcanBasicP.isAvailable())
    {
 
       ulFeaturesT = QCAN_IF_SUPPORT_LISTEN_ONLY;
 
       #if QCAN_SUPPORT_CAN_FD > 0
-      TPCANStatus tsStatusT = pclPcanBasicP.pfnCAN_GetValueP(uwPCanChannelP, PCAN_CHANNEL_FEATURES, (void*)&ulBufferT, sizeof(ulBufferT));
+      TPCANStatus tsStatusT = pclPcanBasicP.pfnCAN_GetValueP(uwPCanChannelP, PCAN_CHANNEL_FEATURES, \
+                              (void*)&ulBufferT, sizeof(ulBufferT));
       if (tsStatusT != PCAN_ERROR_OK)
       {
-         qWarning() << QString("QCanInterfacePeak::supportedFeatures(0x" +QString::number(uwPCanChannelP,16)+")") << "PCAN_CHANNEL_FEATURES fail with error:" << pclPcanBasicP.formatedError(tsStatusT);
+         qWarning() <<  QString("QCanInterfacePeak::supportedFeatures(0x" +QString::number(uwPCanChannelP,16)+")") << \
+                        "PCAN_CHANNEL_FEATURES fail with error:" << pclPcanBasicP.errorString(tsStatusT);
       }
-      qWarning() << QString("QCanInterfacePeak::supportedFeatures(0x" +QString::number(uwPCanChannelP,16)+")") << "PCAN_CHANNEL_FEATURES:" << QString::number(ulBufferT,16) << "[hex]";
-
+      #ifndef QT_NO_DEBUG_OUTPUT
+      qDebug() <<  QString("QCanInterfacePeak::supportedFeatures(0x" +QString::number(uwPCanChannelP,16)+")") << \
+                     "PCAN_CHANNEL_FEATURES:" << QString::number(ulBufferT,16) << "[hex]";
+      #endif
       if (ulBufferT & FEATURE_FD_CAPABLE)
       {
          ulFeaturesT += QCAN_IF_SUPPORT_CAN_FD;
@@ -1242,7 +1305,7 @@ uint32_t QCanInterfacePeak::supportedFeatures()
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// version()                                                                                                          //
+// QCanInterfacePeak::version()                                                                                       //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
 QString QCanInterfacePeak::version(void)
@@ -1257,7 +1320,7 @@ QString QCanInterfacePeak::version(void)
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// write()                                                                                                            //
+// QCanInterfacePeak::write()                                                                                         //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
 QCanInterface::InterfaceError_e	QCanInterfacePeak::write(const QCanFrame &clFrameR)
@@ -1267,19 +1330,21 @@ QCanInterface::InterfaceError_e	QCanInterfacePeak::write(const QCanFrame &clFram
    #if QCAN_SUPPORT_CAN_FD > 0
    TPCANMsgFD  tsCanMsgFdT;
    #endif
-   int32_t     slByteCntrT;
+   uint8_t     ubDataCountT;
 
    if (!pclPcanBasicP.isAvailable())
    {
       return eERROR_LIBRARY;
    }
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // prepare CAN message
    //
    if (clFrameR.frameFormat() < QCanFrame::eFORMAT_FD_STD)
    {
-      // copy all needed parameters to QCanFrame structure
+      //-------------------------------------------------------------------------------------------
+      // copy all required parameters from QCanFrame structure to PEAK message structure
+      //
       if (clFrameR.isExtended())
       {
          tsCanMsgT.MSGTYPE = PCAN_MESSAGE_EXTENDED;
@@ -1293,11 +1358,21 @@ QCanInterface::InterfaceError_e	QCanInterfacePeak::write(const QCanFrame &clFram
 
       tsCanMsgT.LEN= clFrameR.dlc();
 
-      for (slByteCntrT = 0; slByteCntrT < clFrameR.dlc(); slByteCntrT++)
-      {
-         tsCanMsgT.DATA[slByteCntrT] = clFrameR.data(slByteCntrT);
-      }
 
+      //-------------------------------------------------------------------------------------------
+      // distinguish between remote frame and data frame
+      //
+      if (clFrameR.isRemote())
+      {
+         tsCanMsgT.MSGTYPE |= PCAN_MESSAGE_RTR;
+      }
+      else
+      {
+         for (ubDataCountT = 0; ubDataCountT < clFrameR.dlc(); ubDataCountT++)
+         {
+            tsCanMsgT.DATA[ubDataCountT] = clFrameR.data(ubDataCountT);
+         }
+      }
       ulStatusT = pclPcanBasicP.pfnCAN_WriteP(uwPCanChannelP, &tsCanMsgT);
 
    }
@@ -1319,9 +1394,9 @@ QCanInterface::InterfaceError_e	QCanInterfacePeak::write(const QCanFrame &clFram
 
       tsCanMsgFdT.DLC= clFrameR.dlc();
 
-      for (slByteCntrT = 0; slByteCntrT < clFrameR.dataSize(); slByteCntrT++)
+      for (ubDataCountT = 0; ubDataCountT < clFrameR.dataSize(); ubDataCountT++)
       {
-         tsCanMsgFdT.DATA[slByteCntrT] = clFrameR.data(slByteCntrT);
+         tsCanMsgFdT.DATA[ubDataCountT] = clFrameR.data(ubDataCountT);
       }
 
       ulStatusT = pclPcanBasicP.pfnCAN_WriteFDP(uwPCanChannelP, &tsCanMsgFdT);

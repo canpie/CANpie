@@ -35,14 +35,42 @@
 \*--------------------------------------------------------------------------------------------------------------------*/
 
 
-
+//------------------------------------------------------------------------------------------------------
+// CANpie FD header files
+//
 #include "../../canpie-fd/cp_core.h"
 #include "../../canpie-fd/cp_msg.h"
+#if CP_NRL_CHANNEL_MAX > 0
+#include "../../canpie-fd/cp_nrl.h"       // NRL support
+#endif
+
+//------------------------------------------------------------------------------------------------------
+// QCan socket support
+//
 #include "qcan_socket.hpp"
+
 
 
 #ifndef QCAN_SOCKET_CANPIE_HPP_
 #define QCAN_SOCKET_CANPIE_HPP_
+
+
+/*--------------------------------------------------------------------------------------------------------------------*\
+** Definitions                                                                                                        **
+**                                                                                                                    **
+\*--------------------------------------------------------------------------------------------------------------------*/
+
+
+//------------------------------------------------------------------------------------------------------
+// Define macro for NRL support
+//
+#if CP_NRL_CHANNEL_MAX > 0
+#define  CP_NRL_SUPPORT       1
+#define  CP_API(func)         func##_Nrl
+#else
+#define  CP_NRL_SUPPORT       0
+#define  CP_API(func)         func
+#endif
 
 
 //----------------------------------------------------------------------------------------------------------------
@@ -59,72 +87,86 @@ class QCanSocketCpFD : public QCanSocket
 public:
    QCanSocketCpFD();
 
-   ~QCanSocketCpFD();
+   ~QCanSocketCpFD() override;
 
+   #if CP_NRL_SUPPORT > 0
+   void flushReceiveMailbox(CpNrlCoreData_ts * ptsCoreDataV);
+   bool hasFault(void)                    { return btFaultOnLineP;      }
 
-   friend  CpStatus_tv CpCoreBitrate( CpPort_ts *ptsPortV, int32_t slNomBitRateV,
-         int32_t slDatBitRateV);
+   void simulateFault(bool btEnableV)     { btFaultOnLineP = btEnableV; }
+   #endif
    
-   friend  CpStatus_tv CpCoreBufferConfig( CpPort_ts * ptsPortV,
+   friend  CpStatus_tv CP_API(CpCoreBitrate)( CpPort_ts *ptsPortV, int32_t slNomBitRateV, int32_t slDatBitRateV);
+   
+   friend  CpStatus_tv CP_API(CpCoreBufferConfig)( CpPort_ts * ptsPortV,
          uint8_t   ubBufferIdxV,
          uint32_t  ulIdentifierV,
          uint32_t  ulAcceptMaskV,
          uint8_t   ubFormatV,
          uint8_t   ubDirectionV);
    
-   friend  CpStatus_tv CpCoreBufferGetData( CpPort_ts * ptsPortV,
+   friend  CpStatus_tv CP_API(CpCoreBufferGetData)( CpPort_ts * ptsPortV,
          uint8_t   ubBufferIdxV,
          uint8_t * pubDestDataV,
          uint8_t   ubStartPosV,
          uint8_t   ubSizeV);
    
-   friend   CpStatus_tv CpCoreBufferGetDlc(  CpPort_ts * ptsPortV,
-         uint8_t ubBufferIdxV, uint8_t * pubDlcV);
+   friend  CpStatus_tv CP_API(CpCoreBufferGetDlc)(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV, uint8_t * pubDlcV);
    
-   friend  CpStatus_tv CpCoreBufferRelease( CpPort_ts * ptsPortV,
-         uint8_t ubBufferIdxV);
+   friend  CpStatus_tv CP_API(CpCoreBufferRelease)( CpPort_ts * ptsPortV,uint8_t ubBufferIdxV);
    
-   friend  CpStatus_tv CpCoreBufferSend(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV);
+   friend  CpStatus_tv CP_API(CpCoreBufferSend)(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV);
 
-   friend  CpStatus_tv CpCoreBufferSetData( CpPort_ts * ptsPortV,
+   friend  CpStatus_tv CP_API(CpCoreBufferSetData)( CpPort_ts * ptsPortV,
          uint8_t ubBufferIdxV,  uint8_t * pubSrcDataV,
          uint8_t   ubStartPosV, uint8_t   ubSizeV);
 
-   friend  CpStatus_tv CpCoreBufferSetDlc(  CpPort_ts * ptsPortV,
+   friend  CpStatus_tv CP_API(CpCoreBufferSetDlc)(  CpPort_ts * ptsPortV,
          uint8_t ubBufferIdxV, uint8_t ubDlcV);
    
-   friend  CpStatus_tv CpCoreCanMode(CpPort_ts * ptsPortV, uint8_t ubModeV);
+   friend  CpStatus_tv CP_API(CpCoreCanMode)(CpPort_ts * ptsPortV, uint8_t ubModeV);
    
-   friend  CpStatus_tv CpCoreCanState(CpPort_ts * ptsPortV, CpState_ts * ptsStateV);
+   friend  CpStatus_tv CP_API(CpCoreCanState)(CpPort_ts * ptsPortV, CpState_ts * ptsStateV);
    
-   friend  CpStatus_tv CpCoreDriverInit(uint8_t ubPhyIfV, CpPort_ts * ptsPortV,
+   friend  CpStatus_tv CP_API(CpCoreDriverInit)(uint8_t ubPhyIfV, CpPort_ts * ptsPortV,
          uint8_t ubConfigV);
    
-   friend  CpStatus_tv CpCoreDriverRelease(CpPort_ts * ptsPortV);
+   friend  CpStatus_tv CP_API(CpCoreDriverRelease)(CpPort_ts * ptsPortV);
    
-   friend  CpStatus_tv CpCoreFifoConfig(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
+   friend  CpStatus_tv CP_API(CpCoreFifoConfig)(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
          CpFifo_ts * ptsFifoV);
    
-   friend  CpStatus_tv CpCoreFifoRead(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
+   friend  CpStatus_tv CP_API(CpCoreFifoRead)(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
          CpCanMsg_ts * ptsCanMsgV,
          uint32_t * pulMsgCntV);
    
-   friend  CpStatus_tv CpCoreFifoRelease(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV);
+   friend  CpStatus_tv CP_API(CpCoreFifoRelease)(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV);
    
-   friend  CpStatus_tv CpCoreFifoWrite(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
+   friend  CpStatus_tv CP_API(CpCoreFifoWrite)(CpPort_ts * ptsPortV, uint8_t ubBufferIdxV,
          CpCanMsg_ts * ptsCanMsgV,
          uint32_t * pulMsgCntV);
    
-   friend  CpStatus_tv CpCoreHDI(CpPort_ts *ptsPortV, CpHdi_ts *ptsHdiV);
+   friend  CpStatus_tv CP_API(CpCoreHDI)(CpPort_ts *ptsPortV, CpHdi_ts *ptsHdiV);
    
-   friend  CpStatus_tv CpCoreIntFunctions( CpPort_ts * ptsPortV,
+   friend  CpStatus_tv CP_API(CpCoreIntFunctions)( CpPort_ts * ptsPortV,
          uint8_t (* pfnRcvHandler)(CpCanMsg_ts *, uint8_t),
          uint8_t (* pfnTrmHandler)(CpCanMsg_ts *, uint8_t),
          uint8_t (* pfnErrHandler)(CpState_ts *) );
    
-   friend  CpStatus_tv CpCoreStatistic(CpPort_ts * ptsPortV, CpStatistic_ts * ptsStatsV);
+   friend  CpStatus_tv CP_API(CpCoreStatistic)(CpPort_ts * ptsPortV, CpStatistic_ts * ptsStatsV);
    
+   friend  CpStatus_tv CP_API(CpCoreStatisticClear)(CpPort_ts * ptsPortV);
   
+   friend  bool CpNrlMboxCounterEvent(uint8_t ubPhyIfV, uint8_t ubBufferIdxV);
+   friend  void CpNrlMboxTickEvent(void);
+
+   //----------------------------------------------------------------------------------------------
+   // Pointer to core data of NRL, configured inside CpCoreDriverInit()
+   //
+   #if CP_NRL_SUPPORT > 0
+   CpNrlCoreData_ts *   ptsNrlCoreDataM;
+   #endif
+
 private slots:
    void           onSocketReceive(void);
 
@@ -171,6 +213,17 @@ private:
    //
    CpState_ts     tsCanStateP;
 
+   //----------------------------------------------------------------------------------------------
+   // Physical CAn interface
+   //
+   uint8_t        ubInterfaceP;
+
+   //----------------------------------------------------------------------------------------------
+   // Flag for fault simulation
+   //
+   #if CP_NRL_SUPPORT > 0
+   bool                 btFaultOnLineP;
+   #endif
 };
 
 

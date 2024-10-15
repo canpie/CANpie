@@ -46,7 +46,6 @@
 #include "qcan_defs.hpp"
 #include "qcan_namespace.hpp"
 
-using namespace QCan;
 
 //----------------------------------------------------------------------------------------------------------------
 /*!
@@ -67,10 +66,14 @@ public:
    **
    ** Construct a QCanNetworkSettings object for the channel \a teChannelV.
    */
-   QCanNetworkSettings(const CAN_Channel_e teChannelV = eCAN_CHANNEL_1, QObject * pclParentV = Q_NULLPTR);
+   QCanNetworkSettings(const QCan::CAN_Channel_e teChannelV = QCan::eCAN_CHANNEL_1, QObject * pclParentV = nullptr);
 
-   ~QCanNetworkSettings();
+   ~QCanNetworkSettings() override;
 
+   QCanNetworkSettings(const QCanNetworkSettings&) = delete;                  // no copy constructor
+   QCanNetworkSettings& operator=(const QCanNetworkSettings&) = delete;       // no assignment operator
+   QCanNetworkSettings(QCanNetworkSettings&&) = delete;                       // no move constructor
+   QCanNetworkSettings& operator=(QCanNetworkSettings&&) = delete;            // no move operator
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -87,9 +90,9 @@ public:
    ** required for non-web browser clients (see RFC 6455). The origin may not contain new line 
    ** characters, otherwise the connection will be aborted immediately during the handshake phase.
    */
-   void           connectToServer(const QHostAddress clServerAddressV = QHostAddress::LocalHost, 
-                                  const uint16_t uwPortV = QCAN_WEB_SOCKET_DEFAULT_PORT, 
-                                  const QString & clOriginR = "", const uint32_t flags = 0);
+   void                 connectToServer(const QHostAddress clServerAddressV = QHostAddress::LocalHost, 
+                                        const uint16_t uwPortV = QCAN_WEB_SOCKET_DEFAULT_PORT, 
+                                        const QString & clOriginR = "", const uint32_t flags = 0);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -98,7 +101,7 @@ public:
    **
    ** The method closes a WebSocket connection to a QCanNetwork class.
    */
-   void           closeConnection(void);
+   void                 closeConnection(void);
    
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -109,7 +112,7 @@ public:
    ** is not valid (not configured) the function returns QCan::eCAN_BITRATE_NONE. The result of this
    ** function is equivalent to QCanNetwork::dataBitrate().
    */
-   int32_t        dataBitrate(void);
+   int32_t              dataBitrate(void);
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -119,27 +122,25 @@ public:
    ** Return the current data bit-rate of the selected network as string object. If the bit-rate value
    ** is not valid (not configured) the function returns "None".
    */
-   QString        dataBitrateString(void);
+   QString              dataBitrateString(void);
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \return  Data bit-rate
-   ** \see     dataBitrate()
+   ** \return  Error counter value
+   ** \see     frameCount()
    **
-   ** Return the current data bit-rate of the selected network as string object. If the bit-rate value
-   ** is not valid (not configured) the function returns "None".
+   ** Return the number of errors in this network.
    */
-   int32_t        errorCount(void);
+   uint32_t             errorCount(void);
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \return  Data bit-rate
-   ** \see     dataBitrate()
+   ** \return  Frame counter value
+   ** \see     errorCount()
    **
-   ** Return the current data bit-rate of the selected network as string object. If the bit-rate value
-   ** is not valid (not configured) the function returns "None".
+   ** Return the number of frames transmitted in this network.
    */
-   int32_t        frameCount(void);
+   uint32_t             frameCount(void);
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -149,7 +150,7 @@ public:
    ** The function returns \c True if a connection has been established to a QCanNetwork and the
    ** received JSON data has a vaild format.
    */
-   bool           isValid(void);
+   bool                 isValid(void);
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -158,7 +159,7 @@ public:
    ** Return the name of the selected network as string object. If a CAN interface is attached to the
    ** network the function also returns the name of the CAN interface.
    */
-   QString        name(void);
+   QString              name(void);
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -168,7 +169,7 @@ public:
    ** Return the current nominal bit-rate of the selected network in [bits/s]. If the bit-rate value
    ** is not valid (not configured) the function returns QCan::eCAN_BITRATE_NONE.
    */
-   int32_t        nominalBitrate(void);
+   int32_t              nominalBitrate(void);
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -178,18 +179,18 @@ public:
    ** Return the current nominal bit-rate of the selected network as string object. If the bit-rate value
    ** is not valid (not configured) the function returns "None".
    */
-   QString        nominalBitrateString(void);
+   QString              nominalBitrateString(void);
 
    //---------------------------------------------------------------------------------------------------
    /*!
    **
    ** Reset the network.
    */
-   void           reset(void);
+   void                 reset(void);
 
-   void           requestUpdate(void);
+   void                 requestUpdate(void);
 
-   bool           send(void);
+   bool                 send(void);
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -198,9 +199,9 @@ public:
    **
    ** Set the bit-rate of the network.
    */
-   void           setBitrate(int32_t slNomBitRateV, int32_t slDatBitRateV = eCAN_BITRATE_NONE);
+   void                 setBitrate(int32_t slNomBitRateV, int32_t slDatBitRateV = QCan::eCAN_BITRATE_NONE);
 
-   void           setChannel(const CAN_Channel_e teChannelV);
+   void                 setChannel(const QCan::CAN_Channel_e teChannelV);
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -208,7 +209,7 @@ public:
    **
    ** Set the CAN mode of the network.
    */
-   void           setMode(const CAN_Mode_e teModeV);
+   void                 setMode(const QCan::CAN_Mode_e teModeV);
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -217,7 +218,7 @@ public:
    **
    ** Return the current CAN state of the selected network.
    */
-   CAN_State_e    state(void);
+   QCan::CAN_State_e    state(void);
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -226,7 +227,7 @@ public:
    **
    ** Return the current CAN state of the selected network as string object.
    */
-   QString        stateString(void);
+   QString              stateString(void);
 
 signals:
 
@@ -257,7 +258,7 @@ signals:
    ** }
    ** \endcode
    */
-   void           objectReceived(const CAN_Channel_e teChannelV, QJsonObject clNetworkSettingsV);
+   void           objectReceived(const QCan::CAN_Channel_e teChannelV, QJsonObject clNetworkSettingsV);
 
 private:
 
@@ -285,7 +286,7 @@ private:
    /* Stores commands send to the QCanNetwork class   */
    QJsonObject             clJsonCommandP;
 
-   CAN_Channel_e           teChannelP;
+   QCan::CAN_Channel_e     teChannelP;
 
 private slots:
    void           onSocketConnect(void);

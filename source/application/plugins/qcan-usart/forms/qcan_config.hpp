@@ -51,10 +51,15 @@ class QCanConfig : public QDialog
 {
    Q_OBJECT
 
-   public:
-      QCanConfig(QCanUsart::QCanUsartConfig_ts &tsConfigurationR, QWidget *parent = 0);
+public:
+   QCanConfig(QCanUsart::QCanUsartConfig_ts &tsConfigurationR, QWidget *parent = 0);
 
-   private:
+   QCanConfig(const QCanConfig&) = delete;               // no copy constructor
+   QCanConfig& operator=(const QCanConfig&) = delete;    // no assignment operator
+   QCanConfig(QCanConfig&&) = delete;                    // no move constructor
+   QCanConfig& operator=(QCanConfig&&) = delete;         // no move operator
+
+private:
       Ui::QCanCfgGui clQCanCfgGuiP;
       QCanUsart::QCanUsartConfig_ts tsCurrentConfigP;
 

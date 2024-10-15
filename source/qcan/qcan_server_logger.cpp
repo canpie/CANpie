@@ -68,11 +68,11 @@ QCanServerLogger::QCanServerLogger(QCanServer * pclServerV)
 {
    for (uint8_t ubLogNumT = 0; ubLogNumT < QCAN_NETWORK_MAX; ubLogNumT++)
    {
-      ateLogLevelP[ubLogNumT] = eLOG_LEVEL_INFO;
-      apclLogFileP[ubLogNumT] = Q_NULLPTR;
+      ateLogLevelP[ubLogNumT] = QCan::eLOG_LEVEL_INFO;
+      apclLogFileP[ubLogNumT] = nullptr;
    }
 
-   if (pclServerV != Q_NULLPTR)
+   if (pclServerV != nullptr)
    {
       this->attachServer(pclServerV);
    }
@@ -88,9 +88,8 @@ QCanServerLogger::~QCanServerLogger()
 {
    for (uint8_t ubLogNumT = 0; ubLogNumT < QCAN_NETWORK_MAX; ubLogNumT++)
    {
-      if (apclLogFileP[ubLogNumT] != Q_NULLPTR)
+      if (apclLogFileP[ubLogNumT] != nullptr)
       {
-         qDebug() << "close log file " << ubLogNumT;
          apclLogFileP[ubLogNumT]->flush();
          apclLogFileP[ubLogNumT]->close();
       }
@@ -106,12 +105,12 @@ void  QCanServerLogger::attachServer(QCanServer * pclServerV)
 {
    QString  clFileT;
 
-   for (uint8_t ubChannelNumT = eCAN_CHANNEL_1; ubChannelNumT <= pclServerV->maximumNetwork(); ubChannelNumT++)
+   for (uint8_t ubChannelNumT = QCan::eCAN_CHANNEL_1; ubChannelNumT <= pclServerV->maximumNetwork(); ubChannelNumT++)
    {
       clFileT = QString(QCAN_LOG_PATH);
       clFileT = clFileT + QString("can%1.log").arg(ubChannelNumT);
-      this->setFileName((CAN_Channel_e) ubChannelNumT, clFileT);
-      this->addLoggingSource(pclServerV->network(ubChannelNumT - 1));
+      this->setFileName(static_cast< QCan::CAN_Channel_e >(ubChannelNumT), clFileT);
+      this->addLoggingSource(pclServerV->network(static_cast< uint8_t>(ubChannelNumT - 1)));
    }
 
 }
@@ -124,8 +123,8 @@ void  QCanServerLogger::attachServer(QCanServer * pclServerV)
 void QCanServerLogger::addLoggingSource(QObject * pclSenderV)
 {
 
-   connect( pclSenderV, SIGNAL(addLogMessage(const CAN_Channel_e, const QString &, LogLevel_e)),
-            this,         SLOT(appendMessage(const CAN_Channel_e, const QString &, LogLevel_e)),
+   connect( pclSenderV, SIGNAL(addLogMessage(const QCan::CAN_Channel_e, const QString &, QCan::LogLevel_e)),
+            this,         SLOT(appendMessage(const QCan::CAN_Channel_e, const QString &, QCan::LogLevel_e)),
             Qt::DirectConnection);
 }
 
@@ -134,10 +133,10 @@ void QCanServerLogger::addLoggingSource(QObject * pclSenderV)
 // QCanServerLogger::appendMessage()                                                                                  //
 // append log message to log file                                                                                     //
 //--------------------------------------------------------------------------------------------------------------------//
-void QCanServerLogger::appendMessage(const CAN_Channel_e ubChannelV, const QString & clLogMessageV,
-                                     LogLevel_e teLogLevelV)
+void QCanServerLogger::appendMessage(const QCan::CAN_Channel_e ubChannelV, const QString & clLogMessageV,
+                                     QCan::LogLevel_e teLogLevelV)
 {
-   if ((ubChannelV >= eCAN_CHANNEL_1) && (ubChannelV <= QCAN_NETWORK_MAX))
+   if ((ubChannelV >= QCan::eCAN_CHANNEL_1) && (ubChannelV <= QCAN_NETWORK_MAX))
    {
       clLogMessageP.clear();
 
@@ -147,7 +146,7 @@ void QCanServerLogger::appendMessage(const CAN_Channel_e ubChannelV, const QStri
          clLogMessageP  = clTimeP.toString("hh:mm:ss.zzz - ");
          clLogMessageP += clLogMessageV;
 
-         if ((apclLogFileP[ubChannelV - 1]) != Q_NULLPTR)
+         if ((apclLogFileP[ubChannelV - 1]) != nullptr)
          {
             apclLogFileP[ubChannelV - 1]->write(clLogMessageP.toLatin1() + "\n");
             apclLogFileP[ubChannelV - 1]->flush();
@@ -161,11 +160,11 @@ void QCanServerLogger::appendMessage(const CAN_Channel_e ubChannelV, const QStri
 // QCanServerLogger::logLevel()                                                                                       //
 // return log level of selected CAN channel                                                                           //
 //--------------------------------------------------------------------------------------------------------------------//
-LogLevel_e QCanServerLogger::logLevel(const CAN_Channel_e teChannelV)
+QCan::LogLevel_e QCanServerLogger::logLevel(const QCan::CAN_Channel_e teChannelV) const
 {
-   LogLevel_e teLevelT = eLOG_LEVEL_INFO;
+   QCan::LogLevel_e teLevelT = QCan::eLOG_LEVEL_INFO;
 
-   if ((teChannelV >= eCAN_CHANNEL_1) && (teChannelV <= QCAN_NETWORK_MAX))
+   if ((teChannelV >= QCan::eCAN_CHANNEL_1) && (teChannelV <= QCAN_NETWORK_MAX))
    {
       teLevelT = ateLogLevelP[teChannelV - 1];
    }
@@ -178,14 +177,14 @@ LogLevel_e QCanServerLogger::logLevel(const CAN_Channel_e teChannelV)
 // QCanServerLogger::setFileName()                                                                                    //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-bool QCanServerLogger::setFileName(const CAN_Channel_e teChannelV, QString clFileNameV)
+bool QCanServerLogger::setFileName(const QCan::CAN_Channel_e teChannelV, QString clFileNameV)
 {
    QFile *  pclLogFileT;
    bool     btResultT = false;
 
-   if ((teChannelV >= eCAN_CHANNEL_1) && (teChannelV <= QCAN_NETWORK_MAX))
+   if ((teChannelV >= QCan::eCAN_CHANNEL_1) && (teChannelV <= QCAN_NETWORK_MAX))
    {
-      if ((apclLogFileP[teChannelV - 1]) == Q_NULLPTR)
+      if ((apclLogFileP[teChannelV - 1]) == nullptr)
       {
          apclLogFileP[teChannelV - 1] = new QFile();
       }
@@ -197,7 +196,6 @@ bool QCanServerLogger::setFileName(const CAN_Channel_e teChannelV, QString clFil
          //
          apclLogFileP[teChannelV - 1]->close();
       }
-
 
       pclLogFileT = apclLogFileP[teChannelV - 1];
 
@@ -213,7 +211,7 @@ bool QCanServerLogger::setFileName(const CAN_Channel_e teChannelV, QString clFil
       else
       {
          delete (pclLogFileT);
-         apclLogFileP[teChannelV - 1] = Q_NULLPTR;
+         apclLogFileP[teChannelV - 1] = nullptr;
          btResultT = false;
       }
 
@@ -227,10 +225,10 @@ bool QCanServerLogger::setFileName(const CAN_Channel_e teChannelV, QString clFil
 // QCanServerLogger::setLogLevel()                                                                                    //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-void QCanServerLogger::setLogLevel(const CAN_Channel_e ubChannelV, LogLevel_e teLogLevelV)
+void QCanServerLogger::setLogLevel(const QCan::CAN_Channel_e ubChannelV, QCan::LogLevel_e teLogLevelV)
 {
 
-   if ((ubChannelV >= eCAN_CHANNEL_1) && (ubChannelV <= QCAN_NETWORK_MAX))
+   if ((ubChannelV >= QCan::eCAN_CHANNEL_1) && (ubChannelV <= QCAN_NETWORK_MAX))
    {
       ateLogLevelP[ubChannelV - 1] = teLogLevelV;
 
@@ -238,35 +236,35 @@ void QCanServerLogger::setLogLevel(const CAN_Channel_e ubChannelV, LogLevel_e te
 
       switch (teLogLevelV)
       {
-         case eLOG_LEVEL_OFF:
+         case QCan::eLOG_LEVEL_OFF:
             clLogTextP = tr("Set log level: Off");
             break;
 
-         case eLOG_LEVEL_FATAL:
+         case QCan::eLOG_LEVEL_FATAL:
             clLogTextP = tr("Set log level: Fatal");
             break;
 
-         case eLOG_LEVEL_ERROR:
+         case QCan::eLOG_LEVEL_ERROR:
             clLogTextP = tr("Set log level: Error");
             break;
 
-         case eLOG_LEVEL_WARN:
+         case QCan::eLOG_LEVEL_WARN:
             clLogTextP = tr("Set log level: Warning");
             break;
 
-         case eLOG_LEVEL_INFO:
+         case QCan::eLOG_LEVEL_INFO:
             clLogTextP = tr("Set log level: Info");
             break;
 
-         case eLOG_LEVEL_DEBUG:
+         case QCan::eLOG_LEVEL_DEBUG:
             clLogTextP = tr("Set log level: Debug");
             break;
 
-         case eLOG_LEVEL_TRACE:
+         case QCan::eLOG_LEVEL_TRACE:
             clLogTextP = tr("Set log level: Trace");
             break;
 
-         case eLOG_LEVEL_ALL:
+         case QCan::eLOG_LEVEL_ALL:
             clLogTextP = tr("Set log level: All");
             break;
 

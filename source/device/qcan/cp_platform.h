@@ -81,6 +81,10 @@
 
 #define  CP_PLATFORM                1
 
+#ifndef  CP_NRL_CHANNEL_MAX
+#define  CP_NRL_CHANNEL_MAX         0
+#endif
+
 
 
 /*----------------------------------------------------------------------------*\
@@ -104,6 +108,10 @@ struct CpPortQCan_s {
    /*!   Private driver information 
    */
    uint8_t     ubDrvInfo;
+
+   #if CP_NRL_CHANNEL_MAX > 0
+   uint8_t     ubNrlChannel;
+   #endif
 
 };
 

@@ -37,6 +37,7 @@
 /*!
 ** \file    cp_fifo.h
 ** \brief   CANpie FIFO functions
+** \anchor  CP_FIFO_H
 **
 ** A CAN message FIFO can be assigned to every message message buffer by calling CpCoreFifoConfig(). 
 ** This file defines the structure of a CAN message FIFO (CpFifo_s) and inline functions to access the
@@ -50,6 +51,8 @@
 
 #include "canpie.h"
 
+
+
 //-------------------------------------------------------------------//
 // take precautions if compiled with C++ compiler                    //
 #ifdef __cplusplus                                                   //
@@ -57,20 +60,6 @@ extern "C" {                                                         //
 #endif                                                               //
 //-------------------------------------------------------------------//
 
-/*--------------------------------------------------------------------------------------------------------------------*\
-** Definitions                                                                                                        **
-**                                                                                                                    **
-\*--------------------------------------------------------------------------------------------------------------------*/
-
-#ifndef CP_FIFO_MACRO
-#define CP_FIFO_MACRO   0
-#endif
-
-#define  CP_FIFO_STATE_EMPTY        ((uint32_t) 0x00000001)
-#define  CP_FIFO_STATE_FULL         ((uint32_t) 0x00000002)
-
-#define  CP_FIFO_STATE_MASK_EMPTY   ((uint32_t) 0xFFFFFFFE)
-#define  CP_FIFO_STATE_MASK_FULL    ((uint32_t) 0xFFFFFFFD)
 
 
 /*--------------------------------------------------------------------------------------------------------------------*\
@@ -88,24 +77,28 @@ extern "C" {                                                         //
 */
 struct CpFifo_s
 {
-   /*! Index where the last data has been written to
+   /*! 
+   ** Index where the last data has been written to
    */
    uint32_t  ulIndexIn;
 
-   /*! Index where the last data has been read from
+   /*! 
+   ** Index where the last data has been read from
    */
    uint32_t  ulIndexOut;
 
-   /*! Maximum number of FIFO entries
+   /*! 
+   ** Maximum number of FIFO entries
    */
    uint32_t  ulIndexMax;
 
-   /*! Status of FIFO full or empty
-    *  0x01: FIFO is empty
-    *  0x02: FIFO is full
-    */
-   uint32_t  ulState;
+   #if CPP_HAS_ATOMIC == 0
+   uint32_t ulElements;
+   #else
+   atomic_uint_least32_t ulElements;
+   #endif
 
+ 
    /*!
    ** Pointer to CAN message buffer
    */
@@ -121,6 +114,29 @@ typedef struct CpFifo_s CpFifo_ts;
 ** Function prototypes                                                                                                **
 **                                                                                                                    **
 \*--------------------------------------------------------------------------------------------------------------------*/
+
+
+//------------------------------------------------------------------------------------------------------
+/*!
+** \param[in]  ptsFifoV       Pointer to CAN message FIFO
+**
+** This function clears all entries inside the FIFO. 
+**
+*/
+void CpFifoClear(CpFifo_ts *ptsFifoV);
+
+//------------------------------------------------------------------------------------------------------
+/*!
+** \param[in]  ptsDestFifoV   Pointer to CAN message FIFO destination
+** \param[in]  ptsSrcFifoV    Pointer to CAN message FIFO source
+** \return     \c true if FIFO contents has been copied, otherwise \c false
+**
+** This function copies the contents from \a ptsSrcFifoV to \a ptsDestFifoV. The function checks if the
+** destination FIFO has the same size as the source FIFO. Both FIFOs have to be initialised by 
+** CpFifoInit() in advance.
+**
+*/
+bool_t CpFifoCopy(CpFifo_ts *ptsDestFifoV, CpFifo_ts *ptsSrcFifoV);
 
 
 //------------------------------------------------------------------------------------------------------
@@ -266,62 +282,6 @@ bool_t CpFifoIsFull(CpFifo_ts *ptsFifoV);
 */
 uint32_t CpFifoPending(CpFifo_ts *ptsFifoV);
 
-
-//--------------------------------------------------------------------------------------------------------------------//
-// Macros for CpFifoXXX() commands                                                                                    //
-//--------------------------------------------------------------------------------------------------------------------//
-#if   CP_FIFO_MACRO == 1
-
-#define  CpFifoDataInPtr(FIFO_PTR)                            \
-            (((FIFO_PTR)->ptsCanMsg) + ((FIFO_PTR)->ulIndexIn))
-
-#define  CpFifoDataOutPtr(FIFO_PTR) \
-      (((FIFO_PTR)->ptsCanMsg) + ((FIFO_PTR)->ulIndexOut))
-
-
-#define  CpFifoIsEmpty(FIFO_PTR)                                     \
-            (((FIFO_PTR)->ulState == CP_FIFO_STATE_EMPTY) ? 1 : 0)
-
-#define  CpFifoIsFull(FIFO_PTR)                                      \
-            (((FIFO_PTR)->ulState == CP_FIFO_STATE_FULL)  ? 1 : 0)
-
-#define  CpFifoIncIn(FIFO_PTR)                                       \
-         do {                                                        \
-            (FIFO_PTR)->ulIndexIn++;                                 \
-            if ((FIFO_PTR)->ulIndexIn >= (FIFO_PTR)->ulIndexMax)     \
-            {                                                        \
-               (FIFO_PTR)->ulIndexIn = 0;                            \
-            }                                                        \
-            if ((FIFO_PTR)->ulIndexIn == (FIFO_PTR)->ulIndexOut)     \
-            {                                                        \
-               (FIFO_PTR)->ulState = CP_FIFO_STATE_FULL;             \
-            }                                                        \
-            (FIFO_PTR)->ulState &= CP_FIFO_STATE_MASK_EMPTY;         \
-         } while (0)
-
-#define  CpFifoIncOut(FIFO_PTR)                                      \
-         do {                                                        \
-            (FIFO_PTR)->ulIndexOut++;                                \
-            if ((FIFO_PTR)->ulIndexOut >= (FIFO_PTR)->ulIndexMax)    \
-            {                                                        \
-               (FIFO_PTR)->ulIndexOut = 0;                           \
-            }                                                        \
-            if ((FIFO_PTR)->ulIndexIn == (FIFO_PTR)->ulIndexOut)     \
-            {                                                        \
-               (FIFO_PTR)->ulState = CP_FIFO_STATE_EMPTY;            \
-            }                                                        \
-            (FIFO_PTR)->ulState &= CP_FIFO_STATE_MASK_FULL;          \
-         } while (0)
-
-#define  CpFifoInit(FIFO_PTR, MSG_PTR, SIZE)                         \
-         do {                                                        \
-            (FIFO_PTR)->ulIndexIn  = 0;                              \
-            (FIFO_PTR)->ulIndexOut = 0;                              \
-            (FIFO_PTR)->ulIndexMax = (SIZE);                         \
-            (FIFO_PTR)->ulState    = CP_FIFO_STATE_EMPTY;            \
-            (FIFO_PTR)->ptsCanMsg  = (MSG_PTR);                      \
-         } while (0)
-#endif
 
 
 //-------------------------------------------------------------------//

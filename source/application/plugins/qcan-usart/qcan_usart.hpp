@@ -68,6 +68,10 @@ private:
    QCanUsart();
    QCanUsart(const QCanUsart &);
 
+   QCanUsart& operator=(const QCanUsart&) = delete;    // no assignment operator
+   QCanUsart(QCanUsart&&) = delete;                    // no move constructor
+   QCanUsart& operator=(QCanUsart&&) = delete;         // no move operator
+
    QSerialPort    *pclSerialPortP;
 
    bool btLibFuncLoadP;

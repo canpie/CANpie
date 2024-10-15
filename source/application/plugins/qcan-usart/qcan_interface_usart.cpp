@@ -229,8 +229,8 @@ QCanInterfaceUsart::QCanInterfaceUsart(uint16_t uwDeviceNrV, QString clNameV)
    //---------------------------------------------------------------------------------------------------
    // clear error state
    //
-   teErrorStateP = eCAN_STATE_BUS_ACTIVE;
-   teCanModeP = eCAN_MODE_STOP;
+   teErrorStateP = QCan::eCAN_STATE_BUS_ACTIVE;
+   teCanModeP    = QCan::eCAN_MODE_STOP;
 
    atsReadMessageListG.clear();
    atsWriteMessageListG.clear();
@@ -271,7 +271,7 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::connect(void)
    //---------------------------------------------------------------------------------------------------
    // log the connect event
    //
-   emit addLogMessage(tr("Connect ") + clUsartNameP +QString::number(uwUsartNumberP+1,10) + tr(" from 'QCan USART' plugin"), eLOG_LEVEL_INFO);
+   emit addLogMessage(tr("Connect ") + clUsartNameP +QString::number(uwUsartNumberP+1,10) + tr(" from 'QCan USART' plugin"), QCan::eLOG_LEVEL_INFO);
 
    //---------------------------------------------------------------------------------------------------
    // process the connect only if USART instance is available
@@ -316,7 +316,7 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::connect(void)
          //
          if (tvStatusT != eCP_ERR_NONE)
          {
-            emit addLogMessage(tr("Connect to ") + clUsartNameP + QString::number(uwUsartNumberP+1,10) + tr(" fails with CANpie Buffer configuiration error 0x") + QString::number(tvStatusT,16), eLOG_LEVEL_FATAL);
+            emit addLogMessage(tr("Connect to ") + clUsartNameP + QString::number(uwUsartNumberP+1,10) + tr(" fails with CANpie Buffer configuiration error 0x") + QString::number(tvStatusT,16), QCan::eLOG_LEVEL_FATAL);
          }
 
          //-----------------------------------------------------------------------------------
@@ -341,13 +341,13 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::connect(void)
       else
       {
          qWarning() << QString("QCanInterfaceUsart::connect(0x" +QString::number(tsPortP.ubPhyIf,16)+", "+clUsartNameP+")") << "fail with error:" << clCpUsartP.formatedError(tvStatusT);
-         emit addLogMessage(tr("Connect to ") + clUsartNameP + QString::number(uwUsartNumberP+1,10) + tr(" fails with USART drive initialisation error 0x") + QString::number(tvStatusT,16), eLOG_LEVEL_FATAL);
+         emit addLogMessage(tr("Connect to ") + clUsartNameP + QString::number(uwUsartNumberP+1,10) + tr(" fails with USART drive initialisation error 0x") + QString::number(tvStatusT,16), QCan::eLOG_LEVEL_FATAL);
       }
    }
    else
    {
       qCritical() << "QCanInterfaceUsart::connect(): USART instance is not available!";
-      emit addLogMessage(tr("Connect to ") + clUsartNameP + QString::number(uwUsartNumberP+1,10) + tr(" is not possible, no USART instance available."), eLOG_LEVEL_FATAL);
+      emit addLogMessage(tr("Connect to ") + clUsartNameP + QString::number(uwUsartNumberP+1,10) + tr(" is not possible, no USART instance available."), QCan::eLOG_LEVEL_FATAL);
    }
 
    return teReturnT;
@@ -386,7 +386,7 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::disconnect()
    //---------------------------------------------------------------------------------------------------
    // log the disconnect event
    //
-   emit addLogMessage(tr("Disonnect ") + clUsartNameP +QString::number(uwUsartNumberP+1,10) + tr(" from 'QCan USART' plugin"), eLOG_LEVEL_INFO);
+   emit addLogMessage(tr("Disonnect ") + clUsartNameP +QString::number(uwUsartNumberP+1,10) + tr(" from 'QCan USART' plugin"), QCan::eLOG_LEVEL_INFO);
 
    //---------------------------------------------------------------------------------------------------
    // process the disconnect only if USART instance is available
@@ -409,13 +409,13 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::disconnect()
       else
       {
          qWarning() << QString("QCanInterfaceUsart::disconnect(0x" +QString::number(tsPortP.ubPhyIf,16)+", "+clUsartNameP+")") << "fail with error:" << clCpUsartP.formatedError(tvStatusT);
-         emit addLogMessage(tr("Disconnect from ") + clUsartNameP + QString::number(uwUsartNumberP+1,10) + tr(" fails with USART drive release error 0x") + QString::number(tvStatusT,16), eLOG_LEVEL_FATAL);
+         emit addLogMessage(tr("Disconnect from ") + clUsartNameP + QString::number(uwUsartNumberP+1,10) + tr(" fails with USART drive release error 0x") + QString::number(tvStatusT,16), QCan::eLOG_LEVEL_FATAL);
       }
    }
    else
    {
       qCritical() << "QCanInterfaceUsart::disconnect(): USART instance is not available!";
-      emit addLogMessage(tr("Disconnect from ") + clUsartNameP + QString::number(uwUsartNumberP+1,10) + tr(" is not possible, no USART instance available."), eLOG_LEVEL_FATAL);
+      emit addLogMessage(tr("Disconnect from ") + clUsartNameP + QString::number(uwUsartNumberP+1,10) + tr(" is not possible, no USART instance available."), QCan::eLOG_LEVEL_FATAL);
    }
 
    return teReturnT;
@@ -659,7 +659,7 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::setBitrate(int32_t slNomBitR
    //
    if (clCpUsartP.isAvailable() == true)
    {
-      emit addLogMessage(tr("Set CAN bit-rate is actually not supported for USART plugin only 125kBaud are used. Also the changes in 'Device Configuration' are not considered for USART baud-rate."), eLOG_LEVEL_WARN);
+      emit addLogMessage(tr("Set CAN bit-rate is actually not supported for USART plugin only 125kBaud are used. Also the changes in 'Device Configuration' are not considered for USART baud-rate."), QCan::eLOG_LEVEL_WARN);
 
       //-------------------------------------------------------------------------------------------
       // \todo the setBitrate function is not supported
@@ -674,7 +674,7 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::setBitrate(int32_t slNomBitR
       tvStatusT = clCpUsartP.CpUsartBitrate(&tsPortP, slUsartBitrateP, slDatBitRateV);
       if (tvStatusT != eCP_ERR_NONE)
       {
-         emit addLogMessage(tr("Set CAN bit-rate for ") + clUsartNameP + QString::number(uwUsartNumberP+1,10) + tr(" fails with error 0x") + QString::number(tvStatusT,16), eLOG_LEVEL_FATAL);
+         emit addLogMessage(tr("Set CAN bit-rate for ") + clUsartNameP + QString::number(uwUsartNumberP+1,10) + tr(" fails with error 0x") + QString::number(tvStatusT,16), QCan::eLOG_LEVEL_FATAL);
       }
    } else
    {
@@ -689,7 +689,7 @@ QCanInterface::InterfaceError_e QCanInterfaceUsart::setBitrate(int32_t slNomBitR
 // QCanInterfaceUsart::setMode()                                                                                      //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-QCanInterface::InterfaceError_e	QCanInterfaceUsart::setMode(const CAN_Mode_e teModeV)
+QCanInterface::InterfaceError_e	QCanInterfaceUsart::setMode(const QCan::CAN_Mode_e teModeV)
 {
    InterfaceError_e  teReturnT = eERROR_NONE;
    CpStatus_tv tvStatusT;
@@ -706,7 +706,7 @@ QCanInterface::InterfaceError_e	QCanInterfaceUsart::setMode(const CAN_Mode_e teM
       //
       switch (teModeV)
       {
-         case eCAN_MODE_START :
+         case QCan::eCAN_MODE_START :
 
             //---------------------------------------------------------------------------
             // reset statistic values
@@ -716,19 +716,19 @@ QCanInterface::InterfaceError_e	QCanInterfaceUsart::setMode(const CAN_Mode_e teM
             tsStatisticP.ulTrmCount = 0;
             ulStatisticTrmCountG = 0;
 
-            tvStatusT = clCpUsartP.CpUsartCanMode(&tsPortP, eCAN_MODE_START);
+            tvStatusT = clCpUsartP.CpUsartCanMode(&tsPortP, QCan::eCAN_MODE_START);
             if (tvStatusT == eCP_ERR_NONE)
             {
-               teCanModeP = eCAN_MODE_START;
+               teCanModeP = QCan::eCAN_MODE_START;
             } else
             {
                qWarning() << QString("QCanInterfaceUsart::setMode(0x" +QString::number(tsPortP.ubPhyIf,16)+", "+clUsartNameP+")") << "fail with error:" << clCpUsartP.formatedError(tvStatusT);
-               emit addLogMessage(tr("Set CAN mode for ") + clUsartNameP + QString::number(uwUsartNumberP+1,10) + tr(" fails with error 0x") + QString::number(tvStatusT,16), eLOG_LEVEL_FATAL);
+               emit addLogMessage(tr("Set CAN mode for ") + clUsartNameP + QString::number(uwUsartNumberP+1,10) + tr(" fails with error 0x") + QString::number(tvStatusT,16), QCan::eLOG_LEVEL_FATAL);
             }
             break;
 
-         case eCAN_MODE_STOP :
-            teCanModeP = eCAN_MODE_STOP;
+         case QCan::eCAN_MODE_STOP :
+            teCanModeP = QCan::eCAN_MODE_STOP;
             break;
 
          default :
@@ -749,7 +749,7 @@ QCanInterface::InterfaceError_e	QCanInterfaceUsart::setMode(const CAN_Mode_e teM
 // QCanInterfaceUsart::state()                                                                                        //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-CAN_State_e QCanInterfaceUsart::state(void)
+QCan::CAN_State_e QCanInterfaceUsart::state(void)
 {
    return (teErrorStateP);
 }

@@ -44,6 +44,7 @@
 #include <QtCore/QTranslator>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMessageBox>
+#include <QtWidgets/QStyleFactory>
 
 #include "qcan_server_dialog.hpp"
 
@@ -58,10 +59,13 @@ int main(int argc, char *argv[])
 
    Q_INIT_RESOURCE(server);
 
-   //----------------------------------------------------------------
+   QApplication::setStyle(QStyleFactory::create("Fusion"));
+
+   //---------------------------------------------------------------------------------------------------
    // create application
    //
    QApplication clAppT(argc, argv);
+
 
    //----------------------------------------------------------------
    // run command parser
@@ -93,7 +97,7 @@ int main(int argc, char *argv[])
    }
    */
   
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // load translation
    //
    QTranslator clQtTranslatorT;
@@ -107,7 +111,7 @@ int main(int argc, char *argv[])
    
    QApplication::setQuitOnLastWindowClosed(false);
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // stop the App Nap feature on Mac OS
    //
    #ifdef Q_OS_MACOS
@@ -115,11 +119,10 @@ int main(int argc, char *argv[])
    clAppNapT.suspend();
    #endif
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // start the dialog, since it is a tray widget hide it initially
    //
    QCanServerDialog  clCanServerDlgT;
-   clCanServerDlgT.hide();
+   clCanServerDlgT.close();
    return clAppT.exec();
 }
-

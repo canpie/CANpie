@@ -81,7 +81,7 @@ uint8_t QCanPluginTemplate::interfaceCount()
 //----------------------------------------------------------------------------//
 QCanInterface * QCanPluginTemplate::getInterface(uint8_t ubInterfaceV)
 {
-   QCanInterface * pclInterfaceT = 0L;
+   QCanInterface * pclInterfaceT = nullptr;
 
    if (ubInterfaceV < ubInterfaceCountP)
    {

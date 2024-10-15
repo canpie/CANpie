@@ -144,7 +144,7 @@ bool QCanUsart::setConfig(QCanUsartConfig_ts & tsNewConfigR)
    tsConfigP = tsNewConfigR;
 
    //----------------------------------------------------------------
-   if (pclSerialPortP != NULL)
+   if (pclSerialPortP != nullptr)
    {
       pclSerialPortP->disconnect();
       pclSerialPortP->close();
@@ -292,12 +292,12 @@ qint32 QCanUsart::DevRelease()
    QCanUsart &pclCanUsartT = QCanUsart::getInstance();
 
 
-   if (pclSerialPortP != NULL)
+   if (pclSerialPortP != nullptr)
    {
       pclCanUsartT.pclSerialPortP->close();
       delete(pclCanUsartT.pclSerialPortP);
 
-      pclCanUsartT.pclSerialPortP = NULL;
+      pclCanUsartT.pclSerialPortP = nullptr;
    }
 
    return eUSART_ERROR_OK;
@@ -406,7 +406,7 @@ void QCanUsart::onReadyRead()
 QCanUsart::QCanUsart()
 {
    btLibFuncLoadP = true;
-   pclSerialPortP = NULL;
+   pclSerialPortP = nullptr;
 }
 
 //----------------------------------------------------------------------------//

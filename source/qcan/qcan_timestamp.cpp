@@ -70,22 +70,22 @@ void QCanTimeStamp::clear(void)
 // QCanTimeStamp::fromMicroSeconds()                                                                                  //
 // convert micro-seconds value to time-stamp value                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-void QCanTimeStamp::fromMicroSeconds(uint32_t ulMicroSecondsV)
+void QCanTimeStamp::fromMicroSeconds(uint64_t uqMicroSecondsV)
 {
    //---------------------------------------------------------------------------------------------------
    // calculate the seconds
    //
-   ulSecondsP     = ulMicroSecondsV / 1000000UL;
+   ulSecondsP     = static_cast<uint32_t> (uqMicroSecondsV / 1000000UL);
    
    //---------------------------------------------------------------------------------------------------
-   // substract the seconds from parameter
+   // subtract the seconds from parameter
    //
-   ulMicroSecondsV = ulMicroSecondsV - (ulSecondsP * 1000000UL);
+   uqMicroSecondsV = uqMicroSecondsV - (ulSecondsP * 1000000UL);
    
    //---------------------------------------------------------------------------------------------------
    // convert the remaining part to nano-seconds
    //
-   ulNanoSecondsP = ulMicroSecondsV * 1000UL;
+   ulNanoSecondsP = static_cast<uint32_t>(uqMicroSecondsV * 1000UL);
 }
 
 
@@ -93,22 +93,22 @@ void QCanTimeStamp::fromMicroSeconds(uint32_t ulMicroSecondsV)
 // QCanTimeStamp::fromMilliSeconds()                                                                                  //
 // convert milli-seconds value to time-stamp value                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-void QCanTimeStamp::fromMilliSeconds(uint32_t ulMilliSecondsV)
+void QCanTimeStamp::fromMilliSeconds(uint64_t uqMilliSecondsV)
 {
    //---------------------------------------------------------------------------------------------------
    // calculate the seconds
    //
-   ulSecondsP     = ulMilliSecondsV / 1000UL;
+   ulSecondsP     = static_cast< uint32_t >(uqMilliSecondsV / 1000UL);
    
    //---------------------------------------------------------------------------------------------------
-   // substract the seconds from parameter
+   // subtract the seconds from parameter
    //
-   ulMilliSecondsV = ulMilliSecondsV - (ulSecondsP * 1000UL);
+   uqMilliSecondsV = uqMilliSecondsV - (ulSecondsP * 1000UL);
    
    //---------------------------------------------------------------------------------------------------
    // convert the remaining part to nano-seconds
    //
-   ulNanoSecondsP = ulMilliSecondsV * 1000000UL;
+   ulNanoSecondsP = static_cast< uint32_t >(uqMilliSecondsV * 1000000UL);
 
 }
 
@@ -146,8 +146,8 @@ QCanTimeStamp QCanTimeStamp::now(void)
    auto integral_duration = now.time_since_epoch().count();
 
    static QCanTimeStamp clTimeStampS;
-   clTimeStampS.setNanoSeconds(integral_duration % 1000000000);
-   clTimeStampS.setSeconds(uint32_t(integral_duration / 1000000000));
+   clTimeStampS.setNanoSeconds(static_cast< uint32_t >(integral_duration % 1000000000));
+   clTimeStampS.setSeconds(static_cast< uint32_t >(integral_duration / 1000000000));
    return (clTimeStampS);
 }
 
@@ -204,22 +204,22 @@ QByteArray  QCanTimeStamp::toByteArray(void) const
 
    uint32_t ulTimeValT = this->seconds();
 
-   clByteArrayT[3] = (uint8_t) (ulTimeValT);
+   clByteArrayT[3] = static_cast< char > (ulTimeValT);
    ulTimeValT      = ulTimeValT >> 8;
-   clByteArrayT[2] = (uint8_t) (ulTimeValT);
+   clByteArrayT[2] = static_cast< char > (ulTimeValT);
    ulTimeValT      = ulTimeValT >> 8;
-   clByteArrayT[1] = (uint8_t) (ulTimeValT);
+   clByteArrayT[1] = static_cast< char > (ulTimeValT);
    ulTimeValT      = ulTimeValT >> 8;
-   clByteArrayT[0] = (uint8_t) (ulTimeValT);
+   clByteArrayT[0] = static_cast< char > (ulTimeValT);
 
    ulTimeValT = this->nanoSeconds();
-   clByteArrayT[7] = (uint8_t) (ulTimeValT);
+   clByteArrayT[7] = static_cast< char > (ulTimeValT);
    ulTimeValT      = ulTimeValT >> 8;
-   clByteArrayT[6] = (uint8_t) (ulTimeValT);
+   clByteArrayT[6] = static_cast< char > (ulTimeValT);
    ulTimeValT      = ulTimeValT >> 8;
-   clByteArrayT[5] = (uint8_t) (ulTimeValT);
+   clByteArrayT[5] = static_cast< char > (ulTimeValT);
    ulTimeValT      = ulTimeValT >> 8;
-   clByteArrayT[4] = (uint8_t) (ulTimeValT);
+   clByteArrayT[4] = static_cast< char > (ulTimeValT);
 
    return (clByteArrayT);
 }
@@ -346,7 +346,7 @@ QCanTimeStamp & QCanTimeStamp::operator+=(const QCanTimeStamp & clTimestampR)
    }
    else
    {
-      this->setSeconds((uint32_t) uqSecondsT);
+      this->setSeconds(static_cast< uint32_t > (uqSecondsT) );
       this->setNanoSeconds(ulNanoSecsT);
    }
    

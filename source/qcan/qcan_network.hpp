@@ -38,6 +38,7 @@
 \*--------------------------------------------------------------------------------------------------------------------*/
 
 #include <QtCore/QDateTime>
+#include <QtCore/QElapsedTimer>
 #include <QtCore/QMutex>
 #include <QtCore/QPointer>
 #include <QtCore/QTimer>
@@ -50,8 +51,6 @@
 #include "qcan_frame.hpp"
 #include "qcan_interface.hpp"
 
-
-using namespace QCan;
 
 /*--------------------------------------------------------------------------------------------------------------------*\
 ** Referenced classes                                                                                                 **
@@ -98,10 +97,15 @@ public:
    **
    ** Create new CAN network with unique channel number.
    */
-   QCanNetwork(QObject * pclParentV = Q_NULLPTR);
+   QCanNetwork(QObject * pclParentV = nullptr);
 
 
-	~QCanNetwork();
+	~QCanNetwork() override;
+
+   QCanNetwork(const QCanNetwork&) = delete;                   // no copy constructor
+   QCanNetwork& operator=(const QCanNetwork&) = delete;        // no assignment operator
+   QCanNetwork(QCanNetwork&&) = delete;                        // no move constructor
+   QCanNetwork& operator=(QCanNetwork&&) = delete;             // no move operator
 
    enum SocketType_e {
       eSOCKET_TYPE_CAN_FRAME = 1,
@@ -133,7 +137,7 @@ public:
    ** exchange CAN frames or to retrieve and alter the CAN network settings. The WebSocket type is
    ** defined by the parameter \a teSocketTypeV.
    */
-   void  attachWebSocket(QWebSocket * pclSocketV, enum SocketType_e teSocketTypeV = eSOCKET_TYPE_CAN_FRAME);
+   void  attachWebSocket(QWebSocket * pclSocketV, const enum SocketType_e teSocketTypeV = eSOCKET_TYPE_CAN_FRAME);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -147,7 +151,7 @@ public:
    ** <p>
    ** If no bit-rate is configured, the function will return QCan::eCAN_BITRATE_NONE.
    */
-	inline int32_t  nominalBitrate(void)   {  return (slNomBitRateP);    };
+	inline int32_t  nominalBitrate(void) const      {  return (slNomBitRateP);    }
 
 
    //---------------------------------------------------------------------------------------------------
@@ -158,9 +162,9 @@ public:
    ** <p>
    ** If no bit-rate is configured, the function will return "None".
    */
-	QString nominalBitrateString(void);
+	QString nominalBitrateString(void) const;
 
-   inline CAN_Channel_e channel()      { return ((CAN_Channel_e) ubIdP) ;  };
+   inline QCan::CAN_Channel_e channel() const      { return (static_cast< QCan::CAN_Channel_e >(ubIdP)); }
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -173,7 +177,7 @@ public:
    ** <p>
    ** If no bit-rate is configured, the function will return QCan::eCAN_BITRATE_NONE.
    */
-	inline int32_t  dataBitrate(void)      {  return (slDatBitRateP);    };
+	inline int32_t  dataBitrate(void) const         {  return (slDatBitRateP);    }
 
 
    //---------------------------------------------------------------------------------------------------
@@ -186,7 +190,7 @@ public:
    ** If no bit-rate is configured, the function will return
    ** "None".
    */
-	QString dataBitrateString(void);
+	QString dataBitrateString(void) const;
 
 
    //---------------------------------------------------------------------------------------------------
@@ -196,7 +200,7 @@ public:
    ** This function returns the actual number of CAN frames that have been transmitted via the
    ** network.
    */
-	uint32_t frameCount(void)        { return (ulCntFrameCanP);          };
+	uint32_t frameCount(void) const                 { return (ulCntFrameCanP);          }
 
 
    //---------------------------------------------------------------------------------------------------
@@ -206,7 +210,8 @@ public:
    ** This function returns the actual number of error frames that have been transmitted via the
    ** network.
    */
-	uint32_t frameCountError(void)   { return (ulCntFrameErrP);          };
+	uint32_t frameCountError(void) const            { return (ulCntFrameErrP);          }
+
 
 
    //---------------------------------------------------------------------------------------------------
@@ -217,7 +222,7 @@ public:
    ** This function returns \c true if the attached CAN interface supports the evaluation of error
    ** frames, otherwise it returns \c false.
    */
-   bool hasErrorFrameSupport(void);
+   bool hasErrorFrameSupport(void) const;
 
 
    //---------------------------------------------------------------------------------------------------
@@ -228,7 +233,7 @@ public:
    ** This function returns \c true if the attached CAN interface supports CAN FD frames, otherwise it
    ** returns \c false.
    */
-   bool hasFlexibleDataSupport(void);
+   bool hasFlexibleDataSupport(void) const;
 
 
    //---------------------------------------------------------------------------------------------------
@@ -239,12 +244,12 @@ public:
    ** This function returns \c true if the attached CAN interface supports listen-only mode, otherwise
    ** it returns \c false.
    */
-   bool hasListenOnlySupport(void);
+   bool hasListenOnlySupport(void) const;
 
 
-   bool hasSpecificConfigurationSupport(void);
+   bool hasSpecificConfigurationSupport(void) const;
 
-   inline uint8_t    id(void)       { return (ubIdP);                   };
+   inline uint8_t    id(void) const                { return (ubIdP);                   }
 
 
    //---------------------------------------------------------------------------------------------------
@@ -255,7 +260,7 @@ public:
    ** This function returns \c true if handling of error frames is enabled, otherwise it returns
    ** \c false.
    */
-   bool isErrorFrameEnabled(void)   { return (btErrorFrameEnabledP);    };
+   bool isErrorFrameEnabled(void) const            { return (btErrorFrameEnabledP);    }
 
 
    //---------------------------------------------------------------------------------------------------
@@ -266,7 +271,7 @@ public:
    ** This function returns \c true if CAN FD mode is enabled, otherwise it returns
    ** \c false.
    */
-   bool isFlexibleDataEnabled(void) { return (btFlexibleDataEnabledP);  };
+   bool isFlexibleDataEnabled(void) const          { return (btFlexibleDataEnabledP);  }
 
 
    //---------------------------------------------------------------------------------------------------
@@ -277,7 +282,7 @@ public:
    ** This function returns \c true if listen-only mode is enabled, otherwise it returns
    ** \c false.
    */
-   bool isListenOnlyEnabled(void)   { return (btListenOnlyEnabledP);    };
+   bool isListenOnlyEnabled(void) const            { return (btListenOnlyEnabledP);    }
 
 
    //---------------------------------------------------------------------------------------------------
@@ -287,10 +292,10 @@ public:
    **
    ** This function returns \c true if the network is enabled, otherwise it returns \c false.
    */
-   bool isNetworkEnabled(void)      { return (btNetworkEnabledP);       };
+   bool isNetworkEnabled(void) const               { return (btNetworkEnabledP);       }
 
 
-	QString  name()                  { return(clNetNameP);               };
+	QString  name() const                           { return(clNetNameP);               }
 
 	void reset(void);
 
@@ -318,7 +323,7 @@ public:
    ** For selection of predefined bit-rates the value can be taken from the enumeration
    ** CANpie::CAN_Bitrate_e.
    */
-	void setBitrate(int32_t slNomBitRateV, int32_t slDatBitRateV = eCAN_BITRATE_NONE);
+	void setBitrate(const int32_t slNomBitRateV, const int32_t slDatBitRateV = QCan::eCAN_BITRATE_NONE);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -329,7 +334,7 @@ public:
    ** This function enables the dispatching of CAN error frames if \a btEnable is \c true, it is
    ** disabled on \c false.
    */
-   void setErrorFrameEnabled(bool btEnableV = true);
+   void setErrorFrameEnabled(const bool btEnableV = true);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -339,7 +344,7 @@ public:
    **
    ** This function enables the CAN FD mode if \a btEnable is \c true, it is disabled on \c false.
    */
-   void setFlexibleDataEnabled(bool btEnableV = true);
+   void setFlexibleDataEnabled(const bool btEnableV = true);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -350,7 +355,7 @@ public:
    void setInterfaceConfiguration(void);
 
 
-   void setListenOnlyEnabled(bool btEnableV = true);
+   void setListenOnlyEnabled(const bool btEnableV = true);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -361,7 +366,7 @@ public:
    ** This function enables the dispatching of CAN frames if \a btEnable is \c true, it is disabled
    ** on \c false.
    */
-   void setNetworkEnabled(bool btEnableV = true);
+   void setNetworkEnabled(const bool btEnableV = true);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -394,7 +399,7 @@ public:
    **
    ** The function returns the CAN state of the network.
    */
-   inline CAN_State_e state(void) { return (teCanStateP);   };
+   inline QCan::CAN_State_e state(void) const      { return (teCanStateP);   }
 
 signals:
 
@@ -407,10 +412,10 @@ signals:
    ** This signal is emitted by the CAN network to inform the application about status changes or
    ** error conditions.
    */
-   void  addLogMessage(const CAN_Channel_e & ubChannelR,
-                       const QString & clMessageR, const LogLevel_e & teLogLevelR = eLOG_LEVEL_WARN);
+   void  addLogMessage(const QCan::CAN_Channel_e & ubChannelR,
+                       const QString & clMessageR, const QCan::LogLevel_e & teLogLevelR = QCan::eLOG_LEVEL_WARN);
 
-   void  showBitrate(const CAN_Channel_e & ubChannelR, const uint32_t & slNomBitRateR,
+   void  showBitrate(const QCan::CAN_Channel_e & ubChannelR, const int32_t & slNomBitRateR,
                      const int32_t & slDatBitRateR);
 
    //---------------------------------------------------------------------------------------------------
@@ -421,7 +426,7 @@ signals:
    ** This signal is emitted every second. The parameter \a ulFrameTotalV denotes the total number of
    ** CAN frames.
    */
-   void  showCanFrames(const CAN_Channel_e & ubChannelR, const uint32_t & ulFrameTotalR);
+   void  showCanFrames(const QCan::CAN_Channel_e & ubChannelR, const uint32_t & ulFrameTotalR);
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -431,7 +436,7 @@ signals:
    ** This signal is emitted every second. The parameter \a ulFrameTotalV denotes the total number of
    ** CAN error frames.
    */
-   void  showErrFrames(const CAN_Channel_e & ubChannelR, const uint32_t & ulFrameTotalR);
+   void  showErrFrames(const QCan::CAN_Channel_e & ubChannelR, const uint32_t & ulFrameTotalR);
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -440,7 +445,7 @@ signals:
    **
    ** This signal is once upon a connection state change of a physical CAN interface.
    */
-   void  showInterfaceState(const CAN_Channel_e & ubChannelR,
+   void  showInterfaceState(const QCan::CAN_Channel_e & ubChannelR,
                             const QCanInterface::ConnectionState_e & teConnectionStateR);
 
 
@@ -454,26 +459,26 @@ signals:
    ** This signal is emitted every second. The parameter \a ubLoadV
    ** denotes the bus load in percent (value range 0 .. 100).
    */
-   void  showLoad(const CAN_Channel_e & ubChannelR, const uint8_t & ubLoadR,
+   void  showLoad(const QCan::CAN_Channel_e & ubChannelR, const uint8_t & ubLoadR,
                   const uint32_t & ulMsgPerSecR);
 
 
    //---------------------------------------------------------------------------------------------------
-   void  showSocketState(const CAN_Channel_e & ubChannelR,
+   void  showSocketState(const QCan::CAN_Channel_e & ubChannelR,
                          const uint32_t & ulLocalSocketsR, const uint32_t & ulTcpSocketsR);
 
-   void  showState(const CAN_Channel_e & ubChannelR, const CAN_State_e & teStateR);
+   void  showState(const QCan::CAN_Channel_e & ubChannelR, const QCan::CAN_State_e & teStateR);
 
 
 private slots:
 
    void  onInterfaceConnectionChanged(const QCanInterface::ConnectionState_e & teConnectionStateR);
 
-   void  onInterfaceLogMessage(QString clMessageV, LogLevel_e teLogLevelV);
+   void  onInterfaceLogMessage(QString clMessageV, QCan::LogLevel_e teLogLevelV);
 
    void  onInterfaceNewData(void);
 
-   void  onInterfaceStateChange(CAN_State_e teStateV);
+   void  onInterfaceStateChange(QCan::CAN_State_e teStateV);
 
    /*!
    ** This slot is called upon local socket connection.
@@ -509,8 +514,6 @@ private slots:
 
 
 
-protected:
-
 private:
 
    //---------------------------------------------------------------------------------------------------
@@ -533,7 +536,7 @@ private:
    
    void     sendNetworkSettings(uint32_t flags = 0);
 
-   void     setCanState(CAN_State_e teStateV);
+   void     setCanState(QCan::CAN_State_e teStateV);
 
    //---------------------------------------------------------------------------------------------------
    // unique network ID, ubNetIdP is used to manage a unique id
@@ -584,7 +587,7 @@ private:
    //---------------------------------------------------------------------------------------------------
    // status of CAN bus
    //
-   CAN_State_e             teCanStateP;
+   QCan::CAN_State_e       teCanStateP;
 
    QCanFrame               clCanFrameOutP;
 
@@ -602,7 +605,7 @@ private:
    //---------------------------------------------------------------------------------------------------
    // statistic timing
    //
-   QTime                   clStatisticTimeP;
+   QElapsedTimer           clStatisticTimeP;
 
    uint32_t                ulStatisticTimeP;
    uint32_t                ulFramePerSecMaxP;

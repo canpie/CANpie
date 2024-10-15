@@ -69,9 +69,18 @@ public:
    */
    QCanFilterList();
    
+   virtual ~QCanFilterList() {}
+
    QCanFilterList(const QCanFilterList &clOtherR);
  
-   virtual ~QCanFilterList();
+   //--------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]     clOtherR          reference to filter list
+   ** \return        Reference to this filter list
+   **
+   ** Assigns \a clOtherR to this filter list and returns a reference to this filter list.
+   */   
+   QCanFilterList & operator=(const QCanFilterList &clOtherR);
 
    //---------------------------------------------------------------------------------------------------
    /*!

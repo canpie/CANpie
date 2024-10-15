@@ -43,6 +43,7 @@
 /*!
 ** \file    cp_msg.h
 ** \brief   %CANpie message access
+** \anchor  CP_MSG_H
 **
 ** In order to create small and fast code, %CANpie supplies a set of
 ** macros to access the CAN message structure (CpCanMsg_ts). These

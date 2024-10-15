@@ -42,6 +42,7 @@
 /*!
 ** \file    canpie.h
 ** \brief   %CANpie constants, structures and enumerations
+** \anchor  CANPIE_H
 **
 ** This file holds constants and structures used within %CANpie FD.
 ** All functions, structures, defines and constants in %CANpie FD
@@ -96,7 +97,7 @@
 
 //-----------------------------------------------------------------------------
 /*!
-** \defgroup CP_CONF  CANpie configuration options
+** \defgroup CP_CONF  %CANpie FD configuration options
 **
 ** The %CANpie FD driver can be configured during compile time
 ** via several configuration options. They are typically defined in the
@@ -160,7 +161,7 @@
 ** - 1 = access via macros
 */
 #ifndef  CP_CAN_MSG_MACRO
-#define  CP_CAN_MSG_MACRO           1
+#define  CP_CAN_MSG_MACRO           0
 #endif
 
 /*-------------------------------------------------------------------*/
@@ -275,7 +276,7 @@
 **
 ** This symbol defines the driver version minor value.
 */
-#define  CP_VERSION_MINOR           8
+#define  CP_VERSION_MINOR           10
 
 
 //-----------------------------------------------------------------------------
@@ -457,9 +458,9 @@
 ** CAN FD frames the maximum number of bytes is 64.
 */
 #if CP_CAN_FD == 0
-#define  CP_DATA_SIZE            ((uint8_t)  8)
+#define  CP_DATA_SIZE            (  8)
 #else
-#define  CP_DATA_SIZE            ((uint8_t) 64)
+#define  CP_DATA_SIZE            ( 64)
 #endif
 
 
@@ -1013,28 +1014,6 @@ typedef struct CpCanMsg_s
    uint32_t  ulIdentifier;
 
    /*!
-   ** The data field has up to 8 bytes (for classic CAN) or
-   ** 64 bytes (for ISO CAN FD) of message data.
-   ** The number of used bytes is described via the structure
-   ** member \c ubMsgDLC.
-   */
-   union {
-      /*!   byte access, array of bytes         */
-      uint8_t   aubByte[CP_DATA_SIZE];
-
-      /*!   16 bit access, array of words       */
-      uint16_t  auwWord[CP_DATA_SIZE / 2];
-
-      /*!   32 bit access, array of longs       */
-      uint32_t  aulLong[CP_DATA_SIZE / 4];
-
-      /*!   64 bit access, array of quadwords   */
-      #if CPP_DATA_SIZE > 32
-      uint64_t  auqQuad[CP_DATA_SIZE / 8];
-      #endif
-   } tuMsgData;
-
-   /*!
    ** The data length code denotes the number of data bytes
    ** which are transmitted by a message.
    ** The possible value range for the data length code is
@@ -1087,6 +1066,28 @@ typedef struct CpCanMsg_s
    */
    uint32_t  ulMsgMarker;
    #endif
+
+   /*!
+   ** The data field has up to 8 bytes (for classic CAN) or
+   ** 64 bytes (for ISO CAN FD) of message data.
+   ** The number of used bytes is described via the structure
+   ** member \c ubMsgDLC.
+   */
+   union {
+      /*!   byte access, array of bytes         */
+      uint8_t   aubByte[CP_DATA_SIZE];
+
+      /*!   16 bit access, array of words       */
+      uint16_t  auwWord[CP_DATA_SIZE / 2];
+
+      /*!   32 bit access, array of longs       */
+      uint32_t  aulLong[CP_DATA_SIZE / 4];
+
+      /*!   64 bit access, array of quadwords   */
+      #if CPP_DATA_SIZE > 32
+      uint64_t  auqQuad[CP_DATA_SIZE / 8];
+      #endif
+   } tuMsgData;
 
 } CpCanMsg_ts;
 

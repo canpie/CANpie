@@ -37,6 +37,7 @@
 /*!
 ** \file    cp_core.h
 ** \brief   CANpie core functions
+** \anchor  CP_CORE_H
 **
 ** The core functions provide the direct interface to the CAN controller (hardware). Please note that 
 ** due to hardware limitations maybe certain functions are not implemented on the target platform. A 
@@ -357,8 +358,9 @@ CpStatus_tv CpCoreBufferSetDlc(CpPort_ts *ptsPortV, uint8_t ubBufferIdxV, uint8_
 ** This function changes the operating mode of the CAN controller FSA. Possible values for the parameter
 ** \c ubModeV are defined in the #CpMode_e enumeration. At least the modes #eCP_MODE_INIT and
 ** #eCP_MODE_OPERATION shall be supported. Other modes depend on the capabilities of the CAN controller.
+** <div class="dyncontent" style>
 ** \image html can_mode_statechart.png "CAN controller FSA"
-**
+** </div>
 */
 CpStatus_tv CpCoreCanMode(CpPort_ts *ptsPortV, uint8_t ubModeV);
 

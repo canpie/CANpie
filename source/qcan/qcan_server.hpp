@@ -73,14 +73,20 @@ public:
    ** \param[in]  pclParentV     Pointer to QObject parent class
    ** \param[in]  uwPortNumberV  Port number for WebSocket access
    ** \param[in]  ubNetworkNumV  Number of supported CAN networks
+   ** \param[in]  btClearServerV Clear process memory
    **
    ** Create new QCanServer object. The parameter \a ubNetworkNumV defines the maximum number of
    ** CAN networks (class QCanNetwork).
    */
-   QCanServer( QObject * pclParentV = Q_NULLPTR, uint16_t  uwPortNumberV = QCAN_WEB_SOCKET_DEFAULT_PORT,
+   QCanServer( QObject * pclParentV = nullptr, uint16_t  uwPortNumberV = QCAN_WEB_SOCKET_DEFAULT_PORT,
                uint8_t   ubNetworkNumV = QCAN_NETWORK_MAX, bool btClearServerV = false);
 
-   ~QCanServer();
+   ~QCanServer() override;
+
+   QCanServer(const QCanServer&) = delete;                  // no copy constructor
+   QCanServer& operator=(const QCanServer&) = delete;       // no assignment operator
+   QCanServer(QCanServer&&) = delete;                       // no move constructor
+   QCanServer& operator=(QCanServer&&) = delete;            // no move operator
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -114,11 +120,11 @@ public:
 
    void           allowModeChange(bool btEnabledV = true);
 
-   bool           isBitrateChangeAllowed(void)     { return (btAllowBitrateChangeP);   };
+   bool           isBitrateChangeAllowed(void)     { return (btAllowBitrateChangeP);   }
 
-   bool           isBusOffRecoveryAllowed(void)    { return (btAllowBusOffRecoverP);   };
+   bool           isBusOffRecoveryAllowed(void)    { return (btAllowBusOffRecoverP);   }
 
-   bool           isModeChangeAllowed(void)        { return (btAllowCanModeChangeP);   };
+   bool           isModeChangeAllowed(void)        { return (btAllowCanModeChangeP);   }
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -145,7 +151,7 @@ public:
    **
    ** The function returns the host address of the server.
    */
-   QHostAddress   serverAddress(void)     { return (clServerAddressP);  };
+   QHostAddress   serverAddress(void)     { return (clServerAddressP);  }
 
 
    //---------------------------------------------------------------------------------------------------
@@ -158,7 +164,7 @@ public:
    void           setServerAddress(const QHostAddress clHostAddressV, 
                                    const uint16_t uwPortV = QCAN_WEB_SOCKET_DEFAULT_PORT);
 
-   Error_e        state(void)    { return (teErrorP); };
+   Error_e        state(void)    { return (teErrorP); }
 
 signals:
 
@@ -172,8 +178,6 @@ private:
 
    void           checkServerSettings(bool btClearServerV);
    void           sendServerSettings(QWebSocket * pclSocketV, uint32_t flags = 0);
-
-   Error_e                    teErrorP;
 
    QHostAddress               clServerAddressP;
    uint16_t                   uwServerPortP;
@@ -189,6 +193,19 @@ private:
    QPointer<QWebSocketServer> pclWebSocketServerP;
    QVector<QWebSocket*>       clWebSocketListP;
    QMutex                     clWebSocketMutexP;
+
+   //---------------------------------------------------------------------------------------------------
+   // The QCanServer allocates shared memory to make sure it is initialised only once
+   //
+   QSharedMemory *            pclServerConfigurationP;
+
+   int64_t                    sqDateTimeStartP;
+
+   int64_t                    sqUptimeMillisecondsP;
+   
+   QJsonObject                clJsonServerP;
+   
+   Error_e                    teErrorP;
 
    //---------------------------------------------------------------------------------------------------
    // This flag keeps the information if bit-rate change is possible via a local client, default
@@ -207,17 +224,7 @@ private:
    //
    bool                       btAllowCanModeChangeP;
 
-   //---------------------------------------------------------------------------------------------------
-   // The QCanServer allocates shared memory to make sure it is initialised only once
-   //
-   QSharedMemory *            pclServerConfigurationP;
 
-   int64_t                    sqDateTimeStartP;
-
-   int64_t                    sqUptimeMillisecondsP;
-   
-   QJsonObject                clJsonServerP;
-   
 private slots:
 
    void           onSocketDisconnect(void);

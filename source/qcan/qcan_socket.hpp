@@ -75,9 +75,14 @@ public:
    **
    ** Create a new CAN socket which is in unconnected state.
    */
-   QCanSocket(QObject * pclParentV = Q_NULLPTR);
+   QCanSocket(QObject * pclParentV = nullptr);
 	
-	virtual ~QCanSocket();
+	virtual ~QCanSocket() override;
+
+   QCanSocket(const QCanSocket&) = delete;                  // no copy constructor
+   QCanSocket& operator=(const QCanSocket&) = delete;       // no assignment operator
+   QCanSocket(QCanSocket&&) = delete;                       // no move constructor
+   QCanSocket& operator=(QCanSocket&&) = delete;            // no move operator
 
 
    //---------------------------------------------------------------------------------------------------
@@ -94,7 +99,7 @@ public:
    ** The connection is made to QHostAddress::LocalHost, using the port #QCAN_WEB_SOCKET_DEFAULT_PORT. 
    ** The host address can be changed with setHostAddress().
    */
-   bool                 connectNetwork(const CAN_Channel_e & teChannelR);
+   bool                       connectNetwork(const QCan::CAN_Channel_e & teChannelR);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -104,7 +109,7 @@ public:
    ** Disconnect the CAN socket from a CAN network (class QCanNetwork). The signal disconnected() is
    ** used on disconnection from the CAN network.
    */
-   void                 disconnectNetwork(void);
+   void                       disconnectNetwork(void);
 
    
    //---------------------------------------------------------------------------------------------------
@@ -122,7 +127,7 @@ public:
    **
    ** Returns a description of error that last occurred.
    */
-   QString              errorString() const;
+   QString                    errorString() const;
    
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -131,7 +136,7 @@ public:
    **
    ** Returns the number of CAN frames available on the socket.
    */
-   int32_t              framesAvailable(void) const;
+   uint32_t                   framesAvailable(void) const;
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -140,7 +145,7 @@ public:
    ** The function returns the connection state of the socket: \c true if connected to a CAN network,
    ** \c false if not connected.
    */
-   inline bool          isConnected(void) const          { return (btIsConnectedP);       };
+   inline bool                isConnected(void) const          { return (btIsConnectedP);       }
 
 
    //---------------------------------------------------------------------------------------------------
@@ -152,7 +157,7 @@ public:
    ** The function reads a CAN frame from the socket and places the result in \a clFrameDataR. If no
    ** CAN frame is available, the function returns \c false.
    */
-   bool                 read(QCanFrame & clFrameR);
+   bool                       read(QCanFrame & clFrameR);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -164,8 +169,8 @@ public:
    ** Set the host address of the CAN server. The host address can only be modified in unconnected
    ** state.
    */
-   void                 setHostAddress(const QHostAddress clHostAddressV, 
-                                       const uint16_t uwPortV = QCAN_WEB_SOCKET_DEFAULT_PORT);
+   void                       setHostAddress(const QHostAddress clHostAddressV, 
+                                             const uint16_t uwPortV = QCAN_WEB_SOCKET_DEFAULT_PORT);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -174,7 +179,7 @@ public:
    **
    ** Get the actual CAN error state, which is defined by the QCan::CAN_State_e enumeration.
    */
-   inline CAN_State_e   state(void) const                { return teCanStateP; };
+   inline QCan::CAN_State_e   state(void) const                { return teCanStateP;            }
 
 
    //---------------------------------------------------------------------------------------------------
@@ -183,7 +188,7 @@ public:
    **
    ** Get the Universal unique identifier of the CAN socket.
    */
-   inline QUuid         uuid(void) const                 { return (clUuidP);              };
+   inline QUuid               uuid(void) const                 { return (clUuidP);              }
 
 
    //---------------------------------------------------------------------------------------------------
@@ -192,7 +197,7 @@ public:
    **
    ** Get the Universal unique identifier of the CAN socket.
    */
-   QString              uuidString(void) const           { return (clUuidP.toString());   };
+   QString                    uuidString(void) const           { return (clUuidP.toString());   }
 
 
    //---------------------------------------------------------------------------------------------------
@@ -204,7 +209,7 @@ public:
    ** The function writes the CAN frame \a clFrameR to the CAN socket. If writing fails, the function
    ** returns \c false.
    */
-   bool                 write(const QCanFrame & clFrameR);
+   bool                    write(const QCanFrame & clFrameR);
 
 
 
@@ -215,14 +220,14 @@ signals:
    ** This signal is emitted after connectNetwork() has been called and a connection has been
    ** successfully established.
    */
-   void                 connected(void);
+   void                    connected(void);
 
 
    //---------------------------------------------------------------------------------------------------
    /*!
    ** This signal is emitted when the socket has been disconnected.
    */
-   void                 disconnected(void);
+   void                    disconnected(void);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -232,7 +237,7 @@ signals:
    ** This signal is emitted after an error occurred. The \a teSockErrorV parameter describes the type
    ** of error that occurred.
    */
-   void                 error(QAbstractSocket::SocketError teSockErrorV);
+   void                    error(QAbstractSocket::SocketError teSockErrorV);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -240,7 +245,7 @@ signals:
    **
    ** This signal is emitted when CAN frames are available for reading from the socket. 
    */
-   void                 readyRead(void);
+   void                    readyRead(void);
 
 protected:
 
@@ -253,7 +258,7 @@ private:
    bool                    btIsConnectedP;
    bool                    btIsLocalConnectionP;
    int32_t                 slSocketErrorP;
-   CAN_State_e             teCanStateP;
+   QCan::CAN_State_e       teCanStateP;
    QUuid                   clUuidP;
 
    QByteArray              clReceiveDataP;
@@ -263,12 +268,12 @@ private:
    
 
 private slots:
-   void                 onSocketConnect(void);
-   void                 onSocketDisconnect(void);
-   void                 onSocketErrorLocal(QLocalSocket::LocalSocketError teSocketErrorV);
-   void                 onSocketErrorWeb(QAbstractSocket::SocketError teSocketErrorV);
-   void                 onSocketReceiveLocal(void);
-   void                 onSocketReceiveWeb(const QByteArray &clMessageR);
+   void                    onSocketConnect(void);
+   void                    onSocketDisconnect(void);
+   void                    onSocketErrorLocal(QLocalSocket::LocalSocketError teSocketErrorV);
+   void                    onSocketErrorWeb(QAbstractSocket::SocketError teSocketErrorV);
+   void                    onSocketReceiveLocal(void);
+   void                    onSocketReceiveWeb(const QByteArray &clMessageR);
 };
 
 #endif   // QCAN_SOCKET_HPP_

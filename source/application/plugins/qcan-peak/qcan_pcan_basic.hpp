@@ -1,30 +1,32 @@
-//============================================================================//
-// File:          qcan_pcan_basic.hpp                                         //
-// Description:   PCAN Basic library API                                      //
-//                                                                            //
-// Copyright (C) MicroControl GmbH & Co. KG                                   //
-// 53844 Troisdorf - Germany                                                  //
-// www.microcontrol.net                                                       //
-//                                                                            //
-//----------------------------------------------------------------------------//
-// Redistribution and use in source and binary forms, with or without         //
-// modification, are permitted provided that the following conditions         //
-// are met:                                                                   //
-// 1. Redistributions of source code must retain the above copyright          //
-//    notice, this list of conditions, the following disclaimer and           //
-//    the referenced file 'LICENSE'.                                          //
-// 2. Redistributions in binary form must reproduce the above copyright       //
-//    notice, this list of conditions and the following disclaimer in the     //
-//    documentation and/or other materials provided with the distribution.    //
-// 3. Neither the name of MicroControl nor the names of its contributors      //
-//    may be used to endorse or promote products derived from this software   //
-//    without specific prior written permission.                              //
-//                                                                            //
-// Provided that this notice is retained in full, this software may be        //
-// distributed under the terms of the GNU Lesser General Public License       //
-// ("LGPL") version 3 as distributed in the 'COPYING' file.                   //
-//                                                                            //
-//============================================================================//
+//====================================================================================================================//
+// File:          qcan_pcan_basic.hpp                                                                                 //
+// Description:   PCAN Basic library API                                                                              //
+//                                                                                                                    //
+// Copyright (C) MicroControl GmbH & Co. KG                                                                           //
+// 53844 Troisdorf - Germany                                                                                          //
+// www.microcontrol.net                                                                                               //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the   //
+// following conditions are met:                                                                                      //
+// 1. Redistributions of source code must retain the above copyright notice, this list of conditions, the following   //
+//    disclaimer and the referenced file 'LICENSE'.                                                                   //
+// 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the       //
+//    following disclaimer in the documentation and/or other materials provided with the distribution.                //
+// 3. Neither the name of MicroControl nor the names of its contributors may be used to endorse or promote products   //
+//    derived from this software without specific prior written permission.                                           //
+//                                                                                                                    //
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance     //
+// with the License. You may obtain a copy of the License at                                                          //
+//                                                                                                                    //
+//    http://www.apache.org/licenses/LICENSE-2.0                                                                      //
+//                                                                                                                    //
+// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed   //
+// on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for  //
+// the specific language governing permissions and limitations under the License.                                     //
+//                                                                                                                    //
+//====================================================================================================================//
+
 
 #ifndef QCAN_PCAN_BASIC_H_
 #define QCAN_PCAN_BASIC_H_
@@ -54,34 +56,41 @@
 #endif
 
 
-//----------------------------------------------------------------------------//
-// QCanPeakUsb                                                                //
-//                                                                            //
-//----------------------------------------------------------------------------//
+//----------------------------------------------------------------------------------------------------------------
+/*!
+** \class   QCanPcanBasic
+**
+** The QCanPcanBasic class provides access the PCAN library for macOS and Windows.
+*/
 class QCanPcanBasic
 {
 
+
 private:
 
-   QLibrary clCanLibP;
-   bool btLibFuncLoadP;
+   QLibrary                clCanLibP;
+   bool                    btLibFuncLoadP;
+   static QCanPcanBasic    *pclQCanPcanBasicInstanceP;
 
    QCanPcanBasic();
-   QCanPcanBasic(const QCanPcanBasic &);
-
+   
+   QCanPcanBasic(const QCanPcanBasic&) = delete;               // no copy constructor
+   QCanPcanBasic& operator=(const QCanPcanBasic&) = delete;    // no assignment operator
 
    //----------------------------------------------------------------
    // Type definitions of PCANBasic.dll taken from PCANBasic.h
    // (Last Change 24.04.2015)
    //
-   typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_Initialize_tf)     (TPCANHandle uwChannelV, TPCANBaudrate uwBtr0Btr1V, TPCANType ubHwTypeV, DWORD ulIOPortV, WORD uwInterruptV);
+   typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_Initialize_tf)     (TPCANHandle uwChannelV, TPCANBaudrate uwBtr0Btr1V, 
+                                                                   TPCANType ubHwTypeV, DWORD ulIOPortV, WORD uwInterruptV);
    #if QCAN_SUPPORT_CAN_FD > 0
    typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_InitializeFD_tf)   (TPCANHandle uwChannelV, TPCANBitrateFD pszBitrateFDV);
    #endif
    typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_Uninitialize_tf)   (TPCANHandle uwChannelV);
    typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_Reset_tf)          (TPCANHandle uwChannelV);
    typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_GetStatus_tf)      (TPCANHandle uwChannelV);
-   typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_Read_tf)           (TPCANHandle uwChannelV, TPCANMsg *ptsMessageBufferV, TPCANTimestamp *tsTimestampBufferV);
+   typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_Read_tf)           (TPCANHandle uwChannelV, TPCANMsg *ptsMessageBufferV, 
+                                                                   TPCANTimestamp *tsTimestampBufferV);
    #if QCAN_SUPPORT_CAN_FD > 0
    typedef TPCANStatus (DRV_CALLBACK_TYPE *CAN_ReadFD_tf)         (TPCANHandle uwChannelV, TPCANMsgFD *ptsMessageBufferV, TPCANTimestampFD *puqTimestampBufferV);
    #endif
@@ -119,15 +128,11 @@ public:
    CAN_GetErrorText_tf    pfnCAN_GetErrorTextP;
 
    // allow only one instance of PCAN Basic
-   static QCanPcanBasic & getInstance()
-   {
-      static QCanPcanBasic clInstanceS;
-      return clInstanceS;
-   }
+   static QCanPcanBasic &  instance();
 
    // helper functions
-   bool isAvailable (void);
-   QString formatedError(TPCANStatus tvErrorV);
+   bool                    isAvailable (void);
+   QString                 errorString(TPCANStatus tvErrorV);
 };
 
 #endif /*QCAN_PCAN_BASIC_H_*/

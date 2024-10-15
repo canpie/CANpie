@@ -43,6 +43,7 @@
 /*!
 ** \file    mc_compiler.h
 ** \brief   Definition of compiler independent data types
+** \anchor  MC_COMPILER_H
 **
 ** Due to different implementations of data types in the world of C compilers,
 ** the following data types are used:
@@ -92,6 +93,7 @@
 ** \li Keil C compiler for 80C16x controller
 ** \li Keil C compiler for ARM controller
 ** \li Metrowerks C compiler
+** \li Microchip MPLAB C18 compiler for PIC18
 ** \li Microchip C30 compiler for PIC24 and dsPIC
 ** \li Microchip XC16 compiler for PIC24 and dsPIC
 ** \li Microchip XC32 compiler for PIC32
@@ -123,6 +125,9 @@
 ** \def CPP_PARM_UNUSED
 ** The macro \c CPP_PARM_UNUSED is used to specify function parameters which
 ** are currently not used.
+**
+** \def CPP_SECTION
+** The macro \c CPP_SECTION is used to specify the memory section for the linker.
 **
 ** \typedef Status_tv
 ** \brief   Data type for status value
@@ -178,9 +183,11 @@
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE
 #define  CPP_PACK
+#define  CPP_PACK_PREFIX(x)   x
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
 #endif
+#define  CPP_WARNING(x) 
 
 typedef  short                Status_tv;
 
@@ -199,7 +206,7 @@ typedef  long                 int32_t;
 
 
 //--------------------------------------------------------------------
-// GNU C for Apple Mac-OS
+// GNU C for Apple macOS
 //
 #ifdef __GNUC__
 #ifdef __APPLE__
@@ -207,14 +214,16 @@ typedef  long                 int32_t;
 #include <stdbool.h>          // boolean definitions
 #include <stdint.h>           // data types uint8_t ... uint64_t
 
-#define  CPP_ALIGN(x)         __attribute__ ((aligned(x)))
+#define  CPP_ALIGN(x)         __attribute__ ((__aligned__(x)))
 #define  CPP_COMPILER         __VERSION__
 #define  CPP_CONST            const
 #define  CPP_DATA_SIZE        64
 #define  CPP_INLINE           __inline
 #define  CPP_PACK             __attribute__((packed))
+#define  CPP_PACK_PREFIX(x)   x
 #define  CPP_PARM_UNUSED(x)   UNUSED_ ## x __attribute__((unused))
 #define  CPP_NULL             (void *) 0
+#define  CPP_WARNING(x)       
 
 typedef  int32_t              Status_tv;
 
@@ -222,6 +231,7 @@ typedef  bool                 bool_t;
 
 #endif
 #endif
+
 // End of definition: __GNUC__ && __APPLE__
 //--------------------------------------------------------------------
 
@@ -232,19 +242,23 @@ typedef  bool                 bool_t;
 //
 #ifdef  __GNUC__
 #ifdef  __arm__
+#ifndef __XC32
 #ifndef __linux__
+#ifndef __vxworks
 
 #include <stdbool.h>
 #include <stdint.h>           // data types uint8_t ... uint64_t
 
-#define  CPP_ALIGN(x)         __attribute__ ((aligned(x)))
+#define  CPP_ALIGN(x)         __attribute__ ((__aligned__(x)))
 #define  CPP_CONST            const
 #define  CPP_DATA_SIZE        64
 #define  CPP_INLINE           __inline
 #define  CPP_PACK             __attribute__((packed))
+#define  CPP_PACK_PREFIX(x)   x
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   UNUSED_ ## x __attribute__((unused))
 #endif
+#define  CPP_WARNING(x)
 
 #define  CPP_NULL             (void *) 0
 
@@ -259,6 +273,8 @@ typedef  bool                 bool_t;
 #endif
 
 
+#endif
+#endif
 #endif
 #endif
 #endif
@@ -279,10 +295,12 @@ typedef  bool                 bool_t;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE           inline
 #define  CPP_PACK
+#define  CPP_PACK_PREFIX(x)   x
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   UNUSED_ ## x __attribute__((unused))
 #endif
 #define  CPP_NULL             0
+#define  CPP_WARNING(x)       
 
 typedef  int8_t               Status_tv;
 
@@ -306,6 +324,7 @@ typedef  uint8_t              bool_t;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE           inline
 #define  CPP_PACK
+#define  CPP_PACK_PREFIX(x)   x
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   UNUSED_ ## x __attribute__((unused))
 #endif
@@ -332,6 +351,7 @@ typedef  uint8_t              bool_t;
 #define  CPP_DATA_SIZE        64
 #define  CPP_INLINE           inline
 #define  CPP_PACK
+#define  CPP_PACK_PREFIX(x)   x
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   UNUSED_ ## x __attribute__((unused))
 #endif
@@ -361,14 +381,16 @@ typedef  uint8_t              bool_t;
 #endif
 
 
-#define  CPP_ALIGN(x)         __attribute__ ((aligned(x)))
+#define  CPP_ALIGN(x)         __attribute__ ((__aligned__(x)))
 #define  CPP_COMPILER         __VERSION__
 #define  CPP_CONST            const
 #define  CPP_DATA_SIZE        64
 #define  CPP_INLINE           __inline
 #define  CPP_PACK             __attribute__((packed))
+#define  CPP_PACK_PREFIX(x)   x
 #define  CPP_PARM_UNUSED(x)   UNUSED_ ## x __attribute__((unused))
 #define  CPP_NULL             (void *) 0
+#define  CPP_WARNING(x)       
 
 #define  CPP_BIG_ENDIAN       0     // 0: Litte endian, 1: Big endian
 
@@ -389,6 +411,57 @@ typedef  bool                 bool_t;
 
 
 //--------------------------------------------------------------------
+//  GNU C for ARM CPU (VxWorks)
+//
+#ifdef __GNUC__
+#ifdef  __arm__
+#ifdef __vxworks
+
+
+#define  CPP_ALIGN(x)         __attribute__ ((__aligned__(x)))
+#define  CPP_COMPILER         __VERSION__
+#define  CPP_CONST            const
+#define  CPP_DATA_SIZE        64
+#define  CPP_INLINE           inline
+#define  CPP_PACK
+#define  CPP_PACK_PREFIX(x)   x
+#ifndef  CPP_PARM_UNUSED
+#define  CPP_PARM_UNUSED(x)   UNUSED_ ## x __attribute__((unused))
+#endif
+#define  CPP_NULL             (void *) 0
+#define  CPP_WARNING(x)       
+
+
+#ifndef __INCstdinth
+typedef signed char int8_t;
+typedef unsigned char uint8_t;
+typedef short int16_t;
+typedef unsigned short uint16_t;
+typedef int int32_t;
+typedef unsigned int uint32_t;
+typedef long long int64_t;
+typedef unsigned long long uint64_t;
+#endif
+
+//--------------------------------------------------------------
+// VxWorks compiler does not support the C99 standard, so 
+// the keywords are defined here
+//
+#define  inline
+#define  true                 1
+#define  false                0
+
+typedef  int32_t              Status_tv;
+typedef  unsigned char        bool_t;
+
+#endif
+#endif
+#endif
+// End of definition: __GNUC__ && __arm__ && __vxworks
+//--------------------------------------------------------------------
+
+
+//--------------------------------------------------------------------
 //  GNU C for PowerPC CPU (VxWorks)
 //
 #ifdef __GNUC__
@@ -401,6 +474,7 @@ typedef  bool                 bool_t;
 #define  CPP_DATA_SIZE        64
 #define  CPP_INLINE           inline
 #define  CPP_PACK
+#define  CPP_PACK_PREFIX(x)   x
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   UNUSED_ ## x __attribute__((unused))
 #endif
@@ -425,7 +499,6 @@ typedef  signed   long long   int64_t;
 //--------------------------------------------------------------------
 
 
-
 //--------------------------------------------------------------------
 //  GNU C for Windows
 //
@@ -438,6 +511,7 @@ typedef  signed   long long   int64_t;
 #define  CPP_DATA_SIZE        64
 #define  CPP_INLINE           inline
 #define  CPP_PACK             __attribute__ ((packed))
+#define  CPP_PACK_PREFIX(x)   x __attribute__((packed))
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   CPP_PARM_UNUSED_ ## x __attribute__((__unused__))
 #endif
@@ -470,6 +544,7 @@ typedef  bool                 bool_t;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE           inline
 #define  CPP_PACK             __attribute__ ((packed))
+#define  CPP_PACK_PREFIX(x)   x
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   UNUSED_ ## x __attribute__((unused))
 #endif
@@ -495,6 +570,7 @@ typedef  uint8_t              bool_t;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE
 #define  CPP_PACK
+#define  CPP_PACK_PREFIX(x)   x
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
 #endif
@@ -520,10 +596,13 @@ typedef  long                 int32_t;
 //
 #ifdef __ICCARM__
 
+#define  STRINGIZE(X)         #X
+#define  CPP_ALIGN(X)         _Pragma(STRINGIZE(data_alignment=X))
 #define  CPP_CONST            const
-#define  CPP_DATA_SIZE        32
+#define  CPP_DATA_SIZE        64
 #define  CPP_INLINE
 #define  CPP_PACK
+#define  CPP_PACK_PREFIX(x)   x
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
 #endif
@@ -557,6 +636,7 @@ typedef  uint8_t              bool_t;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE
 #define  CPP_PACK
+#define  CPP_PACK_PREFIX(x)   x
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
 #define  CPP_NULL             0
@@ -590,6 +670,7 @@ typedef  uint8_t              bool_t;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE           __inline
 #define  CPP_PACK
+#define  CPP_PACK_PREFIX(x)   x
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
 #endif
@@ -614,9 +695,12 @@ typedef  uint8_t              bool_t;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE
 #define  CPP_PACK
+#define  CPP_PACK_PREFIX(x)   x
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
 #endif
+
+#define  CPP_NULL (void *) 0
 
 typedef  signed char          Status_tv;
 
@@ -645,6 +729,7 @@ typedef  long                 int32_t;
 #define  CPP_INLINE
 #define  CPP_NULL             (void *) 0
 #define  CPP_PACK
+#define  CPP_PACK_PREFIX(x)   x
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
 #endif
@@ -677,15 +762,19 @@ typedef  long                 int32_t;
 // Keil C compiler for ARM controller
 //
 #ifdef __arm
+#ifdef __CC_ARM
 
 #define  CPP_CONST            const
 #define  CPP_DATA_SIZE        64
 #define  CPP_INLINE
 #define  CPP_NULL             (void *) 0
 #define  CPP_PACK
+#define  CPP_PACK_PREFIX(x)   x
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
+
 #endif
+
 
 //--------------------------------------------------------------
 // Keil-C does not support the C99 standard, so the keywords
@@ -707,6 +796,7 @@ typedef  uint8_t              bool_t;
 
 
 #endif
+#endif
 // End of definition: __arm
 //--------------------------------------------------------------------
 
@@ -721,6 +811,7 @@ typedef  uint8_t              bool_t;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE
 #define  CPP_PACK
+#define  CPP_PACK_PREFIX(x)   x
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
 #endif
@@ -743,7 +834,39 @@ typedef  uint8_t              bool_t;
 //--------------------------------------------------------------------
 
 
+//--------------------------------------------------------------------
+// Microchip MPLAB C18 compiler for PIC18 controller 
+//
+#ifdef  __18CXX
 
+#define  inline
+#define  true                 1
+#define  false                0
+
+#define  CPP_CONST            const
+#define  CPP_DATA_SIZE        32
+#define  CPP_INLINE
+#define  CPP_PACK
+#define  CPP_PACK_PREFIX(x)   x
+#ifndef  CPP_PARM_UNUSED
+#define  CPP_PARM_UNUSED(x)   x
+#endif
+#define  CPP_NULL             0
+
+typedef  unsigned char        Status_tv;
+
+typedef  unsigned char        bool_t;
+typedef  unsigned char        uint8_t;
+typedef  signed char          int8_t;
+typedef  unsigned short       uint16_t;
+typedef  short                int16_t;
+typedef  unsigned long        uint32_t;
+typedef  long                 int32_t;
+
+
+#endif
+// End of definition: Microchip MPLAB C18
+//--------------------------------------------------------------------
 
 //--------------------------------------------------------------------
 // Microchip XC16 compiler
@@ -755,6 +878,7 @@ typedef  uint8_t              bool_t;
 #define  CPP_INLINE
 #define  CPP_NULL             (void *) 0
 #define  CPP_PACK
+#define  CPP_PACK_PREFIX(x)   x
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   __attribute__((unused)) x
 #endif
@@ -788,15 +912,20 @@ typedef  bool                 bool_t;
 //
 #ifdef __XC32
 
+#define  CPP_ALIGN(x)         __attribute__ ((__aligned__(x)))
+
 #define  CPP_CONST
 #define  CPP_DATA_SIZE        64
 #define  CPP_INLINE
 #define  CPP_PACK
+#define  CPP_PACK_PREFIX(x)   x
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   __attribute__((unused)) x
 #define  CPP_NULL             (void *) 0
 #endif
-
+// do not support ATOMIC, as the compiler do not support the corresponding function calls
+#define CPP_DISABLE_ATOMIC
+        
 #include <stdint.h> /* For uint32_t definition */
 #include <stdbool.h> /* For true/false definition */
 
@@ -833,15 +962,17 @@ typedef  short                int16_t;
 #define  CPP_INLINE
 #define  CPP_NULL             (void *) 0
 #define  CPP_PACK
+#define  CPP_PACK_PREFIX(x)   __pragma( pack(push, 1) ) x __pragma( pack(pop) )
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
 #endif
 #define  CPP_BIG_ENDIAN       0
+#define  CPP_WARNING(x)       
 
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef  unsigned char        bool_t;
+typedef  bool                 bool_t;
 typedef  unsigned char        uint8_t;
 typedef  signed char          int8_t;
 typedef  unsigned short       uint16_t;
@@ -864,6 +995,7 @@ typedef  int32_t              Status_tv;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE
 #define  CPP_PACK
+#define  CPP_PACK_PREFIX(x)   x
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
 #endif
@@ -894,6 +1026,7 @@ typedef  long                 int32_t;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE
 #define  CPP_PACK
+#define  CPP_PACK_PREFIX(x)   x
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
 #endif
@@ -922,6 +1055,7 @@ typedef  long                 int32_t;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE
 #define  CPP_PACK
+#define  CPP_PACK_PREFIX(x)   x
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
 #endif
@@ -954,6 +1088,7 @@ typedef  long                 int32_t;
 #define  CPP_DATA_SIZE        32
 #define  CPP_INLINE
 #define  CPP_PACK
+#define  CPP_PACK_PREFIX(x)   x
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
 #endif
@@ -990,6 +1125,7 @@ typedef  bool                 bool_t;
 #define  CPP_DATA_SIZE        64
 #define  CPP_INLINE
 #define  CPP_PACK
+#define  CPP_PACK_PREFIX(x)   x
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   (x)
 #endif
@@ -1022,6 +1158,7 @@ typedef  long long            int64_t;
 #define  CPP_DATA_SIZE        64
 #define  CPP_INLINE
 #define  CPP_PACK
+#define  CPP_PACK_PREFIX(x)   x
 #ifndef  CPP_PARM_UNUSED
 #define  CPP_PARM_UNUSED(x)   x
 #endif
@@ -1068,6 +1205,33 @@ typedef union Float_u {
    */
    uint32_t    ulValue;
 } Float_tu;
+
+
+
+//--------------------------------------------------------------------
+// Define an empty symbol for the linker section
+//
+#ifndef  CPP_SECTION
+#define  CPP_SECTION    
+#endif
+
+//------------------------------------------------------------------------------------------------------
+// Check if atomic support is available
+//
+#ifndef CPP_DISABLE_ATOMIC
+
+#ifndef __STDC_VERSION__
+#define __STDC_VERSION__ 0
+#endif
+
+#if __STDC_VERSION__ < 201112L || defined(__STDC_NO_ATOMICS__) && __STDC_NO_ATOMICS__ == 1
+#define CPP_HAS_ATOMIC 0
+#else
+#define CPP_HAS_ATOMIC 1
+#include <stdatomic.h>
+#endif
+#endif
+
 
 //--------------------------------------------------------------------
 // Test is used compiler has been recognised by checking the

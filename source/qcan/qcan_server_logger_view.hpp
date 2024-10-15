@@ -47,7 +47,7 @@
 /*!
 ** \class QCanServerLoggerView
 **
-** This class add a logging capability for a QCanServer.
+** This class adds a logging capability for a QCanServer.
 ** <p>
 ** \todo - Description of file names, default log level
 **
@@ -65,32 +65,37 @@ public:
    ** Create new QCanServerLogger object. The parameter \a pclServerV defines the QCanServer which
    ** shall be attached for logging.
    */
-   QCanServerLoggerView(QCanServer * pclServerV = Q_NULLPTR);
+   QCanServerLoggerView(QCanServer * pclServerV = nullptr);
 
-   ~QCanServerLoggerView();
+   ~QCanServerLoggerView() override;
 
-   void hide(void);
+   QCanServerLoggerView(const QCanServerLoggerView&) = delete;                  // no copy constructor
+   QCanServerLoggerView& operator=(const QCanServerLoggerView&) = delete;       // no assignment operator
+   QCanServerLoggerView(QCanServerLoggerView&&) = delete;                       // no move constructor
+   QCanServerLoggerView& operator=(QCanServerLoggerView&&) = delete;            // no move operator
 
-   bool isHidden(void);
+   void           hide(void);
 
-   void show(void);
+   bool           isHidden(void);
+
+   void           show(void);
 
 
 public slots:
-   virtual void  appendMessage(const CAN_Channel_e ubChannelV, const QString & clLogMessageV,
-                               LogLevel_e teLogLevelV = eLOG_LEVEL_INFO);
+   virtual void   appendMessage(const QCan::CAN_Channel_e ubChannelV, const QString & clLogMessageV,
+                                QCan::LogLevel_e teLogLevelV = QCan::eLOG_LEVEL_INFO) override;
 private slots:
-   void onChangeLogLevel(QAction * pclActionV);
-   void onClearLog(void);
-   void onSetLogFile(void);
-   void onShowLogMenu(const QPoint & clPositionR);
+   void           onChangeLogLevel(QAction * pclActionV);
+   void           onClearLog(void);
+   void           onSetLogFile(void);
+   void           onShowLogMenu(const QPoint & clPositionR);
 
 private:
-   QMainWindow  * pclLogWindowP;
-   QTabWidget   * pclLogTabP;
-   QTextBrowser * apclLogTextP[QCAN_NETWORK_MAX];
+   QMainWindow          *pclLogWindowP;
+   QTabWidget           *pclLogTabP;
+   QTextBrowser         *apclLogTextP[QCAN_NETWORK_MAX];
 
-   CAN_Channel_e  teCanChannelP;
+   QCan::CAN_Channel_e  teCanChannelP;
 
 };
 

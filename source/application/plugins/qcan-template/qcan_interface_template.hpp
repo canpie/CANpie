@@ -56,39 +56,44 @@ class QCanInterfaceTemplate : public QCanInterface
 
 public:
 
-    QCanInterfaceTemplate(uint16_t uwPCanChannelV);
-   ~QCanInterfaceTemplate();
+   QCanInterfaceTemplate(uint16_t uwPCanChannelV);
+   ~QCanInterfaceTemplate() override;
 
-   InterfaceError_e  connect(void) Q_DECL_OVERRIDE;
+   QCanInterfaceTemplate(const QCanInterfaceTemplate&) = delete;               // no copy constructor
+   QCanInterfaceTemplate& operator=(const QCanInterfaceTemplate&) = delete;    // no assignment operator
+   QCanInterfaceTemplate(QCanInterfaceTemplate&&) = delete;                    // no move constructor
+   QCanInterfaceTemplate& operator=(QCanInterfaceTemplate&&) = delete;         // no move operator
 
-   ConnectionState_e connectionState(void) Q_DECL_OVERRIDE;
+   InterfaceError_e  connect(void) override;
 
-   InterfaceError_e  disconnect(void) Q_DECL_OVERRIDE;
+   ConnectionState_e connectionState(void) override;
 
-   void              disableFeatures(uint32_t ulFeatureMaskV) Q_DECL_OVERRIDE;
+   InterfaceError_e  disconnect(void) override;
 
-   void              enableFeatures(uint32_t ulFeatureMaskV) Q_DECL_OVERRIDE;
+   void              disableFeatures(uint32_t ulFeatureMaskV) override;
 
-   QIcon             icon(void) Q_DECL_OVERRIDE;
+   void              enableFeatures(uint32_t ulFeatureMaskV) override;
 
-   QString           name(void) Q_DECL_OVERRIDE;
+   QIcon             icon(void) override;
 
-   InterfaceError_e  read( QCanFrame &clFrameR) Q_DECL_OVERRIDE;
+   QString           name(void) override;
 
-   InterfaceError_e  reset(void) Q_DECL_OVERRIDE;
+   InterfaceError_e  read( QCanFrame &clFrameR) override;
+
+   InterfaceError_e  reset(void) override;
 
    InterfaceError_e  setBitrate( int32_t slBitrateV,
-                                 int32_t slBrsClockV) Q_DECL_OVERRIDE;
+                                 int32_t slBrsClockV) override;
 
-   InterfaceError_e  setMode( const CAN_Mode_e teModeV) Q_DECL_OVERRIDE;
+   InterfaceError_e  setMode( const QCan::CAN_Mode_e teModeV) override;
 
-   CAN_State_e       state(void) Q_DECL_OVERRIDE;
+   QCan::CAN_State_e state(void) override;
 
-   InterfaceError_e  statistic(QCanStatistic_ts &clStatisticR) Q_DECL_OVERRIDE;
+   InterfaceError_e  statistic(QCanStatistic_ts &clStatisticR) override;
 
-   uint32_t          supportedFeatures(void) Q_DECL_OVERRIDE;
+   uint32_t          supportedFeatures(void) override;
 
-   QString           version(void) Q_DECL_OVERRIDE;
+   QString           version(void) override;
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -102,15 +107,15 @@ public:
    **
    **
    */
-   InterfaceError_e  write(const QCanFrame &clFrameR) Q_DECL_OVERRIDE;
+   InterfaceError_e  write(const QCanFrame &clFrameR) override;
 
 
 Q_SIGNALS:
 
-   void  addLogMessage(const QString & clMessageR, const LogLevel_e & teLogLevelR = eLOG_LEVEL_WARN);
+   void  addLogMessage(const QString & clMessageR, const QCan::LogLevel_e & teLogLevelR = QCan::eLOG_LEVEL_WARN);
    void  connectionChanged(const QCanInterface::ConnectionState_e & teConnectionStateR);
    void  readyRead(void);
-   void  stateChanged(const CAN_State_e & teCanStateR);
+   void  stateChanged(const QCan::CAN_State_e & teCanStateR);
 
 private slots:
    void  onTimerEvent(void);
@@ -124,7 +129,7 @@ private:
    uint32_t          ulFeaturesP;
 
    /*! Current mode of CAN interface                  */
-   CAN_Mode_e        teCanModeP;
+   QCan::CAN_Mode_e  teCanModeP;
 
    /*! Statistic values                               */
    QCanStatistic_ts  clStatisticP;
@@ -142,7 +147,7 @@ private:
    QCanFrame         clErrFrameP;
 
    /*! Error state                                    */
-   CAN_State_e       teErrorStateP;
+   QCan::CAN_State_e teErrorStateP;
 
    /*! Command for simulation / testing               */
    uint8_t           ubCommandP;

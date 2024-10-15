@@ -45,23 +45,12 @@
 #include "qcan_namespace.hpp"
 #include "qcan_timestamp.hpp"
 
-using namespace QCan;
-
 
 /*--------------------------------------------------------------------------------------------------------------------*\
 ** Definitions                                                                                                        **
 **                                                                                                                    **
 \*--------------------------------------------------------------------------------------------------------------------*/
 
-
-//----------------------------------------------------------------------------------------------------------------
-/*!
-** \def  QCAN_MSG_DATA_MAX
-**
-** The symbol CAN_MSG_DATA_MAX defines the maximum number of
-** bytes in a CAN frame (payload).
-*/
-#define  QCAN_MSG_DATA_MAX           64
 
 //----------------------------------------------------------------------------------------------------------------
 /*!
@@ -76,7 +65,7 @@ using namespace QCan;
 **
 ** This symbol defines an identifier mask for standard frames.
 */
-#define  QCAN_FRAME_ID_MASK_STD      ((uint32_t) 0x000007FF)
+constexpr uint32_t   QCAN_FRAME_ID_MASK_STD  =     0x000007FF;
 
 //----------------------------------------------------------------------------------------------------------------
 /*!
@@ -85,7 +74,7 @@ using namespace QCan;
 **
 ** This symbol defines an identifier mask for extended frames.
 */
-#define  QCAN_FRAME_ID_MASK_EXT      ((uint32_t) 0x1FFFFFFF)
+constexpr uint32_t   QCAN_FRAME_ID_MASK_EXT  =     0x1FFFFFFF;
 
 //----------------------------------------------------------------------------------------------------------------
 /*!
@@ -95,7 +84,12 @@ using namespace QCan;
 ** This symbol defines the size of a byte array for a QCanData object (see QCanData::fromByteArray() and
 ** QCanData::toByteArray() for details).
 */
-#define  QCAN_FRAME_ARRAY_SIZE       96
+constexpr uint32_t   QCAN_FRAME_ARRAY_SIZE   = 96;
+
+//----------------------------------------------------------------------------------------------------------------
+// The symbol CAN_MSG_DATA_MAX defines the maximum number of bytes in a CAN frame (payload).
+//
+constexpr uint8_t    QCAN_MSG_DATA_MAX    = 64;
 
 #define  QCAN_FRAME_TIME_STAMP_POS   70
 
@@ -214,8 +208,7 @@ public:
       eFORMAT_FD_STD,
 
       /*! ISO CAN FD, Extended frame format                 */
-      eFORMAT_FD_EXT,
-
+      eFORMAT_FD_EXT
    };
 
    //---------------------------------------------------------------------------------------------------
@@ -245,6 +238,7 @@ public:
    */
    QCanFrame();
 
+   virtual ~QCanFrame()    {}
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -266,8 +260,22 @@ public:
    */
    QCanFrame(const FrameFormat_e & ubFormatR, const uint32_t & ulIdentifierR = 0, const uint8_t & ubDlcR = 0);
 
+   //--------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]     clOtherR          reference to CAN frame
+   **
+   ** Constructs a copy of \a clOtherR.
+   */
+   QCanFrame(const QCanFrame &clOtherR);
 
-   virtual ~QCanFrame();
+   //--------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]     clOtherR          reference to CAN frame
+   ** \return        Reference to this CAN frame
+   **
+   ** Assigns \a clOtherR to this CAN frame and returns a reference to this CAN frame.
+   */   
+   QCanFrame & operator=(const QCanFrame &clOtherR);
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -393,7 +401,7 @@ public:
    **
    ** This functions returns the current error state, defined by the enumeration QCan::CAN_State_e.
    */
-   CAN_State_e errorState(void) const;
+   QCan::CAN_State_e    errorState(void) const;
 
 
    //---------------------------------------------------------------------------------------------------
@@ -611,7 +619,7 @@ public:
    **
    ** This functions sets the current error state, defined by the enumeration QCan::CAN_State_e.
    */
-   void        setErrorState(CAN_State_e ubStateV);
+   void        setErrorState(QCan::CAN_State_e ubStateV);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -716,7 +724,7 @@ public:
    **
    ** The function sets the time-stamp of the CAN frame.
    */
-   inline void setTimeStamp(const QCanTimeStamp & clTimeStampR)     { clMsgTimeP = clTimeStampR; };
+   inline void setTimeStamp(const QCanTimeStamp & clTimeStampR)     { clMsgTimeP = clTimeStampR; }
 
 
    //---------------------------------------------------------------------------------------------------
@@ -726,7 +734,7 @@ public:
    **
    ** The function returns the time-stamp value of the CAN frame.
    */
-   inline QCanTimeStamp timeStamp(void) const { return clMsgTimeP; };
+   inline QCanTimeStamp timeStamp(void) const                        { return clMsgTimeP; }
 
 
    //---------------------------------------------------------------------------------------------------
@@ -788,7 +796,34 @@ private:
    ** (CAN specification 2.0A) or 29 bits for extended frames
    ** (CAN specification 2.0B).
    */
-   uint32_t  ulIdentifierP;
+   uint32_t    ulIdentifierP;
+
+   /*!
+   ** The field user data can hold a 32 bit value, which is
+   ** defined by the user.
+   */
+   uint32_t    ulMsgUserP;
+
+   /*!
+   ** The field user data can hold a 32 bit value, which is
+   ** defined by the user.
+   */
+   uint32_t    ulMsgMarkerP;
+
+
+   /*!
+   ** The data field has up to 64 bytes of message data.
+   ** The number of used bytes is described via the structure
+   ** member \c ubMsgDlcP.
+   */
+   uint8_t     aubByteP[QCAN_MSG_DATA_MAX];
+
+   /*!
+   ** The time stamp field defines the time when a CAN message
+   ** was received by the CAN controller. This is an optional
+   ** field (available if #CP_CAN_MSG_TIME is set to 1).
+   */
+   QCanTimeStamp clMsgTimeP;
 
    /*!
    ** The data length code denotes the number of data bytes
@@ -813,33 +848,6 @@ private:
    ** </ul>
    */
    uint8_t  ubMsgCtrlP;
-
-   /*!
-   ** The data field has up to 64 bytes of message data.
-   ** The number of used bytes is described via the structure
-   ** member \c ubMsgDlcP.
-   */
-   uint8_t  aubByteP[QCAN_MSG_DATA_MAX];
-
-   /*!
-   ** The time stamp field defines the time when a CAN message
-   ** was received by the CAN controller. This is an optional
-   ** field (available if #CP_CAN_MSG_TIME is set to 1).
-   */
-   QCanTimeStamp clMsgTimeP;
-
-
-   /*!
-   ** The field user data can hold a 32 bit value, which is
-   ** defined by the user.
-   */
-   uint32_t ulMsgUserP;
-
-   /*!
-   ** The field user data can hold a 32 bit value, which is
-   ** defined by the user.
-   */
-   uint32_t ulMsgMarkerP;
 
 };
 

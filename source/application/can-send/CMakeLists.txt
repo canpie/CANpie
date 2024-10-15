@@ -18,8 +18,15 @@ project(can-send VERSION 0.99.10)
 # add project CMake module include path
 #
 set( CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake" ${CMAKE_MODULE_PATH})
-include(AddCompilerFlags )
-include(AddSourceDirectories )
+include(module/CompilerFlags)
+include(CpDirectories)
+
+
+#-------------------------------------------------------------------------------------------------------
+# Make sure no sub-directories are automatically created for the binary during build
+#
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CP_PATH_BIN})
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${CP_PATH_BIN})
 
 
 #-------------------------------------------------------------------------------------------------------
@@ -38,17 +45,52 @@ endif()
 
 
 #-------------------------------------------------------------------------------------------------------
+# Test for Linux system 
+#
+if(UNIX AND NOT APPLE)
+   set(LINUX TRUE)
+endif()
+
+
+#-------------------------------------------------------------------------------------------------------
 # Use C++ 17 standard
 #
 set(CMAKE_CXX_STANDARD 17)
+
+#-------------------------------------------------------------------------------------------------------
+# Configure Qt support
+# Do not use the 'set(CMAKE_AUTOMOC ON)' command here, because this will produce conflicting header
+# files which are automatically included.
+#
+set(QT_VERSION_MAJOR 0)
+
+if (${QT_VERSION_MAJOR} EQUAL 0)
+   find_package(Qt5 QUIET COMPONENTS Core Network WebSockets)
+   if (Qt5_FOUND)
+      set(QT_VERSION_MAJOR 5)
+      message("-- Found Qt version 5" )
+   endif()
+endif()
+
+
+if (${QT_VERSION_MAJOR} EQUAL 0)
+   find_package(Qt6 QUIET COMPONENTS Core Network WebSockets)
+   if (Qt6_FOUND)
+      set(QT_VERSION_MAJOR 6)
+      message("-- Found Qt version 6" )
+   endif()
+endif()
+
+
+if (${QT_VERSION_MAJOR} EQUAL 0)
+   message(FATAL_ERROR  "-- No matchig Qt version (5 or 6) found")
+endif()
 
 
 #-------------------------------------------------------------------------------------------------------
 # Configure Qt support
 #
 set(CMAKE_AUTOMOC ON)
-find_package(Qt5 COMPONENTS Core Network WebSockets REQUIRED)
-
 
 #-------------------------------------------------------------------------------------------------------
 # specify include paths 
@@ -90,8 +132,6 @@ list(
 )
 
 
-
-
 #-------------------------------------------------------------------------------------------------------
 # create binary from selected source files
 #
@@ -104,11 +144,18 @@ add_executable(${PROJECT_NAME}
 #-------------------------------------------------------------------------------------------------------
 # Link Qt libs 
 #
-target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Network Qt5::WebSockets)
+target_link_libraries(${PROJECT_NAME} Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::WebSockets)
+if(WIN32)
+   set(BINARY_NAME ${PROJECT_NAME}.exe)
+
+else()
+   set(BINARY_NAME ${PROJECT_NAME})
+endif()
+
 
 #-------------------------------------------------------------------------------------------------------
-# Copy program to bin directory 
+# Installation for Unix systems 
 #
 if (UNIX)
-   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME} DESTINATION /usr/local/bin)
+   install(PROGRAMS ${CP_PATH_BIN}/${PROJECT_NAME} DESTINATION /usr/local/bin)
 endif ()

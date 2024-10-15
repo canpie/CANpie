@@ -104,10 +104,9 @@ public:
    **
    ** Create a new CAN socket dialog.
    */
-   QCanSocketDialog(QWidget * pclParentV = Q_NULLPTR,
-                    const QString &caption = QString());
+   QCanSocketDialog(QWidget * pclParentV = nullptr, const QString &caption = QString());
 
-   ~QCanSocketDialog();
+   ~QCanSocketDialog() override;
    
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -116,7 +115,7 @@ public:
    ** The function returns the selected CAN channel number. In case 'Cancel' has been pressed or the
    ** connection to the QCanServer failed the function will return QCan::eCAN_CHANNEL_NONE.
    */
-   CAN_Channel_e  channel() const;
+   QCan::CAN_Channel_e  channel() const;
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -125,7 +124,7 @@ public:
    ** Shows the dialog as a modal dialog, blocking until the user closes it. The function returns either
    ** QDialog::Accepted or QDialog::Rejected.
    */
-   int            exec(void);
+   int                  exec(void) override;
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -135,7 +134,7 @@ public:
    ** Setup the QCanServer host address which should be displayed as default before the exec() method
    ** is called.
    */
-   QHostAddress   peerAddress() const;
+   QHostAddress         peerAddress() const;
    
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -145,7 +144,7 @@ public:
    ** Setup the QCanServer host address which should be displayed as default before the exec() method
    ** is called.
    */
-   void           setHostAddress(const QHostAddress clHostAddressV);
+   void                 setHostAddress(const QHostAddress clHostAddressV);
    
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -154,11 +153,11 @@ public:
    ** Setup the CAN channel number which should be displayed as
    ** default before the exec() method is called.
    */
-   void           setChannel(const CAN_Channel_e teChannelV);
+   void                 setChannel(const QCan::CAN_Channel_e teChannelV);
 
-   void           setSocket(QCanSocket * pclSocketV);
+   void                 setSocket(QCanSocket * pclSocketV);
    
-   QCanSocket *   socket(void) const;
+   QCanSocket           *socket(void) const;
    
 Q_SIGNALS:
 
@@ -168,32 +167,32 @@ Q_SIGNALS:
    **
    ** This signal is emitted when the dialog window is closed using the OK button.
    */
-   void           socketSelected(QCanSocket * pclSocketV);
+   void                 socketSelected(QCanSocket * pclSocketV);
    
    
 protected:
-   virtual void   done(int slResultV);
-   virtual void   accept(void);
+   virtual void         done(int slResultV) override;
+   virtual void         accept(void) override;
    
 private Q_SLOTS:
-   void           onHostChanged(int slIndexV);
-   void           onChannelChanged(int slIndexV);
-   void           onConnectionTimer(void);
-   void           onSocketConnected(void);
-   void           onSocketDisconnected(void);
-   void           onSocketError(QAbstractSocket::SocketError teSocketErrorV);
+   void                 onHostChanged(int slIndexV);
+   void                 onChannelChanged(int slIndexV);
+   void                 onConnectionTimer(void);
+   void                 onSocketConnected(void);
+   void                 onSocketDisconnected(void);
+   void                 onSocketError(QAbstractSocket::SocketError teSocketErrorV);
 
 private:
-   QCanSocketDialogPrivate *  pclWidgetP;
+   QCanSocketDialogPrivate    *pclWidgetP;
    QPointer<QCanSocket>       pclSocketP;
    QHostAddress               clHostAddressP;
    QTimer *                   pclTimerP;
-   CAN_Channel_e              teChannelP;
+   QCan::CAN_Channel_e        teChannelP;
    bool                       btConnectFailP;
 
-   void           connect(void);
-   void           connectSlots(void);
-   void           disconnectSlots(void);
+   void                 connect(void);
+   void                 connectSlots(void);
+   void                 disconnectSlots(void);
    
 };
 

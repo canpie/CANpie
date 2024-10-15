@@ -46,17 +46,17 @@
 **                                                                                                                    **
 \*--------------------------------------------------------------------------------------------------------------------*/
 
-#define  COMMAND_FLAG_NONE          ((uint32_t) 0x00000000)
-#define  COMMAND_FLAG_SET_BITRATE   ((uint32_t) 0x00000001)
-#define  COMMAND_FLAG_SET_MODE      ((uint32_t) 0x00000002)
-#define  COMMAND_FLAG_RESET         ((uint32_t) 0x00000004)
-#define  COMMAND_FLAG_MASK          ((uint32_t) 0x000000FF)
+constexpr uint32_t   COMMAND_FLAG_NONE          = 0x00000000;
+constexpr uint32_t   COMMAND_FLAG_SET_BITRATE   = 0x00000001;
+constexpr uint32_t   COMMAND_FLAG_SET_MODE      = 0x00000002;
+constexpr uint32_t   COMMAND_FLAG_RESET         = 0x00000004;
+constexpr uint32_t   COMMAND_FLAG_MASK          = 0x000000FF;
 
-#define  COMMAND_FLAG_SHOW_ALL      ((uint32_t) 0x00000100)
-#define  COMMAND_FLAG_SHOW_VERBOSE  ((uint32_t) 0x00000200)
+constexpr uint32_t   COMMAND_FLAG_SHOW_ALL      = 0x00000100;
+constexpr uint32_t   COMMAND_FLAG_SHOW_VERBOSE  = 0x00000200;
 
 //------------------------------------------------------------------------------------------------------
-// Version information is controller via qmake project file, the following defintions are only
+// Version information is controlled via cmake project file, the following defintions are only
 // placeholders
 //
 #ifndef  VERSION_MAJOR
@@ -82,14 +82,12 @@ int main(int argc, char *argv[])
    QCoreApplication::setApplicationName("can-config");
    
    //---------------------------------------------------------------------------------------------------
-   // get application version (defined in .pro file)
+   // get application version (defined in cmake file)
    //
-   QString clVersionT;
+   QString clVersionT = "version ";
    clVersionT += QString("%1.").arg(VERSION_MAJOR);
    clVersionT += QString("%1.").arg(VERSION_MINOR, 2, 10, QLatin1Char('0'));
-   clVersionT += QString("%1,").arg(VERSION_BUILD, 2, 10, QLatin1Char('0'));
-   clVersionT += " build on ";
-   clVersionT += __DATE__;
+   clVersionT += QString("%1").arg(VERSION_BUILD, 2, 10, QLatin1Char('0'));
    QCoreApplication::setApplicationVersion(clVersionT);
 
 
@@ -132,10 +130,10 @@ QCanConfig::QCanConfig(QObject *parent) :
    //---------------------------------------------------------------------------------------------------
    // set default values
    //
-   teCanChannelP      = eCAN_CHANNEL_NONE;
-   slNomBitRateP      = eCAN_BITRATE_NONE;
-   slDatBitRateP      = eCAN_BITRATE_NONE;
-   teCanModeP         = eCAN_MODE_SELF_TEST;
+   teCanChannelP      = QCan::eCAN_CHANNEL_NONE;
+   slNomBitRateP      = QCan::eCAN_BITRATE_NONE;
+   slDatBitRateP      = QCan::eCAN_BITRATE_NONE;
+   teCanModeP         = QCan::eCAN_MODE_SELF_TEST;
 
    ulCommandFlagsP    = COMMAND_FLAG_NONE;
 
@@ -206,7 +204,7 @@ void QCanConfig::execCommand(void)
 // QCanConfig::onServerObjectReceived()                                                                               //
 // handle JSON object from CANpie FD Server                                                                           //
 //--------------------------------------------------------------------------------------------------------------------//
-void QCanConfig::onNetworkObjectReceived(const CAN_Channel_e teChannelV, QJsonObject clNetworkConfigV)
+void QCanConfig::onNetworkObjectReceived(const QCan::CAN_Channel_e teChannelV, QJsonObject clNetworkConfigV)
 {
 
    if (teChannelV == teCanChannelP)
@@ -218,7 +216,7 @@ void QCanConfig::onNetworkObjectReceived(const CAN_Channel_e teChannelV, QJsonOb
       {
          fprintf(stdout, "--------------------------------------------------------------------------------\n");
 
-         //----------------------------------------------------------------------------------------
+         //-----------------------------------------------------------------------------------
          // in verbose mode we also show the JSON document
          //
          if ((ulCommandFlagsP & COMMAND_FLAG_SHOW_VERBOSE) > 0)
@@ -230,9 +228,20 @@ void QCanConfig::onNetworkObjectReceived(const CAN_Channel_e teChannelV, QJsonOb
 
          showNetworkSettings();
          clNetworkSettingsP.closeConnection();
+
+
+         //-----------------------------------------------------------------------------------
+         // In case the actual CAN channel number is smaller than the total number of network
+         // channels we increment the CAN channel number here. By calling connectToServer()
+         // with the new incremented CAN channel number the slot onNetworkObjectReceived()
+         // is called again when new data from the server arrives. We use the local variable
+         // ubIncrementChannelT in order to make correct type casting.
+         //
          if (teCanChannelP < clServerSettingsP.networkCount())
          {
-            teCanChannelP = static_cast<CAN_Channel_e>(static_cast<uint8_t>(teCanChannelP) + 1);
+            uint8_t ubIncrementChannelT = teCanChannelP;
+            ubIncrementChannelT++;
+            teCanChannelP = static_cast< QCan::CAN_Channel_e >(ubIncrementChannelT);
             clNetworkSettingsP.setChannel(teCanChannelP);
             clNetworkSettingsP.connectToServer(clHostAddressP);
          }
@@ -319,9 +328,6 @@ void QCanConfig::onServerStateChanged(enum QCanServerSettings::State_e teStateV)
       case QCanServerSettings::eSTATE_ACTIVE:
          break;
 
-      default:
-         btQuitProgramT = true;
-         break;
    }
 
    if (btQuitProgramT)
@@ -486,7 +492,7 @@ void QCanConfig::runCommandParser(void)
       //-------------------------------------------------------------------------------------------
       // start with first channel
       //
-      teCanChannelP = eCAN_CHANNEL_1;
+      teCanChannelP = QCan::eCAN_CHANNEL_1;
 
       ulCommandFlagsP |= COMMAND_FLAG_SHOW_ALL;
       clServerSettingsP.connectToServer(clHostAddressP);
@@ -531,32 +537,31 @@ void QCanConfig::runCommandParser(void)
    //---------------------------------------------------------------------------------------------------
    // store CAN interface channel (CAN_Channel_e)
    //
-   teCanChannelP = (CAN_Channel_e) (slChannelT);
+   teCanChannelP = static_cast< QCan::CAN_Channel_e> (slChannelT);
 
 
    //---------------------------------------------------------------------------------------------------
    // set bit-rate
    //
-   slNomBitRateP = eCAN_BITRATE_NONE;
-   slDatBitRateP = eCAN_BITRATE_NONE;
+   slNomBitRateP = QCan::eCAN_BITRATE_NONE;
+   slDatBitRateP = QCan::eCAN_BITRATE_NONE;
    
    if (clCommandParserP.isSet(clOptNomBtrT))
    {
-      slNomBitRateP  = clCommandParserP.value(clOptNomBtrT).toInt(Q_NULLPTR, 10);    
+      slNomBitRateP  = clCommandParserP.value(clOptNomBtrT).toInt(nullptr, 10);    
       ulCommandFlagsP |= COMMAND_FLAG_SET_BITRATE;
    }
    
    if (clCommandParserP.isSet(clOptDatBtrT))
    {
-      if (slNomBitRateP == eCAN_BITRATE_NONE)
+      if (slNomBitRateP == QCan::eCAN_BITRATE_NONE)
       {
-         fprintf(stderr, "%s \n\n", 
-                 qPrintable(tr("Error: Must set nominal bit-rate also")));
+         fprintf(stderr, "%s \n\n", qPrintable(tr("Error: Must set nominal bit-rate also")));
          clCommandParserP.showHelp(0);         
       }
       else
       {
-         slDatBitRateP  = clCommandParserP.value(clOptDatBtrT).toInt(Q_NULLPTR, 10);
+         slDatBitRateP  = clCommandParserP.value(clOptDatBtrT).toInt(nullptr, 10);
       }
    }
    
@@ -565,19 +570,19 @@ void QCanConfig::runCommandParser(void)
    //
    if (clCommandParserP.value(clOptModeT).contains("start", Qt::CaseInsensitive))
    {
-      teCanModeP = eCAN_MODE_OPERATION;
+      teCanModeP = QCan::eCAN_MODE_OPERATION;
       ulCommandFlagsP |= COMMAND_FLAG_SET_MODE;
    }
 
    if (clCommandParserP.value(clOptModeT).contains("stop", Qt::CaseInsensitive))
    {
-      teCanModeP = eCAN_MODE_INIT;
+      teCanModeP = QCan::eCAN_MODE_INIT;
       ulCommandFlagsP |= COMMAND_FLAG_SET_MODE;
    }
 
    if (clCommandParserP.value(clOptModeT).contains("listen-only", Qt::CaseInsensitive))
    {
-      teCanModeP = eCAN_MODE_LISTEN_ONLY;
+      teCanModeP = QCan::eCAN_MODE_LISTEN_ONLY;
       ulCommandFlagsP |= COMMAND_FLAG_SET_MODE;
    }
 
@@ -615,7 +620,7 @@ void QCanConfig::showNetworkSettings(void)
    //-------------------------------------------------------------------------------------------
    // bit-rate settings
    //
-   if (clNetworkSettingsP.dataBitrate() == eCAN_BITRATE_NONE)
+   if (clNetworkSettingsP.dataBitrate() == QCan::eCAN_BITRATE_NONE)
    {
       fprintf(stdout, "Bit-rate      : %s \n", qPrintable(clNetworkSettingsP.nominalBitrateString())  );
    }

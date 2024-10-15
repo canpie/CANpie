@@ -50,7 +50,12 @@ class QCanSend : public QObject
    Q_OBJECT
 
 public:
-   QCanSend(QObject *parent = 0);
+   QCanSend(QObject *parent = nullptr);
+
+   QCanSend(const QCanSend&) = delete;               // no copy constructor
+   QCanSend& operator=(const QCanSend&) = delete;    // no assignment operator
+   QCanSend(QCanSend&&) = delete;                   // no move constructor
+   QCanSend& operator=(QCanSend&&) = delete;         // no move operator
 
 signals:
    void finished();
@@ -59,7 +64,7 @@ public slots:
    void  aboutToQuitApp(void);
 
 private slots:
-   void  onNetworkObjectReceived(const CAN_Channel_e teChannelV, QJsonObject clNetworkConfigV);
+   void  onNetworkObjectReceived(const QCan::CAN_Channel_e teChannelV, QJsonObject clNetworkConfigV);
 
    void  onServerObjectReceived(QJsonObject clServerConfigV);
    void  onServerStateChanged(enum QCanServerSettings::State_e teStateV);
@@ -102,7 +107,7 @@ private:
    //----------------------------------------------------------------------------------------------
    // Number of selected CAN channel
    //
-   CAN_Channel_e                 teCanChannelP;
+   QCan::CAN_Channel_e           teCanChannelP;
 
    QCanFrame                     clCanFrameP;
    uint32_t                      ulFrameIdP;
@@ -110,6 +115,8 @@ private:
    uint8_t                       ubFrameDlcP;
    uint8_t                       ubFrameFormatP;
    uint8_t                       aubFrameDataP[QCAN_MSG_DATA_MAX];
+   bool                          btFrameRtrP;
+   bool                          btFrameBrsP;
    bool                          btIncIdP;
    bool                          btIncDlcP;
    bool                          btIncDataP;

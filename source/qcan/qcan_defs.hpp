@@ -110,7 +110,7 @@
 **
 ** The bit-mask value defines if error frames are supported by a CAN interface.
 */
-#define  QCAN_IF_SUPPORT_ERROR_FRAMES     ((uint32_t) (0x00000001))
+constexpr uint32_t   QCAN_IF_SUPPORT_ERROR_FRAMES  =  0x00000001;
 
 
 //------------------------------------------------------------------------------------------------------
@@ -121,7 +121,7 @@
 **
 ** The bit-mask value defines if the listen-only mode is supported by a CAN interface.
 */
-#define  QCAN_IF_SUPPORT_LISTEN_ONLY      ((uint32_t) (0x00000002))
+constexpr uint32_t   QCAN_IF_SUPPORT_LISTEN_ONLY   =  0x00000002;
 
 
 //------------------------------------------------------------------------------------------------------
@@ -132,7 +132,7 @@
 **
 ** The bit-mask value defines if CAN FD is supported by a CAN interface.
 */
-#define  QCAN_IF_SUPPORT_CAN_FD           ((uint32_t) (0x00000004))
+constexpr uint32_t   QCAN_IF_SUPPORT_CAN_FD        =  0x00000004;
 
 //------------------------------------------------------------------------------------------------------
 /*!
@@ -142,9 +142,9 @@
 **
 ** The bit-mask value defines if CAN interface supports device specific configuration.
 */
-#define  QCAN_IF_SUPPORT_SPECIFIC_CONFIG  ((uint32_t) (0x00000008))
+constexpr uint32_t   QCAN_IF_SUPPORT_SPECIFIC_CONFIG  =  0x00000008;
 
-#define  QCAN_IF_SUPPORT_MASK             ((uint32_t) (0x0000000F))
+constexpr uint32_t   QCAN_IF_SUPPORT_MASK             =  0x0000000F;
 
 
 //------------------------------------------------------------------------------------------------------
@@ -154,7 +154,7 @@
 **
 ** This symbol defines the major version number.
 */
-#define  QCAN_VERSION_MAJOR                 0
+#define  QCAN_VERSION_MAJOR                 1
 
 //------------------------------------------------------------------------------------------------------
 /*!
@@ -163,7 +163,7 @@
 **
 ** This symbol defines the minor version number.
 */
-#define  QCAN_VERSION_MINOR                 99
+#define  QCAN_VERSION_MINOR                 2
 
 //------------------------------------------------------------------------------------------------------
 /*!
@@ -172,7 +172,7 @@
 **
 ** This symbol defines the build version number.
 */
-#define  QCAN_VERSION_BUILD                 8
+#define  QCAN_VERSION_BUILD                 0
 
 
 #endif // QCAN_DEFS_HPP_

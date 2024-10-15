@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/mc_can_hms.png</file>
+        <file>images/mc_can_hms_usb_canfd.png</file>
+    </qresource>
+</RCC>

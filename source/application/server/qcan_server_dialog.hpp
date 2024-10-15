@@ -39,7 +39,11 @@
 
 
 #include <QtCore/QSettings>
+#if QT_VERSION >= 0x060000
+#include <QAction>
+#else
 #include <QtWidgets/QAction>
+#endif
 #include <QtWidgets/QDialog>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QSystemTrayIcon>
@@ -49,8 +53,6 @@
 #include "qcan_server.hpp"
 #include "qcan_server_logger_view.hpp"
 #include "qcan_interface_widget.hpp"
-
-using namespace QCan;
 
 
 //-----------------------------------------------------------------------------
@@ -65,8 +67,13 @@ class QCanServerDialog : public QDialog
     Q_OBJECT
 
 public:
-    QCanServerDialog(QWidget *parent = 0);
-    ~QCanServerDialog();
+   QCanServerDialog(QWidget *parent = nullptr);
+   ~QCanServerDialog() override;
+
+   QCanServerDialog(const QCanServerDialog&) = delete;               // no copy constructor
+   QCanServerDialog& operator=(const QCanServerDialog&) = delete;    // no assignment operator
+   QCanServerDialog(QCanServerDialog&&) = delete;                    // no move constructor
+   QCanServerDialog& operator=(QCanServerDialog&&) = delete;         // no move operator
 
 
 public slots:
@@ -76,20 +83,20 @@ public slots:
    ** The parameter \c pclCanInterfaceV is a pointer to a new interface. If
    ** \c pclCanInterfaceV is NULL, the physical interface shall be removed.
    */
-   void onInterfaceChange(const CAN_Channel_e & ubChannelR, QCanInterface * pclInterfaceV);
+   void onInterfaceChange(const QCan::CAN_Channel_e & ubChannelR, QCanInterface * pclInterfaceV);
 
-   void onInterfaceStateChange(const CAN_Channel_e & ubChannelR,
+   void onInterfaceStateChange(const QCan::CAN_Channel_e & ubChannelR,
                                const QCanInterface::ConnectionState_e & teConnectionStateR);
 
-   void onNetworkShowBitrate(CAN_Channel_e ubChannelV, uint32_t slNomBitRateV, int32_t slDatBitRateV);
-   void onNetworkShowCanFrames(CAN_Channel_e ubChannelV, uint32_t ulFrameCntV);
-   void onNetworkShowErrFrames(CAN_Channel_e ubChannelV, uint32_t ulFrameCntV);
-   void onNetworkShowLoad(CAN_Channel_e ubChannelV, uint8_t ubLoadV, uint32_t ulMsgPerSecV);
+   void onNetworkShowBitrate(QCan::CAN_Channel_e ubChannelV, int32_t slNomBitRateV, int32_t slDatBitRateV);
+   void onNetworkShowCanFrames(QCan::CAN_Channel_e ubChannelV, uint32_t ulFrameCntV);
+   void onNetworkShowErrFrames(QCan::CAN_Channel_e ubChannelV, uint32_t ulFrameCntV);
+   void onNetworkShowLoad(QCan::CAN_Channel_e ubChannelV, uint8_t ubLoadV, uint32_t ulMsgPerSecV);
 
-   void onNetworkShowSocketState(const CAN_Channel_e & ubChannelR,
+   void onNetworkShowSocketState(const QCan::CAN_Channel_e & ubChannelR,
                                  const uint32_t & ulLocalSocketsR, const uint32_t & ulTcpSocketsR);
 
-   void onNetworkShowState(CAN_Channel_e ubChannelV, CAN_State_e teStateV);
+   void onNetworkShowState(QCan::CAN_Channel_e ubChannelV, QCan::CAN_State_e teStateV);
 
 
 
@@ -105,6 +112,8 @@ private slots:
    
    void onDeviceSpecificConfig();
 
+   void onDialogShow(bool btCheckedV);
+
    void onServerAccessBitrate(int slStateV);
    void onServerAccessBusOff(int slStateV);
    void onServerAccessMode(int slStateV);
@@ -119,17 +128,18 @@ private slots:
    void onLoggingWindow(void);
 
 private:
-   void     createActions(void);
-   void     createCanInfo(void);
-   void     createTrayIcon(void);
+   void	               closeEvent(QCloseEvent *clEventV) override;
+   void                 createActions(void);
+   void                 createCanInfo(void);
+   void                 createTrayIcon(void);
 
-   CAN_Channel_e  selectedChannel(void);
+   QCan::CAN_Channel_e  selectedChannel(void);
 
-   void     setupNetworks(void);
-   void     showNetworkConfiguration(void);
-   void     setIcon(void);
-   void     updateUI(const CAN_Channel_e & ubChannelR);
-   void     updateTabServer(void);
+   void                 setupNetworks(void);
+   void                 showNetworkConfiguration(void);
+   void                 setIcon(void);
+   void                 updateUI(const QCan::CAN_Channel_e & ubChannelR);
+   void                 updateTabServer(void);
 
    Ui_ServerConfig         ui;
    QAction *               pclActionConfigP;

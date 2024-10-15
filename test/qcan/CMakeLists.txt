@@ -3,14 +3,14 @@
 #                                                                                                                      #
 #----------------------------------------------------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 3.16.4 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 cmake_policy(SET CMP0048 NEW)
 
 #-------------------------------------------------------------------------------------------------------
 # add project CMake module include path
 #
 SET( CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake" ${CMAKE_MODULE_PATH})
-INCLUDE(AddSourceDirectories )
+INCLUDE(CpDirectories)
 
 message("-- Configure test cases for QCan classes")
 
@@ -51,11 +51,49 @@ list(
     ${CP_PATH_QCAN}/qcan_timestamp.cpp
 )
 
+#-------------------------------------------------------------------------------------------------------
+# Use C++ 17 standard
+#
+set(CMAKE_CXX_STANDARD 17)
+
+#-------------------------------------------------------------------------------------------------------
+# Configure Qt support
+# Do not use the 'set(CMAKE_AUTOMOC ON)' command here, because this will produce conflicting header
+# files which are automatically included.
+#
+set(QT_VERSION_MAJOR 0)
+
+if (${QT_VERSION_MAJOR} EQUAL 0)
+   find_package(Qt5 QUIET COMPONENTS Core Network WebSockets Test )
+   if (Qt5_FOUND)
+      set(QT_VERSION_MAJOR 5)
+      message("-- Found Qt version 5" )
+   endif()
+endif()
+
+
+if (${QT_VERSION_MAJOR} EQUAL 0)
+   find_package(Qt6 QUIET COMPONENTS Core Network WebSockets Test )
+   if (Qt6_FOUND)
+      set(QT_VERSION_MAJOR 6)
+      message("-- Found Qt version 6" )
+   endif()
+endif()
+
+
+if (${QT_VERSION_MAJOR} EQUAL 0)
+   message(FATAL_ERROR  "-- No matchig Qt version (5 or 6) found")
+endif()
 
 
 set(CMAKE_AUTOMOC ON)
 
-find_package(Qt5 COMPONENTS Core Network WebSockets Test REQUIRED)
+#-------------------------------------------------------------------------------------------------------
+# Disable Qt debug output when not using the Debug build type
+#
+if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
+   add_definitions(-DQT_NO_DEBUG_OUTPUT)
+endif()
 
 
 #-------------------------------------------------------------------------------------------------------
@@ -71,7 +109,9 @@ add_executable(${PROJECT_NAME}
 #-------------------------------------------------------------------------------------------------------
 # link Qt libs 
 #
-target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Network Qt5::WebSockets Qt5::Test)
+target_link_libraries(${PROJECT_NAME} 
+                      Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Network 
+                      Qt${QT_VERSION_MAJOR}::WebSockets Qt${QT_VERSION_MAJOR}::Test)
 
 #-------------------------------------------------------------------------------------------------------
 # copy program to bin directory 

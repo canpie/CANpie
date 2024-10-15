@@ -65,12 +65,20 @@ QCanFilterList::QCanFilterList(const QCanFilterList &clOtherR)
 
 
 //--------------------------------------------------------------------------------------------------------------------//
-// QCanFilterList::~QCanFilterList()                                                                                  //
-// destructor                                                                                                         //
+// QCanFilterList()::operator=                                                                                        //
+//                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
-QCanFilterList::~QCanFilterList()
+QCanFilterList& QCanFilterList::operator=(const QCanFilterList &clOtherR)
 {
+   //---------------------------------------------------------------------------------------------------
+   // Guard self assignment
+   //
+   if (this != &clOtherR)
+   {
+      clFilterP = clOtherR.clFilterP;
+   }
 
+   return *this;
 }
 
 
@@ -81,7 +89,7 @@ QCanFilterList::~QCanFilterList()
 int32_t QCanFilterList::appendFilter(const QCanFilter & clFilterR)
 {
    clFilterP.append(clFilterR);
-   return (clFilterP.size() - 1);
+   return (static_cast< int32_t>(clFilterP.size() - 1));
 }
 
 

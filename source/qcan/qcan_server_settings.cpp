@@ -57,7 +57,7 @@
 //--------------------------------------------------------------------------------------------------------------------//
 QCanServerSettings::QCanServerSettings(QObject * pclParentV)
 {
-   if (pclParentV != Q_NULLPTR)
+   if (pclParentV != nullptr)
    {
       this->setParent(pclParentV);
    }
@@ -120,8 +120,15 @@ void QCanServerSettings::connectToServer(const QHostAddress clServerAddressV, co
    QObject::connect( pclWebSocketP, &QWebSocket::disconnected,        
                      this, &QCanServerSettings::onSocketDisconnect);
 
-   QObject::connect( pclWebSocketP, static_cast<void(QWebSocket::*)(QAbstractSocket::SocketError)>(&QWebSocket::error),  
+   #if QT_VERSION > QT_VERSION_CHECK(6, 4, 0)
+   QObject::connect( pclWebSocketP, 
+                     static_cast<void(QWebSocket::*)(QAbstractSocket::SocketError)>(&QWebSocket::errorOccurred),
                      this, &QCanServerSettings::onSocketError);
+   #else
+   QObject::connect( pclWebSocketP, 
+                     static_cast<void(QWebSocket::*)(QAbstractSocket::SocketError)>(&QWebSocket::error),
+                     this, &QCanServerSettings::onSocketError);
+   #endif
 
    QObject::connect( pclWebSocketP, &QWebSocket::textFrameReceived,        
                      this, &QCanServerSettings::onSocketMessageReceived);
@@ -181,7 +188,12 @@ int32_t QCanServerSettings::networkCount(void)
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanServerSettings::onSocketConnect(void)
 {
+   //---------------------------------------------------------------------------------------------------
+   // debug information
+   //
+   #ifndef QT_NO_DEBUG_OUTPUT
    qDebug() << "QCanServerSettings::onSocketConnect() ";
+   #endif
 
    //---------------------------------------------------------------------------------------------------
    // keep connection state in member variable and signal it 
@@ -201,7 +213,12 @@ void QCanServerSettings::onSocketConnect(void)
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanServerSettings::onSocketDisconnect(void)
 {
+   //---------------------------------------------------------------------------------------------------
+   // debug information
+   //
+   #ifndef QT_NO_DEBUG_OUTPUT
    qDebug() << "QCanServerSettings::onSocketDisconnect() ";
+   #endif
 
    //---------------------------------------------------------------------------------------------------
    // keep connection state in member variable and signal it 
@@ -223,7 +240,12 @@ void QCanServerSettings::onSocketError(QAbstractSocket::SocketError teSocketErro
 {
    State_e  teNewStateV = QCanServerSettings::eSTATE_UNKNOWN;
 
+   //---------------------------------------------------------------------------------------------------
+   // debug information
+   //
+   #ifndef QT_NO_DEBUG_OUTPUT
    qDebug() << "QCanServerSettings::onSocketError()" << teSocketErrorV;
+   #endif
 
    //---------------------------------------------------------------------------------------------------
    // connection state is modified depending on the SocketError value
@@ -262,8 +284,13 @@ void QCanServerSettings::onSocketError(QAbstractSocket::SocketError teSocketErro
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanServerSettings::onSocketMessageReceived(const QString & clMessageR)
 {
+   //---------------------------------------------------------------------------------------------------
+   // debug information
+   //
+   #ifndef QT_NO_DEBUG_OUTPUT
    qDebug() << "QCanServerSettings::onSocketMessageReceived()";
-
+   #endif
+   
    //---------------------------------------------------------------------------------------------------
    // The message that we receive here is a JSON object, convert it into a JSON document first
    // and then check the validity.

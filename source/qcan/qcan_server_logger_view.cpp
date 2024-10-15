@@ -57,7 +57,7 @@
 QCanServerLoggerView::QCanServerLoggerView(QCanServer * pclServerV)
                      :QCanServerLogger(pclServerV)
 {
-   teCanChannelP = eCAN_CHANNEL_1;
+   teCanChannelP = QCan::eCAN_CHANNEL_1;
    pclLogWindowP = new QMainWindow();
    pclLogTabP    = new QTabWidget();
 
@@ -66,7 +66,6 @@ QCanServerLoggerView::QCanServerLoggerView(QCanServer * pclServerV)
    //
    int slFontIdT = QFontDatabase::addApplicationFont(":/fonts/SourceCodePro-Medium.ttf");
    QString clFontFamilyT = QFontDatabase::applicationFontFamilies(slFontIdT).at(0);
-   qDebug() << "Font family" << clFontFamilyT;
    QFont clFontT = QFont(clFontFamilyT, 12, 50);
 
    QString  clTabLabelT;
@@ -109,12 +108,12 @@ QCanServerLoggerView::~QCanServerLoggerView()
 // QCanServerLoggerView::appendMessage()                                                                              //
 // append log message to windows and to log file                                                                      //
 //--------------------------------------------------------------------------------------------------------------------//
-void QCanServerLoggerView::appendMessage(const CAN_Channel_e teChannelV, const QString & clLogMessageV,
-                                         LogLevel_e teLogLevelV)
+void QCanServerLoggerView::appendMessage(const QCan::CAN_Channel_e teChannelV, const QString & clLogMessageV,
+                                         QCan::LogLevel_e teLogLevelV)
 {
    QCanServerLogger::appendMessage(teChannelV, clLogMessageV, teLogLevelV);
 
-   if ((teChannelV >= eCAN_CHANNEL_1) && (teChannelV <= QCAN_NETWORK_MAX))
+   if ((teChannelV >= QCan::eCAN_CHANNEL_1) && (teChannelV <= QCAN_NETWORK_MAX))
    {
 
       if (teLogLevelV <= logLevel(teChannelV))
@@ -151,7 +150,7 @@ bool QCanServerLoggerView::isHidden(void)
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanServerLoggerView::onChangeLogLevel(QAction * pclActionV)
 {
-   setLogLevel(teCanChannelP, (LogLevel_e) pclActionV->data().toInt());
+   setLogLevel(teCanChannelP, static_cast< QCan::LogLevel_e > (pclActionV->data().toInt()));
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -172,7 +171,7 @@ void QCanServerLoggerView::onSetLogFile(void)
 {
    QString clFileNameT;
 
-   clFileNameT = QFileDialog::getSaveFileName(Q_NULLPTR, tr("Save File"),
+   clFileNameT = QFileDialog::getSaveFileName(nullptr, tr("Save File"),
                               "~/untitled.log",
                               tr("Log file (*.log)"));
 
@@ -191,7 +190,6 @@ void QCanServerLoggerView::onShowLogMenu(const QPoint &pos)
    QMenu *    pclMenuT;
    QMenu *    pclSubMenuT;
    QAction *  pclClearT;
-   QAction *  pclFileT;
    QAction *  pclLevelT;
    int        slTabIndexT;
 
@@ -201,7 +199,7 @@ void QCanServerLoggerView::onShowLogMenu(const QPoint &pos)
       //-------------------------------------------------------
       // store the selected tab
       //
-      teCanChannelP = (CAN_Channel_e) (slTabIndexT + 1);
+      teCanChannelP = static_cast< QCan::CAN_Channel_e >(slTabIndexT + 1);
 
       //-------------------------------------------------------
       // create default menu and add additional entries
@@ -228,8 +226,7 @@ void QCanServerLoggerView::onShowLogMenu(const QPoint &pos)
       //-------------------------------------------------------
       // log data to file
       //
-      pclFileT  = pclMenuT->addAction(tr("Log to file .."),
-                                       this, SLOT(onSetLogFile()));
+      pclMenuT->addAction(tr("Log to file .."), this, SLOT(onSetLogFile()));
 
       //-------------------------------------------------------
       // create a sub-menu for the different log-levels
@@ -239,48 +236,48 @@ void QCanServerLoggerView::onShowLogMenu(const QPoint &pos)
 
       pclLevelT = pclSubMenuT->addAction(tr("Fatal"));
       pclLevelT->setCheckable(true);
-      pclLevelT->setData(eLOG_LEVEL_FATAL);
-      if (logLevel(teCanChannelP) == eLOG_LEVEL_FATAL)
+      pclLevelT->setData(QCan::eLOG_LEVEL_FATAL);
+      if (logLevel(teCanChannelP) == QCan::eLOG_LEVEL_FATAL)
       {
          pclLevelT->setChecked(true);
       }
 
       pclLevelT = pclSubMenuT->addAction(tr("Error"));
       pclLevelT->setCheckable(true);
-      pclLevelT->setData(eLOG_LEVEL_ERROR);
-      if (logLevel(teCanChannelP) == eLOG_LEVEL_ERROR)
+      pclLevelT->setData(QCan::eLOG_LEVEL_ERROR);
+      if (logLevel(teCanChannelP) == QCan::eLOG_LEVEL_ERROR)
       {
          pclLevelT->setChecked(true);
       }
 
       pclLevelT = pclSubMenuT->addAction(tr("Warning"));
       pclLevelT->setCheckable(true);
-      pclLevelT->setData(eLOG_LEVEL_WARN);
-      if (logLevel(teCanChannelP) == eLOG_LEVEL_WARN)
+      pclLevelT->setData(QCan::eLOG_LEVEL_WARN);
+      if (logLevel(teCanChannelP) == QCan::eLOG_LEVEL_WARN)
       {
          pclLevelT->setChecked(true);
       }
 
       pclLevelT = pclSubMenuT->addAction(tr("Info"));
       pclLevelT->setCheckable(true);
-      pclLevelT->setData(eLOG_LEVEL_INFO);
-      if (logLevel(teCanChannelP) == eLOG_LEVEL_INFO)
+      pclLevelT->setData(QCan::eLOG_LEVEL_INFO);
+      if (logLevel(teCanChannelP) == QCan::eLOG_LEVEL_INFO)
       {
          pclLevelT->setChecked(true);
       }
 
       pclLevelT = pclSubMenuT->addAction(tr("Debug"));
       pclLevelT->setCheckable(true);
-      pclLevelT->setData(eLOG_LEVEL_DEBUG);
-      if (logLevel(teCanChannelP) == eLOG_LEVEL_DEBUG)
+      pclLevelT->setData(QCan::eLOG_LEVEL_DEBUG);
+      if (logLevel(teCanChannelP) == QCan::eLOG_LEVEL_DEBUG)
       {
          pclLevelT->setChecked(true);
       }
 
       pclLevelT = pclSubMenuT->addAction(tr("Trace"));
       pclLevelT->setCheckable(true);
-      pclLevelT->setData(eLOG_LEVEL_TRACE);
-      if (logLevel(teCanChannelP) == eLOG_LEVEL_TRACE)
+      pclLevelT->setData(QCan::eLOG_LEVEL_TRACE);
+      if (logLevel(teCanChannelP) == QCan::eLOG_LEVEL_TRACE)
       {
          pclLevelT->setChecked(true);
       }

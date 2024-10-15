@@ -41,7 +41,6 @@
 #include "qcan_defs.hpp"
 #include "qcan_frame.hpp"
 
-using namespace QCan;
 
 //----------------------------------------------------------------------------------------------------------------
 /*!
@@ -128,6 +127,12 @@ public:
       /*! CAN interface has a failure.                         */
       FailureState
    };
+   
+   QCanInterface()   {  }
+   QCanInterface(const QCanInterface&) = delete;               // no copy constructor
+   QCanInterface& operator=(const QCanInterface&) = delete;    // no assignment operator
+   QCanInterface(QCanInterface&&) = delete;                    // no move constructor
+   QCanInterface& operator=(QCanInterface&&) = delete;         // no move operator
 
    //---------------------------------------------------------------------------------------------------
    /*!
@@ -136,7 +141,7 @@ public:
    ** This method is used to initiate a device specific configuration which is out of scope of this
    ** interface class. A return value of \a true means the interface settings have been changed.
    */
-   inline virtual bool        configureDevice(void) { return (false); };
+   inline virtual bool        configureDevice(void)   { return (false); }
 
 
    //---------------------------------------------------------------------------------------------------
@@ -229,7 +234,7 @@ public:
    **	This function sets the bit-rate of the CAN interface. If the physical CAN interface does not
    **	support CAN FD, the parameter \c slDatBitRateV is not evaluated.
    */
-   virtual InterfaceError_e   setBitrate(int32_t slNomBitRateV, int32_t slDatBitRateV = eCAN_BITRATE_NONE) = 0;
+   virtual InterfaceError_e   setBitrate(int32_t slNomBitRateV, int32_t slDatBitRateV = QCan::eCAN_BITRATE_NONE) = 0;
 
 
    //---------------------------------------------------------------------------------------------------
@@ -239,9 +244,9 @@ public:
    **
    ** Set mode of the physical CAN interface.
    */
-   virtual InterfaceError_e	   setMode(const CAN_Mode_e teModeV) = 0;
+   virtual InterfaceError_e   setMode(const QCan::CAN_Mode_e teModeV) = 0;
 
-   virtual CAN_State_e        state(void) = 0;
+   virtual QCan::CAN_State_e  state(void) = 0;
 
    virtual InterfaceError_e   statistic(QCanStatistic_ts &clStatisticR) = 0;
 
@@ -264,7 +269,7 @@ public:
    ** The function returns version information of the physical CAN interface.
    **
    */
-   virtual QString            version(void) { return QString("No version information available"); };
+   virtual QString            version(void) { return QString("No version information available"); }
 
 
    //---------------------------------------------------------------------------------------------------
@@ -291,7 +296,7 @@ Q_SIGNALS:
    ** error conditions.
    **
    */
-   void addLogMessage(const QString & clMessageR, const LogLevel_e & teLogLevelR = eLOG_LEVEL_WARN);
+   void addLogMessage(const QString & clMessageR, const QCan::LogLevel_e & teLogLevelR = QCan::eLOG_LEVEL_WARN);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -319,7 +324,7 @@ Q_SIGNALS:
    ** the CAN controller.
    **
    */
-   void stateChanged(const CAN_State_e & teCanStateR);
+   void stateChanged(const QCan::CAN_State_e & teCanStateR);
 
 private:
 

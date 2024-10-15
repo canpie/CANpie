@@ -46,7 +46,7 @@
 \*--------------------------------------------------------------------------------------------------------------------*/
 
 //------------------------------------------------------------------------------------------------------
-// Version information is controller via qmake project file, the following defintions are only
+// Version information is controlled via cmake project file, the following defintions are only
 // placeholders
 //
 #ifndef  VERSION_MAJOR
@@ -72,14 +72,12 @@ int main(int argc, char *argv[])
    QCoreApplication::setApplicationName("can-dump");
    
    //---------------------------------------------------------------------------------------------------
-   // get application version (defined in .pro file)
+   // get application version (defined in cmake file)
    //
-   QString clVersionT;
+   QString clVersionT = "version ";
    clVersionT += QString("%1.").arg(VERSION_MAJOR);
    clVersionT += QString("%1.").arg(VERSION_MINOR, 2, 10, QLatin1Char('0'));
-   clVersionT += QString("%1,").arg(VERSION_BUILD, 2, 10, QLatin1Char('0'));
-   clVersionT += " build on ";
-   clVersionT += __DATE__;
+   clVersionT += QString("%1").arg(VERSION_BUILD, 2, 10, QLatin1Char('0'));
    QCoreApplication::setApplicationVersion(clVersionT);
 
 
@@ -147,7 +145,7 @@ QCanDump::QCanDump(QObject *parent) :
    //---------------------------------------------------------------------------------------------------
    // set default values
    //
-   teCanChannelP        = eCAN_CHANNEL_NONE;
+   teCanChannelP        = QCan::eCAN_CHANNEL_NONE;
    btTimeStampP         = false;
    btErrorFramesP       = false;
    btQuitNeverP         = false;
@@ -171,7 +169,7 @@ void QCanDump::aboutToQuitApp()
 // QCanDump::onNetworkObjectReceived()                                                                                //
 // print details about CAN interface and connect to interface                                                         //
 //--------------------------------------------------------------------------------------------------------------------//
-void QCanDump::onNetworkObjectReceived(const CAN_Channel_e teChannelV, QJsonObject clNetworkConfigV)
+void QCanDump::onNetworkObjectReceived(const QCan::CAN_Channel_e teChannelV, QJsonObject clNetworkConfigV)
 {
    Q_UNUSED (clNetworkConfigV);
 
@@ -200,7 +198,7 @@ void QCanDump::onNetworkObjectReceived(const CAN_Channel_e teChannelV, QJsonObje
       //-------------------------------------------------------------------------------------------
       // bit-rate settings
       //
-      if (clNetworkSettingsP.dataBitrate() == eCAN_BITRATE_NONE)
+      if (clNetworkSettingsP.dataBitrate() == QCan::eCAN_BITRATE_NONE)
       {
          fprintf(stdout, "Bit-rate      : %s \n",
                  qPrintable(clNetworkSettingsP.nominalBitrateString()) );
@@ -262,7 +260,12 @@ void QCanDump::onServerStateChanged(enum QCanServerSettings::State_e teStateV)
 {  
    bool btQuitProgramT = false;
 
+   //---------------------------------------------------------------------------------------------------
+   // debug information
+   //
+   #ifndef QT_NO_DEBUG_OUTPUT
    qDebug() << " QCanDump::onServerStateChanged()" << teStateV;
+   #endif
 
    switch (teStateV)
    {
@@ -284,9 +287,6 @@ void QCanDump::onServerStateChanged(enum QCanServerSettings::State_e teStateV)
       case QCanServerSettings::eSTATE_ACTIVE:
          break;
 
-      default:
-         btQuitProgramT = true;
-         break;
    }
 
    if (btQuitProgramT)
@@ -305,7 +305,7 @@ void QCanDump::onSocketConnected()
 
    if ((btQuitNeverP == false) && (ulQuitTimeP > 0))
    {
-      clActivityTimerP.setInterval(ulQuitTimeP);
+      clActivityTimerP.setInterval(static_cast< int> (ulQuitTimeP));
       clActivityTimerP.setSingleShot(true);
       connect(&clActivityTimerP, SIGNAL(timeout()), SLOT(quit()));
       clActivityTimerP.start();
@@ -349,17 +349,22 @@ void QCanDump::onSocketReceive(void)
 {
    QCanFrame      clCanFrameT;
    QString        clCanStringT;
-   int32_t        slFrameCountT = 0;
+   uint32_t       ulFrameCountT = 0;
 
+   //---------------------------------------------------------------------------------------------------
+   // debug information
+   //
+   #ifndef QT_NO_DEBUG_OUTPUT
    qDebug() << "QCanDump::onSocketReceive()";
-   
+   #endif
+
    if ((btQuitNeverP == false) && (ulQuitTimeP > 0))
    {
-      clActivityTimerP.start(ulQuitTimeP);
+      clActivityTimerP.start(static_cast< int>(ulQuitTimeP));
    }
    
-   slFrameCountT = clCanSocketP.framesAvailable();
-   while (slFrameCountT)
+   ulFrameCountT = clCanSocketP.framesAvailable();
+   while (ulFrameCountT)
    {
       if (clCanSocketP.read(clCanFrameT) == true)
       {
@@ -374,7 +379,7 @@ void QCanDump::onSocketReceive(void)
             }
          }
       }
-      slFrameCountT--;
+      ulFrameCountT--;
    }
 }
 
@@ -483,8 +488,7 @@ void QCanDump::runCommandParser()
    const QStringList clArgsT = clCommandParserP.positionalArguments();
    if (clArgsT.size() != 1) 
    {
-      fprintf(stderr, "%s\n", 
-              qPrintable(tr("Error: Must specify CAN interface.\n")));
+      fprintf(stderr, "%s\n", qPrintable(tr("Error: Must specify CAN interface.\n")));
       clCommandParserP.showHelp(0);
    }
 
@@ -510,15 +514,14 @@ void QCanDump::runCommandParser()
    if ((btConversionSuccessT == false) ||
        (slChannelT == 0) )
    {
-      fprintf(stderr, "%s \n\n", 
-              qPrintable(tr("Error: CAN interface out of range")));
+      fprintf(stderr, "%s \n\n", qPrintable(tr("Error: CAN interface out of range")));
       clCommandParserP.showHelp(0);
    }
    
    //---------------------------------------------------------------------------------------------------
    // store CAN interface channel (CAN_Channel_e)
    //
-   teCanChannelP = (CAN_Channel_e) (slChannelT);
+   teCanChannelP = static_cast< QCan::CAN_Channel_e >(slChannelT);
 
    //---------------------------------------------------------------------------------------------------
    // set host address for socket
@@ -553,13 +556,12 @@ void QCanDump::runCommandParser()
    // check for termination options
    //
    btQuitNeverP = true;
-   ulQuitCountP = clCommandParserP.value(clOptCountT).toInt(Q_NULLPTR, 10);    
-   ulQuitTimeP  = clCommandParserP.value(clOptTimeOutT).toInt(Q_NULLPTR, 10);      
+   ulQuitCountP = clCommandParserP.value(clOptCountT).toUInt(nullptr, 10);    
+   ulQuitTimeP  = clCommandParserP.value(clOptTimeOutT).toUInt(nullptr, 10);      
    if ((ulQuitCountP > 0) || (ulQuitTimeP > 0))
    {
       btQuitNeverP = false; 
    }
-   
    
 
    //---------------------------------------------------------------------------------------------------
@@ -573,8 +575,8 @@ void QCanDump::runCommandParser()
       for (int32_t slRejectNumT = 0; slRejectNumT < clRejectIdsT.size(); slRejectNumT++)
       {
          clFilterRejectT.rejectFrame(QCanFrame::eFORMAT_CAN_STD,
-                                     clRejectIdsT.at(slRejectNumT).toInt(Q_NULLPTR, 16),
-                                     clRejectIdsT.at(slRejectNumT).toInt(Q_NULLPTR, 16));
+                                     clRejectIdsT.at(slRejectNumT).toUInt(nullptr, 16),
+                                     clRejectIdsT.at(slRejectNumT).toUInt(nullptr, 16) );
 
          clFilterListP.appendFilter(clFilterRejectT);
       }
@@ -593,8 +595,8 @@ void QCanDump::runCommandParser()
       for (int32_t slAcceptNumT = 0; slAcceptNumT < clAcceptIdsT.size(); slAcceptNumT++)
       {
          clFilterAcceptT.acceptFrame(QCanFrame::eFORMAT_CAN_STD,
-               clAcceptIdsT.at(slAcceptNumT).toInt(Q_NULLPTR, 16),
-               clAcceptIdsT.at(slAcceptNumT).toInt(Q_NULLPTR, 16));
+                                     clAcceptIdsT.at(slAcceptNumT).toUInt(Q_NULLPTR, 16),
+                                     clAcceptIdsT.at(slAcceptNumT).toUInt(Q_NULLPTR, 16) );
 
          clFilterListP.appendFilter(clFilterAcceptT);
       }

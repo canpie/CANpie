@@ -61,24 +61,34 @@ QCanInterfaceWidget::QCanInterfaceWidget(uint8_t ubIdxV)
 {
    ubInterfaceIdxP = ubIdxV;
    clIconP = QIcon(QCAN_IF_VCAN_ICON);
-   pclQCanInterfaceP = NULL;
+   pclQCanInterfaceP = nullptr;
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // check there are any plugins available
    //
    QDir clPluginsDirT(qApp->applicationDirPath());
    #if defined(Q_OS_WIN)
    clPluginsDirT.setPath(clPluginsDirT.path() + "/plugins");
+   #elif defined(Q_OS_LINUX)
+   clPluginsDirT.setPath(clPluginsDirT.path() + "/plugins");
    #elif defined(Q_OS_MAC)
    if(clPluginsDirT.dirName() == "MacOS")
    {
       clPluginsDirT.cdUp();
-      clPluginsDirT.setPath(clPluginsDirT.path() + "/PlugIns");
+      clPluginsDirT.setPath(clPluginsDirT.path() + "/Plugins");
    }
+   #else
+   #error OS is not supported
    #endif
    clPluginPathP = clPluginsDirT;
-   qDebug() << QString("QCanInterfaceWidget::QCanInterfaceWidget("+QString::number(ubIdxV) +","+ clPluginPathP.absolutePath()+")");
 
+   //---------------------------------------------------------------------------------------------------
+   // debug information
+   //
+   #ifndef QT_NO_DEBUG_OUTPUT
+   qDebug() << QString("QCanInterfaceWidget::QCanInterfaceWidget("+QString::number(ubIdxV) +","+ clPluginPathP.absolutePath()+")");
+   #endif
+   
    loadPlugin();
 }
 
@@ -135,26 +145,27 @@ void QCanInterfaceWidget::mousePressEvent(QMouseEvent * pclEventV)
    switch(pclEventV->button())
    {
       case Qt::RightButton:
+      case Qt::LeftButton:
 
-         //-----------------------------------------------------
+         //-----------------------------------------------------------------------------------
          // show context menu
          //
          pclActionT = clContextMenuT.exec(clPosT);
 
-         //-----------------------------------------------------
+         //-----------------------------------------------------------------------------------
          // evaluate selection
          //
-         if (pclActionT != 0)
+         if (pclActionT != nullptr)
          {
+            //---------------------------------------------------------------------------
+            // debug information
+            //
+            #ifndef QT_NO_DEBUG_OUTPUT
             qDebug() << "QCanInterfaceWidget::mousePressEvent(), process action:" << pclActionT->text();
+            #endif
 
             setInterface(pclActionT->text());
          }
-         break;
-
-      case Qt::LeftButton:
-         qDebug() << "QCanInterfaceWidget::mousePressEvent(): left button pressed";
-
          break;
 
       default:
@@ -173,21 +184,23 @@ bool QCanInterfaceWidget::loadPlugin()
 {
    QCanPlugin    *pclQCanPluginT;
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // reset list of plug-ins
    //
    apclQCanPluginP.clear();
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // check plug-in path
    //
    if (!clPluginPathP.exists())
    {
-      qWarning() << "QCanInterfaceWidget::loadPlugin() WARNING: plugin path does not exist!";
+      #ifndef QT_NO_DEBUG_OUTPUT
+      qDebug() << "QCanInterfaceWidget::loadPlugin() WARNING: plugin path does not exist!";
+      #endif
       return false;
    }
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // create a list of plug-ins
    //
    foreach (QString clFileNameT, clPluginPathP.entryList(QDir::Files))
@@ -208,16 +221,20 @@ bool QCanInterfaceWidget::loadPlugin()
          }
          else
          {
-            qWarning() << "QCanInterfaceWidget::loadPlugin() WARNING: plugin" << clPluginPathP.absoluteFilePath(clFileNameT) << "could NOT be loaded or the root component object could NOT be instantiated!";
+            #ifndef QT_NO_DEBUG_OUTPUT
+            qDebug() << "QCanInterfaceWidget::loadPlugin() WARNING: plugin" << clPluginPathP.absoluteFilePath(clFileNameT) << "could NOT be loaded or the root component object could NOT be instantiated!";
+            #endif
          }
       }
       else
       {
-         qWarning() << "QCanInterfaceWidget::loadPlugin() WARNING: plugin" << clPluginPathP.absoluteFilePath(clFileNameT) << "is NOT a library!";
+         #ifndef QT_NO_DEBUG_OUTPUT
+         qDebug() << "QCanInterfaceWidget::loadPlugin() WARNING: plugin" << clPluginPathP.absoluteFilePath(clFileNameT) << "is NOT a library!";
+         #endif
       }
    }
 
-   //----------------------------------------------------------------
+   //---------------------------------------------------------------------------------------------------
    // check list of plugins
    //
    if (apclQCanPluginP.isEmpty())
@@ -238,12 +255,26 @@ bool QCanInterfaceWidget::loadPlugin()
 //--------------------------------------------------------------------------------------------------------------------//
 void QCanInterfaceWidget::paintEvent(QPaintEvent * pclEventV)
 {
+   //---------------------------------------------------------------------------------------------------
+   // debug information
+   //
+   #ifndef QT_NO_DEBUG_OUTPUT
+   qDebug() << "QCanInterfaceWidget::paintEvent()";
+   #endif
+
    QPalette clPaletteT(this->palette());
    QPainter clPainterT(this);
    QBrush brush = QBrush(Qt::transparent, Qt::NoBrush);
    clPainterT.setPen((Qt::white));
    clPainterT.setBrush(brush);
-   clPainterT.fillRect(pclEventV->rect(), QColor(0xE3, 0xE3, 0xE3)); //Qt::NoBrush);
+   //clPainterT.fillRect(pclEventV->rect(), QColor(0xE3, 0xE3, 0xE3)); //Qt::NoBrush);
+
+   #ifndef QT_NO_DEBUG_OUTPUT
+   qDebug() << "Color Base "           << clPaletteT.color(QPalette::Active, QPalette::Base);
+   qDebug() << "Color Window "         << clPaletteT.color(QPalette::Active, QPalette::Window);
+   qDebug() << "Color AlternateBase "  << clPaletteT.color(QPalette::Active, QPalette::AlternateBase);
+   #endif
+   clPainterT.fillRect(pclEventV->rect(), clPaletteT.color(QPalette::Active, QPalette::AlternateBase)); //Qt::NoBrush);
 
    clIconP.paint(&clPainterT, pclEventV->rect(), Qt::AlignCenter);
 }
@@ -258,7 +289,7 @@ QString QCanInterfaceWidget::name()
    QString clNameT = QString(QCAN_IF_VCAN_NAME);
    bool    btIfConnectedT = false;
 
-   if (pclQCanInterfaceP != NULL)
+   if (pclQCanInterfaceP != nullptr)
    {
       // store previous state of connection
       if (pclQCanInterfaceP->connectionState() == QCanInterface::ConnectedState)
@@ -302,25 +333,30 @@ void QCanInterfaceWidget::setIcon(QIcon clIconR, QIcon::Mode teModeV)
 //--------------------------------------------------------------------------------------------------------------------//
 bool QCanInterfaceWidget::setInterface(QString clNameV)
 {
-   QString clInterfaceNameT = NULL;
+   QString clInterfaceNameT;
    QCanInterface *pclInterfaceT;
 
 
-   pclQCanInterfaceP = NULL;
+   pclQCanInterfaceP = nullptr;
 
+   //---------------------------------------------------------------------------------------------------
+   // debug information
+   //
+   #ifndef QT_NO_DEBUG_OUTPUT
    qDebug() << "QCanInterfaceWidget::setInterface(" << clNameV << ")";
+   #endif
 
    if (clNameV != QString(QCAN_IF_VCAN_NAME))
    {
-      emit addLogMessage(CAN_Channel_e (eCAN_CHANNEL_1 + ubInterfaceIdxP),
-                         "Search CAN interface ... : " + clNameV, eLOG_LEVEL_DEBUG);
+      emit addLogMessage(QCan::CAN_Channel_e (QCan::eCAN_CHANNEL_1 + ubInterfaceIdxP),
+                         "Search CAN interface ... : " + clNameV, QCan::eLOG_LEVEL_DEBUG);
 
       foreach (QCanPlugin * pclPluginT, apclQCanPluginP)
       {
          //-----------------------------------------------------------------------------------
          // if an interface has been found quit here
          //
-         if (pclQCanInterfaceP != NULL)
+         if (pclQCanInterfaceP != nullptr)
          {
             break;
          }
@@ -332,11 +368,11 @@ bool QCanInterfaceWidget::setInterface(QString clNameV)
          {
             pclInterfaceT = pclPluginT->getInterface(ubIfCntT);
             clInterfaceNameT = pclInterfaceT->name();
-            emit addLogMessage(CAN_Channel_e (eCAN_CHANNEL_1 + ubInterfaceIdxP),
-                               "Found CAN interface .... : " + clInterfaceNameT, eLOG_LEVEL_DEBUG);
+            emit addLogMessage(QCan::CAN_Channel_e (QCan::eCAN_CHANNEL_1 + ubInterfaceIdxP),
+                               "Found CAN interface .... : " + clInterfaceNameT, QCan::eLOG_LEVEL_DEBUG);
             if (clNameV == clInterfaceNameT)
             {
-               emit addLogMessage(CAN_Channel_e (eCAN_CHANNEL_1 + ubInterfaceIdxP),
+               emit addLogMessage(QCan::CAN_Channel_e (QCan::eCAN_CHANNEL_1 + ubInterfaceIdxP),
                                   "Connect CAN interface .. : " + clInterfaceNameT);
                pclQCanInterfaceP = pclInterfaceT;
                break;
@@ -344,29 +380,33 @@ bool QCanInterfaceWidget::setInterface(QString clNameV)
          }
       }
 
-      if (pclQCanInterfaceP == NULL)
+      if (pclQCanInterfaceP == nullptr)
       {
-         emit addLogMessage(CAN_Channel_e (eCAN_CHANNEL_1 + ubInterfaceIdxP),
+         emit addLogMessage(QCan::CAN_Channel_e (QCan::eCAN_CHANNEL_1 + ubInterfaceIdxP),
                             "Search CAN interface ... : Not found");
 
-         emit addLogMessage(CAN_Channel_e (eCAN_CHANNEL_1 + ubInterfaceIdxP),
+         emit addLogMessage(QCan::CAN_Channel_e (QCan::eCAN_CHANNEL_1 + ubInterfaceIdxP),
                             "Use 'Virtual CAN bus' interface");
       }
 
    }
    else
    {
-      emit addLogMessage(CAN_Channel_e (eCAN_CHANNEL_1 + ubInterfaceIdxP),
+      emit addLogMessage(QCan::CAN_Channel_e (QCan::eCAN_CHANNEL_1 + ubInterfaceIdxP),
                          "Use 'Virtual CAN bus' interface");
    }
 
+   #ifndef QT_NO_DEBUG_OUTPUT
    qDebug() << "QCanInterfaceWidget::setInterface() ----- emit interfaceChanged(" << ubInterfaceIdxP + 1 << ")";
+   #endif
 
-   emit interfaceChanged(CAN_Channel_e (eCAN_CHANNEL_1 + ubInterfaceIdxP), pclQCanInterfaceP);
+   emit interfaceChanged(QCan::CAN_Channel_e (QCan::eCAN_CHANNEL_1 + ubInterfaceIdxP), pclQCanInterfaceP);
 
-   if (clInterfaceNameT != NULL)
+   if (clInterfaceNameT.size() > 0)
    {
+      #ifndef QT_NO_DEBUG_OUTPUT
       qDebug() << "Set new Interface:" << clInterfaceNameT;
+      #endif
 
       return true;
    }

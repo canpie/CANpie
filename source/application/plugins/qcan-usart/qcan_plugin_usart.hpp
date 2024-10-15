@@ -77,6 +77,11 @@ public:
    QCanPluginUsart();
    ~QCanPluginUsart();
 
+   QCanPluginUsart(const QCanPluginUsart&) = delete;               // no copy constructor
+   QCanPluginUsart& operator=(const QCanPluginUsart&) = delete;    // no assignment operator
+   QCanPluginUsart(QCanPluginUsart&&) = delete;                    // no move constructor
+   QCanPluginUsart& operator=(QCanPluginUsart&&) = delete;         // no move operator
+
    QIcon           icon(void) Q_DECL_OVERRIDE;
    uint8_t         interfaceCount(void) Q_DECL_OVERRIDE;
    QCanInterface * getInterface(uint8_t ubInterfaceV) Q_DECL_OVERRIDE;
