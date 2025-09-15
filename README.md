@@ -14,12 +14,12 @@ The API is designed for embedded control applications as well as for PC interfac
 ## Migration from CANpie to CANpie FD
 
 The C language API of CANpie FD (i.e. version 3) is compatible to CANpie (i.e. version 2) with the exception that 8
-functions are deprecated. Please refer to the section [migration](https://canpie.github.io/page_8api_migration.html)
+functions are deprecated. Please refer to the section [migration](https://canpie.github.io/CANpie/page_8api_migration.html)
 of the documentation.
 
 ## Documentation
 
-The documentation is available on <https://canpie.github.io/>.
+The documentation is available on <https://canpie.github.io/CANpie/>.
 
 ## Configure and build
 
