@@ -37,6 +37,7 @@
 
 
 #include <QtCore/QDebug>
+#include <QtCore/QThread>
 
 #include <QtNetwork/QNetworkInterface>
 
@@ -91,6 +92,7 @@ QCanSocket::QCanSocket(QObject * pclParentV)
 
    teCanStateP = QCan::eCAN_STATE_BUS_ACTIVE;
 
+   qRegisterMetaType<QAbstractSocket::SocketState>("QAbstractSocket::SocketState");
 }
 
 
@@ -321,6 +323,26 @@ uint32_t QCanSocket::framesAvailable(void) const
 
 
 //--------------------------------------------------------------------------------------------------------------------//
+// QCanSocket::onConnectNetwork()                                                                                     //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanSocket::onConnectNetwork(const QCan::CAN_Channel_e & teChannelR)
+{
+   this->connectNetwork(teChannelR);
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanSocket::onDisconnectNetwork()                                                                                  //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanSocket::onDisconnectNetwork(void)
+{
+   this->disconnectNetwork();
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
 // QCanSocket::onSocketConnect()                                                                                      //
 //                                                                                                                    //
 //--------------------------------------------------------------------------------------------------------------------//
@@ -386,8 +408,8 @@ void QCanSocket::onSocketErrorLocal(QLocalSocket::LocalSocketError teSocketError
       case QLocalSocket::ConnectionError:
          pclLocalSocketP->abort();
          btIsConnectedP = false;
-         disconnectNetwork();
-         emit disconnected();
+         //disconnectNetwork();
+         //emit disconnected();
          break;
 
       default:
@@ -402,7 +424,9 @@ void QCanSocket::onSocketErrorLocal(QLocalSocket::LocalSocketError teSocketError
    // inside the header file QtNetwork/qlocalsocket.h we can simply cast it.
    //
    slSocketErrorP = teSocketErrorV;
-   emit error( static_cast<QAbstractSocket::SocketError>(teSocketErrorV));
+   emit errorOccurred( static_cast<QAbstractSocket::SocketError>(teSocketErrorV));
+
+   QThread::currentThread()->exit(0);
 }
 
 
@@ -442,7 +466,7 @@ void QCanSocket::onSocketErrorWeb(QAbstractSocket::SocketError teSocketErrorV)
    // store socket error and send signal
    //
    slSocketErrorP = teSocketErrorV;
-   emit error(teSocketErrorV);
+   emit errorOccurred(teSocketErrorV);
 }
 
 
@@ -533,6 +557,16 @@ void QCanSocket::onSocketReceiveWeb(const QByteArray &clMessageR)
       emit readyRead();
    }
 
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------//
+// QCanSocket::onWriteFrame()                                                                                         //
+//                                                                                                                    //
+//--------------------------------------------------------------------------------------------------------------------//
+void QCanSocket::onWriteFrame(QCanFrame clFrameV)
+{
+   this->write(clFrameV);
 }
 
 

@@ -473,7 +473,7 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::read(QCanFrame &clFrameR)
 
 //--------------------------------------------------------------------------------------------------------------------//
 // QCanInterfacePeak::readFrame()                                                                                     //
-// Read classical CAN frame from Peak interface                                                                       //
+// Read classic CAN frame from Peak interface                                                                         //
 //--------------------------------------------------------------------------------------------------------------------//
 QCanInterface::InterfaceError_e  QCanInterfacePeak::readFrame(QCanFrame &clFrameR)
 {
@@ -556,7 +556,7 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFrame(QCanFrame &clFrame
       }
 
       //--------------------------------------------------------------------------------------
-      // Classical CAN frame with standard or extended identifier
+      // Classic CAN frame with standard or extended identifier
       //
       if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_EXTENDED)
       {
@@ -568,7 +568,7 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFrame(QCanFrame &clFrame
       }
             
       //--------------------------------------------------------------------------------------
-      // Classical CAN remote frame
+      // Classic CAN remote frame
       //
       if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_RTR)
       {
@@ -773,7 +773,7 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFrameFD(QCanFrame &clFra
       else
       {
          //------------------------------------------------------------------------------
-         // Classical CAN frame with standard or extended identifier
+         // Classic CAN frame with standard or extended identifier
          //
          if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_EXTENDED)
          {
@@ -785,7 +785,7 @@ QCanInterface::InterfaceError_e  QCanInterfacePeak::readFrameFD(QCanFrame &clFra
          }
 
          //------------------------------------------------------------------------------
-         // Classical CAN remote frame
+         // Classic CAN remote frame
          //
          if (tsCanMsgT.MSGTYPE & PCAN_MESSAGE_RTR)
          {

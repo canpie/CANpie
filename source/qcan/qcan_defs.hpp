@@ -138,14 +138,20 @@ constexpr uint32_t   QCAN_IF_SUPPORT_CAN_FD        =  0x00000004;
 /*!
 ** \def     QCAN_IF_SUPPORT_SPECIFIC_CONFIG
 ** \ingroup QCAN_IF
-** \brief   Support device specific configuration
+** \brief   Support device-specific configuration
 **
-** The bit-mask value defines if CAN interface supports device specific configuration.
+** The bit-mask value defines whether the CAN interface supports device-specific configuration.
 */
 constexpr uint32_t   QCAN_IF_SUPPORT_SPECIFIC_CONFIG  =  0x00000008;
 
 constexpr uint32_t   QCAN_IF_SUPPORT_MASK             =  0x0000000F;
 
+//------------------------------------------------------------------------------------------------------
+/*!
+** \defgroup QCAN_VERSION QCan version 
+**
+**
+*/
 
 //------------------------------------------------------------------------------------------------------
 /*!

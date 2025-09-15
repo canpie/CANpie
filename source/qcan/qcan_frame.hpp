@@ -114,11 +114,11 @@ struct CpCanMsg_s;
 ** <table class="function" style="width:800px">
 **
 ** <tr class="odd">
-**   <td class="entry" style="width:50%">Classical base frame format (CBFF)</td>
+**   <td class="entry" style="width:50%">Classic base frame format (CBFF)</td>
 **   <td class="desc">QCanFrame::eFORMAT_CAN_STD</td>
 ** </tr>
 ** <tr>
-**   <td class="entry" style="width:50%">Classical extended frame format (CEFF)</td>
+**   <td class="entry" style="width:50%">Classic extended frame format (CEFF)</td>
 **   <td class="desc">QCanFrame::eFORMAT_CAN_EXT</td>
 ** </tr>
 ** <tr class="odd">
@@ -194,7 +194,7 @@ public:
    /*!
    ** \enum    FrameFormat_e
    **
-   ** This enumeration defines the CAN frame formats for classical CAN and CAN FD.
+   ** This enumeration defines the CAN frame formats for classic CAN and CAN FD.
    */
    enum FrameFormat_e {
 

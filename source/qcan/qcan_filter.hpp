@@ -1,6 +1,6 @@
 //====================================================================================================================//
 // File:          qcan_filter.hpp                                                                                     //
-// Description:   QCAN classes - CAN message filter                                                                   //
+// Description:   QCAN classes - CAN frame filter                                                                     //
 //                                                                                                                    //
 // Copyright (C) MicroControl GmbH & Co. KG                                                                           //
 // 53844 Troisdorf - Germany                                                                                          //
@@ -51,8 +51,7 @@
 //----------------------------------------------------------------------------------------------------------------
 /*!
 ** \class   QCanFilter
-**
-** <p>
+** \brief   Configurable CAN frame filter (accept/reject)
 */
 class QCanFilter
 {
@@ -69,10 +68,10 @@ public:
 
       eFILTER_OFF = 0,
 
-      /*! Accept: CAN frames meeting the condition will pass the filter                */
+      /*! Accept: CAN frames that meet the condition pass the filter                   */
       eFILTER_ACCEPT,
 
-      /*! Reject:  CAN frames meeting the condition will be rejected by the filter     */
+      /*! Reject:  CAN frames that meet the condition are rejected by the filter       */
       eFILTER_REJECT
 
    } FilterType_te;
@@ -81,7 +80,7 @@ public:
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** Constructs an empty filter
+   ** Constructs an empty filter.
    */
    QCanFilter();
    
@@ -93,17 +92,19 @@ public:
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \param[in]  teFormatR   frame format
+   ** \param[in]  teFormatR          Frame format (standard or extended)
+   ** \param[in]  ulIdentifierLowV   Lower bound of identifier range (inclusive)
+   ** \param[in]  ulIdentifierHighV  Upper bound of identifier range (inclusive)
    **
    ** \return     \c TRUE if parameter values are valid
    ** \see        match()
    **
-   ** The function configures an acceptance filter for CAN frames with a frame format defined by
+   ** Configure an acceptance filter for CAN frames with a frame format defined by
    ** \c teFormatR. All CAN frames with an identifier value within the range from \c ulIdentifierLowV
    ** to \c ulIdentifierHighV will match the filter condition.
    ** <p>
-   ** In case the supplied parameters for \c ulIdentifierLowV and \c ulIdentifierHighV are not valid
-   ** (e.g. identifier value > #QCAN_FRAME_ID_MASK_STD for Extended frames) the function will return
+   ** If the supplied parameters for \c ulIdentifierLowV and \c ulIdentifierHighV are not valid
+   ** (e.g., identifier value > #QCAN_FRAME_ID_MASK_STD for extended frames) the function returns
    ** \c FALSE and the filter type is set to QCanFilter::eFILTER_OFF.
    **
    */
@@ -112,11 +113,11 @@ public:
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \param[in]  clFrameR - CAN frame
+   ** \param[in]  clFrameR            CAN frame to test
    **
    ** \return  \c TRUE if filter condition is met
    **
-   ** The function tests the CAN frame \c clFrameR with regards to to configured filter type.
+   ** Test the CAN frame \c clFrameR with regard to the configured filter type.
    ** For an acceptance filter (QCanFilter::eFILTER_ACCEPT) the function returns \c TRUE if
    ** the CAN frame meets the acceptance condition (e.g. identifier value).
    ** <p>
@@ -126,6 +127,23 @@ public:
    */
    bool           match(const QCanFrame & clFrameR) const;
 
+   //---------------------------------------------------------------------------------------------------
+   /*!
+   ** \param[in]  teFormatR          Frame format (standard or extended)
+   ** \param[in]  ulIdentifierLowV   Lower bound of identifier range (inclusive)
+   ** \param[in]  ulIdentifierHighV  Upper bound of identifier range (inclusive)
+   **
+   ** \return     \c TRUE if parameter values are valid
+   ** \see        match()
+   **
+   ** Configure a rejection filter for CAN frames with a frame format defined by
+   ** \c teFormatR. All CAN frames with an identifier value within the range from \c ulIdentifierLowV
+   ** to \c ulIdentifierHighV will match the rejection condition.
+   ** <p>
+   ** If the supplied parameters for \c ulIdentifierLowV and \c ulIdentifierHighV are not valid
+   ** (e.g., identifier value > #QCAN_FRAME_ID_MASK_STD for extended frames) the function returns
+   ** \c FALSE and the filter type is set to QCanFilter::eFILTER_OFF.
+   */
    bool           rejectFrame(const QCanFrame::FrameFormat_e & teFormatR,
                               const uint32_t ulIdentifierLowV, const uint32_t ulIdentifierHighV);
 
@@ -133,8 +151,7 @@ public:
    /*!
    ** \return  Current filter type
    **
-   ** The function returns the current filter type, which is implicitly set by the functions
-   ** acceptFrame() or rejectFrame().
+   ** Returns the current filter type, which is implicitly set by acceptFrame() or rejectFrame().
    */
    FilterType_te  type(void) const        {  return (teFilterTypeP);    }
 
@@ -152,4 +169,3 @@ private:
 
 
 #endif   // QCAN_FILTER_HPP_
-

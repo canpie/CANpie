@@ -558,14 +558,14 @@ uint32_t QCanNetwork::frameSize(const QByteArray & clSockDataR)
       switch (clSockDataR.at(5) & 0x03)
       {
          //------------------------------------------------
-         // classical CAN, Standard Frame
+         // classic CAN, Standard Frame
          //
          case 0:
             ulBitCountT = ulBitCountT + 66;
             break;
 
          //------------------------------------------------
-         // classical CAN, Extended Frame
+         // classic CAN, Extended Frame
          //
          case 1:
             ulBitCountT = ulBitCountT + 90;

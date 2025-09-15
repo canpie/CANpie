@@ -118,18 +118,18 @@ public:
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \param[in] ulMicroSecondsV - time-value in microseconds [&micro;s]
+   ** \param[in] uqMicroSecondsV - Time value in microseconds [&micro;s]
    ** 
-   ** Set the time-stamp value according to the parameter \a ulMicroSecondsV.
+   ** Set the time-stamp value according to the parameter \a uqMicroSecondsV.
    */
    void                 fromMicroSeconds(uint64_t uqMicroSecondsV);
 
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \param[in] ulMilliSecondsV - time-value in milliseconds [msec]
+   ** \param[in] uqMilliSecondsV - Time value in milliseconds [ms]
    ** 
-   ** Set the time-stamp value according to the parameter \a ulMilliSecondsV.
+   ** Set the time-stamp value according to the parameter \a uqMilliSecondsV.
    */   
    void                 fromMilliSeconds(uint64_t uqMilliSecondsV);
 
@@ -334,4 +334,3 @@ private:
 
 
 #endif   // QCAN_TIMESTAMP_HPP_ 
-

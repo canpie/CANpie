@@ -455,7 +455,7 @@ QCanInterface::InterfaceError_e QCanInterfaceTemplate::setBitrate( int32_t slNom
    if (slDatBitRateV == QCan::eCAN_BITRATE_NONE)
    {
       //---------------------------------------------------------------
-      // Classical CAN or no bit-rate switching
+      // Classic CAN or no bit-rate switching
       //
 
    }

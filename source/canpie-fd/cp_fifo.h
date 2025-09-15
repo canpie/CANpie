@@ -39,8 +39,8 @@
 ** \brief   CANpie FIFO functions
 ** \anchor  CP_FIFO_H
 **
-** A CAN message FIFO can be assigned to every message message buffer by calling CpCoreFifoConfig(). 
-** This file defines the structure of a CAN message FIFO (CpFifo_s) and inline functions to access the
+** A CAN frame FIFO can be assigned to a message buffer by calling CpCoreFifoConfig(). 
+** This file defines the structure of a CAN frame FIFO (CpFifo_s) and inline functions to access the
 ** FIFO.
 */
 
@@ -71,19 +71,19 @@ extern "C" {                                                         //
 //------------------------------------------------------------------------------------------------------
 /*!
 ** \struct  CpFifo_s
-** \brief   Administration variables of a CAN message FIFO
+** \brief   Administration variables of a CAN frame FIFO
 **
 ** This structure is initialised by CpFifoInit().
 */
 struct CpFifo_s
 {
    /*! 
-   ** Index where the last data has been written to
+   ** Index of the last write operation
    */
    uint32_t  ulIndexIn;
 
    /*! 
-   ** Index where the last data has been read from
+   ** Index of the last read operation
    */
    uint32_t  ulIndexOut;
 
@@ -100,7 +100,7 @@ struct CpFifo_s
 
  
    /*!
-   ** Pointer to CAN message buffer
+   ** Pointer to CAN frame array
    */
    CpCanMsg_ts *ptsCanMsg;
 };
@@ -118,7 +118,7 @@ typedef struct CpFifo_s CpFifo_ts;
 
 //------------------------------------------------------------------------------------------------------
 /*!
-** \param[in]  ptsFifoV       Pointer to CAN message FIFO
+** \param[in]  ptsFifoV       Pointer to CAN frame FIFO
 **
 ** This function clears all entries inside the FIFO. 
 **
@@ -127,11 +127,11 @@ void CpFifoClear(CpFifo_ts *ptsFifoV);
 
 //------------------------------------------------------------------------------------------------------
 /*!
-** \param[in]  ptsDestFifoV   Pointer to CAN message FIFO destination
-** \param[in]  ptsSrcFifoV    Pointer to CAN message FIFO source
-** \return     \c true if FIFO contents has been copied, otherwise \c false
+** \param[in]  ptsDestFifoV   Pointer to CAN frame FIFO destination
+** \param[in]  ptsSrcFifoV    Pointer to CAN frame FIFO source
+** \return     \c true if the contents have been copied, otherwise \c false
 **
-** This function copies the contents from \a ptsSrcFifoV to \a ptsDestFifoV. The function checks if the
+** This function copies the contents from \c ptsSrcFifoV to \c ptsDestFifoV. The function checks if the
 ** destination FIFO has the same size as the source FIFO. Both FIFOs have to be initialised by 
 ** CpFifoInit() in advance.
 **
@@ -141,12 +141,12 @@ bool_t CpFifoCopy(CpFifo_ts *ptsDestFifoV, CpFifo_ts *ptsSrcFifoV);
 
 //------------------------------------------------------------------------------------------------------
 /*!
-** \param[in]  ptsFifoV - Pointer to CAN message FIFO
-** \return     Pointer to CAN message
+** \param[in]  ptsFifoV       Pointer to CAN frame FIFO
+** \return     Pointer to CAN frame entry
 **
-** This function returns a pointer to the next free CAN message entry inside the FIFO. Please make sure 
-** to call CpFifoIsFull() in advance. After writing to the FIFO the index has to adjusted by calling
-** CpFifoIncIn(), like shown in this code example:
+** This function returns a pointer to the next free CAN frame entry inside the FIFO. Please make sure 
+** to call CpFifoIsFull() in advance. After writing to the FIFO, the index has to be adjusted by calling
+** CpFifoIncIn(), as shown in this code example:
 **
 ** \code
 **
@@ -170,12 +170,12 @@ CpCanMsg_ts *CpFifoDataInPtr(CpFifo_ts *ptsFifoV);
 
 //------------------------------------------------------------------------------------------------------
 /*!
-** \param[in]  ptsFifoV - Pointer to CAN message FIFO
-** \return     Pointer to CAN message
+** \param[in]  ptsFifoV       Pointer to CAN frame FIFO
+** \return     Pointer to CAN frame entry
 **
-** This function returns a pointer to the first CAN message entry inside the FIFO. Please make sure to 
-** call CpFifoIsEmpty() in advance. After reading from the FIFO the index has to adjusted by calling
-** CpFifoIncOut(), like shown in this code example:
+** This function returns a pointer to the first CAN frame entry inside the FIFO. Please make sure to 
+** call CpFifoIsEmpty() in advance. After reading from the FIFO, the index has to be adjusted by calling
+** CpFifoIncOut(), as shown in this code example:
 **
 ** \code
 **
@@ -190,7 +190,7 @@ CpCanMsg_ts *CpFifoDataInPtr(CpFifo_ts *ptsFifoV);
 **
 **    memcpy(ptsCanNewMsgT, ptsCanOutEntryT, sizeof(CpCanMsg_ts));
 **
-**    CpFifoIncout(&tsCanFifoS);
+**    CpFifoIncOut(&tsCanFifoS);
 ** }
 ** \endcode
 */
@@ -199,50 +199,50 @@ CpCanMsg_ts *CpFifoDataOutPtr(CpFifo_ts *ptsFifoV);
 
 //------------------------------------------------------------------------------------------------------
 /*!
-** \param[in]  ptsFifoV - Pointer to CAN message FIFO
+** \param[in]  ptsFifoV       Pointer to CAN frame FIFO
 ** \return     Number of free elements
 **
-** The function returns the number of free elements inside the FIFO given by pointer \a ptsFifoV.
+** Returns the number of free elements inside the FIFO given by the pointer \c ptsFifoV.
 */
 uint32_t CpFifoFree(CpFifo_ts *ptsFifoV);
 
 
 //------------------------------------------------------------------------------------------------------
 /*!
-** \param[in]  ptsFifoV - Pointer to CAN message FIFO
+** \param[in]  ptsFifoV       Pointer to CAN frame FIFO
 **
-** This function increments the CpFifo_ts::ulIndexIn element of the CAN message FIFO.
+** Increments the CpFifo_ts::ulIndexIn element of the CAN frame FIFO.
 */
 void CpFifoIncIn(CpFifo_ts *ptsFifoV);
 
 
 //------------------------------------------------------------------------------------------------------
 /*!
-** \param[in]  ptsFifoV - Pointer to CAN message FIFO
+** \param[in]  ptsFifoV       Pointer to CAN frame FIFO
 **
-** This function increments the CpFifo_ts::ulIndexOut element of the CAN message FIFO.
+** Increments the CpFifo_ts::ulIndexOut element of the CAN frame FIFO.
 */
 void CpFifoIncOut(CpFifo_ts *ptsFifoV);
 
 
 //------------------------------------------------------------------------------------------------------
 /*!
-** \param[in]  ptsFifoV - Pointer to CAN message FIFO
-** \param[in]  ptsCanMsgV - Pointer to array of CAN messages
-** \param[in]  ulSizeV - Size if CAN message array
+** \param[in]  ptsFifoV       Pointer to CAN frame FIFO
+** \param[in]  ptsCanMsgV     Pointer to array of CAN frames
+** \param[in]  ulSizeV        Size of CAN frame array
 **
-** This function initialises a CAN message FIFO. The paramter \a ptsCanMsgV points to an array of 
-** CpCanMsg_ts elements. The number of messages which can be stored inside the array is determined by 
-** the paramter \a ulSizeV. 
+** This function initialises a CAN frame FIFO. The parameter \c ptsCanMsgV points to an array of 
+** CpCanMsg_ts elements. The number of CAN frames that can be stored in the array is determined by 
+** the parameter \c ulSizeV. 
 **
-** Here is an example for initialisation of a CAN message FIFO:
+** Example: initialising a CAN frame FIFO
 ** \code
 ** ...
 ** #define NUMBER_OF_FIFO_ENTRIES   20
 ** static CpFifo_ts     tsCanFifoS;
 ** static CpCanMsg_ts   atsCanMsgS[NUMBER_OF_FIFO_ENTRIES];
 **
-** CpFifoInit(&tsCanFifoS, &atsCanMsgS, NUMBER_OF_FIFO_ENTRIES);
+** CpFifoInit(&tsCanFifoS, atsCanMsgS, NUMBER_OF_FIFO_ENTRIES);
 **
 ** \endcode
 **
@@ -252,22 +252,22 @@ void CpFifoInit(CpFifo_ts *ptsFifoV, CpCanMsg_ts *ptsCanMsgV, uint32_t ulSizeV);
 
 //------------------------------------------------------------------------------------------------------
 /*!
-** \param[in]  ptsFifoV - Pointer to CAN message FIFO
-** \return     true if FIFO is empty, otherwise false
+** \param[in]  ptsFifoV       Pointer to CAN frame FIFO
+** \return     \c true if FIFO is empty, otherwise \c false
 ** \see        CpFifoIsFull()
 **
-** The function returns \a true if the FIFO is empty, otherwise it will return \a false.
+** Returns \c true if the FIFO is empty; otherwise returns \c false.
 */
 bool_t CpFifoIsEmpty(CpFifo_ts *ptsFifoV);
 
 
 //------------------------------------------------------------------------------------------------------
 /*!
-** \param[in]  ptsFifoV - Pointer to CAN message FIFO
-** \return     true if FIFO is full, otherwise false
+** \param[in]  ptsFifoV       Pointer to CAN frame FIFO
+** \return     \c true if FIFO is full, otherwise \c false
 ** \see        CpFifoIsEmpty()
 **
-** The function returns \a true if the FIFO is full, otherwise it will return \a false.
+** Returns \c true if the FIFO is full; otherwise returns \c false.
 **
 */
 bool_t CpFifoIsFull(CpFifo_ts *ptsFifoV);
@@ -275,10 +275,10 @@ bool_t CpFifoIsFull(CpFifo_ts *ptsFifoV);
 
 //------------------------------------------------------------------------------------------------------
 /*!
-** \param[in]  ptsFifoV - Pointer to CAN message FIFO
+** \param[in]  ptsFifoV       Pointer to CAN frame FIFO
 ** \return     Number of pending elements
 **
-** The function returns the number of pending elements inside the FIFO given by \a ptsFifoV.
+** Returns the number of pending elements inside the FIFO given by \c ptsFifoV.
 */
 uint32_t CpFifoPending(CpFifo_ts *ptsFifoV);
 
@@ -292,4 +292,4 @@ uint32_t CpFifoPending(CpFifo_ts *ptsFifoV);
 //-------------------------------------------------------------------//
 
 
-#endif   // CP_FIFO_H_
+#endif      // CP_FIFO_H_

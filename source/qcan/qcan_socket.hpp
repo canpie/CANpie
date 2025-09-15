@@ -199,7 +199,6 @@ public:
    */
    QString                    uuidString(void) const           { return (clUuidP.toString());   }
 
-
    //---------------------------------------------------------------------------------------------------
    /*!
    ** \param[in]  clFrameR       Reference to CAN frame
@@ -209,9 +208,12 @@ public:
    ** The function writes the CAN frame \a clFrameR to the CAN socket. If writing fails, the function
    ** returns \c false.
    */
-   bool                    write(const QCanFrame & clFrameR);
+   bool                       write(const QCanFrame & clFrameR);
 
-
+public slots:
+   void                       onConnectNetwork(const QCan::CAN_Channel_e & teChannelR);
+   void                       onDisconnectNetwork();
+   void                       onWriteFrame(QCanFrame clFrameR);
 
 signals:
 
@@ -220,14 +222,14 @@ signals:
    ** This signal is emitted after connectNetwork() has been called and a connection has been
    ** successfully established.
    */
-   void                    connected(void);
+   void                       connected(void);
 
 
    //---------------------------------------------------------------------------------------------------
    /*!
    ** This signal is emitted when the socket has been disconnected.
    */
-   void                    disconnected(void);
+   void                       disconnected(void);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -237,7 +239,7 @@ signals:
    ** This signal is emitted after an error occurred. The \a teSockErrorV parameter describes the type
    ** of error that occurred.
    */
-   void                    error(QAbstractSocket::SocketError teSockErrorV);
+   void                       errorOccurred(QAbstractSocket::SocketError teSockErrorV);
 
 
    //---------------------------------------------------------------------------------------------------
@@ -245,7 +247,7 @@ signals:
    **
    ** This signal is emitted when CAN frames are available for reading from the socket. 
    */
-   void                    readyRead(void);
+   void                       readyRead(void);
 
 protected:
 

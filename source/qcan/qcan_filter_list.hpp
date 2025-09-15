@@ -1,6 +1,6 @@
 //====================================================================================================================//
 // File:          qcan_filter_list.hpp                                                                                //
-// Description:   QCAN classes - CAN message filter list                                                              //
+// Description:   QCAN classes - CAN frame filter list                                                                //
 //                                                                                                                    //
 // Copyright (C) MicroControl GmbH & Co. KG                                                                           //
 // 53844 Troisdorf - Germany                                                                                          //
@@ -54,10 +54,10 @@
 //----------------------------------------------------------------------------------------------------------------
 /*!
 ** \class   QCanFilterList
+** \brief   Collection of CAN frame filters (QCanFilter)
 **
-** A CAN filter list assembles one or multiple CAN filters (i.e. QCanFilter) to a complex filter structure,
-** which can be assigned to a CAN socket (refer to QCanSocket::setFilterList).
-** <p>
+** A filter list assembles one or multiple CAN frame filters (QCanFilter) into a composite structure that
+** can be assigned to a CAN socket (refer to QCanSocket::setFilterList).
 */
 class QCanFilterList
 {
@@ -65,7 +65,7 @@ public:
    
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** Constructs an empty filter list
+   ** Constructs an empty filter list.
    */
    QCanFilterList();
    
@@ -75,8 +75,8 @@ public:
  
    //--------------------------------------------------------------------------------------------------
    /*!
-   ** \param[in]     clOtherR          reference to filter list
-   ** \return        Reference to this filter list
+   ** \param[in]  clOtherR   Reference to filter list to assign
+   ** \return     Reference to this filter list
    **
    ** Assigns \a clOtherR to this filter list and returns a reference to this filter list.
    */   
@@ -84,7 +84,7 @@ public:
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \param[in]  clFilterR - CAN filter
+   ** \param[in]  clFilterR   CAN filter to append
    **
    ** \return     Position of filter inside the list
    **
@@ -95,37 +95,37 @@ public:
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** The function clears the filter list, i.e. all existing filters are removed. An empty filter list
-   ** does not filter any CAN frame, all CAN frames will pass the filter list.
+   ** Clear the filter list (remove all existing filters). An empty filter list does not filter any CAN
+   ** frame; all CAN frames will pass.
    **
    */
    void           clear(void);
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \param[in]  clFrameR - CAN frame
+   ** \param[in]  clFrameR   CAN frame to process
    **
-   ** \return     \c TRUE if the message is filtered
+   ** \return     \c TRUE if the frame is filtered (rejected), otherwise \c FALSE
    **
-   ** The function processes the CAN frame supplied by \a clFrameR against all existing CAN filters
-   ** inside the filter list. If the message passes the filter list the function returns \c FALSE,
-   ** otherwise \c TRUE.
+   ** Process the CAN frame \a clFrameR against all filters in the list. If the frame passes the filter
+   ** list the function returns \c FALSE; if any filter causes rejection the function returns \c TRUE.
    **
    */
    bool           filter(const QCanFrame & clFrameR) const;
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** The function clears the filter list, i.e. all existing filters are removed. An empty filter list
-   ** does not filter any CAN frame, all CAN frames will pass the filter list.
+   ** Return \c true if the filter list is empty (no filters installed).
    **
    */
    bool           isEmpty(void);
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** The function clears the filter list, i.e. all existing filters are removed. An empty filter list
-   ** does not filter any CAN frame, all CAN frames will pass the filter list.
+   ** \param[in]  slPositionR  Index of filter to remove (0-based)
+   ** \return     \c true if the filter at \a slPositionR existed and was removed, otherwise \c false
+   **
+   ** Remove a filter by index from the filter list.
    **
    */
    bool           removeFilter(const int32_t slPositionR);
@@ -140,4 +140,3 @@ private:
 
 
 #endif   // QCAN_FILTER_LIST_HPP_
-

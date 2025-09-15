@@ -141,10 +141,10 @@ public:
    //---------------------------------------------------------------------------------------------------
    /*!
    **
-   ** \return  \c True if valid data available
+   ** \return  \c true if valid data is available
    **
-   ** The function returns \c True if a connection has been established to a QCanServer and the
-   ** received JSON data has a vaild format.
+   ** Returns \c true if a connection has been established to a QCanServer and the
+   ** received JSON data has a valid format.
    */
    bool           isValid(void);
 

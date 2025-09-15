@@ -109,9 +109,9 @@ public:
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \param[in]  btEnabledV - Enable / disable bit-rate change via application
+   ** \param[in]  btEnabledV - Enable / disable bit rate change via application
    **
-   ** This function enables the setting of bit-rate via any application if \a btEnable 
+   ** This function enables the setting of bit rate via any application if \a btEnable 
    ** is \c true, it is disabled on \c false.
    */
    void           allowBitrateChange(bool btEnabledV = true);

@@ -142,23 +142,23 @@ public:
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \return     Bit-rate value for Nominal Bit Timing
+   ** \return     Bit rate value for nominal bit-timing
    ** \see        setBitrate()
    **
-   ** This function returns the nominal bit-rate of the CAN network. For <b>classical CAN</b>, the
-   ** return value defines the bit-rate for the complete frame. For <b>CAN FD</b> the return value
-   ** defines the bit-rate for the arbitration phase.
+   ** This function returns the nominal bit rate of the CAN network. For <b>Classic CAN</b>, the
+   ** return value defines the bit rate for the complete frame. For <b>CAN FD</b> the return value
+   ** defines the bit rate for the arbitration phase.
    ** <p>
-   ** If no bit-rate is configured, the function will return QCan::eCAN_BITRATE_NONE.
+   ** If no bit rate is configured, the function will return QCan::eCAN_BITRATE_NONE.
    */
 	inline int32_t  nominalBitrate(void) const      {  return (slNomBitRateP);    }
 
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \return     Bit-rate value for Nominal Bit Timing
+   ** \return     Bit rate value for nominal bit-timing
    **
-   ** This function returns the nominal bit-rate of the CAN network as QString object.
+   ** This function returns the nominal bit rate of the CAN network as a QString object.
    ** <p>
    ** If no bit-rate is configured, the function will return "None".
    */
@@ -168,26 +168,25 @@ public:
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \return     Bit-rate value for Data Bit Timing
+   ** \return     Bit rate value for data bit-timing
    ** \see        setBitrate()
    **
-   ** This function returns the data bit-rate of the CAN network. For <b>classical CAN</b>, the return
-   ** value is always CANpie::eCAN_BITRATE_NONE. For <b>CAN FD</b> the return value defines the bit-rate
+   ** This function returns the data bit rate of the CAN network. For <b>Classic CAN</b>, the return
+   ** value is always CANpie::eCAN_BITRATE_NONE. For <b>CAN FD</b> the return value defines the bit rate
    ** for the data phase.
    ** <p>
-   ** If no bit-rate is configured, the function will return QCan::eCAN_BITRATE_NONE.
+   ** If no bit rate is configured, the function will return QCan::eCAN_BITRATE_NONE.
    */
 	inline int32_t  dataBitrate(void) const         {  return (slDatBitRateP);    }
 
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \return     Bit-rate value for Data Bit Timing
+   ** \return     Bit rate value for data bit-timing
    **
-   ** This function returns the data bit-rate of the CAN network as
-   ** QString.
+   ** This function returns the data bit rate of the CAN network as a QString.
    ** <p>
-   ** If no bit-rate is configured, the function will return
+   ** If no bit rate is configured, the function will return
    ** "None".
    */
 	QString dataBitrateString(void) const;
@@ -310,17 +309,17 @@ public:
 
    //---------------------------------------------------------------------------------------------------
    /*!
-   ** \param[in]  slNomBitRateV  Nominal Bit-rate value
-   ** \param[in]  slDatBitRateV  Data Bit-rate value
+   ** \param[in]  slNomBitRateV  Nominal bit rate value
+   ** \param[in]  slDatBitRateV  Data bit rate value
    ** \see        dataBitrate(), nominalBitrate()
    **
-   ** This function sets the bit-rate for the CAN network. For <b>Classical CAN</b>, the parameter
-   ** \c slNomBitRateV defines the bit-rate for the complete frame, the parameter \c slDatBitRateV is
+   ** This function sets the bit rate for the CAN network. For <b>Classic CAN</b>, the parameter
+   ** \c slNomBitRateV defines the bit rate for the complete frame; the parameter \c slDatBitRateV is
    ** not evaluated in that case. For <b>CAN FD</b> the parameter \c slNomBitRateV defines the
-   ** bit-rate for the arbitration phase, the parameter \c slDatBitRateV defines the bit-rate for the
+   ** bit rate for the arbitration phase; the parameter \c slDatBitRateV defines the bit rate for the
    ** data phase.
    ** <p>
-   ** For selection of predefined bit-rates the value can be taken from the enumeration
+   ** For selection of predefined bit rates the value can be taken from the enumeration
    ** CANpie::CAN_Bitrate_e.
    */
 	void setBitrate(const int32_t slNomBitRateV, const int32_t slDatBitRateV = QCan::eCAN_BITRATE_NONE);
