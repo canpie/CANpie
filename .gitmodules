@@ -1,3 +1,4 @@
 [submodule "test/fff"]
 	path = test/fff
-	url = https://github.com/meekrosoft/fff
+	url = https://github.com/meekrosoft/fff.git
+	branch = master
