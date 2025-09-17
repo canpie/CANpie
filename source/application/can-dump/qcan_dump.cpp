@@ -127,7 +127,7 @@ QCanDump::QCanDump(QObject *parent) :
    QObject::connect( &clCanSocketP, &QCanSocket::disconnected,  
                      this, &QCanDump::onSocketDisconnected);
    
-   QObject::connect( &clCanSocketP, QOverload<QAbstractSocket::SocketError>::of(&QCanSocket::error), 
+   QObject::connect( &clCanSocketP, &QCanSocket::errorOccurred,
                      this, &QCanDump::onSocketError);
 
    QObject::connect( &clCanSocketP, &QCanSocket::readyRead,     

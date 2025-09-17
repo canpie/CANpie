@@ -148,7 +148,7 @@ QCanSend::QCanSend(QObject *parent)
    QObject::connect( &clCanSocketP, &QCanSocket::disconnected,
                     this,           &QCanSend::onSocketDisconnected);
    
-   QObject::connect( &clCanSocketP, QOverload<QAbstractSocket::SocketError>::of(&QCanSocket::error), 
+   QObject::connect( &clCanSocketP, &QCanSocket::errorOccurred, 
                      this,          &QCanSend::onSocketError);
 
    
